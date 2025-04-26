@@ -9,7 +9,7 @@ const CLIENT_ID = "fc70ea11d5414f3ca0d81d376fe3dc76"; // ID do app oficial usado
 
 // URL de redirecionamento deve corresponder exatamente à configurada no Spotify Developer Dashboard
 // const REDIRECT_URI = window.location.origin + "/callback"; // URL dinâmica
-const REDIRECT_URI = "http://localhost:5173/callback"; // URL fixa para desenvolvimento atualizada
+const REDIRECT_URI = "https://track-by-track-662h86c29-jvprado1s-projects.vercel.app/"; // URL fixa para desenvolvimento atualizada
 const AUTH_ENDPOINT = "https://accounts.spotify.com/authorize";
 const RESPONSE_TYPE = "token";
 const SCOPES = [

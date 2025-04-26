@@ -25,7 +25,7 @@ const SCOPES = [
 const InstrucoesConfiguracao = () => {
   // Detectar URL atual para instruções mais precisas
   const portaAtual = window.location.port || "80";
-  const urlCompleta = `http://localhost:${portaAtual}/callback`;
+  const urlCompleta = `track-by-track.vercel.app/callback`;
 
   return (
     <div className="mt-8 p-4 bg-gray-800 rounded-lg text-left">

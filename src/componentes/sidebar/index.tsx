@@ -1,8 +1,7 @@
-import Logo from "./assets/Logo.svg";
+import Logo from "../../assets/logo.svg";
 import { FaUser } from "react-icons/fa";
 import { IoStarSharp } from "react-icons/io5";
 import { IoMdExit } from "react-icons/io";
-import "../../App.css";
 import { MdAlbum } from "react-icons/md";
 import SidebarItem from "./SideBarItem";
 import { Link, useNavigate } from "react-router-dom";

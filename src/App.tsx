@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
-import "./App.css";
-import Sidebar from "./componentes/sidebar/";
+import Sidebar from "./componentes/Sidebar/";
 import BarraDePesquisa from "./componentes/BarraDePesquisa";
 import Feed from "./componentes/Feed/Feed";
 import { Routes, Route, useNavigate, useLocation } from "react-router-dom";

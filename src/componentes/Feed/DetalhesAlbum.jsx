@@ -23,6 +23,8 @@ import {
   recarregarAvaliacoes,
 } from "../../services/avaliacoes";
 import { getUsuarioAtual, salvarAvaliacaoAlbum } from "../../services/firebase";
+import { doc, getDoc, updateDoc, arrayRemove } from "firebase/firestore";
+import { db } from "../../services/firebase";
 
 /**
  * Componente para exibir detalhes de um álbum e suas faixas
@@ -708,80 +710,109 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
     // Verificar se o usuário está logado no Firebase
     const usuarioFirebase = getUsuarioAtual();
 
-    // Criar avaliações vazias para o álbum
-    const novasAvaliacoes = { ...avaliacoes };
-    faixas.items.forEach((faixa) => {
-      novasAvaliacoes[faixa.id] = 0;
-    });
+    // Verificar se estamos no modo demonstração
+    const demoToken = localStorage.getItem("demo_token");
+    const demoExpiry = localStorage.getItem("demo_token_expiry");
+    const modoDemo =
+      demoToken && demoExpiry && parseInt(demoExpiry) > Date.now();
 
-    // Atualizar estados
+    // Atualizar estados locais
     setAvaliacoes({});
-
-    // Resetar faixa favorita e pior
     setFaixaFavorita(null);
     setPiorFaixa(null);
-
-    // Recalcular progresso (será zero porque removemos todas)
     setProgressoAvaliacao({
       avaliadas: 0,
       total: faixas.items.length,
       percentual: 0,
     });
 
-    if (usuarioFirebase) {
-      // Usuário logado no Firebase - remover diretamente no Firebase
+    if (usuarioFirebase && !modoDemo) {
       try {
+        // Remover diretamente do Firestore (banco de dados)
         if (detalhesAlbum) {
-          // Para remover no Firebase, salvamos com avaliações vazias/zeradas
-          await salvarAvaliacaoAlbum(
-            albumId,
-            {}, // Objeto vazio para remover todas as avaliações
-            detalhesAlbum.name,
-            detalhesAlbum.artists[0].name,
-            detalhesAlbum.images[0]?.url || ""
-          );
+          const userRef = doc(db, "usuarios", usuarioFirebase.uid);
+          const userDoc = await getDoc(userRef);
+
+          if (userDoc.exists()) {
+            // Encontrar o álbum nos álbuns avaliados
+            const albumsAvaliados = userDoc.data().albuns_avaliados || [];
+            const albumExistente = albumsAvaliados.find(
+              (album) => album.id === albumId
+            );
+
+            if (albumExistente) {
+              // Remover o álbum da lista
+              await updateDoc(userRef, {
+                albuns_avaliados: arrayRemove(albumExistente),
+              });
+
+              console.log("Álbum removido com sucesso do Firestore:", albumId);
+            }
+          }
         }
       } catch (error) {
         console.error("Erro ao remover álbum no Firebase:", error);
       }
     } else {
-      // Apenas para usuário não logado, usar localStorage
-      localStorage.removeItem(`preferencias_${albumId}`);
+      // Modo demo ou sem autenticação - usar localStorage
+      try {
+        // Remover preferências
+        localStorage.removeItem(`preferencias_${albumId}`);
 
-      // Obter avaliações e mapeamento de faixas
-      const avaliacoesExistentes = JSON.parse(
-        localStorage.getItem("avaliacoesFaixas") || "{}"
-      );
-      const mapaFaixasAlbuns = JSON.parse(
-        localStorage.getItem("mapaFaixasAlbuns") || "{}"
-      );
-
-      // Remover avaliações das faixas deste álbum
-      const novoMapaFaixas = { ...mapaFaixasAlbuns };
-      const novasAvaliacoesStorage = { ...avaliacoesExistentes };
-
-      faixas.items.forEach((faixa) => {
-        // Remover da avaliação
-        if (novasAvaliacoesStorage[faixa.id]) {
-          delete novasAvaliacoesStorage[faixa.id];
+        // Remover datas de avaliação do localStorage
+        const datasAvaliacoes = JSON.parse(
+          localStorage.getItem("datasAvaliacoes") || "{}"
+        );
+        if (datasAvaliacoes[albumId]) {
+          delete datasAvaliacoes[albumId];
+          localStorage.setItem(
+            "datasAvaliacoes",
+            JSON.stringify(datasAvaliacoes)
+          );
         }
 
-        // Remover do mapeamento
-        if (novoMapaFaixas[faixa.id]) {
-          delete novoMapaFaixas[faixa.id];
-        }
-      });
+        // Obter avaliações e mapeamento de faixas
+        const avaliacoesExistentes = JSON.parse(
+          localStorage.getItem("avaliacoesFaixas") || "{}"
+        );
+        const mapaFaixasAlbuns = JSON.parse(
+          localStorage.getItem("mapaFaixasAlbuns") || "{}"
+        );
 
-      // Salvar no localStorage
-      localStorage.setItem(
-        "avaliacoesFaixas",
-        JSON.stringify(novasAvaliacoesStorage)
-      );
-      localStorage.setItem("mapaFaixasAlbuns", JSON.stringify(novoMapaFaixas));
+        // Remover avaliações das faixas deste álbum
+        const novoMapaFaixas = { ...mapaFaixasAlbuns };
+        const novasAvaliacoesStorage = { ...avaliacoesExistentes };
 
-      // Notificar que as avaliações foram alteradas para acionar a sincronização
-      notificarAvaliacoesAlteradas();
+        faixas.items.forEach((faixa) => {
+          // Remover da avaliação
+          if (novasAvaliacoesStorage[faixa.id]) {
+            delete novasAvaliacoesStorage[faixa.id];
+          }
+
+          // Remover do mapeamento
+          if (novoMapaFaixas[faixa.id]) {
+            delete novoMapaFaixas[faixa.id];
+          }
+        });
+
+        // Salvar no localStorage
+        localStorage.setItem(
+          "avaliacoesFaixas",
+          JSON.stringify(novasAvaliacoesStorage)
+        );
+        localStorage.setItem(
+          "mapaFaixasAlbuns",
+          JSON.stringify(novoMapaFaixas)
+        );
+
+        console.log("Álbum removido com sucesso do localStorage:", albumId);
+      } catch (error) {
+        console.error("Erro ao remover álbum do localStorage:", error);
+      }
     }
+
+    // Notificar que as avaliações foram alteradas para acionar a sincronização
+    notificarAvaliacoesAlteradas();
 
     // Esconder confirmação e voltar à lista de álbuns
     setMostrarConfirmacao(null);

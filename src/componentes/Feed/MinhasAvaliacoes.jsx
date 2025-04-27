@@ -1,13 +1,14 @@
 import { MdReportProblem } from "react-icons/md";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import DetalhesAlbum from "./DetalhesAlbum";
 import FiltroAvaliacoes from "./Filtros/FiltroAvaliacoes";
 import CardAlbumAvaliado from "./Cards/CardAlbumAvaliado";
 import useAvaliacoes from "../../hooks/useAvaliacoes";
 import Carregamento from "../Feedback/Carregamento";
 import ErroCarregamento from "../Feedback/ErroCarregamento";
-import { isAuthenticated } from "../../services/auth";
+import { isAuthenticated, recuperarAutenticacao } from "../../services/auth";
 import { loginWithClientCredentials } from "../../services/api";
+import { configurarSincronizacaoAutomatica } from "../../services/avaliacoes";
 
 /**
  * Componente de barra de progresso para carregamento
@@ -30,12 +31,65 @@ const BarraProgresso = ({ progresso }) => {
 };
 
 /**
+ * Componente que envolve outro para capturar erros
+ */
+class TratadorErros extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { temErro: false, mensagemErro: "" };
+  }
+
+  static getDerivedStateFromError(erro) {
+    return {
+      temErro: true,
+      mensagemErro: erro.message || "Ocorreu um erro inesperado",
+    };
+  }
+
+  componentDidCatch(erro, infoErro) {
+    console.error("Erro no componente:", erro, infoErro);
+  }
+
+  render() {
+    if (this.state.temErro) {
+      return (
+        <div className="p-8 text-center">
+          <div className="text-red-500 mb-4">
+            <MdReportProblem size={48} className="mx-auto" />
+          </div>
+          <h2 className="text-2xl font-bold text-red-400 mb-4">
+            Ops! Algo deu errado
+          </h2>
+          <p className="text-gray-400 mb-6">
+            Ocorreu um erro ao tentar exibir suas avaliações. Tente atualizar a
+            página.
+          </p>
+          <p className="text-gray-500 text-sm mt-3 mb-6">
+            Detalhes: {this.state.mensagemErro}
+          </p>
+          <button
+            onClick={() => window.location.reload()}
+            className="bg-verde-destaque hover:bg-verde-destaque/80 text-white font-bold py-2 px-6 rounded-full focus:outline-none focus:shadow-outline transition-all cursor-pointer"
+          >
+            Recarregar Página
+          </button>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
+
+/**
  * Componente para exibir álbuns avaliados pelo usuário
  * @returns {JSX.Element} Componente de álbuns avaliados
  */
 const MinhasAvaliacoes = () => {
   const [autenticado, setAutenticado] = useState(isAuthenticated());
   const [carregandoAuth, setCarregandoAuth] = useState(false);
+  const [tentouRecuperar, setTentouRecuperar] = useState(false);
+  const [carregandoTela, setCarregandoTela] = useState(true);
 
   const {
     albunsExibidos,
@@ -57,20 +111,122 @@ const MinhasAvaliacoes = () => {
     recarregarListaAlbuns,
   } = useAvaliacoes();
 
+  // Tentar recuperar autenticação automaticamente ao montar o componente
   useEffect(() => {
-    setAutenticado(isAuthenticated());
+    const tentarRecuperarAutenticacao = async () => {
+      try {
+        console.log(
+          "Estado de autenticação:",
+          isAuthenticated() ? "Autenticado" : "Não autenticado"
+        );
+
+        // Verificar se existe um usuário de demonstração
+        const demoToken = localStorage.getItem("demo_token");
+        const demoExpiry = localStorage.getItem("demo_token_expiry");
+        const demoAtivo =
+          demoToken && demoExpiry && parseInt(demoExpiry) > Date.now();
+
+        if (demoAtivo) {
+          console.log("Usuário demo detectado e válido");
+          setAutenticado(true);
+          setCarregandoTela(false);
+          return;
+        }
+
+        if (!isAuthenticated() && !tentouRecuperar) {
+          setCarregandoAuth(true);
+          setTentouRecuperar(true);
+          console.log("Tentando recuperar autenticação automaticamente...");
+
+          const recuperado = await recuperarAutenticacao();
+          console.log(
+            "Resultado da recuperação automática:",
+            recuperado ? "Sucesso" : "Falha"
+          );
+
+          if (recuperado) {
+            console.log("Autenticação recuperada com sucesso!");
+            setAutenticado(true);
+            tentarNovamente();
+          }
+        }
+      } catch (erro) {
+        console.error("Erro na recuperação automática:", erro);
+      } finally {
+        setCarregandoAuth(false);
+        setCarregandoTela(false);
+      }
+    };
+
+    tentarRecuperarAutenticacao();
+  }, [tentouRecuperar]);
+
+  // Verificar autenticação quando o componente é montado
+  useEffect(() => {
+    const verificarAuth = () => {
+      try {
+        // Verificar se existe um usuário de demonstração
+        const demoToken = localStorage.getItem("demo_token");
+        const demoExpiry = localStorage.getItem("demo_token_expiry");
+        const demoAtivo =
+          demoToken && demoExpiry && parseInt(demoExpiry) > Date.now();
+
+        // Verificar autenticação normal ou modo de demonstração
+        const estadoAuth = isAuthenticated() || demoAtivo;
+        console.log(
+          "Verificação periódica - autenticado:",
+          estadoAuth,
+          demoAtivo ? "(modo demo)" : ""
+        );
+        setAutenticado(estadoAuth);
+        setCarregandoTela(false);
+      } catch (erro) {
+        console.error("Erro ao verificar autenticação:", erro);
+        setCarregandoTela(false);
+      }
+    };
+
+    verificarAuth();
+
+    // Verificar periodicamente o estado de autenticação para atualizar a UI
+    const intervalo = setInterval(verificarAuth, 2000);
+
+    return () => clearInterval(intervalo);
   }, []);
 
   const fazerLoginDemo = async () => {
     setCarregandoAuth(true);
     try {
-      const sucesso = await loginWithClientCredentials();
-      if (sucesso) {
-        setAutenticado(true);
-        window.location.reload(); // Recarregar a página para atualizar o estado de autenticação
-      } else {
-        console.error("Falha ao fazer login no modo de demonstração");
-      }
+      console.log("Iniciando login no modo demonstração...");
+
+      // Criar um "usuário demo" no localStorage
+      const usuarioDemo = {
+        id: "usuario-demo-" + Date.now(),
+        nome: "Usuário Demo",
+        email: "demo@example.com",
+        tipo: "demo",
+      };
+
+      // Salvar token demo com validade de 7 dias
+      const dataExpiracao = Date.now() + 7 * 24 * 60 * 60 * 1000;
+      localStorage.setItem("demo_usuario", JSON.stringify(usuarioDemo));
+      localStorage.setItem("demo_token", "demo_" + Date.now());
+      localStorage.setItem("demo_token_expiry", dataExpiracao.toString());
+
+      // Inicializar estruturas de dados para avaliações se não existirem
+      localStorage.setItem("avaliacoesFaixas", JSON.stringify({}));
+      localStorage.setItem("mapaFaixasAlbuns", JSON.stringify({}));
+      localStorage.setItem("datasAvaliacoes", JSON.stringify({}));
+      localStorage.setItem("preferenciasAlbuns", JSON.stringify({}));
+
+      // Sinalizar que o modo de demonstração está ativo
+      localStorage.setItem("modo_demo_ativo", "true");
+
+      // Configurar sincronização automática entre localStorage e memória
+      configurarSincronizacaoAutomatica();
+
+      // Recarregar a página para garantir que o contexto de autenticação reconheça o usuário demo
+      window.location.reload();
     } catch (erro) {
       console.error("Erro ao tentar fazer login:", erro);
     } finally {
@@ -82,6 +238,11 @@ const MinhasAvaliacoes = () => {
     // Recarregar álbuns, mantendo a indicação de progresso visível
     recarregarListaAlbuns();
   };
+
+  // Exibir indicador de carregamento enquanto verificamos a autenticação
+  if (carregandoTela) {
+    return <Carregamento />;
+  }
 
   // Se não estiver autenticado, mostrar mensagem e botão para fazer login no modo demo
   if (!autenticado) {
@@ -96,8 +257,8 @@ const MinhasAvaliacoes = () => {
         </p>
         <button
           onClick={fazerLoginDemo}
+          className="bg-verde-destaque hover:bg-verde-destaque/80 text-white font-bold py-2 px-6 rounded-full focus:outline-none focus:shadow-outline transition-all cursor-pointer"
           disabled={carregandoAuth}
-          className="bg-verde-destaque hover:bg-verde-destaque/80 text-white font-bold py-2 px-6 rounded-full focus:outline-none focus:shadow-outline transition-all"
         >
           {carregandoAuth ? "Carregando..." : "Entrar no Modo Demonstração"}
         </button>
@@ -151,7 +312,7 @@ const MinhasAvaliacoes = () => {
 
         <button
           onClick={atualizarListaAlbuns}
-          className="text-sm bg-verde-destaque/20 hover:bg-verde-destaque/30 text-verde-destaque px-3 py-1 rounded-full transition-colors"
+          className="text-sm bg-verde-destaque/20 hover:bg-verde-destaque/30 text-verde-destaque px-3 py-1 rounded-full transition-colors hover:cursor-pointer"
         >
           Atualizar
         </button>
@@ -198,4 +359,11 @@ const MinhasAvaliacoes = () => {
   );
 };
 
-export default MinhasAvaliacoes;
+// Componente MinhasAvaliacoes envolvido pelo TratadorErros
+const MinhasAvaliacoesComTratamentoErro = () => (
+  <TratadorErros>
+    <MinhasAvaliacoes />
+  </TratadorErros>
+);
+
+export default MinhasAvaliacoesComTratamentoErro;

@@ -72,9 +72,7 @@ const MostrarTopArtistas = ({ termoPesquisa }) => {
               <h2 className="font-bold text-lg mb-2 line-clamp-2">
                 {artista.name}
               </h2>
-              <p className="text-verde-destaque mb-1">
-                Popularidade: {artista.popularity}
-              </p>
+
               <p className="text-sm text-gray-400">
                 Seguidores: {artista.followers?.total.toLocaleString()}
               </p>

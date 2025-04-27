@@ -1,26 +1,49 @@
 const CLIENT_ID = "fc70ea11d5414f3ca0d81d376fe3dc76";
 const CLIENT_SECRET = "41551235bbb7440c9bb0728a61020fde";
+import { saveAuth, saveUserData, isAuthenticated } from "./auth";
 
 // Função para obter o token de acesso
 export const getSpotifyToken = async () => {
-  // Codifique as credenciais em Base64
-  const credentials = btoa(`${CLIENT_ID}:${CLIENT_SECRET}`);
+  try {
+    console.log("[API] Solicitando token de acesso do Spotify");
 
-  // Faça a requisição para obter o token
-  const response = await fetch("https://accounts.spotify.com/api/token", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/x-www-form-urlencoded",
-      Authorization: `Basic ${credentials}`,
-    },
-    body: "grant_type=client_credentials",
-  });
+    // Codifique as credenciais em Base64
+    const credentials = btoa(`${CLIENT_ID}:${CLIENT_SECRET}`);
 
-  // Extraia os dados da resposta
-  const data = await response.json();
+    // Faça a requisição para obter o token
+    const response = await fetch("https://accounts.spotify.com/api/token", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+        Authorization: `Basic ${credentials}`,
+      },
+      body: "grant_type=client_credentials",
+    });
 
-  // Retorne o token de acesso
-  return data.access_token;
+    if (!response.ok) {
+      const errorData = await response.text();
+      console.error(
+        "[API] Erro na resposta do Spotify:",
+        response.status,
+        errorData
+      );
+      return null;
+    }
+
+    // Extraia os dados da resposta
+    const data = await response.json();
+    console.log(
+      "[API] Token obtido com sucesso, expira em:",
+      data.expires_in,
+      "segundos"
+    );
+
+    // Retorne o token de acesso
+    return data.access_token;
+  } catch (error) {
+    console.error("[API] Erro ao obter token:", error);
+    return null;
+  }
 };
 
 /**
@@ -31,38 +54,44 @@ export const getSpotifyToken = async () => {
  */
 export const loginWithClientCredentials = async () => {
   try {
-    console.log("Iniciando login com Client Credentials Flow...");
+    console.log("[API] Iniciando login com Client Credentials Flow...");
+
+    // Verificar se já está autenticado
+    if (isAuthenticated()) {
+      console.log("[API] Usuário já está autenticado, não é necessário login");
+      return true;
+    }
 
     // Obter token usando Client Credentials
     const token = await getSpotifyToken();
     if (!token) {
-      console.error("Não foi possível obter token de acesso");
+      console.error("[API] Não foi possível obter token de acesso");
       return false;
     }
 
-    console.log("Token obtido com sucesso via Client Credentials");
+    console.log("[API] Token obtido com sucesso via Client Credentials");
 
     // Salvar o token com validade de 1 hora
-    localStorage.setItem("spotify_token", token);
-    localStorage.setItem(
-      "spotify_token_expiry",
-      (Date.now() + 3600 * 1000).toString()
-    );
+    saveAuth(token, 3600);
 
     // Criar um usuário "genérico" porque Client Credentials não dá acesso aos dados do usuário
-    localStorage.setItem(
-      "spotify_user",
-      JSON.stringify({
-        id: "client_credentials_user",
-        name: "Usuário App",
-        email: "app@example.com",
-        image: null,
-      })
+    saveUserData({
+      id: "client_credentials_user",
+      display_name: "Usuário App",
+      email: "app@example.com",
+      images: [{ url: null }],
+    });
+
+    // Verificar se a autenticação foi bem-sucedida
+    const authenticated = isAuthenticated();
+    console.log(
+      "[API] Autenticação realizada, estado atual:",
+      authenticated ? "Sucesso" : "Falha"
     );
 
-    return true;
+    return authenticated;
   } catch (error) {
-    console.error("Erro ao fazer login com Client Credentials:", error);
+    console.error("[API] Erro ao fazer login com Client Credentials:", error);
     return false;
   }
 };

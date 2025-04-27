@@ -9,7 +9,7 @@ const Splash = () => {
   const handleContinue = () => {
     setAnimationComplete(true);
     setTimeout(() => {
-      navigate("/login");
+      navigate("/login-firebase");
     }, 300);
   };
 
@@ -44,9 +44,9 @@ const Splash = () => {
         <div className="animate-fadeIn" style={{ animationDelay: "0.6s" }}>
           <button
             onClick={handleContinue}
-            className="bg-verde-destaque text-gray-900 font-bold py-3 px-8 rounded-full hover:bg-opacity-90 transition-all transform hover:scale-105"
+            className="bg-verde-destaque text-gray-900 font-bold py-3 px-8 rounded-full hover:bg-opacity-90 transition-all transform hover:scale-105 cursor-pointer"
           >
-            Continuar
+            Entrar ou Cadastrar
           </button>
         </div>
       </div>

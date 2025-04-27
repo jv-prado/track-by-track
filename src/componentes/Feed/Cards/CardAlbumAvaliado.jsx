@@ -9,6 +9,13 @@ import { MdReportProblem } from "react-icons/md";
  * @returns {JSX.Element} Componente de cartão de álbum
  */
 const CardAlbumAvaliado = ({ album, setAlbumSelecionado }) => {
+  // Verificação defensiva para garantir que progressoAvaliacao exista
+  const progressoAvaliacao = album.progressoAvaliacao || {
+    avaliadas: 0,
+    total: 0,
+    percentual: 0,
+  };
+
   return (
     <div
       key={album.id}
@@ -35,7 +42,7 @@ const CardAlbumAvaliado = ({ album, setAlbumSelecionado }) => {
         {album.name}
       </h3>
       <p className="text-verde-destaque text-xs md:text-sm mb-1 line-clamp-1">
-        {album.artists.map((a) => a.name).join(", ")}
+        {album.artists?.map((a) => a.name).join(", ") || "Artista desconhecido"}
       </p>
 
       {/* Informações de avaliação */}
@@ -43,7 +50,7 @@ const CardAlbumAvaliado = ({ album, setAlbumSelecionado }) => {
         {/* Nota média */}
         <div className="flex items-center mt-2 mb-1">
           <span className="text-base md:text-lg font-bold mr-1 text-verde-destaque">
-            {album.mediaAvaliacao}
+            {album.mediaAvaliacao || "0.0"}
           </span>
           <span className="text-xs text-gray-400">/10</span>
         </div>
@@ -54,16 +61,15 @@ const CardAlbumAvaliado = ({ album, setAlbumSelecionado }) => {
             <div className="flex justify-between text-xs mb-1">
               <span className="text-gray-400 text-[10px]">Avaliado:</span>
               <span className="text-gray-400 text-[10px]">
-                {album.progressoAvaliacao.avaliadas}/
-                {album.progressoAvaliacao.total} (
-                {album.progressoAvaliacao.percentual}%)
+                {progressoAvaliacao.avaliadas}/{progressoAvaliacao.total} (
+                {progressoAvaliacao.percentual}%)
               </span>
             </div>
             <div className="w-full h-1.5 bg-cinza rounded-full overflow-hidden">
               <div
                 className="h-full bg-verde-destaque transition-all duration-300 ease-in-out"
                 style={{
-                  width: `${album.progressoAvaliacao.percentual}%`,
+                  width: `${progressoAvaliacao.percentual}%`,
                 }}
               ></div>
             </div>

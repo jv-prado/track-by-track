@@ -1,47 +1,108 @@
 /**
- * Serviço para sincronizar dados entre diferentes abas do navegador
+ * Serviço para sincronizar dados com o Firebase
  */
+import {
+  obterAlbunsAvaliados,
+  salvarAvaliacaoAlbum,
+  getUsuarioAtual,
+} from "./firebase";
+import { buscarDetalhesAlbum } from "./spotify";
 
 /**
  * Sincroniza dados do usuário com o serviço de banco de dados
- * @param {string} userId - ID do usuário
- * @param {Object} data - Dados a serem sincronizados
  */
-export const sincronizarAvaliacoes = () => {
+export const sincronizarAvaliacoes = async () => {
   try {
-    // Obtém o ID do usuário do localStorage
-    const dadosUsuario = localStorage.getItem("spotify_user");
-    if (!dadosUsuario) return;
+    // Verificar se o usuário está logado no Firebase
+    const usuarioFirebase = getUsuarioAtual();
 
-    const user = JSON.parse(dadosUsuario);
-    if (!user.id) return;
+    // Apenas continuamos se o usuário estiver autenticado no Firebase
+    if (usuarioFirebase) {
+      await carregarDoFirebase();
+      return true;
+    }
 
-    // Obtém as avaliações e faixas do localStorage
-    const avaliacoesFaixas = localStorage.getItem("avaliacoesFaixas") || "{}";
-    const mapaFaixasAlbuns = localStorage.getItem("mapaFaixasAlbuns") || "{}";
-
-    // Cria um registro de sincronização
-    const sincronizacao = {
-      userId: user.id,
-      timestamp: Date.now(),
-      avaliacoesFaixas: JSON.parse(avaliacoesFaixas),
-      mapaFaixasAlbuns: JSON.parse(mapaFaixasAlbuns),
-    };
-
-    // Salva no localStorage com um formato que permite identificar
-    localStorage.setItem(`sync_${user.id}`, JSON.stringify(sincronizacao));
-
-    // Dispara um evento para notificar outras abas
-    window.dispatchEvent(
-      new StorageEvent("storage", {
-        key: `sync_${user.id}`,
-        newValue: JSON.stringify(sincronizacao),
-      })
-    );
-
-    console.log("Avaliações sincronizadas com sucesso!");
+    return false;
   } catch (error) {
     console.error("Erro ao sincronizar avaliações:", error);
+    return false;
+  }
+};
+
+/**
+ * Sincroniza avaliações com o Firebase
+ * @param {Object} avaliacoesFaixas - Avaliações de faixas
+ * @param {Object} mapaFaixasAlbuns - Mapa de faixas para álbuns
+ */
+export const sincronizarComFirebase = async (
+  avaliacoesFaixas,
+  mapaFaixasAlbuns
+) => {
+  try {
+    // Obter conjunto de IDs de álbuns únicos das faixas avaliadas
+    const idsAlbuns = new Set();
+
+    Object.entries(avaliacoesFaixas).forEach(([idFaixa, avaliacao]) => {
+      if (avaliacao > 0 && mapaFaixasAlbuns[idFaixa]) {
+        idsAlbuns.add(mapaFaixasAlbuns[idFaixa]);
+      }
+    });
+
+    // Para cada álbum, salvar as avaliações no Firebase
+    const albumPromises = Array.from(idsAlbuns).map(async (albumId) => {
+      try {
+        // Buscar detalhes do álbum do Spotify
+        const detalhesAlbum = await buscarDetalhesAlbum(albumId);
+
+        // Filtrar as avaliações apenas para as faixas deste álbum
+        const avaliacoesDoAlbum = {};
+        Object.entries(avaliacoesFaixas).forEach(([idFaixa, avaliacao]) => {
+          if (mapaFaixasAlbuns[idFaixa] === albumId && avaliacao > 0) {
+            avaliacoesDoAlbum[idFaixa] = avaliacao;
+          }
+        });
+
+        // Carregar preferências do álbum
+        const prefsFaixas = JSON.parse(
+          localStorage.getItem(`preferencias_${albumId}`) || "{}"
+        );
+
+        // Preparar objeto de preferências
+        const preferencias = {};
+        if (prefsFaixas.favorita || prefsFaixas.faixaFavorita) {
+          preferencias.faixaFavorita =
+            prefsFaixas.faixaFavorita || prefsFaixas.favorita;
+        }
+        if (prefsFaixas.pior || prefsFaixas.piorFaixa) {
+          preferencias.piorFaixa = prefsFaixas.piorFaixa || prefsFaixas.pior;
+        }
+
+        // Salvar no Firebase
+        await salvarAvaliacaoAlbum(
+          albumId,
+          avaliacoesDoAlbum,
+          detalhesAlbum.name,
+          detalhesAlbum.artists[0].name,
+          detalhesAlbum.images[0]?.url || "",
+          Object.keys(preferencias).length > 0 ? preferencias : null
+        );
+
+        return true;
+      } catch (error) {
+        console.error(`Erro ao salvar álbum ${albumId}:`, error);
+        return false;
+      }
+    });
+
+    await Promise.all(albumPromises);
+    console.log("Sincronização com Firebase concluída!");
+
+    // Após sincronizar, carregar os dados do Firebase
+    await carregarDoFirebase();
+    return true;
+  } catch (error) {
+    console.error("Erro na sincronização com Firebase:", error);
+    return false;
   }
 };
 
@@ -54,7 +115,7 @@ export const configurarSincronizacao = () => {
     sincronizarAvaliacoes();
   };
 
-  // Adiciona eventos para monitorar alterações no localStorage
+  // Adiciona eventos para monitorar alterações
   window.addEventListener("avaliacoes_alteradas", sincronizarAoAlterar);
 
   // Retorna função para remover os listeners
@@ -71,53 +132,56 @@ export const notificarAvaliacoesAlteradas = () => {
 };
 
 /**
- * Carrega os dados de avaliações sincronizados do localStorage
+ * Carrega os dados de avaliações sincronizados do Firebase
  */
-export const carregarAvaliacoesSincronizadas = () => {
+export const carregarAvaliacoesSincronizadas = async () => {
   try {
-    // Obtém o ID do usuário do localStorage
-    const dadosUsuario = localStorage.getItem("spotify_user");
-    if (!dadosUsuario) return false;
+    // Verificar se há usuário Firebase
+    const usuarioFirebase = getUsuarioAtual();
 
-    const user = JSON.parse(dadosUsuario);
-    if (!user.id) return false;
-
-    // Verifica se existem dados sincronizados
-    const dadosSincronizados = localStorage.getItem(`sync_${user.id}`);
-    if (!dadosSincronizados) return false;
-
-    // Parse dos dados sincronizados
-    const sincronizacao = JSON.parse(dadosSincronizados);
-
-    // Verifica se os dados são do usuário atual
-    if (sincronizacao.userId !== user.id) return false;
-
-    // Verifica se os dados são mais recentes
-    const timestampLocal = localStorage.getItem(
-      "ultima_atualizacao_avaliacoes"
-    );
-    if (timestampLocal && parseInt(timestampLocal) >= sincronizacao.timestamp) {
-      return false;
+    // Se tiver usuário Firebase, carrega do Firebase
+    if (usuarioFirebase) {
+      console.log("Usuário Firebase detectado, carregando do banco de dados");
+      const atualizadoDoFirebase = await carregarDoFirebase();
+      return atualizadoDoFirebase;
     }
 
-    // Atualiza os dados locais
-    localStorage.setItem(
-      "avaliacoesFaixas",
-      JSON.stringify(sincronizacao.avaliacoesFaixas)
-    );
-    localStorage.setItem(
-      "mapaFaixasAlbuns",
-      JSON.stringify(sincronizacao.mapaFaixasAlbuns)
-    );
-    localStorage.setItem(
-      "ultima_atualizacao_avaliacoes",
-      sincronizacao.timestamp.toString()
-    );
-
-    console.log("Avaliações atualizadas a partir da sincronização!");
-    return true;
+    return false;
   } catch (error) {
     console.error("Erro ao carregar avaliações sincronizadas:", error);
     return false;
+  }
+};
+
+/**
+ * Carrega avaliações do Firebase
+ * @returns {Promise<Object>} Dados carregados do Firebase
+ */
+const carregarDoFirebase = async () => {
+  try {
+    // Obter álbuns do Firebase
+    const albunsFirebase = await obterAlbunsAvaliados();
+    if (!albunsFirebase || albunsFirebase.length === 0) {
+      return { avaliacoesFaixas: {}, mapaFaixasAlbuns: {} };
+    }
+
+    // Objeto para armazenar todas as avaliações
+    let avaliacoesFaixas = {};
+    let mapaFaixasAlbuns = {};
+
+    // Para cada álbum do Firebase, processar dados
+    albunsFirebase.forEach((album) => {
+      // Atualizar avaliações de faixas
+      Object.entries(album.avaliacoes).forEach(([idFaixa, avaliacao]) => {
+        avaliacoesFaixas[idFaixa] = avaliacao;
+        mapaFaixasAlbuns[idFaixa] = album.id;
+      });
+    });
+
+    console.log("Avaliações carregadas a partir do Firebase!");
+    return { avaliacoesFaixas, mapaFaixasAlbuns };
+  } catch (error) {
+    console.error("Erro ao carregar dados do Firebase:", error);
+    return { avaliacoesFaixas: {}, mapaFaixasAlbuns: {} };
   }
 };

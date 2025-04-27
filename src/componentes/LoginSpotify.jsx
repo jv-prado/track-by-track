@@ -223,7 +223,7 @@ const LoginSpotify = () => {
           <button
             onClick={handleLoginClientCredentials}
             disabled={carregandoClientCreds}
-            className={`mt-4 w-full bg-purple-900 text-gray-200 py-3 px-6 rounded-full font-medium hover:bg-purple-800 transition-all flex items-center justify-center ${
+            className={`mt-4 w-full bg-purple-900 text-gray-200 py-3 px-6 rounded-full font-medium hover:bg-purple-800 transition-all flex items-center justify-center cursor-pointer ${
               carregandoClientCreds
                 ? "opacity-70 cursor-wait"
                 : "cursor-pointer hover:scale-105 transform"

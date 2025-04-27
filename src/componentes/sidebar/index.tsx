@@ -1,19 +1,33 @@
 import Logo from "./assets/Logo.svg";
-import { FaUser, FaSpotify } from "react-icons/fa";
+import { FaUser } from "react-icons/fa";
 import { IoStarSharp } from "react-icons/io5";
 import { IoMdExit } from "react-icons/io";
 import "../../App.css";
 import { MdAlbum } from "react-icons/md";
 import SidebarItem from "./SideBarItem";
-import { Link } from "react-router-dom";
-import { isAuthenticated, logout } from "../../services/auth";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../../contexts/AuthContext";
+import { fazerLogout } from "../../services/firebase";
 
 export default function Sidebar({ activeView, setActiveView }) {
-  const autenticado = isAuthenticated();
+  const { usuario: usuarioFirebase, usuarioDemo, usuarioAtivo } = useAuth();
+  const navigate = useNavigate();
 
-  const handleLogout = () => {
-    logout();
-    window.location.href = "/login";
+  const handleLogout = async () => {
+    // Se for usuário demo, limpar os dados do localStorage
+    if (usuarioDemo) {
+      localStorage.removeItem("demo_token");
+      localStorage.removeItem("demo_token_expiry");
+      localStorage.removeItem("demo_usuario");
+      window.location.href = "/login-firebase";
+      return;
+    }
+
+    // Se for usuário Firebase, fazer logout normal
+    if (usuarioFirebase) {
+      await fazerLogout();
+    }
+    navigate("/login-firebase");
   };
 
   return (
@@ -27,14 +41,13 @@ export default function Sidebar({ activeView, setActiveView }) {
       </Link>
       <nav className="flex flex-col w-full">
         <ul className="flex flex-col gap-6 md:gap-12 text-center w-full">
-          {!autenticado ? (
+          {!usuarioAtivo ? (
             // Botão de login quando não está autenticado
             <Link
-              to="/login"
-              className="bg-[#1DB954] text-white py-2 px-4 rounded-full font-medium hover:bg-[#1ED760] transition-all transform hover:scale-105 flex items-center justify-center gap-2 shadow-lg"
+              to="/login-firebase"
+              className="bg-verde-destaque text-white py-2 px-4 rounded-full font-medium hover:bg-verde-destaque/90 transition-all transform hover:scale-105 flex items-center justify-center gap-2 shadow-lg"
             >
-              <FaSpotify className="text-xl" />
-              Entrar com Spotify
+              Entrar na sua conta
             </Link>
           ) : (
             // Itens de navegação quando está autenticado

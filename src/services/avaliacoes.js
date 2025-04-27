@@ -1,31 +1,17 @@
 /**
- * Services relacionados às avaliações de álbuns e faixas
+ * Serviço para gerenciar avaliações de álbuns e faixas
  */
-import { buscarDetalhesAlbum, buscarFaixasPorAlbum } from "./spotify";
+import { buscarDetalhesAlbum } from "./spotify";
 
-// Cache para armazenar detalhes de álbuns já buscados
+// Cache em memória para álbuns (substitui localStorage)
 const cacheAlbuns = {};
 
-/**
- * Obtém os IDs de álbuns únicos a partir das avaliações de faixas
- * @param {Object} avaliacoesFaixas - Objeto contendo as avaliações das faixas
- * @returns {Array} Array de IDs de álbuns únicos
- */
-export const obterAlbunsUnicos = (avaliacoesFaixas) => {
-  // Mapear IDs de faixas para IDs de álbuns
-  const mapaDeFaixas = JSON.parse(
-    localStorage.getItem("mapaFaixasAlbuns") || "{}"
-  );
-  const idsAlbunsAvaliados = new Set();
-
-  // Coletar IDs de álbuns únicos que têm faixas avaliadas
-  Object.entries(avaliacoesFaixas).forEach(([idFaixa, avaliacao]) => {
-    if (avaliacao > 0 && mapaDeFaixas[idFaixa]) {
-      idsAlbunsAvaliados.add(mapaDeFaixas[idFaixa]);
-    }
-  });
-
-  return Array.from(idsAlbunsAvaliados);
+// Armazenamento em memória para avaliações (substitui localStorage)
+const memoriaAvaliacoes = {
+  avaliacoesFaixas: {},
+  mapaFaixasAlbuns: {},
+  datasAvaliacoes: {},
+  preferenciasAlbuns: {},
 };
 
 /**
@@ -36,9 +22,7 @@ export const obterAlbunsUnicos = (avaliacoesFaixas) => {
 export const registrarDataAvaliacao = (faixaId, avaliacao) => {
   try {
     // Obter o mapa de faixas para álbuns
-    const mapaFaixasAlbuns = JSON.parse(
-      localStorage.getItem("mapaFaixasAlbuns") || "{}"
-    );
+    const mapaFaixasAlbuns = memoriaAvaliacoes.mapaFaixasAlbuns;
 
     // Se não tiver informação sobre o álbum desta faixa, não fazer nada
     if (!mapaFaixasAlbuns[faixaId]) return;
@@ -47,9 +31,7 @@ export const registrarDataAvaliacao = (faixaId, avaliacao) => {
     const agora = new Date();
 
     // Obter o registro de datas de avaliação ou criar um novo
-    const datasAvaliacoes = JSON.parse(
-      localStorage.getItem("datas_avaliacoes") || "{}"
-    );
+    const datasAvaliacoes = memoriaAvaliacoes.datasAvaliacoes;
 
     // Se não existir registro para este álbum, criar novo
     if (!datasAvaliacoes[albumId]) {
@@ -61,9 +43,6 @@ export const registrarDataAvaliacao = (faixaId, avaliacao) => {
       // Atualizar apenas a data da última avaliação
       datasAvaliacoes[albumId].ultima = agora.toISOString();
     }
-
-    // Salvar de volta no localStorage
-    localStorage.setItem("datas_avaliacoes", JSON.stringify(datasAvaliacoes));
   } catch (erro) {
     console.warn("Erro ao registrar data de avaliação:", erro);
   }
@@ -76,9 +55,7 @@ export const registrarDataAvaliacao = (faixaId, avaliacao) => {
  */
 export const obterDatasAvaliacao = (albumId) => {
   try {
-    const datasAvaliacoes = JSON.parse(
-      localStorage.getItem("datas_avaliacoes") || "{}"
-    );
+    const datasAvaliacoes = memoriaAvaliacoes.datasAvaliacoes;
 
     if (!datasAvaliacoes[albumId]) {
       return {
@@ -105,79 +82,60 @@ export const obterDatasAvaliacao = (albumId) => {
 
 /**
  * Formata uma data para exibição
- * @param {Date} data - Objeto Date
- * @returns {string} Data formatada (DD/MM/YYYY)
+ * @param {Date} data - Data a ser formatada
+ * @returns {string} Data formatada
  */
 export const formatarData = (data) => {
-  if (!data) return "Não disponível";
+  if (!data) return "";
 
-  return data.toLocaleDateString("pt-BR", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-  });
+  try {
+    // Formatar a data para o locale pt-BR
+    return new Intl.DateTimeFormat("pt-BR", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    }).format(data);
+  } catch (erro) {
+    console.warn("Erro ao formatar data:", erro);
+    return data.toLocaleString();
+  }
 };
 
-/**
- * Calcula a média das avaliações para um álbum
- * @param {string} idAlbum - ID do álbum
- * @param {Object} avaliacoesFaixas - Objeto contendo as avaliações das faixas
- * @param {Object} mapaFaixasAlbuns - Objeto mapeando faixas para álbuns
- * @returns {string} Média das avaliações em escala de 0-10 (com 1 casa decimal)
- */
-export const calcularMediaAlbum = (
-  idAlbum,
-  avaliacoesFaixas,
-  mapaFaixasAlbuns
-) => {
-  const faixasDoAlbum = Object.entries(mapaFaixasAlbuns)
-    .filter(([, albumId]) => albumId === idAlbum)
-    .map(([faixaId]) => faixaId);
-
-  if (faixasDoAlbum.length === 0) return "0.0";
-
-  const somaAvaliacoes = faixasDoAlbum.reduce((soma, faixaId) => {
-    return soma + (avaliacoesFaixas[faixaId] || 0);
-  }, 0);
-
-  // Média em escala de 0-5
-  const media = somaAvaliacoes / faixasDoAlbum.length;
-  // Convertendo para escala de 0-10 (arredondando para 1 casa decimal)
-  return (media * 2).toFixed(1);
-};
+// Variável para controlar se a migração já foi executada
+let migracaoExecutada = false;
 
 /**
- * Calcula o progresso das avaliações para um álbum
- * @param {string} idAlbum - ID do álbum
- * @param {Object} avaliacoesFaixas - Objeto contendo as avaliações das faixas
- * @param {Object} mapaFaixasAlbuns - Objeto mapeando faixas para álbuns
- * @param {number} totalFaixas - Total de faixas no álbum
- * @returns {Object} Objeto com informações de progresso (avaliadas, total, percentual)
+ * Migra dados de avaliações antigas para incluir datas de avaliação
+ * Este processo só precisa ser executado uma vez por sessão
  */
-export const calcularProgressoAvaliacao = (
-  idAlbum,
-  avaliacoesFaixas,
-  mapaFaixasAlbuns,
-  totalFaixas
-) => {
-  const faixasDoAlbum = Object.entries(mapaFaixasAlbuns)
-    .filter(([, albumId]) => albumId === idAlbum)
-    .map(([faixaId]) => faixaId);
+export const migrarDadosAvaliacoes = () => {
+  // Se já foi executada, não fazer nada
+  if (migracaoExecutada) return;
+  migracaoExecutada = true;
 
-  if (faixasDoAlbum.length === 0 || !totalFaixas)
-    return { avaliadas: 0, total: 0, percentual: 0 };
+  console.log("Iniciando migração de dados de avaliações...");
 
-  const avaliadas = faixasDoAlbum.reduce((count, faixaId) => {
-    return (
-      count +
-      (avaliacoesFaixas[faixaId] && avaliacoesFaixas[faixaId] > 0 ? 1 : 0)
-    );
-  }, 0);
+  try {
+    // Registrar datas atuais para todos os álbuns avaliados
+    const agora = new Date();
+    const albumsUnicos = obterAlbunsUnicos();
 
-  const total = totalFaixas || faixasDoAlbum.length;
-  const percentual = Math.round((avaliadas / total) * 100);
+    albumsUnicos.forEach((albumId) => {
+      // Se não tiver registro de data para este álbum, criar um novo
+      if (!memoriaAvaliacoes.datasAvaliacoes[albumId]) {
+        memoriaAvaliacoes.datasAvaliacoes[albumId] = {
+          primeira: agora.toISOString(),
+          ultima: agora.toISOString(),
+        };
+      }
+    });
 
-  return { avaliadas, total, percentual };
+    console.log(`Migração concluída para ${albumsUnicos.length} álbuns.`);
+  } catch (erro) {
+    console.error("Erro durante a migração de dados:", erro);
+  }
 };
 
 /**
@@ -193,23 +151,6 @@ export const gerenciarCacheAlbum = (idAlbum, detalhes = null) => {
       ...detalhes,
       timestamp: Date.now(),
     };
-
-    // Salvar os dados mais importantes do cache no localStorage também
-    try {
-      const cacheLocal = JSON.parse(
-        localStorage.getItem("cache_albuns") || "{}"
-      );
-      cacheLocal[idAlbum] = {
-        id: detalhes.id,
-        name: detalhes.name,
-        artists: detalhes.artists,
-        images: detalhes.images,
-        timestamp: Date.now(),
-      };
-      localStorage.setItem("cache_albuns", JSON.stringify(cacheLocal));
-    } catch (err) {
-      console.warn("Não foi possível salvar o cache no localStorage:", err);
-    }
   }
 
   // Retornar os detalhes do cache, se disponíveis
@@ -217,278 +158,531 @@ export const gerenciarCacheAlbum = (idAlbum, detalhes = null) => {
 };
 
 /**
- * Carrega o cache de álbuns do localStorage, se disponível
+ * Carrega o cache de álbuns
  */
 export const carregarCacheAlbuns = () => {
+  // Função mantida por compatibilidade, mas não faz nada sem localStorage
+  console.log("Cache de álbuns em memória está vazio.");
+};
+
+/**
+ * Obtém álbuns únicos a partir do mapa de faixas para álbuns
+ * @returns {string[]} Array com IDs únicos de álbuns
+ */
+export const obterAlbunsUnicos = () => {
   try {
-    const cacheLocal = JSON.parse(localStorage.getItem("cache_albuns") || "{}");
-
-    // Mesclar com o cache em memória
-    Object.keys(cacheLocal).forEach((idAlbum) => {
-      if (!cacheAlbuns[idAlbum]) {
-        cacheAlbuns[idAlbum] = cacheLocal[idAlbum];
-      }
-    });
-
-    console.log(
-      `Cache de álbuns carregado com ${Object.keys(cacheAlbuns).length} itens.`
-    );
-  } catch (err) {
-    console.warn("Erro ao carregar cache de álbuns:", err);
+    const mapaFaixasAlbuns = memoriaAvaliacoes.mapaFaixasAlbuns;
+    const idsUnicos = [...new Set(Object.values(mapaFaixasAlbuns))];
+    return idsUnicos;
+  } catch (erro) {
+    console.error("Erro ao obter álbuns únicos:", erro);
+    return [];
   }
 };
 
 /**
- * Adiciona um atraso entre chamadas de API para evitar limitações de taxa
- * @param {number} ms Tempo em milissegundos para aguardar
- * @returns {Promise<void>} Promessa resolvida após o atraso
+ * Calcula o progresso da avaliação de um álbum
+ * @param {Object} faixas - Objeto com as faixas do álbum
+ * @param {Object} avaliacoes - Objeto com as avaliações das faixas
+ * @returns {Object} Progresso da avaliação
  */
-const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+export const calcularProgressoAvaliacao = (faixas, avaliacoes) => {
+  if (!faixas || !faixas.items || faixas.items.length === 0) {
+    return { avaliadas: 0, total: 0, percentual: 0 };
+  }
+
+  const total = faixas.items.length;
+  let avaliadas = 0;
+
+  faixas.items.forEach((faixa) => {
+    if (avaliacoes[faixa.id] && avaliacoes[faixa.id] > 0) {
+      avaliadas++;
+    }
+  });
+
+  const percentual = Math.round((avaliadas / total) * 100);
+
+  return { avaliadas, total, percentual };
+};
 
 /**
- * Busca detalhes de múltiplos álbuns em lote com controle de taxa
- * @param {Array<string>} idsAlbuns - Array de IDs de álbuns
- * @param {Object} avaliacoesSalvas - Avaliações salvas
- * @param {Object} mapaFaixasAlbuns - Mapeamento de faixas para álbuns
- * @param {Function} onProgress - Callback chamado a cada álbum carregado
- * @returns {Promise<Array<Object>>} Array de objetos com detalhes de álbuns
+ * Calcula a média das avaliações de um álbum
+ * @param {string} albumId - ID do álbum
+ * @param {Object} faixas - Dados das faixas do álbum
+ * @param {Object} avaliacoes - Avaliações das faixas
+ * @returns {number} Média das avaliações
+ */
+export const calcularMediaAlbum = (albumId, faixas, avaliacoes) => {
+  if (!faixas || !faixas.items || faixas.items.length === 0) {
+    return 0;
+  }
+
+  let soma = 0;
+
+  // Percorrer todas as faixas e somar suas avaliações
+  faixas.items.forEach((faixa) => {
+    const avaliacao = avaliacoes[faixa.id] || 0;
+    soma += avaliacao;
+  });
+
+  // Dividir pela quantidade total de faixas
+  const total = faixas.items.length;
+
+  // Converter para escala 0-10 e formatar com uma casa decimal
+  return parseFloat(((soma / total) * 2).toFixed(1));
+};
+
+/**
+ * Busca detalhes de um álbum de forma segura, verificando o cache primeiro
+ * @param {string} albumId - ID do álbum
+ * @returns {Promise<Object>} Detalhes do álbum
+ */
+export const buscarDetalhesAlbumSeguro = async (albumId) => {
+  try {
+    // Verificar se temos no cache
+    const albumCached = cacheAlbuns[albumId];
+    if (albumCached) {
+      // Verificar se o cache é "fresco" (menos de 7 dias)
+      const agora = Date.now();
+      const cacheTempo = albumCached.timestamp || 0;
+      const diffDias = (agora - cacheTempo) / (1000 * 60 * 60 * 24);
+
+      if (diffDias < 7) {
+        return albumCached;
+      }
+    }
+
+    // Se não está no cache ou está desatualizado, buscar da API
+    const detalhes = await buscarDetalhesAlbum(albumId);
+
+    // Salvar no cache
+    gerenciarCacheAlbum(albumId, detalhes);
+
+    return detalhes;
+  } catch (erro) {
+    console.error(`Erro ao buscar detalhes do álbum ${albumId}:`, erro);
+
+    // Se tiver no cache, retorna mesmo estando desatualizado
+    if (cacheAlbuns[albumId]) {
+      console.log(`Usando dados em cache para ${albumId} após erro na API`);
+      return cacheAlbuns[albumId];
+    }
+
+    // Se não tiver no cache, propaga o erro
+    throw erro;
+  }
+};
+
+/**
+ * Busca detalhes de vários álbuns em lote, com progresso
+ * @param {string[]} idsAlbuns - IDs dos álbuns
+ * @param {Function} onProgresso - Callback para atualizar progresso
+ * @param {Function} onAlbumCarregado - Callback quando um álbum for carregado
+ * @returns {Promise<Object[]>} Array com detalhes dos álbuns
  */
 export const buscarDetalhesAlbunsEmLote = async (
   idsAlbuns,
-  avaliacoesSalvas,
-  mapaFaixasAlbuns,
-  onProgress = null
+  onProgresso = () => {},
+  onAlbumCarregado = () => {}
 ) => {
-  const resultados = [];
-  let albumsProcessados = 0;
-
-  // Carregar cache de álbuns se necessário
-  if (Object.keys(cacheAlbuns).length === 0) {
-    carregarCacheAlbuns();
+  if (!idsAlbuns || idsAlbuns.length === 0) {
+    return [];
   }
 
-  // Processar em lotes maiores para melhorar desempenho
-  const tamanhoLote = 8; // Aumentado de 3 para 8
-  const tempoEspera = 500; // Reduzido de 1000ms para 500ms
-
-  for (let i = 0; i < idsAlbuns.length; i += tamanhoLote) {
-    const loteAtual = idsAlbuns.slice(i, i + tamanhoLote);
-
-    // Processar o lote atual
-    const promessasLote = loteAtual.map((idAlbum) =>
-      buscarDetalhesAlbumSeguro(idAlbum, avaliacoesSalvas, mapaFaixasAlbuns)
-    );
-
-    // Para cada álbum que terminar, notificar o progresso
-    if (onProgress) {
-      promessasLote.forEach(async (promessa) => {
-        const album = await promessa;
-        albumsProcessados++;
-        onProgress(album, albumsProcessados, idsAlbuns.length);
-      });
-    }
-
-    const resultadosLote = await Promise.all(promessasLote);
-    resultados.push(...resultadosLote);
-
-    // Se não for o último lote, adicionar um atraso para evitar limites de taxa
-    if (i + tamanhoLote < idsAlbuns.length) {
-      console.log(`Aguardando antes de processar o próximo lote de álbuns...`);
-      await delay(tempoEspera);
-    }
-  }
-
-  return resultados;
-};
-
-/**
- * Busca detalhes de um álbum com tratamento de erros
- * @param {string} idAlbum - ID do álbum
- * @param {Object} avaliacoesSalvas - Avaliações salvas
- * @param {Object} mapaFaixasAlbuns - Mapeamento de faixas para álbuns
- * @returns {Promise<Object>} Objeto com detalhes do álbum e suas avaliações
- */
-export const buscarDetalhesAlbumSeguro = async (
-  idAlbum,
-  avaliacoesSalvas,
-  mapaFaixasAlbuns
-) => {
   try {
-    // Verificar cache primeiro
-    const albumCache = gerenciarCacheAlbum(idAlbum);
-    if (albumCache) {
-      // Verificar se o cache não está expirado (7 dias)
-      const agora = Date.now();
-      const tempoExpiracaoMs = 7 * 24 * 60 * 60 * 1000; // 7 dias
+    const resultados = [];
+    let processados = 0;
+    const total = idsAlbuns.length;
 
-      if (
-        albumCache.timestamp &&
-        agora - albumCache.timestamp < tempoExpiracaoMs
-      ) {
-        console.log(`Usando dados em cache para o álbum ${idAlbum}`);
+    // Processa os álbuns em lotes para evitar sobrecarregar a API
+    const TAMANHO_LOTE = 8; // Processa 8 álbuns por vez
+    const TEMPO_ENTRE_LOTES = 500; // Espera 500ms entre os lotes
 
-        // Recalcular apenas média e progresso (dados dinâmicos)
-        const mediaAvaliacao = calcularMediaAlbum(
-          idAlbum,
-          avaliacoesSalvas,
-          mapaFaixasAlbuns
-        );
-
-        const progressoAvaliacao = calcularProgressoAvaliacao(
-          idAlbum,
-          avaliacoesSalvas,
-          mapaFaixasAlbuns,
-          albumCache.totalFaixas || 0
-        );
-
-        return {
-          ...albumCache,
-          mediaAvaliacao,
-          progressoAvaliacao,
-        };
-      }
-    }
-
-    // Buscar detalhes do álbum
-    const detalhesAlbum = await buscarDetalhesAlbum(idAlbum);
-
-    if (!detalhesAlbum || !detalhesAlbum.id) {
-      throw new Error("Detalhes do álbum não encontrados");
-    }
-
-    let totalFaixas = 0;
-    let faixasAlbum = null;
-
-    try {
-      // Tentar buscar faixas, mas prosseguir mesmo que falhe
-      faixasAlbum = await buscarFaixasPorAlbum(idAlbum);
-      totalFaixas =
-        faixasAlbum && faixasAlbum.items ? faixasAlbum.items.length : 0;
-    } catch (erroFaixas) {
-      console.warn(
-        `Não foi possível carregar faixas do álbum ${idAlbum}:`,
-        erroFaixas
+    // Função para processar um lote de álbuns
+    const processarLote = async (inicio) => {
+      const idsFatiados = idsAlbuns.slice(
+        inicio,
+        Math.min(inicio + TAMANHO_LOTE, total)
       );
-      // Calcular total de faixas com base no mapeamento local
-      const faixasDoAlbumLocal = Object.entries(mapaFaixasAlbuns)
-        .filter(([, albumId]) => albumId === idAlbum)
-        .map(([faixaId]) => faixaId);
-      totalFaixas = faixasDoAlbumLocal.length;
-    }
 
-    // Calcular média e progresso
-    const mediaAvaliacao = calcularMediaAlbum(
-      idAlbum,
-      avaliacoesSalvas,
-      mapaFaixasAlbuns
-    );
+      // Carregar lote
+      const promessas = idsFatiados.map(async (albumId, indexLote) => {
+        try {
+          // Buscar detalhes do álbum
+          const detalhes = await buscarDetalhesAlbumSeguro(albumId);
 
-    const progressoAvaliacao = calcularProgressoAvaliacao(
-      idAlbum,
-      avaliacoesSalvas,
-      mapaFaixasAlbuns,
-      totalFaixas
-    );
+          // Calcular média de avaliação
+          const mediaAvaliacao = calcularMediaEmMemoria(albumId);
 
-    // Preparar o resultado e salvar no cache
-    const resultado = {
-      ...detalhesAlbum,
-      totalFaixas,
-      mediaAvaliacao,
-      progressoAvaliacao,
+          // Criar objeto de resultado
+          const albumDetalhado = {
+            ...detalhes,
+            mediaAvaliacao,
+          };
+
+          // Garantir que o álbum tenha todas as propriedades necessárias
+          if (
+            !albumDetalhado.artists ||
+            !Array.isArray(albumDetalhado.artists) ||
+            albumDetalhado.artists.length === 0
+          ) {
+            albumDetalhado.artists = [{ name: "Artista desconhecido" }];
+          }
+
+          if (
+            !albumDetalhado.images ||
+            !Array.isArray(albumDetalhado.images) ||
+            albumDetalhado.images.length === 0
+          ) {
+            albumDetalhado.images = [{ url: null }];
+          }
+
+          // Calcular progresso de avaliação
+          const avaliacoesFaixas = memoriaAvaliacoes.avaliacoesFaixas;
+          const mapaFaixasAlbuns = memoriaAvaliacoes.mapaFaixasAlbuns;
+
+          // Encontrar faixas deste álbum
+          const faixasDoAlbum = Object.entries(mapaFaixasAlbuns)
+            .filter(([faixaId, idAlbum]) => idAlbum === albumId)
+            .map(([faixaId]) => faixaId);
+
+          // Total de faixas no álbum
+          const totalFaixas = faixasDoAlbum.length;
+
+          // Faixas avaliadas (com nota > 0)
+          const faixasAvaliadas = faixasDoAlbum.filter(
+            (faixaId) =>
+              avaliacoesFaixas[faixaId] && avaliacoesFaixas[faixaId] > 0
+          ).length;
+
+          // Percentual de avaliação
+          const percentual =
+            totalFaixas > 0
+              ? Math.round((faixasAvaliadas / totalFaixas) * 100)
+              : 0;
+
+          // Adicionar informações de progresso
+          albumDetalhado.progressoAvaliacao = {
+            avaliadas: faixasAvaliadas,
+            total: totalFaixas,
+            percentual: percentual,
+          };
+
+          // Notificar que um álbum foi carregado
+          onAlbumCarregado(albumDetalhado, processados + indexLote + 1, total);
+
+          return albumDetalhado;
+        } catch (erro) {
+          console.error(`Erro ao processar álbum ${albumId}:`, erro);
+
+          // Criar um objeto de álbum com erro, mas com os campos mínimos necessários
+          const albumComErro = {
+            id: albumId,
+            erro: true,
+            mediaAvaliacao: 0,
+            name: "Álbum indisponível",
+            artists: [{ name: "Artista desconhecido" }],
+            images: [{ url: null }],
+            progressoAvaliacao: { avaliadas: 0, total: 0, percentual: 0 },
+          };
+
+          // Notificar que um álbum falhou, mas continuar processando
+          onAlbumCarregado(albumComErro, processados + indexLote + 1, total);
+
+          return albumComErro;
+        }
+      });
+
+      const resultadosLote = await Promise.all(promessas);
+      resultados.push(...resultadosLote);
+
+      // Atualizar progresso
+      processados += idsFatiados.length;
+      onProgresso(processados, total);
+
+      // Se ainda não terminou, processar próximo lote
+      if (processados < total) {
+        await new Promise((resolve) => setTimeout(resolve, TEMPO_ENTRE_LOTES));
+        return processarLote(processados);
+      }
+
+      return resultados;
     };
 
-    // Atualizar o cache
-    gerenciarCacheAlbum(idAlbum, resultado);
-
-    return resultado;
-  } catch (error) {
-    console.error(`Falha ao carregar detalhes do álbum ${idAlbum}:`, error);
-    // Retornar um objeto com informações mínimas para não quebrar a interface
-    return {
-      id: idAlbum,
-      name: "Álbum indisponível",
-      artists: [{ name: "Informações não disponíveis" }],
-      images: [],
-      erro: true,
-      mediaAvaliacao: calcularMediaAlbum(
-        idAlbum,
-        avaliacoesSalvas,
-        mapaFaixasAlbuns
-      ),
-      progressoAvaliacao: { avaliadas: 0, total: 0, percentual: 0 },
-    };
+    // Iniciar processamento
+    onProgresso(0, total);
+    return await processarLote(0);
+  } catch (erro) {
+    console.error("Erro ao buscar detalhes dos álbuns em lote:", erro);
+    throw erro;
   }
 };
 
 /**
- * Migra dados de avaliações antigas para incluir datas de avaliação
- * Deve ser chamado uma vez durante a inicialização do aplicativo
+ * Calcula a média das avaliações de um álbum usando dados em memória
+ * @param {string} albumId - ID do álbum
+ * @returns {number} Média das avaliações (0-10)
  */
-export const migrarDadosAvaliacoes = () => {
+const calcularMediaEmMemoria = (albumId) => {
   try {
-    // Verificar se a migração já foi feita
-    const migracaoFeita = localStorage.getItem("migracao_datas_avaliacoes");
-    if (migracaoFeita === "true") {
-      return; // Migração já foi realizada
+    const avaliacoesFaixas = memoriaAvaliacoes.avaliacoesFaixas;
+    const mapaFaixasAlbuns = memoriaAvaliacoes.mapaFaixasAlbuns;
+
+    // Encontrar faixas deste álbum
+    const faixasDoAlbum = Object.entries(mapaFaixasAlbuns)
+      .filter(([faixaId, idAlbum]) => idAlbum === albumId)
+      .map(([faixaId]) => faixaId);
+
+    if (faixasDoAlbum.length === 0) return 0;
+
+    // Calcular média considerando todas as faixas
+    let soma = 0;
+
+    // Somar avaliações de todas as faixas
+    faixasDoAlbum.forEach((faixaId) => {
+      const avaliacao = avaliacoesFaixas[faixaId] || 0;
+      soma += avaliacao;
+    });
+
+    // Dividir pela quantidade total de faixas, incluindo as não avaliadas
+    return parseFloat(((soma / faixasDoAlbum.length) * 2).toFixed(1));
+  } catch (erro) {
+    console.error(`Erro ao calcular média para álbum ${albumId}:`, erro);
+    return 0;
+  }
+};
+
+/**
+ * Obtém as avaliações das faixas
+ * @returns {Object} Objeto com as avaliações
+ */
+export const getAvaliacoesFaixas = () => {
+  return memoriaAvaliacoes.avaliacoesFaixas;
+};
+
+/**
+ * Configura uma verificação periódica para manter os dados sincronizados
+ * entre localStorage e memória no modo de demonstração
+ */
+export const configurarSincronizacaoAutomatica = () => {
+  // Executar a sincronização inicial
+  carregarDadosLocalStorage();
+
+  // Configurar um intervalo para verificar regularmente
+  const intervalo = setInterval(() => {
+    const demoToken = localStorage.getItem("demo_token");
+    const demoExpiry = localStorage.getItem("demo_token_expiry");
+    const modoDemo =
+      demoToken && demoExpiry && parseInt(demoExpiry) > Date.now();
+
+    if (modoDemo) {
+      console.log("Executando sincronização automática (modo demo)");
+      carregarDadosLocalStorage(); // Carregar do localStorage para a memória
+      salvarDadosLocalStorage(); // Salvar da memória para o localStorage
+    } else {
+      // Se não estiver mais em modo demo, limpar o intervalo
+      clearInterval(intervalo);
+      console.log("Sincronização automática encerrada (modo demo desativado)");
     }
+  }, 5000); // Verificar a cada 5 segundos
 
-    // Obter avaliações existentes
-    const avaliacoesFaixas = JSON.parse(
-      localStorage.getItem("avaliacoesFaixas") || "{}"
-    );
+  return intervalo;
+};
 
-    // Obter mapeamento de faixas para álbuns
-    const mapaFaixasAlbuns = JSON.parse(
-      localStorage.getItem("mapaFaixasAlbuns") || "{}"
-    );
+/**
+ * Carrega dados do localStorage para a memória
+ * Esta função deve ser chamada no início da aplicação
+ */
+export const carregarDadosLocalStorage = () => {
+  try {
+    console.log("Verificando dados no localStorage para modo de demonstração");
 
-    // Se não houver avaliações ou mapeamento, não é necessário migrar
-    if (
-      Object.keys(avaliacoesFaixas).length === 0 ||
-      Object.keys(mapaFaixasAlbuns).length === 0
-    ) {
-      localStorage.setItem("migracao_datas_avaliacoes", "true");
+    // Verificar se estamos em modo de demonstração
+    const demoToken = localStorage.getItem("demo_token");
+    const demoExpiry = localStorage.getItem("demo_token_expiry");
+    const modoDemo =
+      demoToken && demoExpiry && parseInt(demoExpiry) > Date.now();
+
+    if (!modoDemo) {
+      console.log(
+        "Usuário não está em modo de demonstração, ignorando localStorage"
+      );
       return;
     }
 
-    // Obter ou criar registro de datas
-    const datasAvaliacoes = JSON.parse(
-      localStorage.getItem("datas_avaliacoes") || "{}"
-    );
+    console.log("Modo de demonstração ativo, carregando dados do localStorage");
 
-    // Obter IDs de álbuns únicos com avaliações
-    const albunsAvaliados = new Set();
-    Object.entries(avaliacoesFaixas).forEach(([faixaId, avaliacao]) => {
-      if (avaliacao > 0 && mapaFaixasAlbuns[faixaId]) {
-        albunsAvaliados.add(mapaFaixasAlbuns[faixaId]);
+    // Inicializar estruturas vazias por padrão para evitar objetos nulos
+    memoriaAvaliacoes.avaliacoesFaixas = {};
+    memoriaAvaliacoes.mapaFaixasAlbuns = {};
+    memoriaAvaliacoes.datasAvaliacoes = {};
+    memoriaAvaliacoes.preferenciasAlbuns = {};
+
+    // Carregar avaliações das faixas
+    const avaliacoesString = localStorage.getItem("avaliacoesFaixas");
+    if (avaliacoesString) {
+      try {
+        const dados = JSON.parse(avaliacoesString);
+        if (dados && typeof dados === "object") {
+          memoriaAvaliacoes.avaliacoesFaixas = dados;
+          console.log(
+            "Carregadas avaliações de faixas do localStorage",
+            Object.keys(dados).length,
+            "avaliações"
+          );
+        }
+      } catch (e) {
+        console.error("Erro ao analisar avaliacoesFaixas:", e);
+        localStorage.setItem("avaliacoesFaixas", JSON.stringify({}));
       }
-    });
+    } else {
+      localStorage.setItem("avaliacoesFaixas", JSON.stringify({}));
+    }
 
-    // Data para álbuns sem registro (usaremos a data atual)
-    const agora = new Date();
-    const dataString = agora.toISOString();
-
-    // Adicionar datas para álbuns sem registro
-    Array.from(albunsAvaliados).forEach((albumId) => {
-      if (!datasAvaliacoes[albumId]) {
-        datasAvaliacoes[albumId] = {
-          primeira: dataString,
-          ultima: dataString,
-        };
+    // Carregar mapa de faixas para álbuns
+    const mapaString = localStorage.getItem("mapaFaixasAlbuns");
+    if (mapaString) {
+      try {
+        const dados = JSON.parse(mapaString);
+        if (dados && typeof dados === "object") {
+          memoriaAvaliacoes.mapaFaixasAlbuns = dados;
+          console.log(
+            "Carregado mapa de faixas-álbuns do localStorage",
+            Object.keys(dados).length,
+            "mapeamentos"
+          );
+        }
+      } catch (e) {
+        console.error("Erro ao analisar mapaFaixasAlbuns:", e);
+        localStorage.setItem("mapaFaixasAlbuns", JSON.stringify({}));
       }
-    });
+    } else {
+      localStorage.setItem("mapaFaixasAlbuns", JSON.stringify({}));
+    }
 
-    // Salvar dados migrados
-    localStorage.setItem("datas_avaliacoes", JSON.stringify(datasAvaliacoes));
+    // Carregar datas de avaliações
+    const datasString = localStorage.getItem("datasAvaliacoes");
+    if (datasString) {
+      try {
+        const dados = JSON.parse(datasString);
+        if (dados && typeof dados === "object") {
+          memoriaAvaliacoes.datasAvaliacoes = dados;
+          console.log("Carregadas datas de avaliações do localStorage");
+        }
+      } catch (e) {
+        console.error("Erro ao analisar datasAvaliacoes:", e);
+        localStorage.setItem("datasAvaliacoes", JSON.stringify({}));
+      }
+    } else {
+      localStorage.setItem("datasAvaliacoes", JSON.stringify({}));
+    }
 
-    // Marcar migração como concluída
-    localStorage.setItem("migracao_datas_avaliacoes", "true");
+    // Carregar preferências de álbuns
+    const prefsString = localStorage.getItem("preferenciasAlbuns");
+    if (prefsString) {
+      try {
+        const dados = JSON.parse(prefsString);
+        if (dados && typeof dados === "object") {
+          memoriaAvaliacoes.preferenciasAlbuns = dados;
+          console.log("Carregadas preferências de álbuns do localStorage");
+        }
+      } catch (e) {
+        console.error("Erro ao analisar preferenciasAlbuns:", e);
+        localStorage.setItem("preferenciasAlbuns", JSON.stringify({}));
+      }
+    } else {
+      localStorage.setItem("preferenciasAlbuns", JSON.stringify({}));
+    }
 
+    console.log("Resumo dos dados carregados:");
     console.log(
-      `Migração de datas de avaliação concluída para ${albunsAvaliados.size} álbuns.`
+      "- Avaliações de faixas:",
+      Object.keys(memoriaAvaliacoes.avaliacoesFaixas).length
+    );
+    console.log(
+      "- Mapa faixas-álbuns:",
+      Object.keys(memoriaAvaliacoes.mapaFaixasAlbuns).length
+    );
+    console.log(
+      "- Datas de avaliações:",
+      Object.keys(memoriaAvaliacoes.datasAvaliacoes).length
+    );
+    console.log(
+      "- Preferências de álbuns:",
+      Object.keys(memoriaAvaliacoes.preferenciasAlbuns).length
     );
   } catch (erro) {
-    console.error("Erro ao migrar datas de avaliação:", erro);
+    console.error("Erro ao carregar dados do localStorage:", erro);
+    // Inicializar com objetos vazios em caso de erro
+    memoriaAvaliacoes.avaliacoesFaixas = {};
+    memoriaAvaliacoes.mapaFaixasAlbuns = {};
+    memoriaAvaliacoes.datasAvaliacoes = {};
+    memoriaAvaliacoes.preferenciasAlbuns = {};
   }
+};
+
+/**
+ * Salva dados da memória para o localStorage
+ * Esta função deve ser chamada após cada alteração nos dados
+ */
+export const salvarDadosLocalStorage = () => {
+  try {
+    // Verificar se estamos em modo de demonstração
+    const demoToken = localStorage.getItem("demo_token");
+    if (!demoToken) {
+      return; // Não salvar no localStorage se não estiver em modo de demonstração
+    }
+
+    // Salvar avaliações das faixas
+    localStorage.setItem(
+      "avaliacoesFaixas",
+      JSON.stringify(memoriaAvaliacoes.avaliacoesFaixas)
+    );
+
+    // Salvar mapa de faixas para álbuns
+    localStorage.setItem(
+      "mapaFaixasAlbuns",
+      JSON.stringify(memoriaAvaliacoes.mapaFaixasAlbuns)
+    );
+
+    // Salvar datas de avaliações
+    localStorage.setItem(
+      "datasAvaliacoes",
+      JSON.stringify(memoriaAvaliacoes.datasAvaliacoes)
+    );
+
+    // Salvar preferências de álbuns
+    localStorage.setItem(
+      "preferenciasAlbuns",
+      JSON.stringify(memoriaAvaliacoes.preferenciasAlbuns)
+    );
+  } catch (erro) {
+    console.error("Erro ao salvar dados no localStorage:", erro);
+  }
+};
+
+/**
+ * Define as avaliações das faixas
+ * @param {Object} avaliacoes - Avaliações das faixas
+ */
+export const setAvaliacoesFaixas = (avaliacoes) => {
+  memoriaAvaliacoes.avaliacoesFaixas = avaliacoes;
+  salvarDadosLocalStorage(); // Salvar no localStorage após alteração
+};
+
+/**
+ * Obtém o mapa de faixas para álbuns
+ * @returns {Object} Mapa de faixas para álbuns
+ */
+export const getMapaFaixasAlbuns = () => {
+  return memoriaAvaliacoes.mapaFaixasAlbuns;
+};
+
+/**
+ * Define o mapa de faixas para álbuns
+ * @param {Object} mapa - Mapa de faixas para álbuns
+ */
+export const setMapaFaixasAlbuns = (mapa) => {
+  memoriaAvaliacoes.mapaFaixasAlbuns = mapa;
+  salvarDadosLocalStorage(); // Salvar no localStorage após alteração
 };

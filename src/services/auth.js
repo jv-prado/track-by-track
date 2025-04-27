@@ -1,69 +1,58 @@
-// Funções utilitárias para gerenciar a autenticação com Spotify
-import { loginWithClientCredentials } from "./api";
+/**
+ * Utilitários para autenticação do usuário
+ */
+
+// Estado temporário em memória (substitui localStorage)
+const authState = {
+  token: null,
+  tokenExpiry: null,
+  userData: null,
+};
 
 /**
  * Verifica se o usuário está autenticado
  * @returns {boolean} Verdadeiro se o usuário estiver autenticado
  */
 export const isAuthenticated = () => {
-  const token = localStorage.getItem("spotify_token");
-  if (!token) return false;
+  // Verifica se há um token e se ele não está expirado
+  if (!authState.token || !authState.tokenExpiry) return false;
 
-  // Se for um token de demonstração (começa com 'demo_'), considerar válido
-  if (token.startsWith("demo_")) {
-    // Verificar apenas a expiração
-    const expiryTime = localStorage.getItem("spotify_token_expiry");
-    if (expiryTime && parseInt(expiryTime) < Date.now()) {
-      logout(); // O token expirou, então fazemos logout
-      return false;
-    }
-    return true;
-  }
-
-  // Verificar se o token expirou
-  const expiryTime = localStorage.getItem("spotify_token_expiry");
-  if (expiryTime && parseInt(expiryTime) < Date.now()) {
-    logout(); // O token expirou, então fazemos logout
-    return false;
-  }
-
-  return true;
+  const authenticated = authState.tokenExpiry > Date.now();
+  console.log(
+    "[Auth] Verificação de autenticação:",
+    authenticated,
+    "Token expira em:",
+    new Date(authState.tokenExpiry).toLocaleTimeString()
+  );
+  return authenticated;
 };
 
 /**
- * Obtém o token de autenticação do Spotify
- * @returns {string|null} Token ou null se não estiver autenticado
+ * Obtém o token de autenticação do usuário
+ * @returns {string|null} Token de autenticação ou null se não autenticado
  */
 export const getAuthToken = () => {
   if (!isAuthenticated()) return null;
-  return localStorage.getItem("spotify_token");
+  return authState.token;
 };
 
 /**
- * Obtém dados do usuário logado
- * @returns {Object|null} Dados do usuário ou null se não estiver autenticado
+ * Obtém dados do usuário autenticado
+ * @returns {Object|null} Dados do usuário ou null se não autenticado
  */
 export const getUserData = () => {
   if (!isAuthenticated()) return null;
-
-  const userData = localStorage.getItem("spotify_user");
-  if (!userData) return null;
-
-  try {
-    return JSON.parse(userData);
-  } catch (error) {
-    console.error("Erro ao processar dados do usuário:", error);
-    return null;
-  }
+  return authState.userData;
 };
 
 /**
- * Encerra a sessão do usuário
+ * Limpa os dados de autenticação
  */
 export const logout = () => {
-  localStorage.removeItem("spotify_token");
-  localStorage.removeItem("spotify_token_expiry");
-  localStorage.removeItem("spotify_user");
+  console.log("[Auth] Realizando logout - limpando token e dados do usuário");
+  authState.token = null;
+  authState.tokenExpiry = null;
+  authState.userData = null;
 };
 
 /**
@@ -73,8 +62,12 @@ export const logout = () => {
  */
 export const saveAuth = (token, expiresIn) => {
   const expiryTime = Date.now() + expiresIn * 1000;
-  localStorage.setItem("spotify_token", token);
-  localStorage.setItem("spotify_token_expiry", expiryTime.toString());
+  console.log(
+    "[Auth] Salvando token com expiração em:",
+    new Date(expiryTime).toLocaleString()
+  );
+  authState.token = token;
+  authState.tokenExpiry = expiryTime;
 };
 
 /**
@@ -82,33 +75,54 @@ export const saveAuth = (token, expiresIn) => {
  * @param {Object} userData - Dados do usuário
  */
 export const saveUserData = (userData) => {
-  localStorage.setItem(
-    "spotify_user",
-    JSON.stringify({
-      id: userData.id,
-      name: userData.display_name,
-      email: userData.email,
-      image: userData.images?.[0]?.url || null,
-    })
+  console.log(
+    "[Auth] Salvando dados do usuário:",
+    userData ? userData.id : "null"
   );
+  authState.userData = userData;
 };
 
 /**
- * Tenta corrigir problemas de autenticação usando o modo de demonstração
- * @returns {Promise<boolean>} Verdadeiro se a autenticação foi recuperada
+ * Tenta recuperar a autenticação
+ * Para uso em modo de demonstração
+ * @returns {Promise<boolean>} Verdadeiro se conseguiu recuperar a autenticação
  */
 export const recuperarAutenticacao = async () => {
-  try {
-    // Verificar se já está autenticado
-    if (isAuthenticated()) {
-      return true;
-    }
+  console.log("[Auth] Iniciando recuperação de autenticação");
 
-    // Tentar autenticar em modo de demonstração
-    console.log("Tentando recuperar autenticação com o modo de demonstração");
-    return await loginWithClientCredentials();
-  } catch (erro) {
-    console.error("Erro ao tentar recuperar autenticação:", erro);
+  // Se já está autenticado, não precisa recuperar
+  if (isAuthenticated()) {
+    console.log("[Auth] Já está autenticado, não é necessário recuperar");
+    return true;
+  }
+
+  // Importar dinamicamente para evitar dependência circular
+  const { loginWithClientCredentials } = await import("./api");
+
+  try {
+    console.log("[Auth] Tentando login com credenciais do cliente");
+    const sucesso = await loginWithClientCredentials();
+
+    // Verificar novamente o estado de autenticação após o login
+    if (sucesso) {
+      console.log("[Auth] Login com client credentials bem-sucedido");
+      // Vamos verificar de novo se o token foi salvo corretamente
+      console.log(
+        "[Auth] Estado após login:",
+        "Token presente:",
+        !!authState.token,
+        "Expiry presente:",
+        !!authState.tokenExpiry,
+        "Autenticado:",
+        isAuthenticated()
+      );
+      return isAuthenticated();
+    } else {
+      console.log("[Auth] Falha no login com client credentials");
+      return false;
+    }
+  } catch (error) {
+    console.error("[Auth] Erro ao recuperar autenticação:", error);
     return false;
   }
 };

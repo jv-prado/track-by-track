@@ -4,11 +4,12 @@ import Sidebar from "./componentes/sidebar/";
 import BarraDePesquisa from "./componentes/BarraDePesquisa";
 import Feed from "./componentes/Feed/Feed";
 import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
-import LoginSpotify from "./componentes/LoginSpotify";
-import CallbackSpotify from "./componentes/CallbackSpotify";
-import { isAuthenticated } from "./services/auth";
 import PerfilUsuario from "./componentes/PerfilUsuario";
 import Splash from "./componentes/Splash";
+import Login from "./componentes/AuthForms/Login";
+import Registro from "./componentes/AuthForms/Registro";
+import { useAuth } from "./contexts/AuthContext";
+import { fazerLogout } from "./services/firebase";
 import {
   configurarSincronizacao,
   carregarAvaliacoesSincronizadas,
@@ -20,9 +21,9 @@ function App() {
   const [activeView, setActiveView] = useState("");
   const [termoPesquisa, setTermoPesquisa] = useState("");
   const [menuAberto, setMenuAberto] = useState(false);
-  const [autenticado, setAutenticado] = useState(isAuthenticated());
   const navigate = useNavigate();
   const location = useLocation();
+  const { usuario: usuarioFirebase } = useAuth();
 
   const handleSearch = (termo) => {
     setTermoPesquisa(termo);
@@ -35,18 +36,21 @@ function App() {
   // Verifica o estado de autenticação ao iniciar
   useEffect(() => {
     const verificarAutenticacao = () => {
-      const novoEstado = isAuthenticated();
-      setAutenticado(novoEstado);
-
       // Redirecionar para login se não estiver autenticado e tentando acessar uma rota protegida
+      const demoToken = localStorage.getItem("demo_token");
+      const demoExpiry = localStorage.getItem("demo_token_expiry");
+      const modoDemo =
+        demoToken && demoExpiry && parseInt(demoExpiry) > Date.now();
+
       if (
-        !novoEstado &&
+        !usuarioFirebase &&
+        !modoDemo && // Verificar autenticação Firebase ou Demo
         location.pathname !== "/" &&
-        location.pathname !== "/login" &&
-        location.pathname !== "/callback" &&
+        location.pathname !== "/login-firebase" &&
+        location.pathname !== "/registro" &&
         location.pathname !== "/splash"
       ) {
-        navigate("/login");
+        navigate("/login-firebase");
       }
     };
 
@@ -56,9 +60,6 @@ function App() {
     // Executar migração de dados para registrar datas de avaliações antigas
     migrarDadosAvaliacoes();
 
-    // Configurar evento para verificar quando o localStorage mudar
-    window.addEventListener("storage", verificarAutenticacao);
-
     // Verificar autenticação a cada 2 minutos para detectar expiração do token
     const intervaloVerificacao = setInterval(() => {
       verificarAutenticacao();
@@ -66,14 +67,13 @@ function App() {
 
     // Remover eventos ao desmontar
     return () => {
-      window.removeEventListener("storage", verificarAutenticacao);
       clearInterval(intervaloVerificacao);
     };
-  }, [navigate, location.pathname]);
+  }, [navigate, location.pathname, usuarioFirebase]);
 
   // Configurar sincronização de avaliações
   useEffect(() => {
-    if (autenticado) {
+    if (usuarioFirebase) {
       // Tentar carregar avaliações sincronizadas
       carregarAvaliacoesSincronizadas();
 
@@ -83,19 +83,19 @@ function App() {
       // Limpar sincronização ao desmontar
       return limparSincronizacao;
     }
-  }, [autenticado]);
+  }, [usuarioFirebase]);
 
   // Renderizar splash, login ou callback
   if (location.pathname === "/splash" || location.pathname === "/") {
     return <Splash />;
   }
 
-  if (location.pathname === "/login") {
-    return <LoginSpotify />;
+  if (location.pathname === "/login-firebase") {
+    return <Login />;
   }
 
-  if (location.pathname === "/callback") {
-    return <CallbackSpotify />;
+  if (location.pathname === "/registro") {
+    return <Registro />;
   }
 
   // Layout principal da aplicação
@@ -103,7 +103,7 @@ function App() {
     <div className="flex flex-col md:flex-row w-full md:w-[90vw] lg:w-[80vw] xl:w-[70vw] 2xl:w-[1440px] mx-auto m-2 mt-4 md:mt-12 gap-3 px-2 md:px-0 ">
       {/* Menu hamburger para mobile */}
       <button
-        className="md:hidden flex items-center justify-center bg-cinza-escuro p-3 rounded-xl mb-2 text-white"
+        className="md:hidden flex items-center justify-center bg-cinza-escuro p-3 rounded-xl mb-2 text-white cursor-pointer"
         onClick={toggleMenu}
       >
         <svg
@@ -140,8 +140,40 @@ function App() {
 
       <div className="flex flex-col w-full ">
         {/* Barra de pesquisa com posição sticky e z-index alto */}
-        <div className="sticky top-10 z-100">
-          <BarraDePesquisa onSearch={handleSearch} activeView={activeView} />
+        <div className="sticky top-10 z-100 flex items-center">
+          <div className="flex-grow">
+            <BarraDePesquisa onSearch={handleSearch} activeView={activeView} />
+          </div>
+
+          {/* Botão de logout para mobile */}
+          <button
+            onClick={() => {
+              // Fazer logout
+              if (usuarioFirebase) {
+                fazerLogout().then(() => {
+                  navigate("/login-firebase");
+                });
+              } else {
+                navigate("/login-firebase");
+              }
+            }}
+            className="md:hidden ml-2 bg-cinza-escuro text-white p-2 rounded-lg cursor-pointer"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-5 w-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+              />
+            </svg>
+          </button>
         </div>
         {/* Conteúdo do feed sem barra de rolagem */}
         <div
@@ -158,6 +190,8 @@ function App() {
                 <Feed activeView={activeView} termoPesquisa={termoPesquisa} />
               }
             />
+            <Route path="/login-firebase" element={<Login />} />
+            <Route path="/registro" element={<Registro />} />
           </Routes>
         </div>
       </div>

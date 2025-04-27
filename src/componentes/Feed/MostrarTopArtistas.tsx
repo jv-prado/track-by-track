@@ -223,7 +223,7 @@ export default function MostrarTopArtistas({ termoPesquisa }) {
                 setFaixasDoAlbum(null);
                 setDetalhesAlbum(null);
               }}
-              className="mb-4 bg-cinza py-2 px-4 rounded-lg hover:bg-cinza-escuro transition-colors"
+              className="mb-4 bg-cinza py-2 px-4 rounded-lg hover:bg-cinza-escuro transition-colors cursor-pointer"
             >
               Voltar para artistas
             </button>
@@ -326,7 +326,7 @@ export default function MostrarTopArtistas({ termoPesquisa }) {
                         setFaixasDoAlbum(null);
                         setDetalhesAlbum(null);
                       }}
-                      className="bg-cinza py-2 px-4 rounded-lg hover:bg-cinza-escuro transition-colors"
+                      className="bg-cinza py-2 px-4 rounded-lg hover:bg-cinza-escuro transition-colors cursor-pointer"
                     >
                       Voltar para álbuns
                     </button>

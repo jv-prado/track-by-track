@@ -69,12 +69,17 @@ export function AuthProvider({ children }) {
 
     verificarUsuarioDemo();
 
-    // Atualizar quando o localStorage mudar
+    // Verificar periodicamente as alterações no localStorage (a cada 500ms)
+    // Isso é mais confiável do que o evento storage que só funciona entre janelas diferentes
+    const intervalId = setInterval(verificarUsuarioDemo, 500);
+
+    // Atualizar quando o localStorage mudar entre janelas
     window.addEventListener("storage", verificarUsuarioDemo);
 
     // Limpa o listener quando o componente for desmontado
     return () => {
       unsubscribe();
+      clearInterval(intervalId);
       window.removeEventListener("storage", verificarUsuarioDemo);
     };
   }, []);

@@ -69,7 +69,7 @@ class TratadorErros extends React.Component {
             Detalhes: {this.state.mensagemErro}
           </p>
           <button
-            onClick={() => navigate(0)}
+            onClick={() => window.location.reload()}
             className="bg-verde-destaque hover:bg-verde-destaque/80 text-white font-bold py-2 px-6 rounded-full focus:outline-none focus:shadow-outline transition-all cursor-pointer"
           >
             Recarregar Página
@@ -227,8 +227,9 @@ const MinhasAvaliacoes = () => {
       // Configurar sincronização automática entre localStorage e memória
       configurarSincronizacaoAutomatica();
 
-      // Usar navigate para recarregar o contexto atual em vez de recarregar a página
-      navigate(0); // O argumento 0 faz o navigate recarregar a página atual
+      // Forçar uma recarga completa da página para garantir que o
+      // usuário demo seja reconhecido por todos os componentes
+      window.location.href = window.location.href;
     } catch (erro) {
       console.error("Erro ao tentar fazer login:", erro);
     } finally {

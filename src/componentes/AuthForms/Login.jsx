@@ -69,8 +69,8 @@ export default function Login() {
       // Configurar sincronização automática entre localStorage e memória
       configurarSincronizacaoAutomatica();
 
-      // Recarregar a página para garantir que o contexto de autenticação reconheça o usuário demo
-      window.location.href = "/feed";
+      // Usar navigate em vez de window.location.href para garantir que o React Router Dom manipule a navegação corretamente
+      navigate("/feed");
     } catch (error) {
       console.error("Erro ao iniciar modo de demonstração:", error);
       setErro("Não foi possível iniciar o modo de demonstração.");

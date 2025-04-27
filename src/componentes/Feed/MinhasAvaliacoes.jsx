@@ -9,6 +9,7 @@ import ErroCarregamento from "../Feedback/ErroCarregamento";
 import { isAuthenticated, recuperarAutenticacao } from "../../services/auth";
 import { loginWithClientCredentials } from "../../services/api";
 import { configurarSincronizacaoAutomatica } from "../../services/avaliacoes";
+import { useNavigate } from "react-router-dom";
 
 /**
  * Componente de barra de progresso para carregamento
@@ -68,7 +69,7 @@ class TratadorErros extends React.Component {
             Detalhes: {this.state.mensagemErro}
           </p>
           <button
-            onClick={() => window.location.reload()}
+            onClick={() => navigate(0)}
             className="bg-verde-destaque hover:bg-verde-destaque/80 text-white font-bold py-2 px-6 rounded-full focus:outline-none focus:shadow-outline transition-all cursor-pointer"
           >
             Recarregar Página
@@ -90,6 +91,7 @@ const MinhasAvaliacoes = () => {
   const [carregandoAuth, setCarregandoAuth] = useState(false);
   const [tentouRecuperar, setTentouRecuperar] = useState(false);
   const [carregandoTela, setCarregandoTela] = useState(true);
+  const navigate = useNavigate();
 
   const {
     albunsExibidos,
@@ -225,8 +227,8 @@ const MinhasAvaliacoes = () => {
       // Configurar sincronização automática entre localStorage e memória
       configurarSincronizacaoAutomatica();
 
-      // Recarregar a página para garantir que o contexto de autenticação reconheça o usuário demo
-      window.location.reload();
+      // Usar navigate para recarregar o contexto atual em vez de recarregar a página
+      navigate(0); // O argumento 0 faz o navigate recarregar a página atual
     } catch (erro) {
       console.error("Erro ao tentar fazer login:", erro);
     } finally {

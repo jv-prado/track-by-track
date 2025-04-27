@@ -16,10 +16,12 @@ const CardAlbumAvaliado = ({ album, setAlbumSelecionado }) => {
     percentual: 0,
   };
 
-  // Formatar a média com uma casa decimal
+  // Formatar a média: número inteiro para notas inteiras, uma casa decimal para fracionárias
   const mediaFormatada = album.mediaAvaliacao
-    ? album.mediaAvaliacao.toFixed(1)
-    : "0.0";
+    ? Number.isInteger(album.mediaAvaliacao)
+      ? album.mediaAvaliacao.toString()
+      : album.mediaAvaliacao.toFixed(1)
+    : "0";
 
   // Formatar o percentual como número inteiro
   const percentualFormatado = Math.floor(progressoAvaliacao.percentual);

@@ -997,7 +997,7 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
           </p>
           <div className="mt-2 md:mt-3 flex items-center justify-center lg:justify-start">
             <span className="text-lg sm:text-xl md:text-2xl font-bold mr-2 text-verde-destaque">
-              {Math.floor(calcularMediaAvaliacoes())}
+              {calcularMediaAvaliacoes().toFixed(1)}
             </span>
             <span className="text-xs md:text-sm text-gray-400">/10</span>
           </div>

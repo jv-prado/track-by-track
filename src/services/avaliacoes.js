@@ -43,6 +43,16 @@ export const registrarDataAvaliacao = (faixaId, avaliacao) => {
       // Atualizar apenas a data da última avaliação
       datasAvaliacoes[albumId].ultima = agora.toISOString();
     }
+
+    // Sincronizar com localStorage se estiver em modo demo
+    const modoDemo = localStorage.getItem("modo_demo_ativo") === "true";
+    if (modoDemo) {
+      // Atualizar localStorage com os dados atualizados
+      localStorage.setItem(
+        "datasAvaliacoes",
+        JSON.stringify(memoriaAvaliacoes.datasAvaliacoes)
+      );
+    }
   } catch (erro) {
     console.warn("Erro ao registrar data de avaliação:", erro);
   }

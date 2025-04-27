@@ -104,8 +104,10 @@ export default function useAvaliacoes({ termoPesquisaInicial = "" } = {}) {
 
     // Aplicar ordenação personalizada apenas se ordenação for "padrao"
     if (ordenacao === "padrao") {
-      // Manter a ordem por recentes (a ordenação já é aplicada em recarregarListaAlbuns)
-      albumsFiltrados = albumsFiltrados;
+      // Ordenar por recentes (mais recentes primeiro)
+      albumsFiltrados.sort((a, b) => {
+        return (b.ultimaAtualizacao || 0) - (a.ultimaAtualizacao || 0);
+      });
     } else if (ordenacao === "crescente") {
       albumsFiltrados.sort(
         (a, b) => parseFloat(a.mediaAvaliacao) - parseFloat(b.mediaAvaliacao)
@@ -178,9 +180,22 @@ export default function useAvaliacoes({ termoPesquisaInicial = "" } = {}) {
       album.artists = [{ name: "Artista desconhecido" }];
     }
 
-    // Adicionar timestamp para ordenação por mais recentes
-    album.ultimaAtualizacao =
-      album.id === albumSelecionado ? Date.now() : album.ultimaAtualizacao || 0;
+    // Verificar se o álbum foi recentemente avaliado usando as datas de avaliação
+    const datasAvaliacoes = JSON.parse(
+      localStorage.getItem("datasAvaliacoes") || "{}"
+    );
+    if (datasAvaliacoes[album.id] && datasAvaliacoes[album.id].ultima) {
+      // Usar a data da última avaliação como timestamp
+      album.ultimaAtualizacao = new Date(
+        datasAvaliacoes[album.id].ultima
+      ).getTime();
+    } else {
+      // Se não tem data da última avaliação ou é o álbum selecionado, usar timestamp atual
+      album.ultimaAtualizacao =
+        album.id === albumSelecionado
+          ? Date.now()
+          : album.ultimaAtualizacao || 0;
+    }
 
     // Atualizar o progresso de carregamento
     const percentual = Math.floor((atual / total) * 100);
@@ -240,7 +255,7 @@ export default function useAvaliacoes({ termoPesquisaInicial = "" } = {}) {
 
     // Aplicar ordenação
     if (ordenacao === "padrao") {
-      // Manter a ordem por recentes (por última atualização)
+      // Sempre ordenar com os mais recentes primeiro
       albumsFiltrados.sort(
         (a, b) => (b.ultimaAtualizacao || 0) - (a.ultimaAtualizacao || 0)
       );
@@ -582,6 +597,11 @@ export default function useAvaliacoes({ termoPesquisaInicial = "" } = {}) {
           JSON.parse(localStorage.getItem("mapaFaixasAlbuns") || "{}")
         );
 
+        // Obter informações sobre datas de avaliação
+        const datasAvaliacoes = JSON.parse(
+          localStorage.getItem("datasAvaliacoes") || "{}"
+        );
+
         // Para uma mudança visual imediata, recarregar completamente
         carregarAlbunsAvaliados();
         return;
@@ -659,6 +679,36 @@ export default function useAvaliacoes({ termoPesquisaInicial = "" } = {}) {
     if (modoDemo) {
       console.log("Modo demo - carregando dados do localStorage primeiro");
       carregarDadosLocalStorage();
+
+      // Verificar e atualizar as datas de avaliação no localStorage se necessário
+      const datasAvaliacoes = JSON.parse(
+        localStorage.getItem("datasAvaliacoes") || "{}"
+      );
+      let precisaAtualizar = false;
+
+      // Verificar se todos os álbuns têm data de avaliação
+      const mapaFaixasAlbuns = JSON.parse(
+        localStorage.getItem("mapaFaixasAlbuns") || "{}"
+      );
+      const idsAlbuns = Array.from(new Set(Object.values(mapaFaixasAlbuns)));
+
+      idsAlbuns.forEach((albumId) => {
+        if (!datasAvaliacoes[albumId]) {
+          // Criar entrada para álbuns sem data registrada
+          datasAvaliacoes[albumId] = {
+            primeira: new Date().toISOString(),
+            ultima: new Date().toISOString(),
+          };
+          precisaAtualizar = true;
+        }
+      });
+
+      if (precisaAtualizar) {
+        localStorage.setItem(
+          "datasAvaliacoes",
+          JSON.stringify(datasAvaliacoes)
+        );
+      }
     }
 
     // Após carregar do localStorage, carregar álbuns avaliados

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import {
   buscarFaixasPorAlbum,
   buscarDetalhesAlbum,
@@ -699,20 +699,20 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
   }
 
   return (
-    <div className="p-3 md:p-6 overflow-y-auto">
-      <div className="flex justify-between items-center mb-4">
+    <div className="p-1 sm:p-2 md:p-4 max-w-full overflow-hidden">
+      <div className="flex justify-between items-center mb-2 md:mb-4">
         <button
           onClick={onVoltar}
-          className="bg-cinza py-2 px-4 rounded-lg hover:bg-cinza-escuro transition-colors text-sm cursor-pointer"
+          className="bg-cinza py-1 px-3 rounded-lg hover:bg-cinza-escuro transition-colors text-xs sm:text-sm cursor-pointer"
         >
           Voltar
         </button>
 
         {/* Botões de ação para o álbum */}
-        <div className="flex gap-2">
+        <div className="flex gap-1 sm:gap-2">
           <button
             onClick={resetarAvaliacoesAlbum}
-            className="bg-gray-700 hover:bg-gray-600 text-white py-2 px-3 rounded-lg transition-colors text-sm flex items-center gap-1 cursor-pointer"
+            className="bg-gray-700 hover:bg-gray-600 text-white py-1 px-2 rounded-lg transition-colors text-xs sm:text-sm flex items-center gap-1 cursor-pointer"
             title="Resetar avaliações deste álbum"
           >
             <FaUndo className="text-xs" />
@@ -721,7 +721,7 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
 
           <button
             onClick={removerAlbum}
-            className="bg-red-900 hover:bg-red-800 text-white py-2 px-3 rounded-lg transition-colors text-sm flex items-center gap-1 cursor-pointer"
+            className="bg-red-900 hover:bg-red-800 text-white py-1 px-2 rounded-lg transition-colors text-xs sm:text-sm flex items-center gap-1 cursor-pointer"
             title="Remover álbum das avaliações"
           >
             <FaTrash className="text-xs" />
@@ -770,109 +770,113 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
         </div>
       )}
 
-      <div className="flex flex-col md:flex-row gap-4 md:gap-8 mb-4 md:mb-8">
+      <div className="flex flex-col lg:flex-row gap-3 lg:gap-6 mb-3 lg:mb-6">
         {/* Capa do álbum */}
-        <div className="flex-shrink-0 mx-auto md:mx-0">
+        <div className="flex-shrink-0 mx-auto lg:mx-0">
           {detalhesAlbum.images && detalhesAlbum.images.length > 0 && (
             <img
               src={detalhesAlbum.images[0].url}
               alt={`Capa do álbum ${detalhesAlbum.name}`}
-              className="w-48 h-48 md:w-64 md:h-64 object-cover rounded-lg shadow-lg"
+              className="w-40 h-40 sm:w-48 sm:h-48 md:w-56 md:h-56 lg:w-60 lg:h-60 object-cover rounded-lg shadow-lg"
             />
           )}
         </div>
 
         {/* Informações do álbum */}
-        <div className="flex flex-col mt-4 md:mt-0">
-          <h2 className="text-xl md:text-3xl font-bold text-verde-destaque mb-1 md:mb-2 text-center md:text-left">
+        <div className="flex flex-col mt-3 lg:mt-0 flex-grow min-w-0">
+          <h2 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold text-verde-destaque mb-1 text-center lg:text-left truncate">
             {detalhesAlbum.name}
           </h2>
-          <p className="text-lg md:text-xl mb-1 md:mb-2 text-center md:text-left">
+          <p className="text-base sm:text-lg md:text-xl mb-1 text-center lg:text-left truncate">
             {detalhesAlbum.artists.map((a) => a.name).join(", ")}
           </p>
-          <p className="text-gray-400 text-center md:text-left text-sm md:text-base">
+          <p className="text-gray-400 text-center lg:text-left text-xs sm:text-sm md:text-base">
             {detalhesAlbum.release_date.substring(0, 4)} • {faixas.items.length}{" "}
             faixas • {calcularDuracaoTotal()}
           </p>
-          <div className="mt-3 md:mt-4 flex items-center justify-center md:justify-start">
-            <span className="text-xl md:text-2xl font-bold mr-2 text-verde-destaque">
+          <div className="mt-2 md:mt-3 flex items-center justify-center lg:justify-start">
+            <span className="text-lg sm:text-xl md:text-2xl font-bold mr-2 text-verde-destaque">
               {calcularMediaAvaliacoes()}
             </span>
             <span className="text-xs md:text-sm text-gray-400">/10</span>
           </div>
 
           {/* Barra de progresso de avaliação */}
-          <div className="mt-3 md:mt-4">
+          <div className="mt-2 md:mt-3">
             <div className="flex justify-between mb-1 gap-1">
-              <span className="text-xs md:text-sm text-gray-400">
+              <span className="text-xs text-gray-400">
                 Progresso da avaliação
               </span>
-              <span className="text-xs md:text-sm text-gray-400">
+              <span className="text-xs text-gray-400">
                 {progressoAvaliacao?.avaliadas || 0}/
                 {progressoAvaliacao?.total || 0} (
                 {progressoAvaliacao?.percentual || 0}%)
               </span>
             </div>
-            <div className="w-full h-2 md:h-3 bg-cinza rounded-full overflow-hidden">
+            <div className="w-full h-2 bg-cinza rounded-full overflow-hidden">
               <div
                 className="h-full bg-verde-destaque transition-all duration-300 ease-in-out"
                 style={{ width: `${progressoAvaliacao?.percentual || 0}%` }}
               ></div>
             </div>
           </div>
-        </div>
 
-        {/* Exibição da música favorita e pior música */}
-        <div className="flex flex-col justify-start gap-4 mt-4 md:mt-0 text-center md:text-left md:ml-auto md:min-w-[180px]">
-          {/* Seletores para música favorita e pior música */}
-          <div className="bg-gray-800 p-3 rounded-lg">
-            <h4 className="text-sm font-medium text-red-500 flex items-center gap-2 mb-2">
-              <IoMdHeart className="inline" /> Música Favorita:
-            </h4>
-            <select
-              className="w-full bg-gray-700 text-white py-2 px-3 rounded focus:outline-none focus:ring-2 focus:ring-red-500"
-              value={faixaFavorita || ""}
-              onChange={(e) =>
-                marcarFaixaFavorita(
-                  e.target.value === "" ? null : e.target.value
-                )
-              }
-            >
-              <option value="">Selecione a música favorita...</option>
-              {faixas.items.map((faixa) => (
-                <option key={`fav-${faixa.id}`} value={faixa.id}>
-                  {faixa.name}
-                </option>
-              ))}
-            </select>
+          {/* Cards de preferências - Seção móvel */}
+          <div className="grid grid-cols-1 xs:grid-cols-2 gap-3 mt-3 lg:hidden">
+            {/* Seletores para música favorita e pior música */}
+            <div className="bg-gray-800 p-2 rounded-lg min-w-[160px]">
+              <h4 className="text-xs font-medium text-red-500 flex items-center gap-1 mb-1">
+                <IoMdHeart className="inline text-xs" /> Música Favorita:
+              </h4>
+              <select
+                className="w-full bg-gray-700 text-white py-1 px-2 rounded text-xs focus:outline-none focus:ring-1 focus:ring-red-500 text-ellipsis"
+                value={faixaFavorita || ""}
+                onChange={(e) =>
+                  marcarFaixaFavorita(
+                    e.target.value === "" ? null : e.target.value
+                  )
+                }
+              >
+                <option value="">Selecione a música...</option>
+                {faixas.items.map((faixa) => (
+                  <option key={`fav-${faixa.id}`} value={faixa.id}>
+                    {faixa.name.length > 30
+                      ? faixa.name.substring(0, 28) + "..."
+                      : faixa.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="bg-gray-800 p-2 rounded-lg min-w-[160px]">
+              <h4 className="text-xs font-medium text-yellow-500 flex items-center gap-1 mb-1">
+                <IoMdHeartDislike className="inline text-xs" /> Pior Música:
+              </h4>
+              <select
+                className="w-full bg-gray-700 text-white py-1 px-2 rounded text-xs focus:outline-none focus:ring-1 focus:ring-yellow-500 text-ellipsis"
+                value={piorFaixa || ""}
+                onChange={(e) =>
+                  marcarPiorFaixa(e.target.value === "" ? null : e.target.value)
+                }
+              >
+                <option value="">Selecione a música...</option>
+                {faixas.items.map((faixa) => (
+                  <option key={`worst-${faixa.id}`} value={faixa.id}>
+                    {faixa.name.length > 30
+                      ? faixa.name.substring(0, 28) + "..."
+                      : faixa.name}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
 
-          <div className="bg-gray-800 p-3 rounded-lg">
-            <h4 className="text-sm font-medium text-yellow-500 flex items-center gap-2 mb-2">
-              <IoMdHeartDislike className="inline" /> Pior Música:
-            </h4>
-            <select
-              className="w-full bg-gray-700 text-white py-2 px-3 rounded focus:outline-none focus:ring-2 focus:ring-yellow-500"
-              value={piorFaixa || ""}
-              onChange={(e) =>
-                marcarPiorFaixa(e.target.value === "" ? null : e.target.value)
-              }
-            >
-              <option value="">Selecione a pior música...</option>
-              {faixas.items.map((faixa) => (
-                <option key={`worst-${faixa.id}`} value={faixa.id}>
-                  {faixa.name}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Datas de avaliação */}
-          <div className="bg-gray-800 p-3 rounded-lg">
-            <h4 className="text-sm font-medium text-blue-400 flex items-center gap-2 mb-2">
+          {/* Card de histórico para visualização móvel */}
+          <div className="bg-gray-800 p-2 rounded-lg mt-3 lg:hidden">
+            <h4 className="text-xs font-medium text-blue-400 flex items-center gap-1 mb-1">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                className="h-4 w-4 inline"
+                className="h-3 w-3 inline"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -887,9 +891,100 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
               Histórico de Avaliação:
             </h4>
 
-            <div className="text-xs text-gray-400 mb-2">
-              <span className="font-medium">Primeira avaliação:</span>
-              <div className="mt-1 text-gray-300">
+            <div className="flex flex-col xs:flex-row xs:justify-between gap-2">
+              <div className="text-xs text-gray-400">
+                <span className="font-medium">Primeira:</span>
+                <span className="ml-1 text-gray-300">
+                  {datasAvaliacao.temRegistro
+                    ? formatarData(datasAvaliacao.primeira)
+                    : "Sem registro"}
+                </span>
+              </div>
+
+              <div className="text-xs text-gray-400">
+                <span className="font-medium">Última:</span>
+                <span className="ml-1 text-gray-300">
+                  {datasAvaliacao.temRegistro
+                    ? formatarData(datasAvaliacao.ultima)
+                    : "Sem registro"}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Exibição da música favorita e pior música - Versão desktop */}
+        <div className="hidden lg:flex flex-col justify-start gap-3 text-left ml-auto min-w-[180px] max-w-[220px] flex-shrink-0">
+          {/* Seletores para música favorita e pior música */}
+          <div className="bg-gray-800 p-2 rounded-lg">
+            <h4 className="text-xs font-medium text-red-500 flex items-center gap-1 mb-1">
+              <IoMdHeart className="inline" /> Música Favorita:
+            </h4>
+            <select
+              className="w-full bg-gray-700 text-white py-1 px-2 rounded text-xs focus:outline-none focus:ring-1 focus:ring-red-500 text-ellipsis"
+              value={faixaFavorita || ""}
+              onChange={(e) =>
+                marcarFaixaFavorita(
+                  e.target.value === "" ? null : e.target.value
+                )
+              }
+            >
+              <option value="">Selecione a música...</option>
+              {faixas.items.map((faixa) => (
+                <option key={`fav-${faixa.id}`} value={faixa.id}>
+                  {faixa.name.length > 30
+                    ? faixa.name.substring(0, 28) + "..."
+                    : faixa.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="bg-gray-800 p-2 rounded-lg">
+            <h4 className="text-xs font-medium text-yellow-500 flex items-center gap-1 mb-1">
+              <IoMdHeartDislike className="inline" /> Pior Música:
+            </h4>
+            <select
+              className="w-full bg-gray-700 text-white py-1 px-2 rounded text-xs focus:outline-none focus:ring-1 focus:ring-yellow-500 text-ellipsis"
+              value={piorFaixa || ""}
+              onChange={(e) =>
+                marcarPiorFaixa(e.target.value === "" ? null : e.target.value)
+              }
+            >
+              <option value="">Selecione a música...</option>
+              {faixas.items.map((faixa) => (
+                <option key={`worst-${faixa.id}`} value={faixa.id}>
+                  {faixa.name.length > 30
+                    ? faixa.name.substring(0, 28) + "..."
+                    : faixa.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Datas de avaliação */}
+          <div className="bg-gray-800 p-2 rounded-lg">
+            <h4 className="text-xs font-medium text-blue-400 flex items-center gap-1 mb-1">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-3 w-3 inline"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                />
+              </svg>
+              Histórico:
+            </h4>
+
+            <div className="text-xs text-gray-400 mb-1">
+              <span className="font-medium">Primeira:</span>
+              <div className="text-gray-300">
                 {datasAvaliacao.temRegistro
                   ? formatarData(datasAvaliacao.primeira)
                   : "Sem registro"}
@@ -897,8 +992,8 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
             </div>
 
             <div className="text-xs text-gray-400">
-              <span className="font-medium">Última modificação:</span>
-              <div className="mt-1 text-gray-300">
+              <span className="font-medium">Última:</span>
+              <div className="text-gray-300">
                 {datasAvaliacao.temRegistro
                   ? formatarData(datasAvaliacao.ultima)
                   : "Sem registro"}
@@ -909,31 +1004,87 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
       </div>
 
       {/* Lista de faixas */}
-      <div className="bg-cinza-escuro rounded-xl p-3 md:p-6">
-        <h3 className="text-lg md:text-xl font-bold mb-3 md:mb-4">Faixas</h3>
+      <div className="bg-cinza-escuro rounded-xl p-2 md:p-4 overflow-hidden">
+        <h3 className="text-base md:text-lg font-bold mb-2 md:mb-3">Faixas</h3>
 
-        <div className="grid grid-cols-[auto_1fr_auto_auto] gap-x-2 md:gap-x-4 gap-y-1 md:gap-y-2 text-sm md:text-base">
-          <div className="font-bold text-gray-400">#</div>
-          <div className="font-bold text-gray-400">Título</div>
-          <div className="font-bold text-gray-400">Duração</div>
-          <div className="font-bold text-gray-400">Avaliação</div>
+        <div className="w-full relative">
+          {/* Mobile view - sem tempo */}
+          <div className="xs:hidden">
+            {/* Cabeçalho */}
+            <div className="grid grid-cols-[1.5rem_1fr_3.5rem] gap-x-1 mb-2">
+              <div className="font-bold text-gray-400 text-center text-xs">
+                #
+              </div>
+              <div className="font-bold text-gray-400 text-xs">Título</div>
+              <div className="font-bold text-gray-400 text-start text-xs">
+                Nota
+              </div>
+            </div>
 
-          {faixas.items.map((faixa, index) => (
-            <>
-              <div className="text-gray-400">{index + 1}</div>
-              <div className="truncate pr-2">{faixa.name}</div>
-              <div className="text-gray-400">
-                {formatarDuracao(faixa.duration_ms)}
+            {/* Linhas de faixas */}
+            {faixas.items.map((faixa, index) => (
+              <div
+                key={faixa.id}
+                className="grid grid-cols-[1.5rem_1fr_3.5rem] gap-x-1 py-1 border-t border-gray-800"
+              >
+                <div className="text-gray-400 text-center text-xs self-center">
+                  {index + 1}
+                </div>
+                <div className="truncate pr-1 text-xs sm:text-sm self-center font-medium">
+                  {faixa.name}
+                </div>
+                <div className="flex justify-end items-center">
+                  <Estrelas
+                    avaliacao={avaliacoes[faixa.id] || 0}
+                    onChange={(estrelas) => avaliarFaixa(faixa.id, estrelas)}
+                    tamanho="pequeno"
+                  />
+                </div>
               </div>
-              <div>
-                <Estrelas
-                  avaliacao={avaliacoes[faixa.id] || 0}
-                  onChange={(estrelas) => avaliarFaixa(faixa.id, estrelas)}
-                  tamanho="pequeno"
-                />
+            ))}
+          </div>
+
+          {/* Tablet/Desktop view - com tempo */}
+          <div className="hidden xs:block">
+            {/* Cabeçalho */}
+            <div className="grid grid-cols-[1.5rem_minmax(0,1fr)_3rem_4rem] gap-x-1 sm:gap-x-2 mb-2">
+              <div className="font-bold text-gray-400 text-center text-xs">
+                #
               </div>
-            </>
-          ))}
+              <div className="font-bold text-gray-400 text-xs">Título</div>
+              <div className="font-bold text-gray-400 text-center text-xs">
+                Tempo
+              </div>
+              <div className="font-bold text-gray-400 text-center text-xs">
+                Nota
+              </div>
+            </div>
+
+            {/* Linhas de faixas */}
+            {faixas.items.map((faixa, index) => (
+              <div
+                key={faixa.id}
+                className="grid grid-cols-[1.5rem_minmax(0,1fr)_3rem_4rem] gap-x-1 sm:gap-x-2 py-1 border-t border-gray-800"
+              >
+                <div className="text-gray-400 text-center text-xs self-center">
+                  {index + 1}
+                </div>
+                <div className="truncate pr-1 text-xs sm:text-sm self-center font-medium">
+                  {faixa.name}
+                </div>
+                <div className="text-gray-400 text-center text-xs self-center">
+                  {formatarDuracao(faixa.duration_ms)}
+                </div>
+                <div className="flex justify-end items-center">
+                  <Estrelas
+                    avaliacao={avaliacoes[faixa.id] || 0}
+                    onChange={(estrelas) => avaliarFaixa(faixa.id, estrelas)}
+                    tamanho="pequeno"
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </div>

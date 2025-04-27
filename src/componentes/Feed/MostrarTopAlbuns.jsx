@@ -43,7 +43,7 @@ const MostrarTopAlbuns = ({ termoPesquisa }) => {
   }
 
   return (
-    <div className="p-6">
+    <div className="p-6 overflow-hidden">
       <h1 className="text-3xl font-bold mb-8 text-verde-destaque">
         Pesquisar por Álbum
       </h1>
@@ -81,7 +81,7 @@ const MostrarTopAlbuns = ({ termoPesquisa }) => {
                   e.stopPropagation();
                   setAlbumSelecionado(album.id);
                 }}
-                className="mt-4 cursor-pointer bg-verde-destaque text-cinza-escuro py-2 px-4 rounded-lg hover:bg-verde-pastel transition-colors mt-auto"
+                className="cursor-pointer bg-verde-destaque text-cinza-escuro py-2 px-4 rounded-lg hover:bg-verde-pastel transition-colors mt-auto"
               >
                 Ver faixas
               </button>

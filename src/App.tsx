@@ -6,7 +6,6 @@ import Feed from "./componentes/Feed/Feed";
 import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import LoginSpotify from "./componentes/LoginSpotify";
 import CallbackSpotify from "./componentes/CallbackSpotify";
-import DetalhesAlbum from "./componentes/Feed/DetalhesAlbum";
 import { isAuthenticated } from "./services/auth";
 import PerfilUsuario from "./componentes/PerfilUsuario";
 import Splash from "./componentes/Splash";
@@ -14,6 +13,7 @@ import {
   configurarSincronizacao,
   carregarAvaliacoesSincronizadas,
 } from "./services/sync";
+import { migrarDadosAvaliacoes } from "./services/avaliacoes";
 
 // Componente principal da aplicação
 function App() {
@@ -53,12 +53,21 @@ function App() {
     // Verificar autenticação inicialmente
     verificarAutenticacao();
 
+    // Executar migração de dados para registrar datas de avaliações antigas
+    migrarDadosAvaliacoes();
+
     // Configurar evento para verificar quando o localStorage mudar
     window.addEventListener("storage", verificarAutenticacao);
 
-    // Remover evento ao desmontar
+    // Verificar autenticação a cada 2 minutos para detectar expiração do token
+    const intervaloVerificacao = setInterval(() => {
+      verificarAutenticacao();
+    }, 2 * 60 * 1000);
+
+    // Remover eventos ao desmontar
     return () => {
       window.removeEventListener("storage", verificarAutenticacao);
+      clearInterval(intervaloVerificacao);
     };
   }, [navigate, location.pathname]);
 
@@ -91,7 +100,7 @@ function App() {
 
   // Layout principal da aplicação
   return (
-    <div className="flex flex-col md:flex-row w-full md:w-[90vw] lg:w-[80vw] xl:w-[70vw] 2xl:w-[62vw] mx-auto mt-2 md:mt-10 gap-3 px-2 md:px-0 min-h-screen">
+    <div className="flex flex-col md:flex-row w-full md:w-[90vw] lg:w-[80vw] xl:w-[70vw] 2xl:w-[1440px] mx-auto m-2 mt-4 md:mt-12 gap-3 px-2 md:px-0 ">
       {/* Menu hamburger para mobile */}
       <button
         className="md:hidden flex items-center justify-center bg-cinza-escuro p-3 rounded-xl mb-2 text-white"
@@ -114,11 +123,6 @@ function App() {
         <span className="ml-2">Menu</span>
       </button>
 
-      {/* Perfil do usuário no canto superior direito */}
-      <div className="fixed top-4 right-4 z-50">
-        <PerfilUsuario />
-      </div>
-
       {/* Sidebar - mostrada/escondida em mobile */}
       <div
         className={`${
@@ -134,18 +138,35 @@ function App() {
         />
       </div>
 
-      <div className="flex flex-col w-full gap-4">
-        <BarraDePesquisa onSearch={handleSearch} />
+      <div className="flex flex-col w-full ">
+        {/* Barra de pesquisa com posição sticky e z-index alto */}
+        <div className="sticky top-10 z-100">
+          <BarraDePesquisa onSearch={handleSearch} activeView={activeView} />
+        </div>
+        {/* Conteúdo do feed sem barra de rolagem */}
+        <div
+          className="overflow-auto h-[calc(100vh-160px)] mt-4 "
+          style={{
+            scrollbarWidth: "thin",
+            scrollbarColor: " #81fe88 #2C2C2C",
+          }}
+        >
+          <Routes>
+            <Route
+              path="/feed"
+              element={
+                <Feed activeView={activeView} termoPesquisa={termoPesquisa} />
+              }
+            />
+          </Routes>
+        </div>
+      </div>
 
-        <Routes>
-          <Route
-            path="/feed"
-            element={
-              <Feed activeView={activeView} termoPesquisa={termoPesquisa} />
-            }
-          />
-          <Route path="/detalhes/:id" element={<DetalhesAlbum />} />
-        </Routes>
+      {/* Perfil do usuário no canto superior direito - agora sticky */}
+      <div className="hidden md:block md:sticky md:top-10 md:self-start z-40 ">
+        <div className="mb-4  sticky top-10 ">
+          <PerfilUsuario />
+        </div>
       </div>
     </div>
   );

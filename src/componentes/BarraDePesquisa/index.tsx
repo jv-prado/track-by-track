@@ -1,8 +1,22 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { FaSearch } from "react-icons/fa";
 
-export default function BarraDePesquisa({ onSearch }) {
+interface BarraDePesquisaProps {
+  onSearch: (termo: string) => void;
+  activeView: string;
+}
+
+export default function BarraDePesquisa({
+  onSearch,
+  activeView,
+}: BarraDePesquisaProps) {
   const [termoPesquisa, setTermoPesquisa] = useState("");
+
+  // Limpar o termo de pesquisa apenas quando a visualização ativa mudar
+  useEffect(() => {
+    setTermoPesquisa("");
+    onSearch("");
+  }, [activeView]);
 
   const handleSearch = (e) => {
     setTermoPesquisa(e.target.value);

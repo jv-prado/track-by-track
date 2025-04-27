@@ -9,6 +9,14 @@ import { IoMdHeart, IoMdHeartDislike } from "react-icons/io";
 import { FaTrash, FaUndo } from "react-icons/fa";
 import { notificarAvaliacoesAlteradas } from "../../services/sync";
 import { useParams, useNavigate } from "react-router-dom";
+import Carregamento from "../Feedback/Carregamento";
+import ErroCarregamento from "../Feedback/ErroCarregamento";
+import {
+  calcularProgressoAvaliacao,
+  registrarDataAvaliacao,
+  obterDatasAvaliacao,
+  formatarData,
+} from "../../services/avaliacoes";
 
 /**
  * Componente para exibir detalhes de um álbum e suas faixas
@@ -40,6 +48,11 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
   });
   const [erro, setErro] = useState(null);
   const [mostrarConfirmacao, setMostrarConfirmacao] = useState(null);
+  const [datasAvaliacao, setDatasAvaliacao] = useState({
+    primeira: null,
+    ultima: null,
+    temRegistro: false,
+  });
 
   // Função para calcular o progresso das avaliações
   const calcularProgressoAvaliacao = (dadosFaixas, avaliacoesFaixas) => {
@@ -79,6 +92,10 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
     if (prefsFaixas.pior) {
       setPiorFaixa(prefsFaixas.pior);
     }
+
+    // Carregar datas de avaliação
+    const datas = obterDatasAvaliacao(albumId);
+    setDatasAvaliacao(datas);
   }, [albumId]);
 
   // Função para tentar carregar os dados novamente
@@ -202,6 +219,13 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
       "ultima_atualizacao_avaliacoes",
       Date.now().toString()
     );
+
+    // Registrar a data da avaliação e atualizar o estado local
+    registrarDataAvaliacao(faixaId, estrelas);
+
+    // Recarregar as datas de avaliação
+    const datas = obterDatasAvaliacao(albumId);
+    setDatasAvaliacao(datas);
 
     // Notificar que as avaliações foram alteradas para acionar a sincronização
     notificarAvaliacoesAlteradas();
@@ -380,46 +404,21 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
     setMostrarConfirmacao(null);
   };
 
+  // Exibir indicador de carregamento
   if (carregando) {
-    return (
-      <div className="flex justify-center p-10">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-verde-destaque"></div>
-      </div>
-    );
+    return <Carregamento />;
   }
 
+  // Exibir mensagem de erro
   if (erro) {
     return (
-      <div className="p-3 md:p-6">
-        <button
-          onClick={onVoltar}
-          className="mb-4 bg-cinza py-2 px-4 rounded-lg hover:bg-cinza-escuro transition-colors text-sm cursor-pointer"
-        >
-          Voltar
-        </button>
-
-        <div className="bg-cinza-escuro rounded-xl p-4 md:p-8 text-center">
-          <div className="flex flex-col items-center justify-center">
-            <MdReportProblem className="text-red-500 text-4xl md:text-5xl mb-4" />
-            <h2 className="text-lg md:text-xl font-bold text-red-500 mb-4">
-              Erro ao carregar detalhes
-            </h2>
-            <p className="text-gray-400 mb-6 text-sm md:text-base">{erro}</p>
-            <button
-              onClick={tentarNovamente}
-              className="bg-verde-destaque text-cinza-escuro px-4 md:px-6 py-2 rounded-md hover:bg-green-500 transition-colors text-sm md:text-base cursor-pointer"
-            >
-              Tentar Novamente
-            </button>
-          </div>
-        </div>
-      </div>
+      <ErroCarregamento mensagem={erro} onTentarNovamente={tentarNovamente} />
     );
   }
 
   if (!detalhesAlbum || !faixas) {
     return (
-      <div className="p-3 md:p-6">
+      <div className="p-3 md:p-6 overflow-hidden">
         <button
           onClick={onVoltar}
           className="mb-4 bg-cinza py-2 px-4 rounded-lg hover:bg-cinza-escuro transition-colors text-sm cursor-pointer"
@@ -434,7 +433,7 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
   }
 
   return (
-    <div className="p-3 md:p-6">
+    <div className="p-3 md:p-6 overflow-y-auto">
       <div className="flex justify-between items-center mb-4">
         <button
           onClick={onVoltar}
@@ -467,7 +466,7 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
 
       {/* Modal de confirmação */}
       {mostrarConfirmacao && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 px-4">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[2000] px-4">
           <div className="bg-cinza-escuro rounded-xl p-5 max-w-md w-full">
             <h3 className="text-lg font-bold text-verde-destaque mb-3">
               {mostrarConfirmacao === "resetar"
@@ -577,6 +576,24 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
               <p className="text-sm text-gray-300 mt-1">
                 {faixas.items.find((f) => f.id === piorFaixa)?.name || ""}
               </p>
+            </div>
+          )}
+
+          {/* Datas de avaliação */}
+          {datasAvaliacao.temRegistro && (
+            <div className="bg-gray-800 p-3 rounded-lg">
+              <div className="text-xs text-gray-400 mb-1">
+                <span className="font-medium">Primeira avaliação:</span>
+                <div className="mt-1 text-gray-300">
+                  {formatarData(datasAvaliacao.primeira)}
+                </div>
+              </div>
+              <div className="text-xs text-gray-400 mt-2">
+                <span className="font-medium">Última avaliação:</span>
+                <div className="mt-1 text-gray-300">
+                  {formatarData(datasAvaliacao.ultima)}
+                </div>
+              </div>
             </div>
           )}
         </div>

@@ -100,7 +100,11 @@ export default function MostrarTopArtistas({ termoPesquisa }) {
           setFaixasDoAlbum(dados);
 
           // Inicializar avaliações para novas faixas
-          const novasAvaliacoes = { ...avaliacoes };
+          const avaliacoesExistentes = JSON.parse(
+            localStorage.getItem("avaliacoesFaixas") || "{}"
+          );
+          const novasAvaliacoes = { ...avaliacoesExistentes };
+
           dados.items.forEach((faixa) => {
             if (!novasAvaliacoes[faixa.id]) {
               novasAvaliacoes[faixa.id] = 0;
@@ -406,7 +410,7 @@ export default function MostrarTopArtistas({ termoPesquisa }) {
                   setArtistaSelecionado(artista.id);
                   console.log("Artista selecionado:", artista.id);
                 }}
-                className="mt-4 cursor-pointer bg-verde-destaque text-cinza-escuro py-2 px-4 rounded-lg hover:bg-verde-pastel transition-colors mt-auto"
+                className="cursor-pointer bg-verde-destaque text-cinza-escuro py-2 px-4 rounded-lg hover:bg-verde-pastel transition-colors mt-auto"
               >
                 Ver álbuns
               </button>

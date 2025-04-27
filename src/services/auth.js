@@ -1,4 +1,5 @@
 // Funções utilitárias para gerenciar a autenticação com Spotify
+import { loginWithClientCredentials } from "./api";
 
 /**
  * Verifica se o usuário está autenticado
@@ -90,4 +91,24 @@ export const saveUserData = (userData) => {
       image: userData.images?.[0]?.url || null,
     })
   );
+};
+
+/**
+ * Tenta corrigir problemas de autenticação usando o modo de demonstração
+ * @returns {Promise<boolean>} Verdadeiro se a autenticação foi recuperada
+ */
+export const recuperarAutenticacao = async () => {
+  try {
+    // Verificar se já está autenticado
+    if (isAuthenticated()) {
+      return true;
+    }
+
+    // Tentar autenticar em modo de demonstração
+    console.log("Tentando recuperar autenticação com o modo de demonstração");
+    return await loginWithClientCredentials();
+  } catch (erro) {
+    console.error("Erro ao tentar recuperar autenticação:", erro);
+    return false;
+  }
 };

@@ -7,6 +7,7 @@ import MinhasAvaliacoes from "./MinhasAvaliacoes";
  * @param {Object} props - Propriedades do componente
  * @param {string} props.activeView - Visão ativa ("albuns", "artistas" ou "classificacoes")
  * @param {string} props.termoPesquisa - Termo de pesquisa inserido pelo usuário
+ * @returns {JSX.Element} Componente de feed
  */
 export default function Feed({ activeView, termoPesquisa }) {
   return (

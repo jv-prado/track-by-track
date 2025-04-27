@@ -105,17 +105,35 @@ const isDemoMode = () => {
 };
 
 /**
- * Gerenciador de requisições com tratamento de erros
+ * Gerenciador de requisições com tratamento de erros e retry para limites de taxa
  * @param {string} url - URL da requisição
  * @param {Object} options - Opções da requisição
+ * @param {number} tentativas - Número de tentativas restantes (padrão: 3)
  * @returns {Promise<Object>} Dados da resposta
  * @throws {Error} Erro formatado em caso de falha
  */
-async function fetchWithErrorHandling(url, options) {
+async function fetchWithErrorHandling(url, options, tentativas = 3) {
   try {
     const response = await fetch(url, options);
 
     if (!response.ok) {
+      // Tratamento especial para erro 429 (Too Many Requests)
+      if (response.status === 429 && tentativas > 0) {
+        // Obter o tempo de espera recomendado ou usar um padrão
+        const retryAfter = response.headers.get("Retry-After") || 2;
+        const delayMs = parseInt(retryAfter) * 1000;
+
+        console.warn(
+          `Limite de requisições atingido. Aguardando ${retryAfter}s antes de tentar novamente...`
+        );
+
+        // Esperar pelo tempo recomendado
+        await new Promise((resolve) => setTimeout(resolve, delayMs));
+
+        // Tentar novamente com uma tentativa a menos
+        return fetchWithErrorHandling(url, options, tentativas - 1);
+      }
+
       // Tenta obter os detalhes do erro da resposta
       let errorDetails = "";
       try {
@@ -250,7 +268,7 @@ export async function buscarFaixasPorAlbum(albumId) {
 }
 
 /**
- * Busca detalhes de um álbum específico pelo ID
+ * Busca detalhes de um álbum específico pelo ID com gerenciamento de taxa de requisições
  * @param {string} albumId - ID do álbum no Spotify
  * @returns {Promise<Object>} Dados detalhados do álbum
  */
@@ -262,14 +280,25 @@ export async function buscarDetalhesAlbum(albumId) {
       return mockData.albumDetails;
     }
 
+    // Verificar se o albumId é válido
+    if (!albumId || albumId.trim() === "") {
+      throw new Error("ID do álbum inválido ou não fornecido");
+    }
+
     const token = await getToken();
 
-    return await fetchWithErrorHandling(
+    const resultado = await fetchWithErrorHandling(
       `${URL_BASE}albums/${albumId}`,
       getAuthHeaders(token)
     );
+
+    if (!resultado || !resultado.id) {
+      throw new Error(`Álbum não encontrado: ${albumId}`);
+    }
+
+    return resultado;
   } catch (error) {
-    console.error("Erro ao buscar detalhes do álbum:", error);
+    console.error(`Erro ao buscar detalhes do álbum ${albumId}:`, error);
     throw new Error(
       `Não foi possível buscar os detalhes do álbum: ${error.message}`
     );

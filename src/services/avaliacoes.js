@@ -686,3 +686,29 @@ export const setMapaFaixasAlbuns = (mapa) => {
   memoriaAvaliacoes.mapaFaixasAlbuns = mapa;
   salvarDadosLocalStorage(); // Salvar no localStorage após alteração
 };
+
+/**
+ * Recarrega as avaliações de álbuns e faixas
+ * Esta função deve ser chamada quando precisamos garantir
+ * que temos os dados mais atualizados (por exemplo, após uma avaliação)
+ * @returns {Object} Objeto com avaliacoesFaixas e mapaFaixasAlbuns atualizados
+ */
+export const recarregarAvaliacoes = () => {
+  // Verificar se estamos em modo de demonstração
+  const demoToken = localStorage.getItem("demo_token");
+  const demoExpiry = localStorage.getItem("demo_token_expiry");
+  const modoDemo = demoToken && demoExpiry && parseInt(demoExpiry) > Date.now();
+
+  if (modoDemo) {
+    // Recarregar dados do localStorage
+    carregarDadosLocalStorage();
+  }
+
+  // Retornar os dados atualizados
+  return {
+    avaliacoesFaixas: memoriaAvaliacoes.avaliacoesFaixas,
+    mapaFaixasAlbuns: memoriaAvaliacoes.mapaFaixasAlbuns,
+    preferenciasAlbuns: memoriaAvaliacoes.preferenciasAlbuns,
+    datasAvaliacoes: memoriaAvaliacoes.datasAvaliacoes,
+  };
+};

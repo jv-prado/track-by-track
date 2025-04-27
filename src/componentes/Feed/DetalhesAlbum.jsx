@@ -20,6 +20,7 @@ import {
   setAvaliacoesFaixas,
   getMapaFaixasAlbuns,
   setMapaFaixasAlbuns,
+  recarregarAvaliacoes,
 } from "../../services/avaliacoes";
 import { getUsuarioAtual, salvarAvaliacaoAlbum } from "../../services/firebase";
 
@@ -38,7 +39,23 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
   const albumId = albumIdProp || albumIdParam;
 
   // Função de voltar personalizada ou padrão
-  const onVoltar = onVoltarProp || (() => navigate(-1));
+  const onVoltar = () => {
+    // Primeiro, recarregar as avaliações para garantir que temos os dados mais atualizados
+    recarregarAvaliacoes();
+
+    // Depois, notificar que as avaliações foram alteradas para outros componentes detectarem
+    notificarAvaliacoesAlteradas();
+
+    // Aguardar um momento para as atualizações ocorrerem
+    setTimeout(() => {
+      // Chamar a função de voltar fornecida ou navegar de volta
+      if (onVoltarProp) {
+        onVoltarProp();
+      } else {
+        navigate(-1);
+      }
+    }, 100);
+  };
 
   const [detalhesAlbum, setDetalhesAlbum] = useState(null);
   const [faixas, setFaixas] = useState(null);
@@ -366,11 +383,63 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
         console.error("Erro ao salvar avaliação no Firebase:", error);
       }
     } else {
-      // Para usuário não logado, usar localStorage
-      localStorage.setItem(
-        `avaliacoes_${albumId}`,
-        JSON.stringify(novasAvaliacoes)
-      );
+      // Para usuário não logado ou modo demo, atualizar o localStorage global
+      // Verificar se estamos em modo de demonstração
+      const demoToken = localStorage.getItem("demo_token");
+      const demoExpiry = localStorage.getItem("demo_token_expiry");
+      const modoDemo =
+        demoToken && demoExpiry && parseInt(demoExpiry) > Date.now();
+
+      if (modoDemo) {
+        // Em modo demo, atualizar as estruturas globais
+        // Obter avaliações e mapeamento atuais
+        const avaliacoesExistentes = JSON.parse(
+          localStorage.getItem("avaliacoesFaixas") || "{}"
+        );
+        const mapaFaixasAlbuns = JSON.parse(
+          localStorage.getItem("mapaFaixasAlbuns") || "{}"
+        );
+
+        // Atualizar avaliações
+        const novasAvaliacoesStorage = { ...avaliacoesExistentes };
+
+        // Atualizar ou remover a avaliação
+        if (nota > 0) {
+          novasAvaliacoesStorage[faixaId] = nota;
+        } else {
+          delete novasAvaliacoesStorage[faixaId];
+        }
+
+        // IMPORTANTE: Garantir que TODAS as faixas do álbum estejam mapeadas
+        const novoMapaFaixas = { ...mapaFaixasAlbuns };
+
+        // Mapear todas as faixas para este álbum
+        faixas.items.forEach((faixa) => {
+          novoMapaFaixas[faixa.id] = albumId;
+        });
+
+        // Salvar no localStorage
+        localStorage.setItem(
+          "avaliacoesFaixas",
+          JSON.stringify(novasAvaliacoesStorage)
+        );
+        localStorage.setItem(
+          "mapaFaixasAlbuns",
+          JSON.stringify(novoMapaFaixas)
+        );
+
+        // Também manter o formato antigo para compatibilidade
+        localStorage.setItem(
+          `avaliacoes_${albumId}`,
+          JSON.stringify(novasAvaliacoes)
+        );
+      } else {
+        // Para usuário não logado (sem modo demo), usar formato antigo
+        localStorage.setItem(
+          `avaliacoes_${albumId}`,
+          JSON.stringify(novasAvaliacoes)
+        );
+      }
 
       // Notificar que as avaliações foram alteradas
       notificarAvaliacoesAlteradas();
@@ -419,7 +488,34 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
         console.error("Erro ao salvar faixa favorita no Firebase:", error);
       }
     } else {
-      // Para usuário não logado, usar localStorage
+      // Verificar se estamos em modo de demonstração
+      const demoToken = localStorage.getItem("demo_token");
+      const demoExpiry = localStorage.getItem("demo_token_expiry");
+      const modoDemo =
+        demoToken && demoExpiry && parseInt(demoExpiry) > Date.now();
+
+      if (modoDemo) {
+        // Em modo demo, também atualizar a estrutura global de preferências
+        const preferenciasGlobais = JSON.parse(
+          localStorage.getItem("preferenciasAlbuns") || "{}"
+        );
+
+        preferenciasGlobais[albumId] = preferenciasGlobais[albumId] || {};
+        preferenciasGlobais[albumId].faixaFavorita = novaFaixaFavorita;
+
+        // Preservar pior faixa se existir
+        if (piorFaixa) {
+          preferenciasGlobais[albumId].piorFaixa = piorFaixa;
+        }
+
+        // Salvar no localStorage global
+        localStorage.setItem(
+          "preferenciasAlbuns",
+          JSON.stringify(preferenciasGlobais)
+        );
+      }
+
+      // Para usuário não logado ou modo demo, salvar no formato antigo
       localStorage.setItem(
         `preferencias_${albumId}`,
         JSON.stringify(preferencias)
@@ -467,7 +563,34 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
         console.error("Erro ao salvar pior faixa no Firebase:", error);
       }
     } else {
-      // Para usuário não logado, usar localStorage
+      // Verificar se estamos em modo de demonstração
+      const demoToken = localStorage.getItem("demo_token");
+      const demoExpiry = localStorage.getItem("demo_token_expiry");
+      const modoDemo =
+        demoToken && demoExpiry && parseInt(demoExpiry) > Date.now();
+
+      if (modoDemo) {
+        // Em modo demo, também atualizar a estrutura global de preferências
+        const preferenciasGlobais = JSON.parse(
+          localStorage.getItem("preferenciasAlbuns") || "{}"
+        );
+
+        preferenciasGlobais[albumId] = preferenciasGlobais[albumId] || {};
+        preferenciasGlobais[albumId].piorFaixa = novaPiorFaixa;
+
+        // Preservar faixa favorita se existir
+        if (faixaFavorita) {
+          preferenciasGlobais[albumId].faixaFavorita = faixaFavorita;
+        }
+
+        // Salvar no localStorage global
+        localStorage.setItem(
+          "preferenciasAlbuns",
+          JSON.stringify(preferenciasGlobais)
+        );
+      }
+
+      // Para usuário não logado ou modo demo, salvar no formato antigo
       localStorage.setItem(
         `preferencias_${albumId}`,
         JSON.stringify(preferencias)
@@ -670,6 +793,84 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
     setMostrarConfirmacao(null);
   };
 
+  // Efeito para adicionar um ouvinte para o evento de atualização de avaliações
+  useEffect(() => {
+    // Função para recarregar os dados quando notificado de alterações
+    const atualizarDadosPorEvento = () => {
+      console.log("DetalhesAlbum recebeu evento de atualização de avaliações");
+
+      try {
+        // Verificar se estamos em modo de demonstração
+        const demoToken = localStorage.getItem("demo_token");
+        const demoExpiry = localStorage.getItem("demo_token_expiry");
+        const modoDemo =
+          demoToken && demoExpiry && parseInt(demoExpiry) > Date.now();
+
+        if (modoDemo) {
+          // Recarregar dados do localStorage
+          const avaliacoesSalvas = localStorage.getItem("avaliacoesFaixas");
+          if (avaliacoesSalvas) {
+            try {
+              const dados = JSON.parse(avaliacoesSalvas);
+              setAvaliacoes(dados);
+
+              // Recalcular o progresso
+              if (faixas) {
+                setProgressoAvaliacao(
+                  calcularProgressoAvaliacao(faixas, dados)
+                );
+              }
+            } catch (erroJson) {
+              console.error("Erro ao processar JSON de avaliações:", erroJson);
+            }
+          }
+
+          // Verificar se há dados de faixas para este álbum
+          const mapaFaixasAlbuns = JSON.parse(
+            localStorage.getItem("mapaFaixasAlbuns") || "{}"
+          );
+
+          // Garantir mapeamento para todas as faixas
+          if (faixas && faixas.items) {
+            const mapaAtualizado = { ...mapaFaixasAlbuns };
+            let atualizouMapa = false;
+
+            faixas.items.forEach((faixa) => {
+              if (!mapaAtualizado[faixa.id]) {
+                mapaAtualizado[faixa.id] = albumId;
+                atualizouMapa = true;
+              }
+            });
+
+            // Se houve atualização, salvar o mapa
+            if (atualizouMapa) {
+              localStorage.setItem(
+                "mapaFaixasAlbuns",
+                JSON.stringify(mapaAtualizado)
+              );
+
+              // Notificar alterações
+              notificarAvaliacoesAlteradas();
+            }
+          }
+        }
+      } catch (erro) {
+        console.error("Erro ao atualizar dados por evento:", erro);
+      }
+    };
+
+    // Adicionar listener para o evento
+    window.addEventListener("avaliacoes_alteradas", atualizarDadosPorEvento);
+
+    // Remover listener quando o componente for desmontado
+    return () => {
+      window.removeEventListener(
+        "avaliacoes_alteradas",
+        atualizarDadosPorEvento
+      );
+    };
+  }, [faixas, albumId]);
+
   // Exibir indicador de carregamento
   if (carregando) {
     return <Carregamento />;
@@ -796,7 +997,7 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
           </p>
           <div className="mt-2 md:mt-3 flex items-center justify-center lg:justify-start">
             <span className="text-lg sm:text-xl md:text-2xl font-bold mr-2 text-verde-destaque">
-              {calcularMediaAvaliacoes()}
+              {Math.floor(calcularMediaAvaliacoes())}
             </span>
             <span className="text-xs md:text-sm text-gray-400">/10</span>
           </div>
@@ -810,13 +1011,15 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
               <span className="text-xs text-gray-400">
                 {progressoAvaliacao?.avaliadas || 0}/
                 {progressoAvaliacao?.total || 0} (
-                {progressoAvaliacao?.percentual || 0}%)
+                {Math.floor(progressoAvaliacao?.percentual || 0)}%)
               </span>
             </div>
             <div className="w-full h-2 bg-cinza rounded-full overflow-hidden">
               <div
                 className="h-full bg-verde-destaque transition-all duration-300 ease-in-out"
-                style={{ width: `${progressoAvaliacao?.percentual || 0}%` }}
+                style={{
+                  width: `${Math.floor(progressoAvaliacao?.percentual || 0)}%`,
+                }}
               ></div>
             </div>
           </div>

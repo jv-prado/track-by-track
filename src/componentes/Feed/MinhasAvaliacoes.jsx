@@ -91,6 +91,7 @@ const MinhasAvaliacoes = () => {
   const [carregandoAuth, setCarregandoAuth] = useState(false);
   const [tentouRecuperar, setTentouRecuperar] = useState(false);
   const [carregandoTela, setCarregandoTela] = useState(true);
+  const [estavaNaTelaDetalhes, setEstavaNaTelaDetalhes] = useState(false);
   const navigate = useNavigate();
 
   const {
@@ -112,6 +113,19 @@ const MinhasAvaliacoes = () => {
     setCarregamentoProgressivo,
     recarregarListaAlbuns,
   } = useAvaliacoes();
+
+  // Recarregar a lista quando o usuário voltar da tela de detalhes de álbum
+  useEffect(() => {
+    if (albumSelecionado) {
+      // O usuário está indo para a tela de detalhes
+      setEstavaNaTelaDetalhes(true);
+    } else if (estavaNaTelaDetalhes) {
+      // O usuário estava na tela de detalhes e agora voltou
+      console.log("Usuário voltou da tela de detalhes, recarregando álbuns...");
+      recarregarListaAlbuns();
+      setEstavaNaTelaDetalhes(false);
+    }
+  }, [albumSelecionado]);
 
   // Tentar recuperar autenticação automaticamente ao montar o componente
   useEffect(() => {

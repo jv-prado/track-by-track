@@ -16,6 +16,14 @@ const CardAlbumAvaliado = ({ album, setAlbumSelecionado }) => {
     percentual: 0,
   };
 
+  // Formatar a média como número inteiro
+  const mediaFormatada = album.mediaAvaliacao
+    ? Math.floor(album.mediaAvaliacao)
+    : "0";
+
+  // Formatar o percentual como número inteiro
+  const percentualFormatado = Math.floor(progressoAvaliacao.percentual);
+
   return (
     <div
       key={album.id}
@@ -50,7 +58,7 @@ const CardAlbumAvaliado = ({ album, setAlbumSelecionado }) => {
         {/* Nota média */}
         <div className="flex items-center mt-2 mb-1">
           <span className="text-base md:text-lg font-bold mr-1 text-verde-destaque">
-            {album.mediaAvaliacao || "0.0"}
+            {mediaFormatada}
           </span>
           <span className="text-xs text-gray-400">/10</span>
         </div>
@@ -62,14 +70,14 @@ const CardAlbumAvaliado = ({ album, setAlbumSelecionado }) => {
               <span className="text-gray-400 text-[10px]">Avaliado:</span>
               <span className="text-gray-400 text-[10px]">
                 {progressoAvaliacao.avaliadas}/{progressoAvaliacao.total} (
-                {progressoAvaliacao.percentual}%)
+                {percentualFormatado}%)
               </span>
             </div>
             <div className="w-full h-1.5 bg-cinza rounded-full overflow-hidden">
               <div
                 className="h-full bg-verde-destaque transition-all duration-300 ease-in-out"
                 style={{
-                  width: `${progressoAvaliacao.percentual}%`,
+                  width: `${percentualFormatado}%`,
                 }}
               ></div>
             </div>

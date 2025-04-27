@@ -128,6 +128,22 @@ export const configurarSincronizacao = () => {
  * Evento personalizado para notificar que as avaliações foram alteradas
  */
 export const notificarAvaliacoesAlteradas = () => {
+  // Verificar se estamos em modo de demonstração
+  const demoToken = localStorage.getItem("demo_token");
+  const demoExpiry = localStorage.getItem("demo_token_expiry");
+  const modoDemo = demoToken && demoExpiry && parseInt(demoExpiry) > Date.now();
+
+  if (modoDemo) {
+    // Para modo demo, garantir que as avaliações são salvas no localStorage
+    try {
+      const { recarregarAvaliacoes } = require("./avaliacoes");
+      recarregarAvaliacoes();
+    } catch (err) {
+      console.warn("Não foi possível recarregar avaliações:", err);
+    }
+  }
+
+  // Disparar evento independentemente do modo
   window.dispatchEvent(new Event("avaliacoes_alteradas"));
 };
 

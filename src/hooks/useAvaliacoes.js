@@ -102,8 +102,11 @@ export default function useAvaliacoes({ termoPesquisaInicial = "" } = {}) {
       });
     }
 
-    // Aplicar ordenação
-    if (ordenacao === "crescente") {
+    // Aplicar ordenação personalizada apenas se ordenação for "padrao"
+    if (ordenacao === "padrao") {
+      // Manter a ordem por recentes (a ordenação já é aplicada em recarregarListaAlbuns)
+      albumsFiltrados = albumsFiltrados;
+    } else if (ordenacao === "crescente") {
       albumsFiltrados.sort(
         (a, b) => parseFloat(a.mediaAvaliacao) - parseFloat(b.mediaAvaliacao)
       );
@@ -175,6 +178,10 @@ export default function useAvaliacoes({ termoPesquisaInicial = "" } = {}) {
       album.artists = [{ name: "Artista desconhecido" }];
     }
 
+    // Adicionar timestamp para ordenação por mais recentes
+    album.ultimaAtualizacao =
+      album.id === albumSelecionado ? Date.now() : album.ultimaAtualizacao || 0;
+
     // Atualizar o progresso de carregamento
     const percentual = Math.floor((atual / total) * 100);
     setProgressoCarregamento(percentual);
@@ -189,10 +196,15 @@ export default function useAvaliacoes({ termoPesquisaInicial = "" } = {}) {
       // Adicionar o novo álbum e retornar a lista atualizada
       const novosAlbuns = [...albuns, album];
 
-      // Também atualizar albunsExibidos para mostrar imediatamente
-      aplicarFiltrosEOrdenacaoProgressivos(novosAlbuns);
+      // Ordenar para que os álbuns mais recentes fiquem primeiro
+      const albunsOrdenados = novosAlbuns.sort((a, b) => {
+        return (b.ultimaAtualizacao || 0) - (a.ultimaAtualizacao || 0);
+      });
 
-      return novosAlbuns;
+      // Também atualizar albunsExibidos para mostrar imediatamente
+      aplicarFiltrosEOrdenacaoProgressivos(albunsOrdenados);
+
+      return albunsOrdenados;
     });
   };
 
@@ -227,7 +239,12 @@ export default function useAvaliacoes({ termoPesquisaInicial = "" } = {}) {
     }
 
     // Aplicar ordenação
-    if (ordenacao === "crescente") {
+    if (ordenacao === "padrao") {
+      // Manter a ordem por recentes (por última atualização)
+      albumsFiltrados.sort(
+        (a, b) => (b.ultimaAtualizacao || 0) - (a.ultimaAtualizacao || 0)
+      );
+    } else if (ordenacao === "crescente") {
       albumsFiltrados.sort(
         (a, b) => parseFloat(a.mediaAvaliacao) - parseFloat(b.mediaAvaliacao)
       );
@@ -294,16 +311,21 @@ export default function useAvaliacoes({ termoPesquisaInicial = "" } = {}) {
               total: Object.keys(album.avaliacoes).length,
               avaliadas: Object.values(album.avaliacoes).filter((a) => a > 0)
                 .length,
-              percentual:
+              percentual: Math.round(
                 (Object.values(album.avaliacoes).filter((a) => a > 0).length /
                   Object.keys(album.avaliacoes).length) *
-                100,
+                  100
+              ),
             },
             dataAvaliacao: new Date(
               album.data_avaliacao?.toDate
                 ? album.data_avaliacao.toDate()
                 : album.data_avaliacao
             ),
+            // Adicionar timestamp para ordenação por álbum mais recente
+            ultimaAtualizacao: album.data_avaliacao?.seconds
+              ? album.data_avaliacao.seconds * 1000
+              : Date.now(),
           }));
 
           // Também atualizar o estado em memória a partir do Firebase
@@ -314,8 +336,13 @@ export default function useAvaliacoes({ termoPesquisaInicial = "" } = {}) {
             setMapaFaixasAlbuns(dadosFirebase.mapaFaixasAlbuns);
           }
 
-          setAlbunsAvaliados(albumsProcessados);
-          setAlbunsExibidos(albumsProcessados);
+          // Ordenar os álbuns para que os mais recentes apareçam primeiro
+          const albumsOrdenados = [...albumsProcessados].sort(
+            (a, b) => (b.ultimaAtualizacao || 0) - (a.ultimaAtualizacao || 0)
+          );
+
+          setAlbunsAvaliados(albumsOrdenados);
+          setAlbunsExibidos(albumsOrdenados);
           setCarregando(false);
           return;
         } catch (error) {
@@ -519,8 +546,16 @@ export default function useAvaliacoes({ termoPesquisaInicial = "" } = {}) {
    * Recarrega a lista de álbuns, atualizando suas avaliações
    */
   const recarregarListaAlbuns = async () => {
+    console.log("Recarregando lista de álbuns...");
+
+    // Verificar se estamos em modo de demonstração
+    const demoToken = localStorage.getItem("demo_token");
+    const demoExpiry = localStorage.getItem("demo_token_expiry");
+    const modoDemo =
+      demoToken && demoExpiry && parseInt(demoExpiry) > Date.now();
+
     // Verificar autenticação
-    if (!isAuthenticated()) {
+    if (!isAuthenticated() && !modoDemo) {
       setErro("Sessão expirada. Faça login novamente.");
       setCarregando(false);
       setAutenticado(false);
@@ -531,8 +566,23 @@ export default function useAvaliacoes({ termoPesquisaInicial = "" } = {}) {
       // Verificar se o usuário está usando o Firebase
       const usuarioFirebase = getUsuarioAtual();
 
-      if (usuarioFirebase) {
+      if (usuarioFirebase && !modoDemo) {
         // Recarregar diretamente do Firebase
+        carregarAlbunsAvaliados();
+        return;
+      }
+
+      // Se estiver em modo demo, recarregar dados do localStorage
+      if (modoDemo) {
+        // Recarregar dados do localStorage para garantir que temos os mais atualizados
+        setAvaliacoesFaixas(
+          JSON.parse(localStorage.getItem("avaliacoesFaixas") || "{}")
+        );
+        setMapaFaixasAlbuns(
+          JSON.parse(localStorage.getItem("mapaFaixasAlbuns") || "{}")
+        );
+
+        // Para uma mudança visual imediata, recarregar completamente
         carregarAlbunsAvaliados();
         return;
       }
@@ -569,6 +619,11 @@ export default function useAvaliacoes({ termoPesquisaInicial = "" } = {}) {
                 faixas,
                 avaliacoesFaixas
               ),
+              // Adicionar a data atual como última atualização para ordenação
+              ultimaAtualizacao:
+                album.id === albumSelecionado
+                  ? Date.now()
+                  : album.ultimaAtualizacao || 0,
             };
           } catch (erro) {
             console.warn(
@@ -581,7 +636,12 @@ export default function useAvaliacoes({ termoPesquisaInicial = "" } = {}) {
         })
       );
 
-      setAlbunsAvaliados(albunsAtualizados);
+      // Ordenar a lista para que os álbuns recentemente avaliados apareçam primeiro
+      const albunsOrdenados = [...albunsAtualizados].sort((a, b) => {
+        return (b.ultimaAtualizacao || 0) - (a.ultimaAtualizacao || 0);
+      });
+
+      setAlbunsAvaliados(albunsOrdenados);
       aplicarFiltrosEOrdenacao();
     } catch (erro) {
       console.error("Erro ao recarregar lista de álbuns:", erro);
@@ -616,6 +676,40 @@ export default function useAvaliacoes({ termoPesquisaInicial = "" } = {}) {
       setTermoPesquisa(termoPesquisaInicial);
     }
   }, [termoPesquisaInicial]);
+
+  // Adicionar um event listener para recarregar os álbuns quando as avaliações forem alteradas
+  useEffect(() => {
+    // Função para lidar com o evento de avaliações alteradas
+    const handleAvaliacoesAlteradas = () => {
+      console.log(
+        "Evento de avaliações alteradas detectado no hook useAvaliacoes"
+      );
+      // Verificar se o usuário saiu do modo demo
+      const demoToken = localStorage.getItem("demo_token");
+      const demoExpiry = localStorage.getItem("demo_token_expiry");
+      const modoDemo =
+        demoToken && demoExpiry && parseInt(demoExpiry) > Date.now();
+
+      if (!modoDemo && !isAuthenticated()) {
+        // Se não está mais em modo demo ou autenticado, não fazer nada
+        return;
+      }
+
+      // Recarregar a lista de álbuns avaliados
+      recarregarListaAlbuns();
+    };
+
+    // Adicionar o event listener
+    window.addEventListener("avaliacoes_alteradas", handleAvaliacoesAlteradas);
+
+    // Remover o event listener quando o componente for desmontado
+    return () => {
+      window.removeEventListener(
+        "avaliacoes_alteradas",
+        handleAvaliacoesAlteradas
+      );
+    };
+  }, []);
 
   return {
     albunsAvaliados,

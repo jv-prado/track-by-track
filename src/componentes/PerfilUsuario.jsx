@@ -19,7 +19,7 @@ export default function PerfilUsuario() {
       localStorage.removeItem("demo_token");
       localStorage.removeItem("demo_token_expiry");
       localStorage.removeItem("demo_usuario");
-      window.location.href = "/login-firebase";
+      window.location.href = "/login";
       return;
     }
 
@@ -28,8 +28,8 @@ export default function PerfilUsuario() {
       await fazerLogout();
     }
 
-    // Redirecionar para a tela de login do Firebase
-    navigate("/login-firebase");
+    // Redirecionar para a tela de login
+    navigate("/login");
   };
 
   if (carregando) {
@@ -41,7 +41,7 @@ export default function PerfilUsuario() {
   if (!usuarioAtivo) {
     return (
       <a
-        href="/login-firebase"
+        href="/login"
         className="bg-verde-claro text-cinza-escuro py-2 px-4 rounded-full font-medium hover:bg-opacity-90 transition-all transform hover:scale-105 flex items-center justify-center cursor-pointer shadow-lg"
       >
         <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24" fill="currentColor">

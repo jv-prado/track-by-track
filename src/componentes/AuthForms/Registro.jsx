@@ -123,7 +123,7 @@ export default function Registro() {
           <p className="text-gray-300">
             Já tem uma conta?{" "}
             <button
-              onClick={() => navigate("/login-firebase")}
+              onClick={() => navigate("/login")}
               className="text-[#1ED760] hover:underline font-medium cursor-pointer"
             >
               Entrar

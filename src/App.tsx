@@ -46,11 +46,11 @@ function App() {
         !usuarioFirebase &&
         !modoDemo && // Verificar autenticação Firebase ou Demo
         location.pathname !== "/" &&
-        location.pathname !== "/login-firebase" &&
+        location.pathname !== "/login" &&
         location.pathname !== "/registro" &&
         location.pathname !== "/splash"
       ) {
-        navigate("/login-firebase");
+        navigate("/login");
       }
     };
 
@@ -90,7 +90,7 @@ function App() {
     return <Splash />;
   }
 
-  if (location.pathname === "/login-firebase") {
+  if (location.pathname === "/login") {
     return <Login />;
   }
 
@@ -151,10 +151,10 @@ function App() {
               // Fazer logout
               if (usuarioFirebase) {
                 fazerLogout().then(() => {
-                  navigate("/login-firebase");
+                  navigate("/login");
                 });
               } else {
-                navigate("/login-firebase");
+                navigate("/login");
               }
             }}
             className="md:hidden ml-2 bg-cinza-escuro text-white p-2 rounded-lg cursor-pointer"
@@ -190,7 +190,7 @@ function App() {
                 <Feed activeView={activeView} termoPesquisa={termoPesquisa} />
               }
             />
-            <Route path="/login-firebase" element={<Login />} />
+            <Route path="/login" element={<Login />} />
             <Route path="/registro" element={<Registro />} />
           </Routes>
         </div>

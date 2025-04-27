@@ -9,7 +9,7 @@ const Splash = () => {
   const handleContinue = () => {
     setAnimationComplete(true);
     setTimeout(() => {
-      navigate("/login-firebase");
+      navigate("/login");
     }, 300);
   };
 

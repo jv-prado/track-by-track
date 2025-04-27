@@ -48,7 +48,7 @@ export default function Sidebar({ activeView, setActiveView }) {
       localStorage.removeItem("demo_token_expiry");
       localStorage.removeItem("demo_usuario");
       localStorage.removeItem("modo_demo_ativo");
-      window.location.href = "/login-firebase";
+      window.location.href = "/login";
       return;
     }
 
@@ -56,7 +56,7 @@ export default function Sidebar({ activeView, setActiveView }) {
     if (usuarioFirebase) {
       await fazerLogout();
     }
-    navigate("/login-firebase");
+    navigate("/login");
   };
 
   // Verificar se o usuário está autenticado via contexto OU via localStorage
@@ -76,7 +76,7 @@ export default function Sidebar({ activeView, setActiveView }) {
           {!usuarioAtivoLocal ? (
             // Botão de login quando não está autenticado
             <Link
-              to="/login-firebase"
+              to="/login"
               className="bg-verde-destaque text-white py-2 px-4 rounded-full font-medium hover:bg-verde-destaque/90 transition-all transform hover:scale-105 flex items-center justify-center gap-2 shadow-lg"
             >
               Entrar na sua conta

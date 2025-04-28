@@ -95,6 +95,9 @@ const mockData = {
     artists: [{ name: "Artista Demo 1", id: "demo_artist_1" }],
     genres: ["pop", "rock"],
     popularity: 85,
+    external_urls: {
+      spotify: "https://open.spotify.com/album/demo_album_1",
+    },
   },
 };
 

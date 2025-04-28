@@ -6,7 +6,7 @@ import {
 import Estrelas from "../Avaliacao/Estrelas";
 import { MdReportProblem } from "react-icons/md";
 import { IoMdHeart, IoMdHeartDislike } from "react-icons/io";
-import { FaTrash, FaUndo } from "react-icons/fa";
+import { FaTrash, FaUndo, FaSpotify } from "react-icons/fa";
 import { notificarAvaliacoesAlteradas } from "../../services/sync";
 import { useParams, useNavigate } from "react-router-dom";
 import Carregamento from "../Feedback/Carregamento";
@@ -1026,6 +1026,23 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
             {detalhesAlbum.release_date.substring(0, 4)} • {faixas.items.length}{" "}
             faixas • {calcularDuracaoTotal()}
           </p>
+
+          {/* Botão Escute no Spotify */}
+          <div className="mt-2 md:mt-3 flex items-center justify-center lg:justify-start">
+            <a
+              href={
+                detalhesAlbum.external_urls?.spotify ||
+                `https://open.spotify.com/album/${detalhesAlbum.id}`
+              }
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg text-sm sm:text-base font-medium flex items-center gap-2 transition-colors shadow-md"
+            >
+              <FaSpotify className="text-base sm:text-lg" />
+              Escute no Spotify
+            </a>
+          </div>
+
           <div className="mt-2 md:mt-3 flex items-center justify-center lg:justify-start">
             <span className="text-lg sm:text-xl md:text-2xl font-bold mr-2 text-verde-destaque">
               {(() => {

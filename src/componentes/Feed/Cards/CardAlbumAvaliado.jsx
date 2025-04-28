@@ -61,6 +61,11 @@ const CardAlbumAvaliado = ({ album, setAlbumSelecionado }) => {
         <div className="flex items-center mt-2 mb-1">
           <span
             className={`text-base md:text-lg font-bold mr-1 ${(() => {
+              // Verificar primeiro se o álbum está totalmente avaliado
+              if (progressoAvaliacao.percentual < 100) {
+                return "text-gray-400"; // Cor cinza enquanto não estiver 100% avaliado
+              }
+
               // Converter para número para garantir a comparação correta
               const nota = parseFloat(album.mediaAvaliacao || 0);
               if (nota < 4) return "text-red-500"; // Nota baixa: vermelho

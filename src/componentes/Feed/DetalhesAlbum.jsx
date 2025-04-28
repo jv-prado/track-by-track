@@ -1159,6 +1159,11 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
           <div className="mt-2 md:mt-3 flex items-center justify-center lg:justify-start">
             <span
               className={`text-lg sm:text-xl md:text-2xl font-bold mr-2 ${(() => {
+                // Verificar primeiro se o álbum está totalmente avaliado
+                if (progressoAvaliacao?.percentual < 100) {
+                  return "text-gray-400"; // Cor cinza enquanto não estiver 100% avaliado
+                }
+
                 const media = calcularMediaAvaliacoes();
                 if (media < 4) return "text-red-500";
                 if (media < 7) return "text-yellow-500";

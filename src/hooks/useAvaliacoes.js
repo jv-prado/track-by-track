@@ -14,7 +14,10 @@ import {
 } from "../services/avaliacoes";
 import { buscarFaixasPorAlbum } from "../services/spotify";
 import { isAuthenticated, recuperarAutenticacao } from "../services/auth";
-import { getUsuarioAtual, obterAlbunsAvaliados } from "../services/firebase";
+import {
+  getUsuarioAtual,
+  obterAlbunsAvaliados,
+} from "../services/firebase/index";
 import { carregarAvaliacoesSincronizadas } from "../services/sync";
 
 /**

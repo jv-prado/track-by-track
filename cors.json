@@ -1,0 +1,13 @@
+[
+  {
+    "origin": ["http://localhost:5173", "https://track-by-track.vercel.app"],
+    "method": ["GET", "PUT", "POST", "DELETE", "HEAD"],
+    "maxAgeSeconds": 3600,
+    "responseHeader": [
+      "Content-Type",
+      "Content-Length",
+      "Content-Encoding",
+      "Access-Control-Allow-Origin"
+    ]
+  }
+]

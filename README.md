@@ -95,6 +95,30 @@ VITE_SPOTIFY_CLIENT_ID=seu_client_id
 VITE_SPOTIFY_REDIRECT_URI=http://localhost:5173/callback
 ```
 
+## Configuração CORS para Firebase Storage
+
+Se você encontrar problemas de CORS ao fazer upload de imagens de perfil durante o desenvolvimento, é necessário configurar o Firebase Storage para aceitar solicitações do seu ambiente local:
+
+1. Instale o Firebase CLI:
+
+```bash
+npm install -g firebase-tools
+```
+
+2. Faça login no Firebase:
+
+```bash
+firebase login
+```
+
+3. Configure o CORS no bucket do Firebase Storage:
+
+```bash
+gsutil cors set cors.json gs://trackbytrack-57ae6.firebasestorage.app
+```
+
+Para usar temporariamente armazenamento local durante o desenvolvimento (evitando problemas de CORS), a aplicação já contém uma solução alternativa que é ativada automaticamente quando está rodando em localhost.
+
 ## Licença
 
 Este projeto está licenciado sob a licença MIT.

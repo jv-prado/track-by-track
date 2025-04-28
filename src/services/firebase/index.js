@@ -19,6 +19,7 @@ import {
   collection,
   getDocs,
 } from "firebase/firestore";
+import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
 
 // Configuração do Firebase - substitua por suas credenciais
 const firebaseConfig = {
@@ -35,6 +36,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
+const storage = getStorage(app);
 
 /**
  * Cadastra um novo usuário
@@ -304,4 +306,37 @@ export const obterAvaliacoesGlobais = async (limite = 20) => {
   }
 };
 
-export { auth, db };
+/**
+ * Faz upload de um arquivo para o Firebase Storage
+ * @param {File} file - Arquivo a ser enviado
+ * @param {string} path - Caminho onde o arquivo será salvo
+ * @returns {Promise<string>} URL do arquivo enviado
+ */
+export const uploadFile = async (file, path) => {
+  try {
+    const storageRef = ref(storage, path);
+    await uploadBytes(storageRef, file);
+    const downloadURL = await getDownloadURL(storageRef);
+    return downloadURL;
+  } catch (error) {
+    console.error("Erro ao fazer upload do arquivo:", error);
+    throw error;
+  }
+};
+
+/**
+ * Atualiza o perfil do usuário
+ * @param {Object} user - Objeto do usuário do Firebase
+ * @param {Object} updates - Objeto com as atualizações a serem feitas
+ * @returns {Promise<void>}
+ */
+export const updateUserProfile = async (user, updates) => {
+  try {
+    await updateProfile(user, updates);
+  } catch (error) {
+    console.error("Erro ao atualizar perfil:", error);
+    throw error;
+  }
+};
+
+export { auth, db, storage };

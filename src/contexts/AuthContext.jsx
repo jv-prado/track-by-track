@@ -2,8 +2,8 @@ import { createContext, useContext, useState, useEffect } from "react";
 import {
   observarAutenticacao,
   getUsuarioAtual,
-  auth,
-} from "../services/firebase";
+  fazerLogout,
+} from "../services/firebase/index";
 import { useNavigate } from "react-router-dom";
 
 const AuthContext = createContext();
@@ -78,7 +78,7 @@ export function AuthProvider({ children }) {
     usuarioDemo,
     carregando,
     getUsuarioAtual,
-    auth,
+    fazerLogout,
     // Helper para verificar se há qualquer usuário válido (Firebase ou Demo)
     get usuarioAtivo() {
       return usuario || usuarioDemo;

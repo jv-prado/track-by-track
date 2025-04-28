@@ -1,17 +1,41 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useAuth } from "../contexts/AuthContext";
-import { fazerLogout } from "../services/firebase";
+import {
+  fazerLogout,
+  updateUserProfile,
+  uploadFile,
+} from "../services/firebase/index";
 import { useNavigate } from "react-router-dom";
+import { FaCamera } from "react-icons/fa";
 
 export default function PerfilUsuario() {
   const [carregando, setCarregando] = useState(true);
+  const [fotoPerfil, setFotoPerfil] = useState(null);
+  const [erro, setErro] = useState("");
+  const fileInputRef = useRef(null);
   const { usuario: usuarioFirebase, usuarioDemo, usuarioAtivo } = useAuth();
   const navigate = useNavigate();
+  const isDevelopment = window.location.hostname === "localhost";
 
   useEffect(() => {
     // Verificar se o usuário está logado no Firebase ou em modo Demo
     setCarregando(false);
-  }, []);
+
+    // Verificar se há imagem no localStorage (para desenvolvimento)
+    if (isDevelopment && usuarioFirebase) {
+      const savedImage = localStorage.getItem(
+        `profile_image_${usuarioFirebase.uid}`
+      );
+      if (savedImage) {
+        setFotoPerfil(savedImage);
+        return;
+      }
+    }
+
+    if (usuarioFirebase?.photoURL) {
+      setFotoPerfil(usuarioFirebase.photoURL);
+    }
+  }, [usuarioFirebase]);
 
   const handleLogout = async () => {
     // Se for usuário demo, limpar os dados do localStorage
@@ -30,6 +54,67 @@ export default function PerfilUsuario() {
 
     // Redirecionar para a tela de login
     navigate("/login");
+  };
+
+  const handleTrocarFoto = () => {
+    if (usuarioDemo) {
+      setErro("Usuários de demonstração não podem trocar a foto de perfil");
+      return;
+    }
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // Verificar se o arquivo é uma imagem
+    if (!file.type.startsWith("image/")) {
+      setErro("Por favor, selecione um arquivo de imagem válido");
+      return;
+    }
+
+    // Verificar o tamanho do arquivo (máximo 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      setErro("A imagem deve ter no máximo 5MB");
+      return;
+    }
+
+    try {
+      setCarregando(true);
+      setErro("");
+
+      let imageUrl;
+
+      // Em ambiente de desenvolvimento, usar URL.createObjectURL para evitar problemas de CORS
+      if (isDevelopment) {
+        imageUrl = URL.createObjectURL(file);
+
+        // Salvar no localStorage para persistir entre recarregamentos
+        if (usuarioFirebase) {
+          localStorage.setItem(
+            `profile_image_${usuarioFirebase.uid}`,
+            imageUrl
+          );
+        }
+      } else {
+        // Em produção, usar o Firebase Storage
+        const filePath = `profile_pictures/${usuarioFirebase.uid}/${file.name}`;
+        imageUrl = await uploadFile(file, filePath);
+      }
+
+      // Atualizar a foto do perfil no Firebase Auth
+      await updateUserProfile(usuarioFirebase, {
+        photoURL: imageUrl,
+      });
+
+      setFotoPerfil(imageUrl);
+    } catch (error) {
+      console.error("Erro ao atualizar foto:", error);
+      setErro("Erro ao atualizar a foto de perfil. Tente novamente.");
+    } finally {
+      setCarregando(false);
+    }
   };
 
   if (carregando) {
@@ -56,10 +141,37 @@ export default function PerfilUsuario() {
     <div className="bg-cinza-escuro rounded-xl p-3">
       <div className="flex items-center gap-3">
         {/* Avatar do usuário */}
-        <div className="w-10 h-10 rounded-full bg-verde-pastel flex items-center justify-center text-cinza-escuro font-bold">
-          {usuarioDemo
-            ? "D"
-            : usuarioFirebase?.displayName?.charAt(0).toUpperCase() || "U"}
+        <div className="relative group">
+          <div className="w-10 h-10 rounded-full bg-verde-pastel flex items-center justify-center text-cinza-escuro font-bold overflow-hidden">
+            {fotoPerfil ? (
+              <img
+                src={fotoPerfil}
+                alt="Foto do perfil"
+                className="w-full h-full object-cover"
+              />
+            ) : usuarioDemo ? (
+              "D"
+            ) : (
+              usuarioFirebase?.displayName?.charAt(0).toUpperCase() || "U"
+            )}
+          </div>
+          {!usuarioDemo && (
+            <>
+              <button
+                onClick={handleTrocarFoto}
+                className="absolute inset-0 w-full h-full rounded-full bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+              >
+                <FaCamera className="text-white text-sm" />
+              </button>
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleFileChange}
+                accept="image/*"
+                className="hidden"
+              />
+            </>
+          )}
         </div>
 
         <div className="flex-1 overflow-hidden">
@@ -73,6 +185,8 @@ export default function PerfilUsuario() {
           </p>
         </div>
       </div>
+
+      {erro && <div className="mt-2 text-xs text-red-500">{erro}</div>}
 
       <div className="mt-4 pt-2 border-t border-gray-700">
         {/* Status da conta */}

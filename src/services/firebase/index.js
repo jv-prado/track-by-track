@@ -157,6 +157,7 @@ export const observarAutenticacao = (callback) => {
  * @param {string} artista - Nome do artista
  * @param {string} imagem - URL da imagem do álbum
  * @param {Object} preferencias - Preferências de faixa favorita e pior faixa (opcional)
+ * @param {Array} faixas - Array com as faixas do álbum (opcional)
  */
 export const salvarAvaliacaoAlbum = async (
   albumId,
@@ -164,7 +165,8 @@ export const salvarAvaliacaoAlbum = async (
   nome,
   artista,
   imagem,
-  preferencias = null
+  preferencias = null,
+  faixas = null
 ) => {
   try {
     const user = getUsuarioAtual();
@@ -195,6 +197,18 @@ export const salvarAvaliacaoAlbum = async (
     // Adicionar preferências se fornecidas
     if (preferencias) {
       dadosAlbum.preferencias = preferencias;
+    }
+
+    // Salvar faixas se fornecidas para permitir mostrar nomes corretos
+    if (faixas && Array.isArray(faixas.items) && faixas.items.length > 0) {
+      // Converter faixas para um formato mais leve com apenas id e nome
+      dadosAlbum.faixas = faixas.items.map((faixa) => ({
+        id: faixa.id,
+        nome: faixa.name,
+      }));
+    } else if (albumExistente && albumExistente.faixas) {
+      // Preservar faixas existentes se disponíveis
+      dadosAlbum.faixas = albumExistente.faixas;
     }
 
     if (albumExistente) {
@@ -346,9 +360,11 @@ export const obterAvaliacoesGlobais = async (limite = 20) => {
               total: totalFaixasAlbum,
               percentual: percentual,
             },
-            // Adicionar faixas favorita e pior
+            // Adicionar faixas favorita e pior (valores simplificados para compatibilidade)
             faixaFavorita: faixaFavorita,
             piorFaixa: piorFaixa,
+            // Adicionar o objeto preferencias completo para ter acesso aos IDs e nomes
+            preferencias: album.preferencias || {},
           });
         }
       });
@@ -404,6 +420,78 @@ export const updateUserProfile = async (user, updates) => {
   } catch (error) {
     console.error("Erro ao atualizar perfil:", error);
     throw error;
+  }
+};
+
+/**
+ * Obtém as avaliações de um usuário específico para um álbum específico
+ * @param {string} usuarioId - ID do usuário
+ * @param {string} albumId - ID do álbum
+ * @returns {Promise<Object|null>} Objeto com as avaliações do álbum ou null se não existir
+ */
+export const obterAvaliacoesUsuario = async (usuarioId, albumId) => {
+  try {
+    // Referência para o documento do usuário
+    const userRef = doc(db, "usuarios", usuarioId);
+    const userDoc = await getDoc(userRef);
+
+    if (!userDoc.exists()) {
+      console.log(`Usuário ${usuarioId} não encontrado`);
+      return null;
+    }
+
+    // Buscar o álbum nas avaliações do usuário
+    const albuns = userDoc.data().albuns_avaliados || [];
+    const album = albuns.find((album) => album.id === albumId);
+
+    if (!album) {
+      console.log(
+        `Álbum ${albumId} não encontrado para o usuário ${usuarioId}`
+      );
+      return null;
+    }
+
+    // Extrair ou criar o objeto de nomes de faixas
+    const nomesFaixas = {};
+
+    // Se o álbum tiver nomes de faixas armazenados (dados mais recentes)
+    if (album.faixas && Array.isArray(album.faixas)) {
+      album.faixas.forEach((faixa) => {
+        if (faixa.id && faixa.nome) {
+          nomesFaixas[faixa.id] = faixa.nome;
+        }
+      });
+    }
+
+    // Se tiver preferências com nomes de faixas, também incluir
+    if (album.preferencias) {
+      if (
+        album.preferencias.faixaFavorita &&
+        album.preferencias.faixaFavoritaNome
+      ) {
+        nomesFaixas[album.preferencias.faixaFavorita] =
+          album.preferencias.faixaFavoritaNome;
+      }
+      if (album.preferencias.piorFaixa && album.preferencias.piorFaixaNome) {
+        nomesFaixas[album.preferencias.piorFaixa] =
+          album.preferencias.piorFaixaNome;
+      }
+    }
+
+    // Incluir informações do usuário junto com os dados do álbum
+    return {
+      ...album,
+      dataAvaliacao: album.data_avaliacao?.toDate() || new Date(),
+      nomesFaixas,
+      usuario: {
+        id: usuarioId,
+        nome: userDoc.data().nome || "Usuário anônimo",
+        foto: userDoc.data().foto_perfil || null,
+      },
+    };
+  } catch (error) {
+    console.error("Erro ao obter avaliações do usuário:", error);
+    return null;
   }
 };
 

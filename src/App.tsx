@@ -234,6 +234,7 @@ function App() {
             />
             <Route path="/login" element={<Login />} />
             <Route path="/registro" element={<Registro />} />
+            <Route path="/album/:id" element={<Feed activeView="album" />} />
           </Routes>
         </div>
       </div>

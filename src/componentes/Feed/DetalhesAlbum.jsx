@@ -378,7 +378,8 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
             {
               faixaFavorita,
               piorFaixa,
-            }
+            },
+            faixas // Passar as faixas para salvar os nomes
           );
         }
       } catch (error) {
@@ -518,7 +519,8 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
             detalhesAlbum.name,
             detalhesAlbum.artists[0].name,
             detalhesAlbum.images[0]?.url || "",
-            preferencias
+            preferencias,
+            faixas // Passar as faixas para salvar os nomes
           );
         }
       } catch (error) {
@@ -637,7 +639,8 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
             detalhesAlbum.name,
             detalhesAlbum.artists[0].name,
             detalhesAlbum.images[0]?.url || "",
-            preferencias
+            preferencias,
+            faixas // Passar as faixas para salvar os nomes
           );
         }
       } catch (error) {
@@ -730,7 +733,7 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
     return parseFloat((mediaEm5 * 2).toFixed(1));
   };
 
-  // Função para resetar as avaliações do álbum atual
+  // Função para resetar avaliações do álbum
   const resetarAvaliacoesAlbum = async () => {
     if (!faixas || !faixas.items) return;
 
@@ -765,7 +768,9 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
             novasAvaliacoes,
             detalhesAlbum.name,
             detalhesAlbum.artists[0].name,
-            detalhesAlbum.images[0]?.url || ""
+            detalhesAlbum.images[0]?.url || "",
+            null,
+            faixas // Passar as faixas para salvar os nomes
           );
         }
       } catch (error) {

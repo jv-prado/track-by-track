@@ -19,10 +19,10 @@ export default function Login() {
 
     try {
       await fazerLogin(email, senha);
-      
+
       // Definir "feed" como a view ativa no localStorage para que o App a utilize
       localStorage.setItem("activeView", "feed");
-      
+
       // Navegar para a página de feed
       navigate("/feed");
     } catch (error) {
@@ -50,7 +50,7 @@ export default function Login() {
       localStorage.setItem("demo_usuario", JSON.stringify(usuarioDemo));
       localStorage.setItem("demo_token", "demo_" + Date.now());
       localStorage.setItem("demo_token_expiry", dataExpiracao.toString());
-      
+
       // Definir "feed" como a view ativa
       localStorage.setItem("activeView", "feed");
 
@@ -163,8 +163,8 @@ export default function Login() {
             {carregandoDemo ? "Iniciando..." : "Usar Modo de Demonstração"}
           </button>
           <p className="text-xs text-gray-500 text-center mt-2">
-            Todas as funcionalidades estarão disponíveis, mas as avaliações
-            ficarão salvas apenas neste navegador.
+            O Feed Global não estára disponível, mas as avaliações ficarão
+            salvas no navegador.
           </p>
         </div>
       </div>

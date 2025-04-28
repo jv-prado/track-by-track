@@ -8,6 +8,9 @@ import { avaliacoesGlobaisDemo } from "../../data/avaliacoesDemo";
 import { useAuth } from "../../contexts/AuthContext";
 import { MdMusicNote } from "react-icons/md";
 import { IoMdHeart, IoMdHeartDislike } from "react-icons/io";
+import { useNavigate } from "react-router-dom";
+import { FaRegStar } from "react-icons/fa";
+import ModalAvaliacoesUsuario from "./ModalAvaliacoesUsuario";
 
 /**
  * Componente que exibe as últimas avaliações feitas por todos os usuários
@@ -19,6 +22,41 @@ const FeedGlobal = () => {
   const [erro, setErro] = useState(null);
   const [usandoDadosDemo, setUsandoDadosDemo] = useState(false);
   const { usuario: usuarioFirebase } = useAuth();
+  const navigate = useNavigate();
+  const [modalAberto, setModalAberto] = useState(false);
+  const [avaliacaoSelecionada, setAvaliacaoSelecionada] = useState(null);
+
+  // Função para navegar para a página de detalhes do álbum
+  const navegarParaAlbum = (albumId, event) => {
+    // Verificar se o clique veio de um elemento clicável (como um botão ou link)
+    if (
+      event.target.tagName === "A" ||
+      event.target.tagName === "BUTTON" ||
+      event.target.closest("a") ||
+      event.target.closest("button")
+    ) {
+      return; // Não fazer nada se o clique foi em um elemento clicável
+    }
+
+    // Navegar para a página de detalhes do álbum usando a rota dedicada
+    navigate(`/album/${albumId}`);
+  };
+
+  // Função para abrir o modal de avaliações
+  const abrirModalAvaliacoes = (avaliacao, e) => {
+    e.stopPropagation(); // Evitar propagação do clique
+    setAvaliacaoSelecionada({
+      albumId: avaliacao.id,
+      usuarioId: avaliacao.usuario.id,
+    });
+    setModalAberto(true);
+  };
+
+  // Função para fechar o modal
+  const fecharModal = () => {
+    setModalAberto(false);
+    setAvaliacaoSelecionada(null);
+  };
 
   // Buscar as avaliações globais ao montar o componente
   useEffect(() => {
@@ -188,7 +226,9 @@ const FeedGlobal = () => {
           {avaliacoes.map((avaliacao, index) => (
             <div
               key={`${avaliacao.id}-${avaliacao.usuario.id}-${index}`}
-              className="bg-cinza-escuro rounded-xl overflow-hidden shadow-lg transition-transform hover:scale-[1.02] hover:shadow-xl flex flex-col h-full"
+              className="bg-cinza-escuro rounded-xl overflow-hidden shadow-lg transition-all duration-300 hover:scale-[1.02] hover:shadow-xl flex flex-col h-full cursor-pointer relative hover:bg-cinza-escuro/90 group"
+              onClick={(e) => navegarParaAlbum(avaliacao.id, e)}
+              title="Clique para ver detalhes do álbum"
             >
               <div className="flex flex-col sm:flex-row h-full">
                 {/* LADO ESQUERDO: Imagem do álbum, nome, artista, usuário e botão Spotify */}
@@ -267,81 +307,64 @@ const FeedGlobal = () => {
                       <h3 className="font-bold text-sm md:text-base line-clamp-1 text-white truncate pr-1">
                         {avaliacao.nome}
                       </h3>
-                      <p className="text-verde-destaque text-xs md:text-sm line-clamp-1 font-medium truncate pr-1">
+                      <p className="text-verde-destaque text-xs md:text-sm line-clamp-1 font-medium truncate pr-1 mb-2">
                         {avaliacao.artista}
                       </p>
 
-                      {/* Música favorita e pior música */}
-                      {(avaliacao.faixaFavorita || avaliacao.piorFaixa) && (
-                        <div className="flex flex-wrap gap-1 mt-1 text-[10px] sm:text-xs max-w-full">
-                          {avaliacao.faixaFavorita && (
-                            <div className="flex items-center text-red-400 max-w-[calc(50%-4px)]">
-                              <IoMdHeart className="mr-0.5 flex-shrink-0" />
-                              <span className="truncate">
-                                {avaliacao.faixaFavorita === "Faixa favorita"
-                                  ? "Favorita"
-                                  : avaliacao.faixaFavorita}
-                              </span>
-                            </div>
-                          )}
-                          {avaliacao.piorFaixa && (
-                            <div className="flex items-center text-yellow-500 max-w-[calc(50%-4px)]">
-                              <IoMdHeartDislike className="mr-0.5 flex-shrink-0" />
-                              <span className="truncate">
-                                {avaliacao.piorFaixa === "Pior faixa"
-                                  ? "Pior"
-                                  : avaliacao.piorFaixa}
-                              </span>
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  </div>
+                      {/* Botões do Spotify e Ver avaliações */}
+                      <div className="flex flex-wrap gap-2">
+                        <a
+                          href={
+                            usandoDadosDemo
+                              ? "https://open.spotify.com/"
+                              : `https://open.spotify.com/album/${avaliacao.id}`
+                          }
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center px-2 py-1 bg-black/30 rounded-md text-xs text-gray-300 hover:text-green-400 hover:bg-black/50 transition-colors z-20 relative"
+                          onClick={(e) => e.stopPropagation()} // Evitar que o clique no botão acione a navegação
+                        >
+                          <FaSpotify className="mr-1 text-green-400" />
+                          <span className="whitespace-nowrap">
+                            Ouvir no Spotify
+                          </span>
+                        </a>
 
-                  {/* Botão do Spotify no final */}
-                  <div className="mt-auto pt-2">
-                    <a
-                      href={
-                        usandoDadosDemo
-                          ? "https://open.spotify.com/"
-                          : `https://open.spotify.com/album/${avaliacao.id}`
-                      }
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center px-2 py-1 bg-black/30 rounded-md text-xs text-gray-300 hover:text-green-400 hover:bg-black/50 transition-colors"
-                    >
-                      <FaSpotify className="mr-1 text-green-400" />
-                      Ouvir no Spotify
-                    </a>
+                        <button
+                          className="inline-flex items-center px-2 py-1 bg-gradient-to-r from-verde-destaque/20 to-verde-destaque/30 rounded-md text-xs text-verde-destaque hover:from-verde-destaque/30 hover:to-verde-destaque/40 shadow-sm transition-colors z-20 relative cursor-pointer"
+                          onClick={(e) => abrirModalAvaliacoes(avaliacao, e)}
+                          title="Ver avaliações de faixas deste usuário para este álbum"
+                        >
+                          <FaRegStar className="mr-1 text-verde-destaque" />
+                          <span className="whitespace-nowrap">
+                            Ver avaliações
+                          </span>
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 </div>
 
-                {/* LADO DIREITO: Avaliação e progresso */}
-                <div className="w-full sm:w-32 flex-shrink-0 bg-cinza p-3 flex sm:flex-col items-center justify-between sm:justify-center border-t sm:border-t-0 sm:border-l border-gray-700">
-                  {/* Avaliação geral */}
-                  <div className="flex sm:flex-col items-center">
-                    <div className="text-xs sm:text-sm text-gray-400 sm:mb-1 mr-2 sm:mr-0">
-                      Avaliação
-                    </div>
-                    <div className="bg-verde-destaque text-cinza-escuro rounded-lg px-3 py-1 font-bold text-xl flex items-center justify-center">
+                {/* LADO DIREITO: Avaliação e progresso - Melhorando a aparência */}
+                <div className="w-full sm:w-32 flex-shrink-0 p-3 flex sm:flex-col items-center justify-between sm:justify-center border-t sm:border-t-0 sm:border-l border-gray-700/50 bg-gradient-to-br from-cinza-escuro to-cinza-escuro/95">
+                  {/* Avaliação como banner - remover o texto "Avaliação" */}
+                  <div className="flex sm:flex-col items-center justify-center w-full">
+                    <div className="bg-verde-destaque text-cinza-escuro rounded-lg px-4 py-2 font-bold text-2xl flex items-center justify-center shadow-sm w-full sm:w-auto">
                       {formatarMedia(avaliacao.mediaAvaliacao)}
                     </div>
                   </div>
 
                   {/* Progresso da avaliação */}
                   {avaliacao.progresso && (
-                    <div className="flex sm:flex-col items-center sm:mt-4">
-                      <div className="text-xs sm:text-sm text-gray-400 sm:mb-1 mr-2 sm:mr-0 hidden sm:block">
-                        Progresso
-                      </div>
-                      <div className="flex flex-col sm:items-center min-w-[80px]">
-                        <div className="text-xs text-gray-300 mb-1 text-center">
+                    <div className="flex sm:flex-col items-center sm:mt-4 w-full">
+                      <div className="flex flex-col sm:items-center min-w-[80px] w-full">
+                        <div className="text-xs text-gray-300 mb-1 text-center font-medium">
+                          <span className="mr-1">Avaliado</span>
                           {avaliacao.progresso.avaliadas}/
                           {avaliacao.progresso.total} (
                           {avaliacao.progresso.percentual || 0}%)
                         </div>
-                        <div className="w-20 sm:w-full h-2 bg-cinza-escuro rounded-full overflow-hidden">
+                        <div className="w-20 sm:w-full h-2 bg-gray-800/70 rounded-full overflow-hidden shadow-inner">
                           <div
                             className="h-full bg-verde-destaque transition-all"
                             style={{
@@ -357,6 +380,15 @@ const FeedGlobal = () => {
             </div>
           ))}
         </div>
+      )}
+
+      {/* Modal de avaliações do usuário */}
+      {modalAberto && avaliacaoSelecionada && (
+        <ModalAvaliacoesUsuario
+          usuarioId={avaliacaoSelecionada.usuarioId}
+          albumId={avaliacaoSelecionada.albumId}
+          onClose={fecharModal}
+        />
       )}
     </div>
   );

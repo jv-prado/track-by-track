@@ -6,6 +6,7 @@ import { formatarData } from "../../services/avaliacoes";
 import { FaSpotify } from "react-icons/fa";
 import { avaliacoesGlobaisDemo } from "../../data/avaliacoesDemo";
 import { useAuth } from "../../contexts/AuthContext";
+import { MdMusicNote } from "react-icons/md";
 
 /**
  * Componente que exibe as últimas avaliações feitas por todos os usuários
@@ -46,7 +47,16 @@ const FeedGlobal = () => {
 
     try {
       const avaliacoesGlobais = await obterAvaliacoesGlobais(30);
-      setAvaliacoes(avaliacoesGlobais);
+      // Validar e processar as imagens antes de definir o estado
+      const avaliacoesProcessadas = avaliacoesGlobais.map((avaliacao) => ({
+        ...avaliacao,
+        imagem: validarUrlImagem(avaliacao.imagem),
+        usuario: {
+          ...avaliacao.usuario,
+          foto: validarUrlImagem(avaliacao.usuario.foto),
+        },
+      }));
+      setAvaliacoes(avaliacoesProcessadas);
     } catch (error) {
       console.error("Erro ao carregar feed global:", error);
 
@@ -66,18 +76,46 @@ const FeedGlobal = () => {
     }
   };
 
+  // Função para validar URLs de imagem
+  const validarUrlImagem = (url) => {
+    if (!url) return null;
+    try {
+      new URL(url);
+      return url;
+    } catch {
+      return null;
+    }
+  };
+
   // Formatação da média para exibição
   const formatarMedia = (media) => {
     // Garantir que é um número válido
     if (isNaN(media) || media === null || media === undefined) {
       return "0.0";
     }
-    
+
     // Limitar a valores entre 0 e 10
     const mediaLimitada = Math.max(0, Math.min(10, media));
-    
+
     // Verificar se é um número inteiro
-    return Number.isInteger(mediaLimitada) ? mediaLimitada.toString() : mediaLimitada.toFixed(1);
+    return Number.isInteger(mediaLimitada)
+      ? mediaLimitada.toString()
+      : mediaLimitada.toFixed(1);
+  };
+
+  // Função para lidar com erro de carregamento de imagem
+  const handleImageError = (e) => {
+    e.target.style.display = "none";
+    e.target.parentElement.classList.add(
+      "flex",
+      "items-center",
+      "justify-center",
+      "bg-cinza-escuro"
+    );
+    const fallbackIcon = document.createElement("div");
+    fallbackIcon.className = "text-verde-destaque text-4xl";
+    fallbackIcon.innerHTML = "<MdMusicNote />";
+    e.target.parentElement.appendChild(fallbackIcon);
   };
 
   if (carregando) {
@@ -145,7 +183,7 @@ const FeedGlobal = () => {
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5">
+        <div className="grid grid-cols-1 gap-4 md:gap-5">
           {avaliacoes.map((avaliacao, index) => (
             <div
               key={`${avaliacao.id}-${avaliacao.usuario.id}-${index}`}
@@ -154,22 +192,32 @@ const FeedGlobal = () => {
               <div className="flex h-full">
                 {/* Imagem do álbum */}
                 <div className="flex-shrink-0 w-20 md:w-28 h-[104px] md:h-[124px] bg-cinza-escuro rounded-l-xl overflow-hidden p-2">
-                  <img
-                    src={avaliacao.imagem}
-                    alt={`Capa do álbum ${avaliacao.nome}`}
-                    className="w-full h-full object-cover rounded-lg"
-                  />
+                  {usandoDadosDemo ? (
+                    <div className="w-full h-full bg-gray-600 rounded-lg animate-pulse"></div>
+                  ) : avaliacao.imagem ? (
+                    <img
+                      src={avaliacao.imagem}
+                      alt={`Capa do álbum ${avaliacao.nome}`}
+                      className="w-full h-full object-cover rounded-lg"
+                      onError={handleImageError}
+                      loading="lazy"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center bg-cinza-escuro rounded-lg">
+                      <MdMusicNote className="text-verde-destaque text-4xl" />
+                    </div>
+                  )}
                 </div>
 
                 {/* Informações da avaliação */}
-                <div className="p-2 md:p-3 flex flex-col justify-between flex-grow h-[104px] md:h-[124px]">
-                  <div>
+                <div className="p-2 md:p-3 flex flex-col justify-between flex-grow h-[104px] md:h-[124px] min-w-0">
+                  <div className="min-w-0">
                     <div className="flex justify-between items-start gap-2">
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-bold text-sm md:text-base line-clamp-1 text-white">
+                        <h3 className="font-bold text-sm md:text-base line-clamp-1 text-white truncate">
                           {avaliacao.nome}
                         </h3>
-                        <p className="text-verde-destaque text-xs md:text-sm line-clamp-1 font-medium">
+                        <p className="text-verde-destaque text-xs md:text-sm line-clamp-1 font-medium truncate">
                           {avaliacao.artista}
                         </p>
                       </div>
@@ -180,13 +228,31 @@ const FeedGlobal = () => {
                     </div>
 
                     {/* Informações do usuário */}
-                    <div className="flex items-center mt-1 md:mt-2 text-xs text-gray-300">
+                    <div className="flex items-center mt-1 md:mt-2 text-xs md:text-sm text-gray-300 min-w-0">
                       <div className="w-5 h-5 md:w-6 md:h-6 rounded-full overflow-hidden bg-gray-800 flex-shrink-0 mr-1 shadow-sm">
                         {avaliacao.usuario.foto ? (
                           <img
                             src={avaliacao.usuario.foto}
                             alt={`Foto de ${avaliacao.usuario.nome}`}
                             className="w-full h-full object-cover"
+                            onError={(e) => {
+                              e.target.style.display = "none";
+                              e.target.parentElement.classList.add(
+                                "flex",
+                                "items-center",
+                                "justify-center",
+                                "bg-verde-destaque/20"
+                              );
+                              const fallbackText =
+                                document.createElement("div");
+                              fallbackText.className =
+                                "text-verde-destaque text-xs font-bold";
+                              fallbackText.textContent = avaliacao.usuario.nome
+                                .charAt(0)
+                                .toUpperCase();
+                              e.target.parentElement.appendChild(fallbackText);
+                            }}
+                            loading="lazy"
                           />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center bg-verde-destaque/20 text-verde-destaque">
@@ -194,7 +260,7 @@ const FeedGlobal = () => {
                           </div>
                         )}
                       </div>
-                      <span className="font-medium truncate">
+                      <span className="font-medium truncate min-w-0">
                         {avaliacao.usuario.nome}
                       </span>
                       <span className="mx-1 opacity-70 flex-shrink-0">•</span>
@@ -210,7 +276,7 @@ const FeedGlobal = () => {
                       href={`https://open.spotify.com/album/${avaliacao.id}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center px-1.5 py-0.5 bg-black/30 rounded-md text-xs text-gray-300 hover:text-green-400 hover:bg-black/50 transition-colors"
+                      className="inline-flex items-center px-1.5 py-0.5 bg-black/30 rounded-md text-xs md:text-sm text-gray-300 hover:text-green-400 hover:bg-black/50 transition-colors"
                     >
                       <FaSpotify className="mr-1 text-green-400" />
                       Ouvir no Spotify

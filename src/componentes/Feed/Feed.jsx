@@ -12,18 +12,6 @@ import { useEffect } from "react";
  * @returns {JSX.Element} Componente de feed
  */
 export default function Feed({ activeView, termoPesquisa }) {
-  // Log para verificar as props atualizadas
-  useEffect(() => {
-    console.log(
-      `Feed recebeu: activeView=${activeView}, termoPesquisa="${termoPesquisa}"`
-    );
-
-    // Verifica especificamente se deve mostrar o FeedGlobal
-    if (activeView === "feed") {
-      console.log("Renderizando o componente FeedGlobal");
-    }
-  }, [activeView, termoPesquisa]);
-
   return (
     <div className="w-full bg-quase-preto rounded-xl overflow-hidden">
       {activeView === "albuns" && (
@@ -33,12 +21,7 @@ export default function Feed({ activeView, termoPesquisa }) {
         <MostrarTopArtistas termoPesquisa={termoPesquisa} />
       )}
       {activeView === "classificacoes" && <MinhasAvaliacoes />}
-      {activeView === "feed" && (
-        <>
-          {console.log("Renderizando FeedGlobal no JSX")}
-          <FeedGlobal />
-        </>
-      )}
+      {activeView === "feed" && <FeedGlobal />}
       {!activeView && (
         <div className="flex justify-center items-center h-64 text-gray-400">
           <p>Selecione uma opção no menu lateral</p>

@@ -36,16 +36,11 @@ export function AuthProvider({ children }) {
           // Verificar se o token demo não expirou
           if (parseInt(demoExpiry) > Date.now()) {
             const usuarioDados = JSON.parse(demoUsuario);
-            console.log(
-              "Usuário de demonstração válido encontrado:",
-              usuarioDados.id
-            );
             setUsuarioDemo(usuarioDados);
             // Garantir que o modo de demonstração está ativo
             localStorage.setItem("modo_demo_ativo", "true");
           } else {
             // Token expirado, limpar dados demo
-            console.log("Token de demonstração expirado, removendo dados");
             localStorage.removeItem("demo_token");
             localStorage.removeItem("demo_token_expiry");
             localStorage.removeItem("demo_usuario");
@@ -54,9 +49,6 @@ export function AuthProvider({ children }) {
           }
         } else {
           if (localStorage.getItem("modo_demo_ativo")) {
-            console.log(
-              "Modo demo ativo mas sem dados de usuário, removendo flag"
-            );
             localStorage.removeItem("modo_demo_ativo");
           }
           setUsuarioDemo(null);
@@ -69,17 +61,12 @@ export function AuthProvider({ children }) {
 
     verificarUsuarioDemo();
 
-    // Verificar periodicamente as alterações no localStorage (a cada 500ms)
-    // Isso é mais confiável do que o evento storage que só funciona entre janelas diferentes
-    const intervalId = setInterval(verificarUsuarioDemo, 500);
-
     // Atualizar quando o localStorage mudar entre janelas
     window.addEventListener("storage", verificarUsuarioDemo);
 
     // Limpa o listener quando o componente for desmontado
     return () => {
       unsubscribe();
-      clearInterval(intervalId);
       window.removeEventListener("storage", verificarUsuarioDemo);
     };
   }, []);

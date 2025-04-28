@@ -59,8 +59,8 @@ const MostrarTopAlbuns = ({ termoPesquisa }) => {
   }
 
   return (
-    <div className="p-4 md:p-6 overflow-hidden">
-      <h1 className="text-2xl md:text-3xl font-bold mb-4 md:mb-8 text-verde-destaque">
+    <div className="p-6">
+      <h1 className="text-3xl font-bold mb-8 text-verde-destaque">
         Pesquisar por Álbum
       </h1>
 
@@ -69,14 +69,14 @@ const MostrarTopAlbuns = ({ termoPesquisa }) => {
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-verde-destaque"></div>
         </div>
       ) : albuns && albuns.items && albuns.items.length > 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4 lg:gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 md:gap-6 lg:gap-8">
           {albuns.items.slice(0, 10).map((album) => (
             <div
               key={album.id}
-              className="flex flex-col bg-cinza-escuro rounded-xl p-3 md:p-4 hover:bg-cinza transition-all duration-300 transform hover:scale-[1.03] cursor-pointer shadow-md hover:shadow-lg h-full"
+              className="flex flex-col bg-cinza-escuro rounded-xl p-4 hover:bg-cinza transition-all duration-300 transform hover:scale-105 cursor-pointer"
               onClick={() => setAlbumSelecionado(album.id)}
             >
-              <div className="w-full aspect-square mb-3 overflow-hidden rounded-lg shadow-lg">
+              <div className="w-full aspect-square mb-4 overflow-hidden rounded-lg shadow-lg">
                 {album.images && album.images.length > 0 ? (
                   <img
                     src={album.images[0].url}
@@ -91,13 +91,13 @@ const MostrarTopAlbuns = ({ termoPesquisa }) => {
                   </div>
                 )}
               </div>
-              <h2 className="font-bold text-base md:text-lg mb-1 line-clamp-2 min-h-[2.5rem]">
+              <h2 className="font-bold text-lg mb-2 line-clamp-2">
                 {album.name}
               </h2>
               <p className="text-verde-destaque mb-1 text-sm md:text-base line-clamp-1">
                 {album.artists[0].name}
               </p>
-              <p className="text-xs md:text-sm text-gray-400 mb-3">
+              <p className="text-sm text-gray-400">
                 Lançamento: {new Date(album.release_date).getFullYear()}
               </p>
               <button
@@ -105,7 +105,7 @@ const MostrarTopAlbuns = ({ termoPesquisa }) => {
                   e.stopPropagation();
                   setAlbumSelecionado(album.id);
                 }}
-                className="cursor-pointer bg-verde-destaque text-cinza-escuro py-1.5 md:py-2 px-3 md:px-4 rounded-lg hover:bg-verde-pastel transition-colors mt-auto text-sm md:text-base font-medium"
+                className="mt-4 cursor-pointer bg-verde-destaque text-cinza-escuro py-2 px-4 rounded-lg hover:bg-verde-pastel transition-colors mt-auto"
               >
                 Ver faixas
               </button>

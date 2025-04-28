@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import "./App.css";
-import Sidebar from "./componentes/Sidebar/";
+import Sidebar from "./componentes/sidebar/";
 import BarraDePesquisa from "./componentes/BarraDePesquisa";
 import Feed from "./componentes/Feed/Feed";
 import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
@@ -128,7 +128,7 @@ function App() {
 
     // Salvar a view ativa no localStorage
     localStorage.setItem("activeView", view);
-    
+
     setActiveView(view);
     setMenuAberto(false); // Fecha o menu ao selecionar uma opção
 

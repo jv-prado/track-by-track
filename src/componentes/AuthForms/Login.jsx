@@ -155,7 +155,8 @@ export default function Login() {
             {carregandoDemo ? "Iniciando..." : "Usar Modo de Demonstração"}
           </button>
           <p className="text-xs text-gray-500 text-center mt-2">
-            Suas avaliações ficarão salvas apenas neste navegador
+            Todas as funcionalidades estarão disponíveis, mas as avaliações
+            ficarão salvas apenas neste navegador.
           </p>
         </div>
       </div>

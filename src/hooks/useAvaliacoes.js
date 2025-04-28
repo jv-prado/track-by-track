@@ -54,7 +54,6 @@ export default function useAvaliacoes({ termoPesquisaInicial = "" } = {}) {
           // Usuário de demonstração válido
           setAutenticado(true);
           setCarregando(false);
-          console.log("Usuário de demonstração detectado e válido");
           // Carregar dados do localStorage para o modo de demonstração
           carregarDadosLocalStorage();
         } else if (!isAuthenticated()) {
@@ -282,35 +281,24 @@ export default function useAvaliacoes({ termoPesquisaInicial = "" } = {}) {
     setCarregando(true);
     setErro(null);
     setProgressoCarregamento(0);
-    setAlbunsAvaliados([]);
-    setAlbunsExibidos([]);
 
     try {
-      // Verificar se é modo de demonstração
+      // Verificar se estamos em modo de demonstração
       const demoToken = localStorage.getItem("demo_token");
       const demoExpiry = localStorage.getItem("demo_token_expiry");
       const modoDemo =
         demoToken && demoExpiry && parseInt(demoExpiry) > Date.now();
 
-      // Verificar autenticação normal
-      const autenticadoNormal = isAuthenticated();
-
-      if (!modoDemo && !autenticadoNormal) {
-        setErro("Sessão expirada. Faça login novamente.");
-        setCarregando(false);
-        setAutenticado(false);
-        return;
-      }
-
-      // Verificar se o usuário está usando o Firebase e não está em modo demo
+      // Verificar se o usuário está autenticado no Firebase
       const usuarioFirebase = getUsuarioAtual();
 
+      // Se o usuário estiver usando o Firebase e não estiver em modo demo, buscar álbuns dele
       if (usuarioFirebase && !modoDemo) {
-        // Se estiver usando o Firebase, carregar diretamente do Firebase
         try {
-          // Buscar dados do Firebase
+          // Buscar álbuns avaliados do Firebase
           const albunsFirebase = await obterAlbunsAvaliados();
 
+          // Se não tiver avaliações, inicializar arrays vazios e sair
           if (!albunsFirebase || albunsFirebase.length === 0) {
             setAlbunsAvaliados([]);
             setAlbunsExibidos([]);
@@ -318,35 +306,36 @@ export default function useAvaliacoes({ termoPesquisaInicial = "" } = {}) {
             return;
           }
 
-          // Processar os álbuns do Firebase
-          const albumsProcessados = albunsFirebase.map((album) => ({
-            id: album.id,
-            name: album.nome,
-            artists: [{ name: album.artista }],
-            images: [{ url: album.imagem }],
-            mediaAvaliacao: calcularMediaDoObjeto(album.avaliacoes),
-            progressoAvaliacao: {
-              total: Object.keys(album.avaliacoes).length,
-              avaliadas: Object.values(album.avaliacoes).filter((a) => a > 0)
-                .length,
-              percentual: Math.round(
-                (Object.values(album.avaliacoes).filter((a) => a > 0).length /
-                  Object.keys(album.avaliacoes).length) *
-                  100
-              ),
-            },
-            dataAvaliacao: new Date(
-              album.data_avaliacao?.toDate
-                ? album.data_avaliacao.toDate()
-                : album.data_avaliacao
-            ),
-            // Adicionar timestamp para ordenação por álbum mais recente
-            ultimaAtualizacao: album.data_avaliacao?.seconds
-              ? album.data_avaliacao.seconds * 1000
-              : Date.now(),
-          }));
+          // Processar os álbuns para extrair informações importantes
+          const albumsProcessados = albunsFirebase.map((album) => {
+            // Extrair as faixas avaliadas para calcular média
+            const avaliacoesFaixas = album.avaliacoes || {};
+            const totalFaixas = Object.keys(avaliacoesFaixas).length;
+            const faixasAvaliadas = Object.values(avaliacoesFaixas).filter(
+              (avaliacao) => avaliacao > 0
+            ).length;
 
-          // Também atualizar o estado em memória a partir do Firebase
+            // Criar objeto com as informações necessárias
+            const ultimaAtualizacao = album.dataAtualizacao
+              ? new Date(album.dataAtualizacao.toDate()).getTime()
+              : Date.now();
+
+            return {
+              id: album.id,
+              name: album.nome,
+              artists: [{ name: album.artista }],
+              images: [{ url: album.imagem }],
+              mediaAvaliacao: calcularMediaDoObjeto(album.avaliacoes),
+              progressoAvaliacao: {
+                avaliadas: faixasAvaliadas,
+                total: totalFaixas,
+                percentual: Math.round((faixasAvaliadas / totalFaixas) * 100),
+              },
+              ultimaAtualizacao,
+            };
+          });
+
+          // Também carregar os dados mais atualizados para evitar a necessidade
           // para manter consistência com outros componentes
           const dadosFirebase = await carregarAvaliacoesSincronizadas();
           if (dadosFirebase) {
@@ -374,10 +363,6 @@ export default function useAvaliacoes({ termoPesquisaInicial = "" } = {}) {
         const avaliacoesFaixas = getAvaliacoesFaixas();
         const mapaFaixasAlbuns = getMapaFaixasAlbuns();
 
-        console.log("Modo de carregamento:", modoDemo ? "Demo" : "Normal");
-        console.log("Mapa de faixas para álbuns:", mapaFaixasAlbuns);
-        console.log("Avaliações de faixas:", avaliacoesFaixas);
-
         // Forçar carregamento dos dados do localStorage no modo demo
         if (modoDemo) {
           // Verificar se o flag de modo demo está ativo
@@ -391,7 +376,6 @@ export default function useAvaliacoes({ termoPesquisaInicial = "" } = {}) {
 
         // Se não temos o mapa de faixas para álbuns, não podemos mostrar os álbuns
         if (Object.keys(mapaFaixasAlbuns).length === 0) {
-          console.log("Nenhum álbum para mostrar - mapa vazio");
           setAlbunsAvaliados([]);
           setAlbunsExibidos([]);
           setCarregando(false);
@@ -402,7 +386,6 @@ export default function useAvaliacoes({ termoPesquisaInicial = "" } = {}) {
         const idsAlbuns = obterAlbunsUnicos();
 
         if (idsAlbuns.length === 0) {
-          console.log("Nenhum álbum para mostrar - nenhum ID único");
           setAlbunsAvaliados([]);
           setAlbunsExibidos([]);
           setCarregando(false);
@@ -418,9 +401,6 @@ export default function useAvaliacoes({ termoPesquisaInicial = "" } = {}) {
 
             // Se estiver em modo demo e não tiver álbuns avaliados, apenas encerrar sem erro
             if (modoDemo && idsAlbuns.length === 0) {
-              console.log(
-                "Modo demo sem álbuns avaliados - exibindo interface vazia"
-              );
               setAlbunsAvaliados([]);
               setAlbunsExibidos([]);
               setProgressoCarregamento(0);
@@ -575,8 +555,6 @@ export default function useAvaliacoes({ termoPesquisaInicial = "" } = {}) {
    * Recarrega a lista de álbuns, atualizando suas avaliações
    */
   const recarregarListaAlbuns = async () => {
-    console.log("Recarregando lista de álbuns...");
-
     // Verificar se estamos em modo de demonstração
     const demoToken = localStorage.getItem("demo_token");
     const demoExpiry = localStorage.getItem("demo_token_expiry");
@@ -691,7 +669,6 @@ export default function useAvaliacoes({ termoPesquisaInicial = "" } = {}) {
       demoToken && demoExpiry && parseInt(demoExpiry) > Date.now();
 
     if (modoDemo) {
-      console.log("Modo demo - carregando dados do localStorage primeiro");
       carregarDadosLocalStorage();
 
       // Verificar e atualizar as datas de avaliação no localStorage se necessário
@@ -745,9 +722,6 @@ export default function useAvaliacoes({ termoPesquisaInicial = "" } = {}) {
   useEffect(() => {
     // Função para lidar com o evento de avaliações alteradas
     const handleAvaliacoesAlteradas = () => {
-      console.log(
-        "Evento de avaliações alteradas detectado no hook useAvaliacoes"
-      );
       // Verificar se o usuário saiu do modo demo
       const demoToken = localStorage.getItem("demo_token");
       const demoExpiry = localStorage.getItem("demo_token_expiry");

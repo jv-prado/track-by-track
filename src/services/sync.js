@@ -95,7 +95,6 @@ export const sincronizarComFirebase = async (
     });
 
     await Promise.all(albumPromises);
-    console.log("Sincronização com Firebase concluída!");
 
     // Após sincronizar, carregar os dados do Firebase
     await carregarDoFirebase();
@@ -150,8 +149,6 @@ export const notificarAvaliacoesAlteradas = () => {
 
       // Depois recarregar para manter consistência
       recarregarAvaliacoes();
-
-      console.log("Avaliações sincronizadas no modo demonstração");
     } catch (err) {
       console.warn("Não foi possível sincronizar avaliações:", err);
     }
@@ -171,7 +168,6 @@ export const carregarAvaliacoesSincronizadas = async () => {
 
     // Se tiver usuário Firebase, carrega do Firebase
     if (usuarioFirebase) {
-      console.log("Usuário Firebase detectado, carregando do banco de dados");
       const atualizadoDoFirebase = await carregarDoFirebase();
       return atualizadoDoFirebase;
     }
@@ -208,7 +204,6 @@ const carregarDoFirebase = async () => {
       });
     });
 
-    console.log("Avaliações carregadas a partir do Firebase!");
     return { avaliacoesFaixas, mapaFaixasAlbuns };
   } catch (error) {
     console.error("Erro ao carregar dados do Firebase:", error);

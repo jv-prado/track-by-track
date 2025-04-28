@@ -12,6 +12,19 @@ const MostrarTopAlbuns = ({ termoPesquisa }) => {
   const [albuns, setAlbuns] = useState(null);
   const [carregando, setCarregando] = useState(false);
   const [albumSelecionado, setAlbumSelecionado] = useState(null);
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+
+  // Atualizar largura da janela quando ela for redimensionada
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowWidth(window.innerWidth);
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
 
   // Buscar álbuns quando o termo de pesquisa mudar
   useEffect(() => {
@@ -23,7 +36,7 @@ const MostrarTopAlbuns = ({ termoPesquisa }) => {
           setAlbuns(dadosAlbum);
           setAlbumSelecionado(null); // Resetar álbum selecionado quando buscar novo álbum
         } catch (erro) {
-          console.error("Erro ao buscar álbum:", erro);
+          // Erro silencioso
         } finally {
           setCarregando(false);
         }
@@ -58,6 +71,16 @@ const MostrarTopAlbuns = ({ termoPesquisa }) => {
     );
   }
 
+  // Determinar o número de colunas com base na largura da tela
+  const getGridColsClass = () => {
+    if (windowWidth < 550) return "grid-cols-2"; // 2 álbuns por linha em telas menores que 550px
+    if (windowWidth < 768) return "grid-cols-2"; // sm
+    if (windowWidth < 1024) return "grid-cols-3"; // md
+    if (windowWidth < 1280) return "grid-cols-3"; // lg
+    if (windowWidth < 1536) return "grid-cols-4"; // xl
+    return "grid-cols-5"; // 2xl
+  };
+
   return (
     <div className="p-6">
       <h1 className="text-3xl font-bold mb-8 text-verde-destaque">
@@ -69,7 +92,7 @@ const MostrarTopAlbuns = ({ termoPesquisa }) => {
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-verde-destaque"></div>
         </div>
       ) : albuns && albuns.items && albuns.items.length > 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 md:gap-6 lg:gap-8">
+        <div className={`grid ${getGridColsClass()} gap-4 md:gap-6 lg:gap-8`}>
           {albuns.items.slice(0, 10).map((album) => (
             <div
               key={album.id}

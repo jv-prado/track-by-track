@@ -11,8 +11,6 @@ const CallbackSpotify = () => {
     // Função para processar a autenticação
     const processarAutenticacao = async () => {
       try {
-        console.log("Processando callback do Spotify...");
-
         // Verificar se há erro na URL
         const urlParams = new URLSearchParams(window.location.search);
         const errorParam = urlParams.get("error");
@@ -36,23 +34,12 @@ const CallbackSpotify = () => {
             return initial;
           }, {});
 
-        console.log(
-          "Hash de autenticação:",
-          Object.keys(hash).length ? "Presente" : "Ausente"
-        );
-
         if (hash.access_token) {
-          console.log(
-            "Token obtido com sucesso, expira em:",
-            hash.expires_in || "não especificado"
-          );
-
           // Salvar o token e sua expiração
           saveAuth(hash.access_token, hash.expires_in || 3600);
 
           try {
             // Obter informações do usuário
-            console.log("Buscando informações do usuário...");
             const response = await fetch("https://api.spotify.com/v1/me", {
               headers: {
                 Authorization: `Bearer ${hash.access_token}`,
@@ -68,7 +55,6 @@ const CallbackSpotify = () => {
             }
 
             const userData = await response.json();
-            console.log("Informações do usuário obtidas com sucesso");
 
             // Salvar dados do usuário usando nosso serviço
             saveUserData(userData);

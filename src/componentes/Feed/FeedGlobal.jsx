@@ -152,6 +152,29 @@ const FeedGlobal = () => {
       : mediaLimitada.toFixed(1);
   };
 
+  // Função para formatar data com segurança
+  const formatarDataSegura = (data) => {
+    if (!data) return "Data não disponível";
+
+    try {
+      // Para dados demo que já contêm um objeto Date
+      if (data instanceof Date) {
+        return formatarData(data);
+      }
+
+      // Para dados do Firebase que contêm timestamp com segundos
+      if (data.segundos) {
+        return formatarData(new Date(data.segundos * 1000));
+      }
+
+      // Fallback para qualquer outro formato
+      return "Data não disponível";
+    } catch (erro) {
+      console.warn("Erro ao formatar data:", erro);
+      return "Data não disponível";
+    }
+  };
+
   // Função para lidar com erro de carregamento de imagem
   const handleImageError = (e) => {
     e.target.style.display = "none";
@@ -284,7 +307,9 @@ const FeedGlobal = () => {
                         {avaliacao.usuario.nome}
                       </span>
                       <span className="text-xs opacity-70">
-                        {formatarData(avaliacao.dataAvaliacao)}
+                        {formatarDataSegura(
+                          avaliacao.data || avaliacao.dataAvaliacao
+                        )}
                       </span>
                     </div>
                   </div>
@@ -363,7 +388,9 @@ const FeedGlobal = () => {
                       className={`${
                         // Só aplicar cor baseada na nota se o progresso for 100%
                         (avaliacao.progresso?.percentual || 0) >= 100
-                          ? obterCorNota(avaliacao.mediaAvaliacao)
+                          ? obterCorNota(
+                              avaliacao.media || avaliacao.mediaAvaliacao
+                            )
                           : "bg-gray-500/50"
                       } text-cinza-escuro rounded-lg px-3 py-1.5 font-bold text-xl flex items-center justify-center shadow-sm w-24 sm:w-full`}
                     >
@@ -374,7 +401,9 @@ const FeedGlobal = () => {
                             : "text-gray-200"
                         }
                       >
-                        {formatarMedia(avaliacao.mediaAvaliacao)}
+                        {formatarMedia(
+                          avaliacao.media || avaliacao.mediaAvaliacao
+                        )}
                       </span>
                     </div>
                   </div>

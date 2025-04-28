@@ -45,10 +45,6 @@ const Estrelas = ({
   const handleClick = (estrela) => {
     if (somenteLeitura || !onChange) return;
 
-    console.log(
-      `Clicando na estrela ${estrela}, avaliação atual: ${avaliacao}`
-    );
-
     // Se for a primeira estrela e já estiver com valor 0.5, zerar
     if (estrela === 1 && avaliacao === 0.5) {
       onChange(0);
@@ -82,7 +78,6 @@ const Estrelas = ({
       novaAvaliacao = Math.floor(avaliacao);
     }
 
-    console.log(`Nova avaliação: ${novaAvaliacao}`);
     onChange(novaAvaliacao);
   };
 

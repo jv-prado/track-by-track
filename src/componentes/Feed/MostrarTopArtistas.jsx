@@ -11,11 +11,22 @@ const MostrarTopArtistas = ({ termoPesquisa }) => {
   const [artistas, setArtistas] = useState(null);
   const [carregando, setCarregando] = useState(false);
   const [artistaSelecionado, setArtistaSelecionado] = useState(null);
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+
+  // Atualizar largura da janela quando ela for redimensionada
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowWidth(window.innerWidth);
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
 
   // Buscar artistas quando o termo de pesquisa mudar
   useEffect(() => {
-    console.log(`MostrarTopArtistas recebeu termoPesquisa: "${termoPesquisa}"`);
-
     const buscarDadosArtista = async () => {
       if (termoPesquisa && termoPesquisa.trim() !== "") {
         try {
@@ -47,6 +58,16 @@ const MostrarTopArtistas = ({ termoPesquisa }) => {
     );
   }
 
+  // Determinar o número de colunas com base na largura da tela
+  const getGridColsClass = () => {
+    if (windowWidth < 550) return "grid-cols-2"; // 2 artistas por linha em telas menores que 550px
+    if (windowWidth < 768) return "grid-cols-2"; // sm
+    if (windowWidth < 1024) return "grid-cols-3"; // md
+    if (windowWidth < 1280) return "grid-cols-3"; // lg
+    if (windowWidth < 1536) return "grid-cols-4"; // xl
+    return "grid-cols-5"; // 2xl
+  };
+
   return (
     <div className="p-6">
       <h1 className="text-3xl font-bold mb-8 text-verde-destaque">
@@ -58,7 +79,7 @@ const MostrarTopArtistas = ({ termoPesquisa }) => {
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-verde-destaque"></div>
         </div>
       ) : artistas && artistas.items && artistas.items.length > 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 md:gap-6 lg:gap-8">
+        <div className={`grid ${getGridColsClass()} gap-4 md:gap-6 lg:gap-8`}>
           {artistas.items.slice(0, 10).map((artista) => (
             <div
               key={artista.id}
@@ -85,7 +106,6 @@ const MostrarTopArtistas = ({ termoPesquisa }) => {
                 onClick={(e) => {
                   e.stopPropagation();
                   setArtistaSelecionado(artista.id);
-                  console.log("Artista selecionado:", artista.id);
                 }}
                 className="mt-4 cursor-pointer bg-verde-destaque text-cinza-escuro py-2 px-4 rounded-lg hover:bg-verde-pastel transition-colors mt-auto"
               >

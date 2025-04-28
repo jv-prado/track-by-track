@@ -81,10 +81,6 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
   // Verificação defensiva para garantir que progressoAvaliacao seja sempre válido
   useEffect(() => {
     if (!progressoAvaliacao || typeof progressoAvaliacao !== "object") {
-      console.warn(
-        "progressoAvaliacao inválido, resetando",
-        progressoAvaliacao
-      );
       setProgressoAvaliacao({
         avaliadas: 0,
         total: 0,
@@ -124,11 +120,6 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
 
       // Apenas para usuários não logados ou em modo demo, carregar do localStorage
       if (!usuarioFirebase || modoDemo) {
-        console.log(
-          "Carregando avaliações do localStorage para álbum",
-          albumId
-        );
-
         // Inicializar as avaliações se não existirem
         if (!localStorage.getItem("avaliacoesFaixas")) {
           localStorage.setItem("avaliacoesFaixas", JSON.stringify({}));
@@ -146,7 +137,6 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
             const dados = JSON.parse(avaliacoesSalvas);
             setAvaliacoes(dados);
           } catch (e) {
-            console.error("Erro ao analisar avaliacoesFaixas:", e);
             setAvaliacoes({});
           }
         }
@@ -169,7 +159,7 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
             setPiorFaixa(prefsFaixas.piorFaixa);
           }
         } catch (e) {
-          console.error("Erro ao analisar preferências:", e);
+          // Ignorar erro ao processar preferências
         }
 
         // Carregar datas de avaliação
@@ -177,7 +167,7 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
         setDatasAvaliacao(datas);
       }
     } catch (erro) {
-      console.error("Erro ao carregar avaliações do localStorage:", erro);
+      // Erro ao carregar avaliações
     }
   }, [albumId]);
 
@@ -278,7 +268,7 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
                   };
                   setDatasAvaliacao(datasDoFirebase);
                 } catch (error) {
-                  console.error("Erro ao converter datas do Firebase:", error);
+                  // Erro ao converter datas
                 }
               }
 
@@ -306,7 +296,6 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
         });
       }
     } catch (erro) {
-      console.error("Erro ao buscar detalhes do álbum:", erro);
       setErro(
         "Não foi possível carregar os detalhes do álbum. Por favor, verifique sua conexão e tente novamente."
       );
@@ -383,7 +372,7 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
           );
         }
       } catch (error) {
-        console.error("Erro ao salvar avaliação no Firebase:", error);
+        // Erro ao salvar avaliação
       }
     } else {
       // Para usuário não logado ou modo demo, atualizar o localStorage global
@@ -524,7 +513,7 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
           );
         }
       } catch (error) {
-        console.error("Erro ao salvar faixa favorita no Firebase:", error);
+        // Erro ao salvar faixa favorita
       }
     } else {
       // Verificar se estamos em modo de demonstração
@@ -644,7 +633,7 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
           );
         }
       } catch (error) {
-        console.error("Erro ao salvar pior faixa no Firebase:", error);
+        // Erro ao salvar pior faixa
       }
     } else {
       // Verificar se estamos em modo de demonstração
@@ -774,7 +763,7 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
           );
         }
       } catch (error) {
-        console.error("Erro ao resetar avaliações no Firebase:", error);
+        // Erro ao resetar avaliações
       }
     } else {
       // Apenas para usuário não logado, usar localStorage
@@ -858,13 +847,11 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
               await updateDoc(userRef, {
                 albuns_avaliados: arrayRemove(albumExistente),
               });
-
-              console.log("Álbum removido com sucesso do Firestore:", albumId);
             }
           }
         }
       } catch (error) {
-        console.error("Erro ao remover álbum no Firebase:", error);
+        // Erro ao remover álbum
       }
     } else {
       // Modo demo ou sem autenticação - usar localStorage
@@ -917,10 +904,8 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
           "mapaFaixasAlbuns",
           JSON.stringify(novoMapaFaixas)
         );
-
-        console.log("Álbum removido com sucesso do localStorage:", albumId);
       } catch (error) {
-        console.error("Erro ao remover álbum do localStorage:", error);
+        // Erro ao remover álbum do localStorage
       }
     }
 
@@ -941,8 +926,6 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
   useEffect(() => {
     // Função para recarregar os dados quando notificado de alterações
     const atualizarDadosPorEvento = () => {
-      console.log("DetalhesAlbum recebeu evento de atualização de avaliações");
-
       try {
         // Verificar se estamos em modo de demonstração
         const demoToken = localStorage.getItem("demo_token");
@@ -965,7 +948,7 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
                 );
               }
             } catch (erroJson) {
-              console.error("Erro ao processar JSON de avaliações:", erroJson);
+              // Erro ao processar JSON
             }
           }
 
@@ -999,7 +982,7 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
           }
         }
       } catch (erro) {
-        console.error("Erro ao atualizar dados por evento:", erro);
+        // Erro ao atualizar dados
       }
     };
 

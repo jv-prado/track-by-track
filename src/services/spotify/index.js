@@ -166,7 +166,6 @@ export async function buscarArtista(nomeArtista) {
   try {
     // Se estiver em modo demo, retornar dados mockados
     if (isDemoMode()) {
-      console.log("Usando dados mockados para buscarArtista");
       return mockData.artists;
     }
 
@@ -194,7 +193,6 @@ export async function buscarAlbum(nomeAlbum) {
   try {
     // Se estiver em modo demo, retornar dados mockados
     if (isDemoMode()) {
-      console.log("Usando dados mockados para buscarAlbum");
       return mockData.albums;
     }
 
@@ -222,7 +220,6 @@ export async function buscarAlbunsPorArtista(artistaId) {
   try {
     // Se estiver em modo demo, retornar dados mockados
     if (isDemoMode()) {
-      console.log("Usando dados mockados para buscarAlbunsPorArtista");
       return mockData.albums;
     }
 
@@ -249,7 +246,6 @@ export async function buscarFaixasPorAlbum(albumId) {
   try {
     // Se estiver em modo demo, retornar dados mockados
     if (isDemoMode()) {
-      console.log("Usando dados mockados para buscarFaixasPorAlbum");
       return mockData.tracks;
     }
 
@@ -276,7 +272,6 @@ export async function buscarDetalhesAlbum(albumId) {
   try {
     // Se estiver em modo demo, retornar dados mockados
     if (isDemoMode()) {
-      console.log("Usando dados mockados para buscarDetalhesAlbum");
       return mockData.albumDetails;
     }
 

@@ -136,8 +136,6 @@ export const migrarDadosAvaliacoes = () => {
   if (migracaoExecutada) return;
   migracaoExecutada = true;
 
-  console.log("Iniciando migração de dados de avaliações...");
-
   try {
     // Registrar datas atuais para todos os álbuns avaliados
     const agora = new Date();
@@ -152,8 +150,6 @@ export const migrarDadosAvaliacoes = () => {
         };
       }
     });
-
-    console.log(`Migração concluída para ${albumsUnicos.length} álbuns.`);
   } catch (erro) {
     console.error("Erro durante a migração de dados:", erro);
   }
@@ -183,7 +179,6 @@ export const gerenciarCacheAlbum = (idAlbum, detalhes = null) => {
  */
 export const carregarCacheAlbuns = () => {
   // Função mantida por compatibilidade, mas não faz nada sem localStorage
-  console.log("Cache de álbuns em memória está vazio.");
 };
 
 /**
@@ -285,7 +280,6 @@ export const buscarDetalhesAlbumSeguro = async (albumId) => {
 
     // Se tiver no cache, retorna mesmo estando desatualizado
     if (cacheAlbuns[albumId]) {
-      console.log(`Usando dados em cache para ${albumId} após erro na API`);
       return cacheAlbuns[albumId];
     }
 
@@ -497,13 +491,11 @@ export const configurarSincronizacaoAutomatica = () => {
       demoToken && demoExpiry && parseInt(demoExpiry) > Date.now();
 
     if (modoDemo) {
-      console.log("Executando sincronização automática (modo demo)");
       carregarDadosLocalStorage(); // Carregar do localStorage para a memória
       salvarDadosLocalStorage(); // Salvar da memória para o localStorage
     } else {
       // Se não estiver mais em modo demo, limpar o intervalo
       clearInterval(intervalo);
-      console.log("Sincronização automática encerrada (modo demo desativado)");
     }
   }, 5000); // Verificar a cada 5 segundos
 
@@ -516,8 +508,6 @@ export const configurarSincronizacaoAutomatica = () => {
  */
 export const carregarDadosLocalStorage = () => {
   try {
-    console.log("Verificando dados no localStorage para modo de demonstração");
-
     // Verificar se estamos em modo de demonstração
     const demoToken = localStorage.getItem("demo_token");
     const demoExpiry = localStorage.getItem("demo_token_expiry");
@@ -525,13 +515,8 @@ export const carregarDadosLocalStorage = () => {
       demoToken && demoExpiry && parseInt(demoExpiry) > Date.now();
 
     if (!modoDemo) {
-      console.log(
-        "Usuário não está em modo de demonstração, ignorando localStorage"
-      );
       return;
     }
-
-    console.log("Modo de demonstração ativo, carregando dados do localStorage");
 
     // Inicializar estruturas vazias por padrão para evitar objetos nulos
     memoriaAvaliacoes.avaliacoesFaixas = {};
@@ -546,11 +531,6 @@ export const carregarDadosLocalStorage = () => {
         const dados = JSON.parse(avaliacoesString);
         if (dados && typeof dados === "object") {
           memoriaAvaliacoes.avaliacoesFaixas = dados;
-          console.log(
-            "Carregadas avaliações de faixas do localStorage",
-            Object.keys(dados).length,
-            "avaliações"
-          );
         }
       } catch (e) {
         console.error("Erro ao analisar avaliacoesFaixas:", e);
@@ -567,11 +547,6 @@ export const carregarDadosLocalStorage = () => {
         const dados = JSON.parse(mapaString);
         if (dados && typeof dados === "object") {
           memoriaAvaliacoes.mapaFaixasAlbuns = dados;
-          console.log(
-            "Carregado mapa de faixas-álbuns do localStorage",
-            Object.keys(dados).length,
-            "mapeamentos"
-          );
         }
       } catch (e) {
         console.error("Erro ao analisar mapaFaixasAlbuns:", e);
@@ -588,7 +563,6 @@ export const carregarDadosLocalStorage = () => {
         const dados = JSON.parse(datasString);
         if (dados && typeof dados === "object") {
           memoriaAvaliacoes.datasAvaliacoes = dados;
-          console.log("Carregadas datas de avaliações do localStorage");
         }
       } catch (e) {
         console.error("Erro ao analisar datasAvaliacoes:", e);
@@ -605,7 +579,6 @@ export const carregarDadosLocalStorage = () => {
         const dados = JSON.parse(prefsString);
         if (dados && typeof dados === "object") {
           memoriaAvaliacoes.preferenciasAlbuns = dados;
-          console.log("Carregadas preferências de álbuns do localStorage");
         }
       } catch (e) {
         console.error("Erro ao analisar preferenciasAlbuns:", e);
@@ -614,24 +587,6 @@ export const carregarDadosLocalStorage = () => {
     } else {
       localStorage.setItem("preferenciasAlbuns", JSON.stringify({}));
     }
-
-    console.log("Resumo dos dados carregados:");
-    console.log(
-      "- Avaliações de faixas:",
-      Object.keys(memoriaAvaliacoes.avaliacoesFaixas).length
-    );
-    console.log(
-      "- Mapa faixas-álbuns:",
-      Object.keys(memoriaAvaliacoes.mapaFaixasAlbuns).length
-    );
-    console.log(
-      "- Datas de avaliações:",
-      Object.keys(memoriaAvaliacoes.datasAvaliacoes).length
-    );
-    console.log(
-      "- Preferências de álbuns:",
-      Object.keys(memoriaAvaliacoes.preferenciasAlbuns).length
-    );
   } catch (erro) {
     console.error("Erro ao carregar dados do localStorage:", erro);
     // Inicializar com objetos vazios em caso de erro

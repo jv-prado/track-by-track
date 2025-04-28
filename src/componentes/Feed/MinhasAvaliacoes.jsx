@@ -48,7 +48,7 @@ class TratadorErros extends React.Component {
   }
 
   componentDidCatch(erro, infoErro) {
-    console.error("Erro no componente:", erro, infoErro);
+    // Tratamento silencioso de erro
   }
 
   render() {
@@ -127,7 +127,13 @@ const MinhasAvaliacoes = () => {
     };
   }, []);
 
-  const gridCols = windowWidth >= 1500 ? 5 : 3;
+  const getGridCols = () => {
+    if (windowWidth < 550) return 2; // 2 albuns por linha em telas menores que 550px
+    if (windowWidth >= 1500) return 5; // 5 albuns por linha em telas grandes
+    return 3; // 3 albuns por linha no caso padrão
+  };
+
+  const gridCols = getGridCols();
 
   // Recarregar a lista quando o usuário voltar da tela de detalhes de álbum
   useEffect(() => {
@@ -136,7 +142,6 @@ const MinhasAvaliacoes = () => {
       setEstavaNaTelaDetalhes(true);
     } else if (estavaNaTelaDetalhes) {
       // O usuário estava na tela de detalhes e agora voltou
-      console.log("Usuário voltou da tela de detalhes, recarregando álbuns...");
       recarregarListaAlbuns();
       setEstavaNaTelaDetalhes(false);
     }
@@ -146,11 +151,6 @@ const MinhasAvaliacoes = () => {
   useEffect(() => {
     const tentarRecuperarAutenticacao = async () => {
       try {
-        console.log(
-          "Estado de autenticação:",
-          isAuthenticated() ? "Autenticado" : "Não autenticado"
-        );
-
         // Verificar se existe um usuário de demonstração
         const demoToken = localStorage.getItem("demo_token");
         const demoExpiry = localStorage.getItem("demo_token_expiry");
@@ -158,7 +158,6 @@ const MinhasAvaliacoes = () => {
           demoToken && demoExpiry && parseInt(demoExpiry) > Date.now();
 
         if (demoAtivo) {
-          console.log("Usuário demo detectado e válido");
           setAutenticado(true);
           setCarregandoTela(false);
           return;
@@ -167,22 +166,16 @@ const MinhasAvaliacoes = () => {
         if (!isAuthenticated() && !tentouRecuperar) {
           setCarregandoAuth(true);
           setTentouRecuperar(true);
-          console.log("Tentando recuperar autenticação automaticamente...");
 
           const recuperado = await recuperarAutenticacao();
-          console.log(
-            "Resultado da recuperação automática:",
-            recuperado ? "Sucesso" : "Falha"
-          );
 
           if (recuperado) {
-            console.log("Autenticação recuperada com sucesso!");
             setAutenticado(true);
             tentarNovamente();
           }
         }
       } catch (erro) {
-        console.error("Erro na recuperação automática:", erro);
+        // Erro silencioso
       } finally {
         setCarregandoAuth(false);
         setCarregandoTela(false);
@@ -204,15 +197,10 @@ const MinhasAvaliacoes = () => {
 
         // Verificar autenticação normal ou modo de demonstração
         const estadoAuth = isAuthenticated() || demoAtivo;
-        console.log(
-          "Verificação periódica - autenticado:",
-          estadoAuth,
-          demoAtivo ? "(modo demo)" : ""
-        );
         setAutenticado(estadoAuth);
         setCarregandoTela(false);
       } catch (erro) {
-        console.error("Erro ao verificar autenticação:", erro);
+        // Erro silencioso
         setCarregandoTela(false);
       }
     };
@@ -228,8 +216,6 @@ const MinhasAvaliacoes = () => {
   const fazerLoginDemo = async () => {
     setCarregandoAuth(true);
     try {
-      console.log("Iniciando login no modo demonstração...");
-
       // Criar um "usuário demo" no localStorage
       const usuarioDemo = {
         id: "usuario-demo-" + Date.now(),
@@ -260,7 +246,7 @@ const MinhasAvaliacoes = () => {
       // usuário demo seja reconhecido por todos os componentes
       window.location.href = window.location.href;
     } catch (erro) {
-      console.error("Erro ao tentar fazer login:", erro);
+      // Erro silencioso
     } finally {
       setCarregandoAuth(false);
     }

@@ -30,7 +30,6 @@ function App() {
     const savedView = localStorage.getItem("activeView");
     if (savedView) {
       setActiveView(savedView);
-      console.log(`Carregou activeView do localStorage: ${savedView}`);
     }
   }, []);
 
@@ -93,7 +92,6 @@ function App() {
       if (location.pathname === "/feed" && !activeView) {
         setActiveView("feed");
         localStorage.setItem("activeView", "feed");
-        console.log("Definindo feed como view padrão após login");
       }
 
       // Limpar sincronização ao desmontar
@@ -116,13 +114,8 @@ function App() {
 
   // Função para gerenciar a mudança de visão
   const handleViewChange = (view) => {
-    console.log(
-      `handleViewChange chamada. View atual: ${activeView}, nova view: ${view}`
-    );
-
     // Se a mesma visão for clicada novamente, limpar o termo de pesquisa
     if (view === activeView) {
-      console.log(`Mesmo item clicado novamente. Limpando termo de pesquisa.`);
       setTermoPesquisa("");
     }
 
@@ -132,14 +125,10 @@ function App() {
     setActiveView(view);
     setMenuAberto(false); // Fecha o menu ao selecionar uma opção
 
-    // Garantir que estamos na rota /feed (adicionando um console.log para debug)
+    // Garantir que estamos na rota /feed
     if (location.pathname !== "/feed") {
-      console.log(`Navegando para /feed. Rota atual: ${location.pathname}`);
       navigate("/feed");
     }
-
-    // Log adicional para verificar state depois de atualizar
-    console.log(`Estado atualizado: activeView="${view}"`);
   };
 
   // Layout principal da aplicação

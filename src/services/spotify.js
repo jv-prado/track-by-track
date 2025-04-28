@@ -126,10 +126,6 @@ async function fetchWithErrorHandling(url, options, tentativas = 3) {
         const retryAfter = response.headers.get("Retry-After") || 2;
         const delayMs = parseInt(retryAfter) * 1000;
 
-        console.warn(
-          `Limite de requisições atingido. Aguardando ${retryAfter}s antes de tentar novamente...`
-        );
-
         // Esperar pelo tempo recomendado
         await new Promise((resolve) => setTimeout(resolve, delayMs));
 
@@ -153,7 +149,6 @@ async function fetchWithErrorHandling(url, options, tentativas = 3) {
 
     return await response.json();
   } catch (error) {
-    console.error("Erro na requisição:", error);
     throw new Error(
       `Não foi possível completar a requisição: ${error.message}`
     );
@@ -169,7 +164,6 @@ export async function buscarArtista(nomeArtista) {
   try {
     // Se estiver em modo demo, retornar dados mockados
     if (isDemoMode()) {
-      console.log("Usando dados mockados para buscarArtista");
       return mockData.artists;
     }
 
@@ -183,7 +177,6 @@ export async function buscarArtista(nomeArtista) {
 
     return data.artists;
   } catch (error) {
-    console.error("Erro ao buscar artista:", error);
     throw new Error(`Não foi possível buscar o artista: ${error.message}`);
   }
 }
@@ -197,7 +190,6 @@ export async function buscarAlbum(nomeAlbum) {
   try {
     // Se estiver em modo demo, retornar dados mockados
     if (isDemoMode()) {
-      console.log("Usando dados mockados para buscarAlbum");
       return mockData.albums;
     }
 
@@ -211,7 +203,6 @@ export async function buscarAlbum(nomeAlbum) {
 
     return data.albums;
   } catch (error) {
-    console.error("Erro ao buscar álbum:", error);
     throw new Error(`Não foi possível buscar o álbum: ${error.message}`);
   }
 }
@@ -225,7 +216,6 @@ export async function buscarAlbunsPorArtista(artistaId) {
   try {
     // Se estiver em modo demo, retornar dados mockados
     if (isDemoMode()) {
-      console.log("Usando dados mockados para buscarAlbunsPorArtista");
       return mockData.albums;
     }
 
@@ -236,7 +226,6 @@ export async function buscarAlbunsPorArtista(artistaId) {
       getAuthHeaders(token)
     );
   } catch (error) {
-    console.error("Erro ao buscar álbuns do artista:", error);
     throw new Error(
       `Não foi possível buscar os álbuns do artista: ${error.message}`
     );
@@ -252,7 +241,6 @@ export async function buscarFaixasPorAlbum(albumId) {
   try {
     // Se estiver em modo demo, retornar dados mockados
     if (isDemoMode()) {
-      console.log("Usando dados mockados para buscarFaixasPorAlbum");
       return mockData.tracks;
     }
 
@@ -263,7 +251,6 @@ export async function buscarFaixasPorAlbum(albumId) {
       getAuthHeaders(token)
     );
   } catch (error) {
-    console.error("Erro ao buscar faixas do álbum:", error);
     throw new Error(
       `Não foi possível buscar as faixas do álbum: ${error.message}`
     );
@@ -279,7 +266,6 @@ export async function buscarDetalhesAlbum(albumId) {
   try {
     // Se estiver em modo demo, retornar dados mockados
     if (isDemoMode()) {
-      console.log("Usando dados mockados para buscarDetalhesAlbum");
       return mockData.albumDetails;
     }
 
@@ -301,7 +287,6 @@ export async function buscarDetalhesAlbum(albumId) {
 
     return resultado;
   } catch (error) {
-    console.error(`Erro ao buscar detalhes do álbum ${albumId}:`, error);
     throw new Error(
       `Não foi possível buscar os detalhes do álbum: ${error.message}`
     );

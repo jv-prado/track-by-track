@@ -1,5 +1,4 @@
 import { FaSearch } from "react-icons/fa";
-import { useEffect } from "react";
 
 interface BarraDePesquisaProps {
   onSearch: (termo: string) => void;
@@ -11,10 +10,6 @@ export default function BarraDePesquisa({
   onSearch,
   termoPesquisa = "",
 }: BarraDePesquisaProps) {
-  useEffect(() => {
-    console.log(`BarraDePesquisa recebeu termoPesquisa: "${termoPesquisa}"`);
-  }, [termoPesquisa]);
-
   const handleSearch = (e) => {
     onSearch(e.target.value);
   };

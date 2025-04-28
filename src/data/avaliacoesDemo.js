@@ -12,6 +12,13 @@ export const avaliacoesGlobaisDemo = [
       nome: "João Silva",
       foto: null,
     },
+    progresso: {
+      avaliadas: 12,
+      total: 12,
+      percentual: 100,
+    },
+    faixaFavorita: "Smells Like Teen Spirit",
+    piorFaixa: "Territorial Pissings",
   },
   {
     id: "6dVIqQ8qmQ5GBnJ9shOYGE",
@@ -25,6 +32,13 @@ export const avaliacoesGlobaisDemo = [
       nome: "Ana Rocha",
       foto: null,
     },
+    progresso: {
+      avaliadas: 10,
+      total: 12,
+      percentual: 83,
+    },
+    faixaFavorita: "Paranoid Android",
+    piorFaixa: null,
   },
   {
     id: "3o06aGzpyb7R2NQ3Ui9MHY",
@@ -38,6 +52,13 @@ export const avaliacoesGlobaisDemo = [
       nome: "Marcos Oliveira",
       foto: null,
     },
+    progresso: {
+      avaliadas: 8,
+      total: 10,
+      percentual: 80,
+    },
+    faixaFavorita: "Idioteque",
+    piorFaixa: "Treefingers",
   },
   {
     id: "0ETFjACtuP2ADo6LFhL6HN",
@@ -51,6 +72,13 @@ export const avaliacoesGlobaisDemo = [
       nome: "Carla Mendes",
       foto: null,
     },
+    progresso: {
+      avaliadas: 17,
+      total: 17,
+      percentual: 100,
+    },
+    faixaFavorita: "Here Comes The Sun",
+    piorFaixa: null,
   },
   {
     id: "4LH4d3cOWNNsVw41Gqt2kv",
@@ -64,6 +92,13 @@ export const avaliacoesGlobaisDemo = [
       nome: "Roberto Santos",
       foto: null,
     },
+    progresso: {
+      avaliadas: 6,
+      total: 9,
+      percentual: 67,
+    },
+    faixaFavorita: "Time",
+    piorFaixa: "On The Run",
   },
   {
     id: "02ye3FsvXmWxeCk8oKrStd",
@@ -77,6 +112,13 @@ export const avaliacoesGlobaisDemo = [
       nome: "Fernanda Lima",
       foto: null,
     },
+    progresso: {
+      avaliadas: 11,
+      total: 11,
+      percentual: 100,
+    },
+    faixaFavorita: "Rolling in the Deep",
+    piorFaixa: "I'll Be Waiting",
   },
   {
     id: "0C8ZW7ezQVs4URX5aX7Kqx",
@@ -90,6 +132,13 @@ export const avaliacoesGlobaisDemo = [
       nome: "Pedro Costa",
       foto: null,
     },
+    progresso: {
+      avaliadas: 4,
+      total: 9,
+      percentual: 44,
+    },
+    faixaFavorita: "Billie Jean",
+    piorFaixa: "The Lady in My Life",
   },
   {
     id: "2M2Ae2SvZe3fmzUtlUOV0e",
@@ -103,5 +152,12 @@ export const avaliacoesGlobaisDemo = [
       nome: "Juliana Freitas",
       foto: null,
     },
+    progresso: {
+      avaliadas: 9,
+      total: 11,
+      percentual: 82,
+    },
+    faixaFavorita: "Dreams",
+    piorFaixa: "Oh Daddy",
   },
 ];

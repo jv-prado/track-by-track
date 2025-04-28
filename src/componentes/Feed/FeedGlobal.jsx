@@ -7,6 +7,7 @@ import { FaSpotify } from "react-icons/fa";
 import { avaliacoesGlobaisDemo } from "../../data/avaliacoesDemo";
 import { useAuth } from "../../contexts/AuthContext";
 import { MdMusicNote } from "react-icons/md";
+import { IoMdHeart, IoMdHeartDislike } from "react-icons/io";
 
 /**
  * Componente que exibe as últimas avaliações feitas por todos os usuários
@@ -189,99 +190,168 @@ const FeedGlobal = () => {
               key={`${avaliacao.id}-${avaliacao.usuario.id}-${index}`}
               className="bg-cinza-escuro rounded-xl overflow-hidden shadow-lg transition-transform hover:scale-[1.02] hover:shadow-xl flex flex-col h-full"
             >
-              <div className="flex h-full">
-                {/* Imagem do álbum */}
-                <div className="flex-shrink-0 w-20 md:w-28 h-[104px] md:h-[124px] bg-cinza-escuro rounded-l-xl overflow-hidden p-2">
-                  {usandoDadosDemo ? (
-                    <div className="w-full h-full bg-gray-600 rounded-lg animate-pulse"></div>
-                  ) : avaliacao.imagem ? (
-                    <img
-                      src={avaliacao.imagem}
-                      alt={`Capa do álbum ${avaliacao.nome}`}
-                      className="w-full h-full object-cover rounded-lg"
-                      onError={handleImageError}
-                      loading="lazy"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-cinza-escuro rounded-lg">
-                      <MdMusicNote className="text-verde-destaque text-4xl" />
+              <div className="flex flex-col sm:flex-row h-full">
+                {/* LADO ESQUERDO: Imagem do álbum, nome, artista, usuário e botão Spotify */}
+                <div className="flex-grow p-3 flex flex-col">
+                  {/* Informações do usuário em primeiro lugar */}
+                  <div className="flex items-center mb-3 text-xs md:text-sm text-gray-300 min-w-0">
+                    <div className="w-6 h-6 md:w-7 md:h-7 rounded-full overflow-hidden bg-gray-800 flex-shrink-0 mr-2 shadow-sm">
+                      {usandoDadosDemo ? (
+                        <div className="w-full h-full flex items-center justify-center bg-verde-destaque/20 text-verde-destaque">
+                          {avaliacao.usuario.nome.charAt(0).toUpperCase()}
+                        </div>
+                      ) : avaliacao.usuario.foto ? (
+                        <img
+                          src={avaliacao.usuario.foto}
+                          alt={`Foto de ${avaliacao.usuario.nome}`}
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            e.target.style.display = "none";
+                            e.target.parentElement.classList.add(
+                              "flex",
+                              "items-center",
+                              "justify-center",
+                              "bg-verde-destaque/20"
+                            );
+                            const fallbackText = document.createElement("div");
+                            fallbackText.className =
+                              "text-verde-destaque text-xs font-bold";
+                            fallbackText.textContent = avaliacao.usuario.nome
+                              .charAt(0)
+                              .toUpperCase();
+                            e.target.parentElement.appendChild(fallbackText);
+                          }}
+                          loading="lazy"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center bg-verde-destaque/20 text-verde-destaque">
+                          {avaliacao.usuario.nome.charAt(0).toUpperCase()}
+                        </div>
+                      )}
                     </div>
-                  )}
-                </div>
-
-                {/* Informações da avaliação */}
-                <div className="p-2 md:p-3 flex flex-col justify-between flex-grow h-[104px] md:h-[124px] min-w-0">
-                  <div className="min-w-0">
-                    <div className="flex justify-between items-start gap-2">
-                      <div className="flex-1 min-w-0">
-                        <h3 className="font-bold text-sm md:text-base line-clamp-1 text-white truncate">
-                          {avaliacao.nome}
-                        </h3>
-                        <p className="text-verde-destaque text-xs md:text-sm line-clamp-1 font-medium truncate">
-                          {avaliacao.artista}
-                        </p>
-                      </div>
-
-                      <div className="bg-verde-destaque text-cinza-escuro rounded-lg px-2 py-1 font-bold text-base md:text-lg flex items-center justify-center min-w-[34px] flex-shrink-0">
-                        {formatarMedia(avaliacao.mediaAvaliacao)}
-                      </div>
-                    </div>
-
-                    {/* Informações do usuário */}
-                    <div className="flex items-center mt-1 md:mt-2 text-xs md:text-sm text-gray-300 min-w-0">
-                      <div className="w-5 h-5 md:w-6 md:h-6 rounded-full overflow-hidden bg-gray-800 flex-shrink-0 mr-1 shadow-sm">
-                        {avaliacao.usuario.foto ? (
-                          <img
-                            src={avaliacao.usuario.foto}
-                            alt={`Foto de ${avaliacao.usuario.nome}`}
-                            className="w-full h-full object-cover"
-                            onError={(e) => {
-                              e.target.style.display = "none";
-                              e.target.parentElement.classList.add(
-                                "flex",
-                                "items-center",
-                                "justify-center",
-                                "bg-verde-destaque/20"
-                              );
-                              const fallbackText =
-                                document.createElement("div");
-                              fallbackText.className =
-                                "text-verde-destaque text-xs font-bold";
-                              fallbackText.textContent = avaliacao.usuario.nome
-                                .charAt(0)
-                                .toUpperCase();
-                              e.target.parentElement.appendChild(fallbackText);
-                            }}
-                            loading="lazy"
-                          />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center bg-verde-destaque/20 text-verde-destaque">
-                            {avaliacao.usuario.nome.charAt(0).toUpperCase()}
-                          </div>
-                        )}
-                      </div>
-                      <span className="font-medium truncate min-w-0">
+                    <div className="flex flex-col">
+                      <span className="font-medium truncate max-w-[200px]">
                         {avaliacao.usuario.nome}
                       </span>
-                      <span className="mx-1 opacity-70 flex-shrink-0">•</span>
-                      <span className="opacity-70 flex-shrink-0">
+                      <span className="text-xs opacity-70">
                         {formatarData(avaliacao.dataAvaliacao)}
                       </span>
                     </div>
                   </div>
 
-                  {/* Botão do Spotify */}
-                  <div className="mt-auto pt-1">
+                  {/* Parte média: imagem, nome e artista */}
+                  <div className="flex gap-3">
+                    {/* Imagem do álbum */}
+                    <div className="flex-shrink-0 w-16 h-16 md:w-20 md:h-20 bg-cinza-escuro rounded-lg overflow-hidden">
+                      {usandoDadosDemo ? (
+                        <div className="w-full h-full bg-gradient-to-br from-verde-destaque/10 to-verde-destaque/30 rounded-lg flex items-center justify-center">
+                          <MdMusicNote className="text-verde-destaque text-3xl md:text-4xl animate-pulse" />
+                        </div>
+                      ) : avaliacao.imagem ? (
+                        <img
+                          src={avaliacao.imagem}
+                          alt={`Capa do álbum ${avaliacao.nome}`}
+                          className="w-full h-full object-cover rounded-lg"
+                          onError={handleImageError}
+                          loading="lazy"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center bg-cinza-escuro rounded-lg">
+                          <MdMusicNote className="text-verde-destaque text-4xl" />
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Nome e artista */}
+                    <div className="flex-grow min-w-0 max-w-full">
+                      <h3 className="font-bold text-sm md:text-base line-clamp-1 text-white truncate pr-1">
+                        {avaliacao.nome}
+                      </h3>
+                      <p className="text-verde-destaque text-xs md:text-sm line-clamp-1 font-medium truncate pr-1">
+                        {avaliacao.artista}
+                      </p>
+
+                      {/* Música favorita e pior música */}
+                      {(avaliacao.faixaFavorita || avaliacao.piorFaixa) && (
+                        <div className="flex flex-wrap gap-1 mt-1 text-[10px] sm:text-xs max-w-full">
+                          {avaliacao.faixaFavorita && (
+                            <div className="flex items-center text-red-400 max-w-[calc(50%-4px)]">
+                              <IoMdHeart className="mr-0.5 flex-shrink-0" />
+                              <span className="truncate">
+                                {avaliacao.faixaFavorita === "Faixa favorita"
+                                  ? "Favorita"
+                                  : avaliacao.faixaFavorita}
+                              </span>
+                            </div>
+                          )}
+                          {avaliacao.piorFaixa && (
+                            <div className="flex items-center text-yellow-500 max-w-[calc(50%-4px)]">
+                              <IoMdHeartDislike className="mr-0.5 flex-shrink-0" />
+                              <span className="truncate">
+                                {avaliacao.piorFaixa === "Pior faixa"
+                                  ? "Pior"
+                                  : avaliacao.piorFaixa}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Botão do Spotify no final */}
+                  <div className="mt-auto pt-2">
                     <a
-                      href={`https://open.spotify.com/album/${avaliacao.id}`}
+                      href={
+                        usandoDadosDemo
+                          ? "https://open.spotify.com/"
+                          : `https://open.spotify.com/album/${avaliacao.id}`
+                      }
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center px-1.5 py-0.5 bg-black/30 rounded-md text-xs md:text-sm text-gray-300 hover:text-green-400 hover:bg-black/50 transition-colors"
+                      className="inline-flex items-center px-2 py-1 bg-black/30 rounded-md text-xs text-gray-300 hover:text-green-400 hover:bg-black/50 transition-colors"
                     >
                       <FaSpotify className="mr-1 text-green-400" />
                       Ouvir no Spotify
                     </a>
                   </div>
+                </div>
+
+                {/* LADO DIREITO: Avaliação e progresso */}
+                <div className="w-full sm:w-32 flex-shrink-0 bg-cinza p-3 flex sm:flex-col items-center justify-between sm:justify-center border-t sm:border-t-0 sm:border-l border-gray-700">
+                  {/* Avaliação geral */}
+                  <div className="flex sm:flex-col items-center">
+                    <div className="text-xs sm:text-sm text-gray-400 sm:mb-1 mr-2 sm:mr-0">
+                      Avaliação
+                    </div>
+                    <div className="bg-verde-destaque text-cinza-escuro rounded-lg px-3 py-1 font-bold text-xl flex items-center justify-center">
+                      {formatarMedia(avaliacao.mediaAvaliacao)}
+                    </div>
+                  </div>
+
+                  {/* Progresso da avaliação */}
+                  {avaliacao.progresso && (
+                    <div className="flex sm:flex-col items-center sm:mt-4">
+                      <div className="text-xs sm:text-sm text-gray-400 sm:mb-1 mr-2 sm:mr-0 hidden sm:block">
+                        Progresso
+                      </div>
+                      <div className="flex flex-col sm:items-center min-w-[80px]">
+                        <div className="text-xs text-gray-300 mb-1 text-center">
+                          {avaliacao.progresso.avaliadas}/
+                          {avaliacao.progresso.total} (
+                          {avaliacao.progresso.percentual || 0}%)
+                        </div>
+                        <div className="w-20 sm:w-full h-2 bg-cinza-escuro rounded-full overflow-hidden">
+                          <div
+                            className="h-full bg-verde-destaque transition-all"
+                            style={{
+                              width: `${avaliacao.progresso.percentual || 0}%`,
+                            }}
+                          ></div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

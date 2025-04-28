@@ -430,6 +430,9 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
           JSON.stringify(novoMapaFaixas)
         );
 
+        // Sinalizar que o modo de demonstração está ativo
+        localStorage.setItem("modo_demo_ativo", "true");
+
         // Também manter o formato antigo para compatibilidade
         localStorage.setItem(
           `avaliacoes_${albumId}`,
@@ -450,10 +453,26 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
     // Registrar data da avaliação (passando o ID da faixa e a avaliação)
     if (nota > 0) {
       registrarDataAvaliacao(faixaId, nota);
-    }
 
-    // Atualizar datas de avaliação no componente
-    setDatasAvaliacao(obterDatasAvaliacao(albumId));
+      // Forçar a atualização do localStorage
+      const datasAvaliacoes = JSON.parse(
+        localStorage.getItem("datasAvaliacoes") || "{}"
+      );
+
+      if (datasAvaliacoes[albumId]) {
+        // Atualizar apenas a data da última avaliação
+        datasAvaliacoes[albumId].ultima = new Date().toISOString();
+        localStorage.setItem(
+          "datasAvaliacoes",
+          JSON.stringify(datasAvaliacoes)
+        );
+      }
+
+      // Atualizar o estado com os dados mais recentes
+      setTimeout(() => {
+        setDatasAvaliacao(obterDatasAvaliacao(albumId));
+      }, 100);
+    }
   };
 
   // Função para marcar uma faixa como favorita
@@ -467,10 +486,26 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
     const novaFaixaFavorita = faixaFavorita === faixaId ? null : faixaId;
     setFaixaFavorita(novaFaixaFavorita);
 
+    // Encontrar o nome da faixa favorita (se houver)
+    let nomeFaixaFavorita = null;
+    if (novaFaixaFavorita) {
+      const faixaEncontrada = faixas.items.find(
+        (faixa) => faixa.id === novaFaixaFavorita
+      );
+      if (faixaEncontrada) {
+        nomeFaixaFavorita = faixaEncontrada.name;
+      }
+    }
+
     // Salvar nas preferências do álbum
     const preferencias = {
       faixaFavorita: novaFaixaFavorita,
+      faixaFavoritaNome: nomeFaixaFavorita,
       piorFaixa: piorFaixa,
+      // Preservar nome da pior faixa se existir
+      piorFaixaNome: piorFaixa
+        ? faixas.items.find((faixa) => faixa.id === piorFaixa)?.name
+        : null,
     };
 
     if (usuarioFirebase) {
@@ -504,10 +539,17 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
 
         preferenciasGlobais[albumId] = preferenciasGlobais[albumId] || {};
         preferenciasGlobais[albumId].faixaFavorita = novaFaixaFavorita;
+        preferenciasGlobais[albumId].faixaFavoritaNome = nomeFaixaFavorita;
 
         // Preservar pior faixa se existir
         if (piorFaixa) {
           preferenciasGlobais[albumId].piorFaixa = piorFaixa;
+          const piorFaixaObj = faixas.items.find(
+            (faixa) => faixa.id === piorFaixa
+          );
+          if (piorFaixaObj) {
+            preferenciasGlobais[albumId].piorFaixaNome = piorFaixaObj.name;
+          }
         }
 
         // Salvar no localStorage global
@@ -527,8 +569,29 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
       notificarAvaliacoesAlteradas();
     }
 
-    // Atualizar datas de avaliação no componente
-    setDatasAvaliacao(obterDatasAvaliacao(albumId));
+    // Forçar a atualização do localStorage
+    const datasAvaliacoes = JSON.parse(
+      localStorage.getItem("datasAvaliacoes") || "{}"
+    );
+
+    if (datasAvaliacoes[albumId]) {
+      // Atualizar apenas a data da última avaliação
+      datasAvaliacoes[albumId].ultima = new Date().toISOString();
+      localStorage.setItem("datasAvaliacoes", JSON.stringify(datasAvaliacoes));
+    } else if (novaFaixaFavorita) {
+      // Se não tiver registro ainda e estiver marcando favorito, criar novo registro
+      const agora = new Date().toISOString();
+      datasAvaliacoes[albumId] = {
+        primeira: agora,
+        ultima: agora,
+      };
+      localStorage.setItem("datasAvaliacoes", JSON.stringify(datasAvaliacoes));
+    }
+
+    // Atualizar o estado com os dados mais recentes
+    setTimeout(() => {
+      setDatasAvaliacao(obterDatasAvaliacao(albumId));
+    }, 100);
   };
 
   // Função para marcar uma faixa como a pior
@@ -542,10 +605,26 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
     const novaPiorFaixa = piorFaixa === faixaId ? null : faixaId;
     setPiorFaixa(novaPiorFaixa);
 
+    // Encontrar o nome da pior faixa (se houver)
+    let nomePiorFaixa = null;
+    if (novaPiorFaixa) {
+      const faixaEncontrada = faixas.items.find(
+        (faixa) => faixa.id === novaPiorFaixa
+      );
+      if (faixaEncontrada) {
+        nomePiorFaixa = faixaEncontrada.name;
+      }
+    }
+
     // Salvar nas preferências do álbum
     const preferencias = {
       faixaFavorita: faixaFavorita,
+      // Preservar nome da faixa favorita se existir
+      faixaFavoritaNome: faixaFavorita
+        ? faixas.items.find((faixa) => faixa.id === faixaFavorita)?.name
+        : null,
       piorFaixa: novaPiorFaixa,
+      piorFaixaNome: nomePiorFaixa,
     };
 
     if (usuarioFirebase) {
@@ -579,10 +658,18 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
 
         preferenciasGlobais[albumId] = preferenciasGlobais[albumId] || {};
         preferenciasGlobais[albumId].piorFaixa = novaPiorFaixa;
+        preferenciasGlobais[albumId].piorFaixaNome = nomePiorFaixa;
 
         // Preservar faixa favorita se existir
         if (faixaFavorita) {
           preferenciasGlobais[albumId].faixaFavorita = faixaFavorita;
+          const faixaFavoritaObj = faixas.items.find(
+            (faixa) => faixa.id === faixaFavorita
+          );
+          if (faixaFavoritaObj) {
+            preferenciasGlobais[albumId].faixaFavoritaNome =
+              faixaFavoritaObj.name;
+          }
         }
 
         // Salvar no localStorage global
@@ -602,8 +689,29 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
       notificarAvaliacoesAlteradas();
     }
 
-    // Atualizar datas de avaliação no componente
-    setDatasAvaliacao(obterDatasAvaliacao(albumId));
+    // Forçar a atualização do localStorage
+    const datasAvaliacoes = JSON.parse(
+      localStorage.getItem("datasAvaliacoes") || "{}"
+    );
+
+    if (datasAvaliacoes[albumId]) {
+      // Atualizar apenas a data da última avaliação
+      datasAvaliacoes[albumId].ultima = new Date().toISOString();
+      localStorage.setItem("datasAvaliacoes", JSON.stringify(datasAvaliacoes));
+    } else if (novaPiorFaixa) {
+      // Se não tiver registro ainda e estiver marcando pior faixa, criar novo registro
+      const agora = new Date().toISOString();
+      datasAvaliacoes[albumId] = {
+        primeira: agora,
+        ultima: agora,
+      };
+      localStorage.setItem("datasAvaliacoes", JSON.stringify(datasAvaliacoes));
+    }
+
+    // Atualizar o estado com os dados mais recentes
+    setTimeout(() => {
+      setDatasAvaliacao(obterDatasAvaliacao(albumId));
+    }, 100);
   };
 
   // Função para calcular média de avaliações do álbum

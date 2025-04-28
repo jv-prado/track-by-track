@@ -44,14 +44,25 @@ export const registrarDataAvaliacao = (faixaId, avaliacao) => {
       datasAvaliacoes[albumId].ultima = agora.toISOString();
     }
 
+    // Verificar se estamos em modo de demonstração
+    const demoToken = localStorage.getItem("demo_token");
+    const demoExpiry = localStorage.getItem("demo_token_expiry");
+    const modoDemo =
+      demoToken && demoExpiry && parseInt(demoExpiry) > Date.now();
+
     // Sincronizar com localStorage se estiver em modo demo
-    const modoDemo = localStorage.getItem("modo_demo_ativo") === "true";
     if (modoDemo) {
       // Atualizar localStorage com os dados atualizados
       localStorage.setItem(
         "datasAvaliacoes",
         JSON.stringify(memoriaAvaliacoes.datasAvaliacoes)
       );
+
+      // Sinalizar que o modo de demonstração está ativo
+      localStorage.setItem("modo_demo_ativo", "true");
+
+      // Forçar a sincronização das avaliações
+      salvarDadosLocalStorage();
     }
   } catch (erro) {
     console.warn("Erro ao registrar data de avaliação:", erro);

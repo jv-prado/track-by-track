@@ -136,10 +136,24 @@ export const notificarAvaliacoesAlteradas = () => {
   if (modoDemo) {
     // Para modo demo, garantir que as avaliações são salvas no localStorage
     try {
-      const { recarregarAvaliacoes } = require("./avaliacoes");
+      // Sinalizar que o modo de demonstração está ativo
+      localStorage.setItem("modo_demo_ativo", "true");
+
+      // Importar as funções necessárias
+      const {
+        salvarDadosLocalStorage,
+        recarregarAvaliacoes,
+      } = require("./avaliacoes");
+
+      // Primeiro salvar os dados atuais no localStorage
+      salvarDadosLocalStorage();
+
+      // Depois recarregar para manter consistência
       recarregarAvaliacoes();
+
+      console.log("Avaliações sincronizadas no modo demonstração");
     } catch (err) {
-      console.warn("Não foi possível recarregar avaliações:", err);
+      console.warn("Não foi possível sincronizar avaliações:", err);
     }
   }
 

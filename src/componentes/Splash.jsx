@@ -36,9 +36,8 @@ const Splash = () => {
           className="text-gray-300 mb-12 animate-fadeIn"
           style={{ animationDelay: "0.3s" }}
         >
-          Seu aplicativo para descobrir, avaliar e acompanhar suas músicas
-          favoritas. Organize suas avaliações faixa por faixa e construa sua
-          biblioteca musical personalizada.
+          Seu app para descobrir, avaliar e registrar todos os álbuns que você
+          ouvir.
         </p>
 
         <div className="animate-fadeIn" style={{ animationDelay: "0.6s" }}>

@@ -293,6 +293,38 @@ export const obterAvaliacoesGlobais = async (limite = 20) => {
         const mediaEscala5 = soma / totalFaixas;
         const mediaAvaliacao = mediaEscala5 * 2;
 
+        // Calcular progresso de avaliação
+        const totalFaixasAlbum = Object.keys(avaliacoes).length;
+        const faixasAvaliadas = Object.values(avaliacoes).filter(
+          (nota) => nota > 0
+        ).length;
+        const percentual =
+          totalFaixasAlbum > 0
+            ? Math.round((faixasAvaliadas / totalFaixasAlbum) * 100)
+            : 0;
+
+        // Obter nomes das faixas favorita e pior (se disponíveis)
+        let faixaFavorita = null;
+        let piorFaixa = null;
+
+        if (album.preferencias) {
+          // Verificar se temos as preferências
+          if (album.preferencias.faixaFavorita) {
+            // Para faixa favorita, procurar nas avaliações para tentar encontrar o nome
+            // Vamos usar o próprio ID como último recurso
+            faixaFavorita =
+              album.preferencias.faixaFavoritaNome ||
+              album.preferencias.faixaFavorita;
+          }
+
+          if (album.preferencias.piorFaixa) {
+            // Para pior faixa, procurar nas avaliações para tentar encontrar o nome
+            // Vamos usar o próprio ID como último recurso
+            piorFaixa =
+              album.preferencias.piorFaixaNome || album.preferencias.piorFaixa;
+          }
+        }
+
         // Adicionar esta avaliação ao array de todas as avaliações
         if (totalFaixas > 0) {
           // Usar a foto de perfil do Firestore (que agora é sincronizada)
@@ -308,6 +340,15 @@ export const obterAvaliacoesGlobais = async (limite = 20) => {
               nome: dadosUsuario.nome || "Usuário anônimo",
               foto: dadosUsuario.foto_perfil || null,
             },
+            // Adicionar progresso da avaliação
+            progresso: {
+              avaliadas: faixasAvaliadas,
+              total: totalFaixasAlbum,
+              percentual: percentual,
+            },
+            // Adicionar faixas favorita e pior
+            faixaFavorita: faixaFavorita,
+            piorFaixa: piorFaixa,
           });
         }
       });

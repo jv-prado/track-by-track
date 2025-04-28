@@ -378,6 +378,17 @@ export default function useAvaliacoes({ termoPesquisaInicial = "" } = {}) {
         console.log("Mapa de faixas para álbuns:", mapaFaixasAlbuns);
         console.log("Avaliações de faixas:", avaliacoesFaixas);
 
+        // Forçar carregamento dos dados do localStorage no modo demo
+        if (modoDemo) {
+          // Verificar se o flag de modo demo está ativo
+          if (localStorage.getItem("modo_demo_ativo") !== "true") {
+            localStorage.setItem("modo_demo_ativo", "true");
+          }
+
+          // Forçar carregamento dos dados do localStorage
+          carregarDadosLocalStorage();
+        }
+
         // Se não temos o mapa de faixas para álbuns, não podemos mostrar os álbuns
         if (Object.keys(mapaFaixasAlbuns).length === 0) {
           console.log("Nenhum álbum para mostrar - mapa vazio");

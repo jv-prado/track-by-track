@@ -278,26 +278,23 @@ export const obterAvaliacoesGlobais = async (limite = 20) => {
       // Para cada álbum avaliado pelo usuário
       albuns.forEach((album) => {
         // Calcular a média das avaliações deste álbum
-        let somaAvaliacoes = 0;
-        let qtdFaixasAvaliadas = 0;
+        let soma = 0;
+        const avaliacoes = album.avaliacoes || {};
+        const totalFaixas = Object.keys(avaliacoes).length;
 
-        Object.values(album.avaliacoes).forEach((avaliacao) => {
-          if (avaliacao > 0) {
-            // Considerar apenas faixas que foram avaliadas
-            somaAvaliacoes += avaliacao;
-            qtdFaixasAvaliadas++;
-          }
+        if (totalFaixas === 0) return; // Ignorar álbuns sem faixas avaliadas
+
+        // Somar todas as avaliações, incluindo zeros
+        Object.values(avaliacoes).forEach((avaliacao) => {
+          soma += avaliacao || 0;
         });
 
-        // Calcular média na escala 0-5
-        const mediaEscala5 =
-          qtdFaixasAvaliadas > 0 ? somaAvaliacoes / qtdFaixasAvaliadas : 0;
-
-        // Converter para escala 0-10 (multiplicando por 2)
+        // Calcular média na escala 0-5 e converter para 0-10
+        const mediaEscala5 = soma / totalFaixas;
         const mediaAvaliacao = mediaEscala5 * 2;
 
         // Adicionar esta avaliação ao array de todas as avaliações
-        if (mediaEscala5 > 0) {
+        if (totalFaixas > 0) {
           // Usar a foto de perfil do Firestore (que agora é sincronizada)
           todasAvaliacoes.push({
             id: album.id,

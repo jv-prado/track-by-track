@@ -91,13 +91,13 @@ const FeedGlobal = () => {
   const formatarMedia = (media) => {
     // Garantir que é um número válido
     if (isNaN(media) || media === null || media === undefined) {
-      return "0.0";
+      return "0";
     }
 
     // Limitar a valores entre 0 e 10
     const mediaLimitada = Math.max(0, Math.min(10, media));
 
-    // Verificar se é um número inteiro
+    // Exibir números inteiros sem casa decimal
     return Number.isInteger(mediaLimitada)
       ? mediaLimitada.toString()
       : mediaLimitada.toFixed(1);

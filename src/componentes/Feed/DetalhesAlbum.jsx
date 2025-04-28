@@ -1039,7 +1039,7 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
               className="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg text-sm sm:text-base font-medium flex items-center gap-2 transition-colors shadow-md"
             >
               <FaSpotify className="text-base sm:text-lg" />
-              Escute no Spotify
+              Ouvir no Spotify
             </a>
           </div>
 

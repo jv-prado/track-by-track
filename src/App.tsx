@@ -228,8 +228,27 @@ function App() {
           <Routes>
             <Route
               path="/feed"
+              element={<Feed activeView="feed" termoPesquisa={termoPesquisa} />}
+            />
+            <Route
+              path="/albuns"
               element={
-                <Feed activeView={activeView} termoPesquisa={termoPesquisa} />
+                <Feed activeView="albuns" termoPesquisa={termoPesquisa} />
+              }
+            />
+            <Route
+              path="/artistas"
+              element={
+                <Feed activeView="artistas" termoPesquisa={termoPesquisa} />
+              }
+            />
+            <Route
+              path="/minhas-avaliacoes"
+              element={
+                <Feed
+                  activeView="classificacoes"
+                  termoPesquisa={termoPesquisa}
+                />
               }
             />
             <Route path="/login" element={<Login />} />

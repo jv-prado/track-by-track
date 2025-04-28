@@ -4,7 +4,6 @@ import { IoStarSharp } from "react-icons/io5";
 import { IoMdExit } from "react-icons/io";
 import "../../App.css";
 import { MdAlbum } from "react-icons/md";
-import { RiGlobalLine } from "react-icons/ri";
 import SidebarItem from "./SideBarItem";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
@@ -91,28 +90,40 @@ export default function Sidebar({ activeView, setActiveView }) {
                 text="Feed"
                 iconSize="text-2xl md:text-3xl"
                 active={activeView === "feed"}
-                onClick={() => setActiveView("feed")}
+                onClick={() => {
+                  setActiveView("feed");
+                  navigate("/feed");
+                }}
               />
               <SidebarItem
                 icon={MdAlbum}
                 text="Álbuns"
                 iconSize="text-2xl md:text-3xl"
                 active={activeView === "albuns"}
-                onClick={() => setActiveView("albuns")}
+                onClick={() => {
+                  setActiveView("albuns");
+                  navigate("/albuns");
+                }}
               />
               <SidebarItem
                 icon={FaUser}
                 text="Artistas"
                 iconSize="text-2xl md:text-3xl"
                 active={activeView === "artistas"}
-                onClick={() => setActiveView("artistas")}
+                onClick={() => {
+                  setActiveView("artistas");
+                  navigate("/artistas");
+                }}
               />
               <SidebarItem
                 icon={IoStarSharp}
                 text="Minhas avaliações"
                 iconSize="text-2xl md:text-3xl"
                 active={activeView === "classificacoes"}
-                onClick={() => setActiveView("classificacoes")}
+                onClick={() => {
+                  setActiveView("classificacoes");
+                  navigate("/minhas-avaliacoes");
+                }}
               />
 
               <SidebarItem

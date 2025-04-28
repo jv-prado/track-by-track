@@ -178,7 +178,7 @@ const FeedGlobal = () => {
       <div className="flex justify-between items-center mb-6">
         <div>
           <h2 className="text-xl md:text-2xl font-bold text-verde-destaque flex items-center">
-            Feed Global de Avaliações
+            Feed de Avaliações
             {usandoDadosDemo && (
               <span className="text-xs ml-2 bg-amber-700/20 text-amber-500 px-2 py-1 rounded-full">
                 Modo demonstração
@@ -325,9 +325,7 @@ const FeedGlobal = () => {
                           onClick={(e) => e.stopPropagation()} // Evitar que o clique no botão acione a navegação
                         >
                           <FaSpotify className="mr-1 text-green-400" />
-                          <span className="whitespace-nowrap">
-                            Ouvir no Spotify
-                          </span>
+                          <span className="whitespace-nowrap">Ouvir</span>
                         </a>
 
                         <button
@@ -336,9 +334,7 @@ const FeedGlobal = () => {
                           title="Ver avaliações de faixas deste usuário para este álbum"
                         >
                           <FaRegStar className="mr-1 text-verde-destaque" />
-                          <span className="whitespace-nowrap">
-                            Ver avaliações
-                          </span>
+                          <span className="whitespace-nowrap">Avaliações</span>
                         </button>
                       </div>
                     </div>
@@ -346,23 +342,23 @@ const FeedGlobal = () => {
                 </div>
 
                 {/* LADO DIREITO: Avaliação e progresso - Melhorando a aparência */}
-                <div className="w-full sm:w-32 flex-shrink-0 p-3 flex sm:flex-col items-center justify-between sm:justify-center border-t sm:border-t-0 sm:border-l border-gray-700/50 bg-gradient-to-br from-cinza-escuro to-cinza-escuro/95">
+                <div className="w-full sm:w-28 flex-shrink-0 p-3 flex sm:flex-col items-center justify-between sm:justify-center border-t sm:border-t-0 sm:border-l border-gray-700/50 bg-gradient-to-br from-cinza-escuro to-cinza-escuro/95">
                   {/* Avaliação como banner - remover o texto "Avaliação" */}
                   <div className="flex sm:flex-col items-center justify-center w-full">
-                    <div className="bg-verde-destaque text-cinza-escuro rounded-lg px-4 py-2 font-bold text-2xl flex items-center justify-center shadow-sm w-full sm:w-auto">
+                    <div className="bg-verde-destaque text-cinza-escuro rounded-lg px-3 py-1.5 font-bold text-xl flex items-center justify-center shadow-sm w-24 sm:w-full">
                       {formatarMedia(avaliacao.mediaAvaliacao)}
                     </div>
                   </div>
 
                   {/* Progresso da avaliação */}
                   {avaliacao.progresso && (
-                    <div className="flex sm:flex-col items-center sm:mt-4 w-full">
-                      <div className="flex flex-col sm:items-center min-w-[80px] w-full">
-                        <div className="text-xs text-gray-300 mb-1 text-center font-medium">
-                          <span className="mr-1">Avaliado</span>
-                          {avaliacao.progresso.avaliadas}/
-                          {avaliacao.progresso.total} (
-                          {avaliacao.progresso.percentual || 0}%)
+                    <div className="flex sm:flex-col items-center sm:mt-2 w-full">
+                      <div className="flex flex-col items-center w-full">
+                        <div className="text-xs text-gray-300 mb-1 text-center font-medium truncate w-full">
+                          <span className="whitespace-nowrap">
+                            Avaliado: {avaliacao.progresso.avaliadas}/
+                            {avaliacao.progresso.total}
+                          </span>
                         </div>
                         <div className="w-20 sm:w-full h-2 bg-gray-800/70 rounded-full overflow-hidden shadow-inner">
                           <div

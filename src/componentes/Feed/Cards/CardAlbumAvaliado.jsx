@@ -59,7 +59,15 @@ const CardAlbumAvaliado = ({ album, setAlbumSelecionado }) => {
       <div className="mt-auto">
         {/* Nota média */}
         <div className="flex items-center mt-2 mb-1">
-          <span className="text-base md:text-lg font-bold mr-1 text-verde-destaque">
+          <span
+            className={`text-base md:text-lg font-bold mr-1 ${(() => {
+              // Converter para número para garantir a comparação correta
+              const nota = parseFloat(album.mediaAvaliacao || 0);
+              if (nota < 4) return "text-red-500"; // Nota baixa: vermelho
+              if (nota < 7) return "text-yellow-500"; // Nota média: amarelo
+              return "text-verde-destaque"; // Nota alta: verde
+            })()}`}
+          >
             {mediaFormatada}
           </span>
           <span className="text-xs text-gray-400">/10</span>
@@ -77,7 +85,11 @@ const CardAlbumAvaliado = ({ album, setAlbumSelecionado }) => {
             </div>
             <div className="w-full h-1.5 bg-cinza rounded-full overflow-hidden">
               <div
-                className="h-full bg-verde-destaque transition-all duration-300 ease-in-out"
+                className={`h-full transition-all duration-300 ease-in-out ${
+                  percentualFormatado >= 100
+                    ? "bg-verde-destaque"
+                    : "bg-blue-500/50"
+                }`}
                 style={{
                   width: `${percentualFormatado}%`,
                 }}

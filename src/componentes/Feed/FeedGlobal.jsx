@@ -126,6 +126,16 @@ const FeedGlobal = () => {
     }
   };
 
+  // Função para determinar a cor da nota baseada no valor
+  const obterCorNota = (nota) => {
+    // Converter para número para garantir a comparação correta
+    const notaNum = parseFloat(nota);
+
+    if (notaNum < 4) return "bg-red-500"; // Nota baixa: vermelho
+    if (notaNum < 7) return "bg-yellow-500"; // Nota média: amarelo
+    return "bg-verde-destaque"; // Nota alta: verde
+  };
+
   // Formatação da média para exibição
   const formatarMedia = (media) => {
     // Garantir que é um número válido
@@ -325,7 +335,9 @@ const FeedGlobal = () => {
                           onClick={(e) => e.stopPropagation()} // Evitar que o clique no botão acione a navegação
                         >
                           <FaSpotify className="mr-1 text-green-400" />
-                          <span className="whitespace-nowrap">Ouvir</span>
+                          <span className="whitespace-nowrap">
+                            Ouvir no Spotify
+                          </span>
                         </a>
 
                         <button
@@ -334,7 +346,9 @@ const FeedGlobal = () => {
                           title="Ver avaliações de faixas deste usuário para este álbum"
                         >
                           <FaRegStar className="mr-1 text-verde-destaque" />
-                          <span className="whitespace-nowrap">Avaliações</span>
+                          <span className="whitespace-nowrap">
+                            Ver avaliações
+                          </span>
                         </button>
                       </div>
                     </div>
@@ -343,16 +357,25 @@ const FeedGlobal = () => {
 
                 {/* LADO DIREITO: Avaliação e progresso */}
                 <div className="w-full sm:w-28 flex-shrink-0 p-3 flex sm:flex-col items-center justify-between sm:justify-center border-t sm:border-t-0 sm:border-l border-gray-700/50 bg-gradient-to-br from-cinza-escuro to-cinza-escuro/95">
-                  {/* Avaliação como banner - com cor baseada no progresso */}
+                  {/* Avaliação como banner - com cor baseada no progresso e na nota */}
                   <div className="flex sm:flex-col items-center justify-center w-full">
                     <div
                       className={`${
+                        // Só aplicar cor baseada na nota se o progresso for 100%
                         (avaliacao.progresso?.percentual || 0) >= 100
-                          ? "bg-verde-destaque"
-                          : "bg-gray-600"
+                          ? obterCorNota(avaliacao.mediaAvaliacao)
+                          : "bg-gray-500/50"
                       } text-cinza-escuro rounded-lg px-3 py-1.5 font-bold text-xl flex items-center justify-center shadow-sm w-24 sm:w-full`}
                     >
-                      {formatarMedia(avaliacao.mediaAvaliacao)}
+                      <span
+                        className={
+                          (avaliacao.progresso?.percentual || 0) >= 100
+                            ? "text-cinza-escuro"
+                            : "text-gray-200"
+                        }
+                      >
+                        {formatarMedia(avaliacao.mediaAvaliacao)}
+                      </span>
                     </div>
                   </div>
 
@@ -368,7 +391,13 @@ const FeedGlobal = () => {
                         </div>
                         <div className="w-20 sm:w-full h-4 bg-gray-800/70 rounded-full overflow-hidden shadow-inner relative">
                           <div
-                            className="h-full bg-verde-destaque transition-all"
+                            className={`h-full transition-all ${
+                              Math.floor(
+                                avaliacao.progresso?.percentual || 0
+                              ) >= 100
+                                ? "bg-verde-destaque"
+                                : "bg-gray-500/50"
+                            }`}
                             style={{
                               width: `${avaliacao.progresso.percentual || 0}%`,
                             }}
@@ -379,7 +408,7 @@ const FeedGlobal = () => {
                                 avaliacao.progresso?.percentual || 0
                               ) >= 100
                                 ? "text-black"
-                                : ""
+                                : "text-gray-200"
                             }`}
                             style={{
                               textShadow:

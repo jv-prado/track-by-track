@@ -1158,11 +1158,12 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
 
           <div className="mt-2 md:mt-3 flex items-center justify-center lg:justify-start">
             <span
-              className={`text-lg sm:text-xl md:text-2xl font-bold mr-2 ${
-                (progressoAvaliacao?.percentual || 0) >= 100
-                  ? "text-verde-destaque"
-                  : "text-gray-400"
-              }`}
+              className={`text-lg sm:text-xl md:text-2xl font-bold mr-2 ${(() => {
+                const media = calcularMediaAvaliacoes();
+                if (media < 4) return "text-red-500";
+                if (media < 7) return "text-yellow-500";
+                return "text-verde-destaque";
+              })()}`}
             >
               {(() => {
                 const media = calcularMediaAvaliacoes();
@@ -1188,7 +1189,11 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
             </div>
             <div className="w-full h-2.5 bg-cinza rounded-full overflow-hidden relative">
               <div
-                className="h-full bg-verde-destaque transition-all duration-300 ease-in-out"
+                className={`h-full transition-all duration-300 ease-in-out ${
+                  Math.floor(progressoAvaliacao?.percentual || 0) >= 100
+                    ? "bg-verde-destaque"
+                    : "bg-blue-500/50"
+                }`}
                 style={{
                   width: `${Math.floor(progressoAvaliacao?.percentual || 0)}%`,
                 }}

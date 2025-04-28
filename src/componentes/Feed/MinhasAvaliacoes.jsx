@@ -92,6 +92,7 @@ const MinhasAvaliacoes = () => {
   const [tentouRecuperar, setTentouRecuperar] = useState(false);
   const [carregandoTela, setCarregandoTela] = useState(true);
   const [estavaNaTelaDetalhes, setEstavaNaTelaDetalhes] = useState(false);
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
   const navigate = useNavigate();
 
   const {
@@ -113,6 +114,20 @@ const MinhasAvaliacoes = () => {
     setCarregamentoProgressivo,
     recarregarListaAlbuns,
   } = useAvaliacoes();
+
+  // Atualizar largura da janela quando ela for redimensionada
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowWidth(window.innerWidth);
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
+
+  const gridCols = windowWidth >= 1500 ? 5 : 3;
 
   // Recarregar a lista quando o usuário voltar da tela de detalhes de álbum
   useEffect(() => {
@@ -361,7 +376,13 @@ const MinhasAvaliacoes = () => {
           Nenhum álbum corresponde aos filtros selecionados.
         </p>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-5">
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: `repeat(${gridCols}, 1fr)`,
+            gap: "1rem",
+          }}
+        >
           {/* Mapear cada álbum para um componente de cartão */}
           {albunsExibidos.map((album) => (
             <CardAlbumAvaliado

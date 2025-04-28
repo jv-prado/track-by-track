@@ -17,9 +17,9 @@ const Estrelas = ({
 }) => {
   // Mapear tamanho para classes CSS responsivas
   const tamanhosEstrela = {
-    pequeno: "text-xs md:text-sm",
-    medio: "text-sm md:text-base",
-    grande: "text-base md:text-lg",
+    pequeno: "text-[0.75rem] md:text-sm",
+    medio: "text-base md:text-lg",
+    grande: "text-lg md:text-xl",
   };
 
   const tamanhoClasse = tamanhosEstrela[tamanho] || tamanhosEstrela.medio;
@@ -29,15 +29,32 @@ const Estrelas = ({
     const valorInteiro = Math.floor(avaliacao);
     const temMeiaEstrela = avaliacao % 1 !== 0;
 
+    // Estilo comum para todas as estrelas
+    const estiloEstrela = {
+      color: "#FFD700",
+      filter: "drop-shadow(0 0 2px rgba(255, 215, 0, 0.6))",
+      textShadow: "0 0 1px #FFD700",
+    };
+
+    // Estilo para estrelas vazias (menos brilhante)
+    const estiloEstrelaVazia = {
+      color: "#FFD700",
+      opacity: 0.7,
+    };
+
     if (posicao <= valorInteiro) {
       // Estrela cheia
-      return <FaStar className={`text-yellow-400 ${tamanhoClasse}`} />;
+      return <FaStar className={`${tamanhoClasse}`} style={estiloEstrela} />;
     } else if (posicao === valorInteiro + 1 && temMeiaEstrela) {
       // Meia estrela
-      return <FaStarHalfAlt className={`text-yellow-400 ${tamanhoClasse}`} />;
+      return (
+        <FaStarHalfAlt className={`${tamanhoClasse}`} style={estiloEstrela} />
+      );
     } else {
       // Estrela vazia
-      return <FaRegStar className={`text-yellow-400 ${tamanhoClasse}`} />;
+      return (
+        <FaRegStar className={`${tamanhoClasse}`} style={estiloEstrelaVazia} />
+      );
     }
   };
 
@@ -86,7 +103,13 @@ const Estrelas = ({
       {[1, 2, 3, 4, 5].map((estrela) => (
         <div
           key={estrela}
-          className={`${somenteLeitura ? "" : "cursor-pointer"} px-0.5`}
+          className={`${somenteLeitura ? "" : "cursor-pointer"} ${
+            tamanho === "pequeno"
+              ? "px-[0.15rem]"
+              : tamanho === "medio"
+              ? "px-[0.2rem]"
+              : "px-[0.25rem]"
+          }`}
           onClick={() => handleClick(estrela)}
         >
           {renderEstrela(estrela)}

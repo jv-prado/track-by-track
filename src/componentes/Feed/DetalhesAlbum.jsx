@@ -1132,16 +1132,16 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
               }
               target="_blank"
               rel="noopener noreferrer"
-              className="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg text-sm sm:text-base font-medium flex items-center gap-2 transition-colors shadow-md"
+              className="bg-green-600 hover:bg-green-700 text-white py-1 px-2 text-xs sm:text-sm font-medium flex items-center gap-1 transition-colors shadow-md rounded-lg"
             >
-              <FaSpotify className="text-base sm:text-lg" />
+              <FaSpotify className="text-sm sm:text-base" />
               Ouvir no Spotify
             </a>
           </div>
 
-          <div className="mt-2 md:mt-3 flex items-center justify-center lg:justify-start">
+          <div className="mt-3 md:mt-4 flex items-center justify-center lg:justify-start">
             <span
-              className={`text-lg sm:text-xl md:text-2xl font-bold mr-2 ${(() => {
+              className={`text-xl sm:text-2xl md:text-3xl font-bold mr-2 ${(() => {
                 // Verificar primeiro se o álbum está totalmente avaliado
                 if (progressoAvaliacao?.percentual < 100) {
                   return "text-gray-400"; // Cor cinza enquanto não estiver 100% avaliado
@@ -1160,7 +1160,7 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
                   : media.toFixed(1);
               })()}
             </span>
-            <span className="text-xs md:text-sm text-gray-400">/10</span>
+            <span className="text-sm md:text-base text-gray-400">/10</span>
           </div>
 
           {/* Barra de progresso de avaliação */}
@@ -1186,97 +1186,6 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
                   width: `${Math.floor(progressoAvaliacao?.percentual || 0)}%`,
                 }}
               ></div>
-            </div>
-          </div>
-
-          {/* Cards de preferências - Seção móvel */}
-          <div className="grid grid-cols-1 xs:grid-cols-2 gap-3 mt-3 lg:hidden">
-            {/* Seletores para música favorita e pior música */}
-            <div className="bg-gray-800 p-2 rounded-lg min-w-[160px]">
-              <h4 className="text-xs font-medium text-red-500 flex items-center gap-1 mb-1">
-                <IoMdHeart className="inline text-xs" /> Música Favorita:
-              </h4>
-              <select
-                className="w-full bg-gray-700 text-white py-1 px-2 rounded text-xs focus:outline-none focus:ring-1 focus:ring-red-500 text-ellipsis"
-                value={faixaFavorita || ""}
-                onChange={(e) =>
-                  marcarFaixaFavorita(
-                    e.target.value === "" ? null : e.target.value
-                  )
-                }
-              >
-                <option value="">Selecione a música...</option>
-                {faixas.items.map((faixa) => (
-                  <option key={`fav-${faixa.id}`} value={faixa.id}>
-                    {faixa.name.length > 30
-                      ? faixa.name.substring(0, 28) + "..."
-                      : faixa.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="bg-gray-800 p-2 rounded-lg min-w-[160px]">
-              <h4 className="text-xs font-medium text-yellow-500 flex items-center gap-1 mb-1">
-                <IoMdHeartDislike className="inline text-xs" /> Pior Música:
-              </h4>
-              <select
-                className="w-full bg-gray-700 text-white py-1 px-2 rounded text-xs focus:outline-none focus:ring-1 focus:ring-yellow-500 text-ellipsis"
-                value={piorFaixa || ""}
-                onChange={(e) =>
-                  marcarPiorFaixa(e.target.value === "" ? null : e.target.value)
-                }
-              >
-                <option value="">Selecione a música...</option>
-                {faixas.items.map((faixa) => (
-                  <option key={`worst-${faixa.id}`} value={faixa.id}>
-                    {faixa.name.length > 30
-                      ? faixa.name.substring(0, 28) + "..."
-                      : faixa.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          {/* Card de histórico para visualização móvel */}
-          <div className="bg-gray-800 p-2 rounded-lg mt-3 lg:hidden">
-            <h4 className="text-xs font-medium text-blue-400 flex items-center gap-1 mb-1">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-3 w-3 inline"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                />
-              </svg>
-              Histórico de Avaliação:
-            </h4>
-
-            <div className="flex flex-col xs:flex-row xs:justify-between gap-2">
-              <div className="text-xs text-gray-400">
-                <span className="font-medium">Primeira avaliação:</span>
-                <span className="ml-1 text-gray-300">
-                  {datasAvaliacao.temRegistro
-                    ? formatarData(datasAvaliacao.primeira)
-                    : "Sem registro"}
-                </span>
-              </div>
-
-              <div className="text-xs text-gray-400">
-                <span className="font-medium">Última modificação:</span>
-                <span className="ml-1 text-gray-300">
-                  {datasAvaliacao.temRegistro
-                    ? formatarData(datasAvaliacao.ultima)
-                    : "Sem registro"}
-                </span>
-              </div>
             </div>
           </div>
         </div>
@@ -1372,19 +1281,19 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
       </div>
 
       {/* Lista de faixas */}
-      <div className="bg-cinza-escuro rounded-xl p-2 md:p-4 overflow-hidden">
+      <div className="bg-cinza-escuro rounded-xl p-2 md:p-4 overflow-hidden mb-3">
         <h3 className="text-base md:text-lg font-bold mb-2 md:mb-3">Faixas</h3>
 
         <div className="w-full relative">
           {/* Mobile view - sem tempo */}
           <div className="xs:hidden">
             {/* Cabeçalho */}
-            <div className="grid grid-cols-[1.5rem_1fr_3.5rem] gap-x-1 mb-2">
+            <div className="grid grid-cols-[1.5rem_minmax(0,1fr)_6rem] gap-x-1 mb-2">
               <div className="font-bold text-gray-400 text-center text-xs">
                 #
               </div>
               <div className="font-bold text-gray-400 text-xs">Título</div>
-              <div className="font-bold text-gray-400 text-start text-xs">
+              <div className="font-bold text-gray-400 text-center text-xs">
                 Nota
               </div>
             </div>
@@ -1393,7 +1302,7 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
             {faixas.items.map((faixa, index) => (
               <div
                 key={faixa.id}
-                className="grid grid-cols-[1.5rem_1fr_3.5rem] gap-x-1 py-1 border-t border-gray-800"
+                className="grid grid-cols-[1.5rem_minmax(0,1fr)_6rem] gap-x-1 py-1.5 border-t border-gray-800"
               >
                 <div className="text-gray-400 text-center text-xs self-center">
                   {index + 1}
@@ -1401,11 +1310,11 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
                 <div className="truncate pr-1 text-xs sm:text-sm self-center font-medium">
                   {faixa.name}
                 </div>
-                <div className="flex justify-end items-center">
+                <div className="flex justify-center items-center">
                   <Estrelas
                     avaliacao={avaliacoes[faixa.id] || 0}
                     onChange={(estrelas) => avaliarFaixa(faixa.id, estrelas)}
-                    tamanho="pequeno"
+                    tamanho="medio"
                   />
                 </div>
               </div>
@@ -1415,7 +1324,7 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
           {/* Tablet/Desktop view - com tempo */}
           <div className="hidden xs:block">
             {/* Cabeçalho */}
-            <div className="grid grid-cols-[1.5rem_minmax(0,1fr)_3rem_4rem] gap-x-1 sm:gap-x-2 mb-2">
+            <div className="grid grid-cols-[1.5rem_minmax(0,1fr)_3rem_5.5rem] gap-x-1 sm:gap-x-2 mb-2">
               <div className="font-bold text-gray-400 text-center text-xs">
                 #
               </div>
@@ -1432,7 +1341,7 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
             {faixas.items.map((faixa, index) => (
               <div
                 key={faixa.id}
-                className="grid grid-cols-[1.5rem_minmax(0,1fr)_3rem_4rem] gap-x-1 sm:gap-x-2 py-1 border-t border-gray-800"
+                className="grid grid-cols-[1.5rem_minmax(0,1fr)_3rem_5.5rem] gap-x-1 sm:gap-x-2 py-1.5 border-t border-gray-800"
               >
                 <div className="text-gray-400 text-center text-xs self-center">
                   {index + 1}
@@ -1443,15 +1352,104 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
                 <div className="text-gray-400 text-center text-xs self-center">
                   {formatarDuracao(faixa.duration_ms)}
                 </div>
-                <div className="flex justify-end items-center">
+                <div className="flex justify-center items-center">
                   <Estrelas
                     avaliacao={avaliacoes[faixa.id] || 0}
                     onChange={(estrelas) => avaliarFaixa(faixa.id, estrelas)}
-                    tamanho="pequeno"
+                    tamanho="medio"
                   />
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Cards de preferências - Seção móvel */}
+      <div className="grid grid-cols-1 xs:grid-cols-2 gap-3 mt-3 lg:hidden">
+        {/* Seletores para música favorita e pior música */}
+        <div className="bg-gray-800 p-2 rounded-lg min-w-[160px]">
+          <h4 className="text-xs font-medium text-red-500 flex items-center gap-1 mb-1">
+            <IoMdHeart className="inline text-xs" /> Música Favorita:
+          </h4>
+          <select
+            className="w-full bg-gray-700 text-white py-1 px-2 rounded text-xs focus:outline-none focus:ring-1 focus:ring-red-500 text-ellipsis"
+            value={faixaFavorita || ""}
+            onChange={(e) =>
+              marcarFaixaFavorita(e.target.value === "" ? null : e.target.value)
+            }
+          >
+            <option value="">Selecione a música...</option>
+            {faixas.items.map((faixa) => (
+              <option key={`fav-${faixa.id}`} value={faixa.id}>
+                {faixa.name.length > 30
+                  ? faixa.name.substring(0, 28) + "..."
+                  : faixa.name}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="bg-gray-800 p-2 rounded-lg min-w-[160px]">
+          <h4 className="text-xs font-medium text-yellow-500 flex items-center gap-1 mb-1">
+            <IoMdHeartDislike className="inline text-xs" /> Pior Música:
+          </h4>
+          <select
+            className="w-full bg-gray-700 text-white py-1 px-2 rounded text-xs focus:outline-none focus:ring-1 focus:ring-yellow-500 text-ellipsis"
+            value={piorFaixa || ""}
+            onChange={(e) =>
+              marcarPiorFaixa(e.target.value === "" ? null : e.target.value)
+            }
+          >
+            <option value="">Selecione a música...</option>
+            {faixas.items.map((faixa) => (
+              <option key={`worst-${faixa.id}`} value={faixa.id}>
+                {faixa.name.length > 30
+                  ? faixa.name.substring(0, 28) + "..."
+                  : faixa.name}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      {/* Card de histórico para visualização móvel */}
+      <div className="bg-gray-800 p-2 rounded-lg mt-3 lg:hidden">
+        <h4 className="text-xs font-medium text-blue-400 flex items-center gap-1 mb-1">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-3 w-3 inline"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+            />
+          </svg>
+          Histórico de Avaliação:
+        </h4>
+
+        <div className="flex flex-col xs:flex-row xs:justify-between gap-2">
+          <div className="text-xs text-gray-400">
+            <span className="font-medium">Primeira avaliação:</span>
+            <span className="ml-1 text-gray-300">
+              {datasAvaliacao.temRegistro
+                ? formatarData(datasAvaliacao.primeira)
+                : "Sem registro"}
+            </span>
+          </div>
+
+          <div className="text-xs text-gray-400">
+            <span className="font-medium">Última modificação:</span>
+            <span className="ml-1 text-gray-300">
+              {datasAvaliacao.temRegistro
+                ? formatarData(datasAvaliacao.ultima)
+                : "Sem registro"}
+            </span>
           </div>
         </div>
       </div>

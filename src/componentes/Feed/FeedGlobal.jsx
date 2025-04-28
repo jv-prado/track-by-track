@@ -341,11 +341,17 @@ const FeedGlobal = () => {
                   </div>
                 </div>
 
-                {/* LADO DIREITO: Avaliação e progresso - Melhorando a aparência */}
+                {/* LADO DIREITO: Avaliação e progresso */}
                 <div className="w-full sm:w-28 flex-shrink-0 p-3 flex sm:flex-col items-center justify-between sm:justify-center border-t sm:border-t-0 sm:border-l border-gray-700/50 bg-gradient-to-br from-cinza-escuro to-cinza-escuro/95">
-                  {/* Avaliação como banner - remover o texto "Avaliação" */}
+                  {/* Avaliação como banner - com cor baseada no progresso */}
                   <div className="flex sm:flex-col items-center justify-center w-full">
-                    <div className="bg-verde-destaque text-cinza-escuro rounded-lg px-3 py-1.5 font-bold text-xl flex items-center justify-center shadow-sm w-24 sm:w-full">
+                    <div
+                      className={`${
+                        (avaliacao.progresso?.percentual || 0) >= 100
+                          ? "bg-verde-destaque"
+                          : "bg-gray-600"
+                      } text-cinza-escuro rounded-lg px-3 py-1.5 font-bold text-xl flex items-center justify-center shadow-sm w-24 sm:w-full`}
+                    >
                       {formatarMedia(avaliacao.mediaAvaliacao)}
                     </div>
                   </div>
@@ -360,13 +366,32 @@ const FeedGlobal = () => {
                             {avaliacao.progresso.total}
                           </span>
                         </div>
-                        <div className="w-20 sm:w-full h-2 bg-gray-800/70 rounded-full overflow-hidden shadow-inner">
+                        <div className="w-20 sm:w-full h-5 bg-gray-800/70 rounded-full overflow-hidden shadow-inner relative">
                           <div
                             className="h-full bg-verde-destaque transition-all"
                             style={{
                               width: `${avaliacao.progresso.percentual || 0}%`,
                             }}
                           ></div>
+                          <div
+                            className={`absolute inset-0 flex items-center justify-center text-xs font-bold ${
+                              Math.floor(
+                                avaliacao.progresso?.percentual || 0
+                              ) >= 100
+                                ? "text-black"
+                                : ""
+                            }`}
+                            style={{
+                              textShadow:
+                                Math.floor(
+                                  avaliacao.progresso?.percentual || 0
+                                ) >= 100
+                                  ? "none"
+                                  : "0px 0px 2px #000, 0px 0px 3px #000",
+                            }}
+                          >
+                            {Math.floor(avaliacao.progresso.percentual || 0)}%
+                          </div>
                         </div>
                       </div>
                     </div>

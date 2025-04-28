@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import "./App.css";
-import Sidebar from "./componentes/sidebar/";
+import Sidebar from "./componentes/Sidebar/";
 import BarraDePesquisa from "./componentes/BarraDePesquisa";
 import Feed from "./componentes/Feed/Feed";
 import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
@@ -98,6 +98,28 @@ function App() {
     return <Registro />;
   }
 
+  // Função para gerenciar a mudança de visão
+  const handleViewChange = (view) => {
+    console.log(
+      `handleViewChange chamada. View atual: ${activeView}, nova view: ${view}`
+    );
+
+    // Se a mesma visão for clicada novamente, limpar o termo de pesquisa
+    if (view === activeView) {
+      console.log(`Mesmo item clicado novamente. Limpando termo de pesquisa.`);
+      setTermoPesquisa("");
+    }
+
+    setActiveView(view);
+    setMenuAberto(false); // Fecha o menu ao selecionar uma opção
+
+    // Garantir que estamos na rota /feed
+    if (location.pathname !== "/feed") {
+      console.log(`Navegando para /feed. Rota atual: ${location.pathname}`);
+      navigate("/feed");
+    }
+  };
+
   // Layout principal da aplicação
   return (
     <div className="flex flex-col md:flex-row w-full md:w-[90vw] lg:w-[80vw] xl:w-[70vw] 2xl:w-[1440px] mx-auto m-2 mt-4 md:mt-12 gap-3 px-2 md:px-0 ">
@@ -129,20 +151,18 @@ function App() {
           menuAberto ? "block" : "hidden"
         } md:block md:sticky md:top-10 md:self-start`}
       >
-        <Sidebar
-          activeView={activeView}
-          setActiveView={(view) => {
-            setActiveView(view);
-            setMenuAberto(false); // Fecha o menu ao selecionar uma opção
-          }}
-        />
+        <Sidebar activeView={activeView} setActiveView={handleViewChange} />
       </div>
 
       <div className="flex flex-col w-full ">
         {/* Barra de pesquisa com posição sticky e z-index alto */}
         <div className="sticky top-10 z-100 flex items-center">
           <div className="flex-grow">
-            <BarraDePesquisa onSearch={handleSearch} activeView={activeView} />
+            <BarraDePesquisa
+              onSearch={handleSearch}
+              activeView={activeView}
+              termoPesquisa={termoPesquisa}
+            />
           </div>
 
           {/* Botão de logout para mobile */}

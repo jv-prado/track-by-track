@@ -14,6 +14,8 @@ const MostrarTopArtistas = ({ termoPesquisa }) => {
 
   // Buscar artistas quando o termo de pesquisa mudar
   useEffect(() => {
+    console.log(`MostrarTopArtistas recebeu termoPesquisa: "${termoPesquisa}"`);
+
     const buscarDadosArtista = async () => {
       if (termoPesquisa && termoPesquisa.trim() !== "") {
         try {
@@ -26,6 +28,9 @@ const MostrarTopArtistas = ({ termoPesquisa }) => {
         } finally {
           setCarregando(false);
         }
+      } else {
+        // Se o termo de pesquisa estiver vazio, limpar os resultados
+        setArtistas(null);
       }
     };
 

@@ -1,6 +1,7 @@
 import MostrarTopArtistas from "./MostrarTopArtistas";
 import MostrarTopAlbuns from "./MostrarTopAlbuns";
 import MinhasAvaliacoes from "./MinhasAvaliacoes";
+import { useEffect } from "react";
 
 /**
  * Componente Feed para exibir o conteúdo principal com base na visão ativa
@@ -10,6 +11,13 @@ import MinhasAvaliacoes from "./MinhasAvaliacoes";
  * @returns {JSX.Element} Componente de feed
  */
 export default function Feed({ activeView, termoPesquisa }) {
+  // Log para verificar as props atualizadas
+  useEffect(() => {
+    console.log(
+      `Feed recebeu: activeView=${activeView}, termoPesquisa="${termoPesquisa}"`
+    );
+  }, [activeView, termoPesquisa]);
+
   return (
     <div className="w-full bg-quase-preto rounded-xl overflow-hidden">
       {activeView === "albuns" && (

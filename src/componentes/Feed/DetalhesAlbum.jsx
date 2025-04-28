@@ -1157,7 +1157,13 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
           </div>
 
           <div className="mt-2 md:mt-3 flex items-center justify-center lg:justify-start">
-            <span className="text-lg sm:text-xl md:text-2xl font-bold mr-2 text-verde-destaque">
+            <span
+              className={`text-lg sm:text-xl md:text-2xl font-bold mr-2 ${
+                (progressoAvaliacao?.percentual || 0) >= 100
+                  ? "text-verde-destaque"
+                  : "text-gray-400"
+              }`}
+            >
               {(() => {
                 const media = calcularMediaAvaliacoes();
                 return Number.isInteger(media)
@@ -1180,7 +1186,7 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
                 {Math.floor(progressoAvaliacao?.percentual || 0)}%)
               </span>
             </div>
-            <div className="w-full h-2 bg-cinza rounded-full overflow-hidden">
+            <div className="w-full h-2.5 bg-cinza rounded-full overflow-hidden relative">
               <div
                 className="h-full bg-verde-destaque transition-all duration-300 ease-in-out"
                 style={{

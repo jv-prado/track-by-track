@@ -366,7 +366,7 @@ const FeedGlobal = () => {
                             {avaliacao.progresso.total}
                           </span>
                         </div>
-                        <div className="w-20 sm:w-full h-5 bg-gray-800/70 rounded-full overflow-hidden shadow-inner relative">
+                        <div className="w-20 sm:w-full h-4 bg-gray-800/70 rounded-full overflow-hidden shadow-inner relative">
                           <div
                             className="h-full bg-verde-destaque transition-all"
                             style={{

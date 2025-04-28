@@ -1149,7 +1149,7 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
 
             <div className="flex flex-col xs:flex-row xs:justify-between gap-2">
               <div className="text-xs text-gray-400">
-                <span className="font-medium">Primeira:</span>
+                <span className="font-medium">Primeira avaliação:</span>
                 <span className="ml-1 text-gray-300">
                   {datasAvaliacao.temRegistro
                     ? formatarData(datasAvaliacao.primeira)
@@ -1158,7 +1158,7 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
               </div>
 
               <div className="text-xs text-gray-400">
-                <span className="font-medium">Última:</span>
+                <span className="font-medium">Última modificação:</span>
                 <span className="ml-1 text-gray-300">
                   {datasAvaliacao.temRegistro
                     ? formatarData(datasAvaliacao.ultima)
@@ -1239,7 +1239,7 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
             </h4>
 
             <div className="text-xs text-gray-400 mb-1">
-              <span className="font-medium">Primeira:</span>
+              <span className="font-medium">Primeira avaliação:</span>
               <div className="text-gray-300">
                 {datasAvaliacao.temRegistro
                   ? formatarData(datasAvaliacao.primeira)
@@ -1248,7 +1248,7 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
             </div>
 
             <div className="text-xs text-gray-400">
-              <span className="font-medium">Última:</span>
+              <span className="font-medium">Última modificação:</span>
               <div className="text-gray-300">
                 {datasAvaliacao.temRegistro
                   ? formatarData(datasAvaliacao.ultima)

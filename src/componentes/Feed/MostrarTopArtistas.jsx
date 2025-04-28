@@ -61,8 +61,7 @@ const MostrarTopArtistas = ({ termoPesquisa }) => {
   // Determinar o número de colunas com base na largura da tela
   const getGridColsClass = () => {
     if (windowWidth < 550) return "grid-cols-2"; // 2 artistas por linha em telas menores que 550px
-    if (windowWidth < 768) return "grid-cols-2"; // sm
-    if (windowWidth < 1024) return "grid-cols-3"; // md
+    if (windowWidth < 1100) return "grid-cols-2"; // 2 artistas por linha em telas menores que 1100px
     if (windowWidth < 1280) return "grid-cols-3"; // lg
     if (windowWidth < 1536) return "grid-cols-4"; // xl
     return "grid-cols-5"; // 2xl

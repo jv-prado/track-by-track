@@ -133,7 +133,7 @@ function App() {
 
   // Layout principal da aplicação
   return (
-    <div className="flex flex-col md:flex-row w-full md:w-[90vw] lg:w-[80vw] xl:w-[70vw] 2xl:w-[1440px] mx-auto m-2 mt-4 md:mt-12 gap-3 px-2 md:px-0 ">
+    <div className="flex flex-col md:flex-row w-full md:w-[90vw] lg:w-[85vw] xl:w-[90vw] 2xl:w-[1440px] mx-auto m-2 mt-4 md:mt-12 gap-3 px-2 md:px-0 ">
       {/* Menu hamburger para mobile */}
       <button
         className="md:hidden flex items-center justify-center bg-cinza-escuro p-3 rounded-xl mb-2 text-white cursor-pointer"

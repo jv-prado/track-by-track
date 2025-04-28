@@ -263,9 +263,9 @@ const FeedGlobal = () => {
               onClick={(e) => navegarParaAlbum(avaliacao.id, e)}
               title="Clique para ver detalhes do álbum"
             >
-              <div className="flex flex-col sm:flex-row h-full">
+              <div className="flex flex-col lg:flex-row h-full">
                 {/* LADO ESQUERDO: Imagem do álbum, nome, artista, usuário e botão Spotify */}
-                <div className="flex-grow p-3 flex flex-col">
+                <div className="flex-grow p-3 flex flex-col min-w-0">
                   {/* Informações do usuário em primeiro lugar */}
                   <div className="flex items-center mb-3 text-xs md:text-sm text-gray-300 min-w-0">
                     <div className="w-6 h-6 md:w-7 md:h-7 rounded-full overflow-hidden bg-gray-800 flex-shrink-0 mr-2 shadow-sm">
@@ -302,11 +302,11 @@ const FeedGlobal = () => {
                         </div>
                       )}
                     </div>
-                    <div className="flex flex-col">
-                      <span className="font-medium truncate max-w-[200px]">
+                    <div className="flex flex-col min-w-0">
+                      <span className="font-medium truncate max-w-[150px] md:max-w-[200px]">
                         {avaliacao.usuario.nome}
                       </span>
-                      <span className="text-xs opacity-70">
+                      <span className="text-xs opacity-70 truncate max-w-[150px] md:max-w-[200px]">
                         {formatarDataSegura(
                           avaliacao.data || avaliacao.dataAvaliacao
                         )}
@@ -315,7 +315,7 @@ const FeedGlobal = () => {
                   </div>
 
                   {/* Parte média: imagem, nome e artista */}
-                  <div className="flex gap-3">
+                  <div className="flex gap-3 min-w-0">
                     {/* Imagem do álbum */}
                     <div className="flex-shrink-0 w-16 h-16 md:w-20 md:h-20 bg-cinza-escuro rounded-lg overflow-hidden">
                       {usandoDadosDemo ? (
@@ -338,7 +338,7 @@ const FeedGlobal = () => {
                     </div>
 
                     {/* Nome e artista */}
-                    <div className="flex-grow min-w-0 max-w-full">
+                    <div className="flex-grow min-w-0">
                       <h3 className="font-bold text-sm md:text-base line-clamp-1 text-white truncate pr-1">
                         {avaliacao.nome}
                       </h3>
@@ -381,9 +381,9 @@ const FeedGlobal = () => {
                 </div>
 
                 {/* LADO DIREITO: Avaliação e progresso */}
-                <div className="w-full sm:w-28 flex-shrink-0 p-3 flex sm:flex-col items-center justify-between sm:justify-center border-t sm:border-t-0 sm:border-l border-gray-700/50 bg-gradient-to-br from-cinza-escuro to-cinza-escuro/95">
+                <div className="w-full lg:w-32 xl:w-36 flex-shrink-0 p-3 flex lg:flex-col items-center justify-between lg:justify-center border-t lg:border-t-0 lg:border-l border-gray-700/50 bg-gradient-to-br from-cinza-escuro to-cinza-escuro/95">
                   {/* Avaliação como banner - com cor baseada no progresso e na nota */}
-                  <div className="flex sm:flex-col items-center justify-center w-full">
+                  <div className="flex lg:flex-col items-center justify-center w-full">
                     <div
                       className={`${
                         // Só aplicar cor baseada na nota se o progresso for 100%
@@ -392,7 +392,7 @@ const FeedGlobal = () => {
                               avaliacao.media || avaliacao.mediaAvaliacao
                             )
                           : "bg-gray-500/50"
-                      } text-cinza-escuro rounded-lg px-3 py-1.5 font-bold text-xl flex items-center justify-center shadow-sm w-24 sm:w-full`}
+                      } text-cinza-escuro rounded-lg px-3 py-1.5 font-bold text-xl flex items-center justify-center shadow-sm w-20 md:w-24 lg:w-full`}
                     >
                       <span
                         className={
@@ -410,7 +410,7 @@ const FeedGlobal = () => {
 
                   {/* Progresso da avaliação */}
                   {avaliacao.progresso && (
-                    <div className="flex sm:flex-col items-center sm:mt-2 w-full">
+                    <div className="flex lg:flex-col items-center lg:mt-2 w-full">
                       <div className="flex flex-col items-center w-full">
                         <div className="text-xs text-gray-300 mb-1 text-center font-medium truncate w-full">
                           <span className="whitespace-nowrap">
@@ -418,7 +418,7 @@ const FeedGlobal = () => {
                             {avaliacao.progresso.total}
                           </span>
                         </div>
-                        <div className="w-20 sm:w-full h-4 bg-gray-800/70 rounded-full overflow-hidden shadow-inner relative">
+                        <div className="w-16 md:w-20 lg:w-full h-4 bg-gray-800/70 rounded-full overflow-hidden shadow-inner relative">
                           <div
                             className={`h-full transition-all ${
                               Math.floor(

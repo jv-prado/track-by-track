@@ -22,11 +22,11 @@ const FiltroAvaliacoes = ({
 }) => {
   return (
     <div className="bg-cinza-escuro rounded-xl p-3 md:p-4 mb-6">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+      <div className="flex flex-col lg:flex-row items-start lg:items-center gap-2">
         {/* Campo de pesquisa */}
-        <div className="flex flex-col w-full sm:w-auto">
-          <label className="text-gray-400 mb-2 text-sm">Pesquisar:</label>
-          <div className="relative w-full sm:w-64">
+        <div className="flex flex-col w-full lg:w-auto">
+          <label className="text-gray-400 mb-1 text-sm">Pesquisar:</label>
+          <div className="relative w-full lg:w-48 xl:w-64">
             <input
               type="text"
               placeholder="Nome do álbum ou artista"
@@ -38,9 +38,25 @@ const FiltroAvaliacoes = ({
           </div>
         </div>
 
+        {/* Ordenação por nota */}
+        <div className="flex flex-col w-full lg:w-auto mt-2 lg:mt-0 lg:ml-3">
+          <label className="text-gray-400 mb-1 text-sm">
+            Ordenar por nota:
+          </label>
+          <button
+            onClick={alternarOrdenacao}
+            className="bg-cinza hover:bg-verde-destaque hover:text-cinza-escuro transition-colors px-4 py-2 rounded-md flex items-center gap-2 text-sm cursor-pointer"
+          >
+            <span>Nota</span>
+            {ordenacao === "padrao" && <FaSort />}
+            {ordenacao === "crescente" && <FaSortUp />}
+            {ordenacao === "decrescente" && <FaSortDown />}
+          </button>
+        </div>
+
         {/* Filtro por nota */}
-        <div className="flex flex-col w-full sm:w-auto">
-          <label className="text-gray-400 mb-2 text-sm">
+        <div className="flex flex-col w-full lg:w-auto mt-2 lg:mt-0 lg:ml-3">
+          <label className="text-gray-400 mb-1 text-sm">
             Filtrar por nota:
           </label>
           <div className="flex items-center gap-2">
@@ -74,22 +90,6 @@ const FiltroAvaliacoes = ({
               className="bg-cinza text-white rounded-md px-2 py-1 w-16 text-center text-sm cursor-text"
             />
           </div>
-        </div>
-
-        {/* Ordenação por nota */}
-        <div className="flex flex-col w-full sm:w-auto">
-          <label className="text-gray-400 mb-2 text-sm">
-            Ordenar por nota:
-          </label>
-          <button
-            onClick={alternarOrdenacao}
-            className="bg-cinza hover:bg-verde-destaque hover:text-cinza-escuro transition-colors px-4 py-2 rounded-md flex items-center gap-2 text-sm cursor-pointer"
-          >
-            <span>Nota</span>
-            {ordenacao === "padrao" && <FaSort />}
-            {ordenacao === "crescente" && <FaSortUp />}
-            {ordenacao === "decrescente" && <FaSortDown />}
-          </button>
         </div>
       </div>
     </div>

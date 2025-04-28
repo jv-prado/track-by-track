@@ -5,8 +5,6 @@ import { saveAuth, saveUserData, isAuthenticated } from "./auth";
 // Função para obter o token de acesso
 export const getSpotifyToken = async () => {
   try {
-    console.log("[API] Solicitando token de acesso do Spotify");
-
     // Codifique as credenciais em Base64
     const credentials = btoa(`${CLIENT_ID}:${CLIENT_SECRET}`);
 
@@ -22,26 +20,15 @@ export const getSpotifyToken = async () => {
 
     if (!response.ok) {
       const errorData = await response.text();
-      console.error(
-        "[API] Erro na resposta do Spotify:",
-        response.status,
-        errorData
-      );
       return null;
     }
 
     // Extraia os dados da resposta
     const data = await response.json();
-    console.log(
-      "[API] Token obtido com sucesso, expira em:",
-      data.expires_in,
-      "segundos"
-    );
 
     // Retorne o token de acesso
     return data.access_token;
   } catch (error) {
-    console.error("[API] Erro ao obter token:", error);
     return null;
   }
 };
@@ -54,22 +41,16 @@ export const getSpotifyToken = async () => {
  */
 export const loginWithClientCredentials = async () => {
   try {
-    console.log("[API] Iniciando login com Client Credentials Flow...");
-
     // Verificar se já está autenticado
     if (isAuthenticated()) {
-      console.log("[API] Usuário já está autenticado, não é necessário login");
       return true;
     }
 
     // Obter token usando Client Credentials
     const token = await getSpotifyToken();
     if (!token) {
-      console.error("[API] Não foi possível obter token de acesso");
       return false;
     }
-
-    console.log("[API] Token obtido com sucesso via Client Credentials");
 
     // Salvar o token com validade de 1 hora
     saveAuth(token, 3600);
@@ -84,14 +65,9 @@ export const loginWithClientCredentials = async () => {
 
     // Verificar se a autenticação foi bem-sucedida
     const authenticated = isAuthenticated();
-    console.log(
-      "[API] Autenticação realizada, estado atual:",
-      authenticated ? "Sucesso" : "Falha"
-    );
 
     return authenticated;
   } catch (error) {
-    console.error("[API] Erro ao fazer login com Client Credentials:", error);
     return false;
   }
 };

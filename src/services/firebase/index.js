@@ -16,6 +16,8 @@ import {
   updateDoc,
   arrayUnion,
   arrayRemove,
+  collection,
+  getDocs,
 } from "firebase/firestore";
 
 // Configuração do Firebase - substitua por suas credenciais
@@ -227,6 +229,78 @@ export const obterAlbunsAvaliados = async () => {
   } catch (error) {
     console.error("Erro ao obter álbuns avaliados:", error);
     throw error;
+  }
+};
+
+/**
+ * Obtém as médias de avaliações mais recentes de todos os usuários
+ * @param {number} limite - Número máximo de avaliações a retornar
+ * @returns {Promise<Array>} Array com as avaliações mais recentes
+ */
+export const obterAvaliacoesGlobais = async (limite = 20) => {
+  try {
+    // Referência para a coleção de usuários
+    const usuariosRef = collection(db, "usuarios");
+
+    // Buscar todos os documentos de usuários
+    const snapshot = await getDocs(usuariosRef);
+
+    // Array para armazenar todas as avaliações
+    let todasAvaliacoes = [];
+
+    // Processar cada documento de usuário
+    snapshot.forEach((doc) => {
+      const dadosUsuario = doc.data();
+      const albuns = dadosUsuario.albuns_avaliados || [];
+
+      // Para cada álbum avaliado pelo usuário
+      albuns.forEach((album) => {
+        // Calcular a média das avaliações deste álbum
+        let somaAvaliacoes = 0;
+        let qtdFaixasAvaliadas = 0;
+
+        Object.values(album.avaliacoes).forEach((avaliacao) => {
+          if (avaliacao > 0) {
+            // Considerar apenas faixas que foram avaliadas
+            somaAvaliacoes += avaliacao;
+            qtdFaixasAvaliadas++;
+          }
+        });
+
+        // Calcular média na escala 0-5
+        const mediaEscala5 =
+          qtdFaixasAvaliadas > 0 ? somaAvaliacoes / qtdFaixasAvaliadas : 0;
+
+        // Converter para escala 0-10 (multiplicando por 2)
+        const mediaAvaliacao = mediaEscala5 * 2;
+
+        // Adicionar esta avaliação ao array de todas as avaliações
+        if (mediaEscala5 > 0) {
+          todasAvaliacoes.push({
+            id: album.id,
+            nome: album.nome,
+            artista: album.artista,
+            imagem: album.imagem,
+            mediaAvaliacao,
+            dataAvaliacao: album.data_avaliacao?.toDate() || new Date(),
+            usuario: {
+              id: doc.id,
+              nome: dadosUsuario.nome || "Usuário anônimo",
+              foto: dadosUsuario.foto_perfil || null,
+            },
+          });
+        }
+      });
+    });
+
+    // Ordenar por data de avaliação (mais recentes primeiro)
+    todasAvaliacoes.sort((a, b) => b.dataAvaliacao - a.dataAvaliacao);
+
+    // Limitar ao número especificado
+    return todasAvaliacoes.slice(0, limite);
+  } catch (error) {
+    console.error("Erro ao obter avaliações globais:", error);
+    return [];
   }
 };
 

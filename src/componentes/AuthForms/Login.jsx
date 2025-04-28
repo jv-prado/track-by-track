@@ -19,6 +19,11 @@ export default function Login() {
 
     try {
       await fazerLogin(email, senha);
+      
+      // Definir "feed" como a view ativa no localStorage para que o App a utilize
+      localStorage.setItem("activeView", "feed");
+      
+      // Navegar para a página de feed
       navigate("/feed");
     } catch (error) {
       console.error("Erro no login:", error);
@@ -45,6 +50,9 @@ export default function Login() {
       localStorage.setItem("demo_usuario", JSON.stringify(usuarioDemo));
       localStorage.setItem("demo_token", "demo_" + Date.now());
       localStorage.setItem("demo_token_expiry", dataExpiracao.toString());
+      
+      // Definir "feed" como a view ativa
+      localStorage.setItem("activeView", "feed");
 
       // Inicializar estruturas de dados para avaliações se não existirem
       if (!localStorage.getItem("avaliacoesFaixas")) {

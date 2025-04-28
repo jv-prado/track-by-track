@@ -1,12 +1,13 @@
 import MostrarTopArtistas from "./MostrarTopArtistas";
 import MostrarTopAlbuns from "./MostrarTopAlbuns";
 import MinhasAvaliacoes from "./MinhasAvaliacoes";
+import FeedGlobal from "./FeedGlobal";
 import { useEffect } from "react";
 
 /**
  * Componente Feed para exibir o conteúdo principal com base na visão ativa
  * @param {Object} props - Propriedades do componente
- * @param {string} props.activeView - Visão ativa ("albuns", "artistas" ou "classificacoes")
+ * @param {string} props.activeView - Visão ativa ("albuns", "artistas", "classificacoes" ou "feed")
  * @param {string} props.termoPesquisa - Termo de pesquisa inserido pelo usuário
  * @returns {JSX.Element} Componente de feed
  */
@@ -16,6 +17,11 @@ export default function Feed({ activeView, termoPesquisa }) {
     console.log(
       `Feed recebeu: activeView=${activeView}, termoPesquisa="${termoPesquisa}"`
     );
+
+    // Verifica especificamente se deve mostrar o FeedGlobal
+    if (activeView === "feed") {
+      console.log("Renderizando o componente FeedGlobal");
+    }
   }, [activeView, termoPesquisa]);
 
   return (
@@ -27,6 +33,12 @@ export default function Feed({ activeView, termoPesquisa }) {
         <MostrarTopArtistas termoPesquisa={termoPesquisa} />
       )}
       {activeView === "classificacoes" && <MinhasAvaliacoes />}
+      {activeView === "feed" && (
+        <>
+          {console.log("Renderizando FeedGlobal no JSX")}
+          <FeedGlobal />
+        </>
+      )}
       {!activeView && (
         <div className="flex justify-center items-center h-64 text-gray-400">
           <p>Selecione uma opção no menu lateral</p>

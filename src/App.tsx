@@ -25,6 +25,15 @@ function App() {
   const location = useLocation();
   const { usuario: usuarioFirebase } = useAuth();
 
+  // Carregar a view ativa do localStorage se disponível
+  useEffect(() => {
+    const savedView = localStorage.getItem("activeView");
+    if (savedView) {
+      setActiveView(savedView);
+      console.log(`Carregou activeView do localStorage: ${savedView}`);
+    }
+  }, []);
+
   const handleSearch = (termo) => {
     setTermoPesquisa(termo);
   };
@@ -80,10 +89,17 @@ function App() {
       // Configurar sincronização de avaliações
       const limparSincronizacao = configurarSincronizacao();
 
+      // Se o usuário acabou de fazer login e está na página de feed, mas não tem activeView
+      if (location.pathname === "/feed" && !activeView) {
+        setActiveView("feed");
+        localStorage.setItem("activeView", "feed");
+        console.log("Definindo feed como view padrão após login");
+      }
+
       // Limpar sincronização ao desmontar
       return limparSincronizacao;
     }
-  }, [usuarioFirebase]);
+  }, [usuarioFirebase, location.pathname, activeView]);
 
   // Renderizar splash, login ou callback
   if (location.pathname === "/splash" || location.pathname === "/") {
@@ -110,14 +126,20 @@ function App() {
       setTermoPesquisa("");
     }
 
+    // Salvar a view ativa no localStorage
+    localStorage.setItem("activeView", view);
+    
     setActiveView(view);
     setMenuAberto(false); // Fecha o menu ao selecionar uma opção
 
-    // Garantir que estamos na rota /feed
+    // Garantir que estamos na rota /feed (adicionando um console.log para debug)
     if (location.pathname !== "/feed") {
       console.log(`Navegando para /feed. Rota atual: ${location.pathname}`);
       navigate("/feed");
     }
+
+    // Log adicional para verificar state depois de atualizar
+    console.log(`Estado atualizado: activeView="${view}"`);
   };
 
   // Layout principal da aplicação

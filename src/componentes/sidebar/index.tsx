@@ -1,9 +1,10 @@
 import Logo from "./assets/Logo.svg";
-import { FaUser } from "react-icons/fa";
+import { FaUser, FaGlobe } from "react-icons/fa";
 import { IoStarSharp } from "react-icons/io5";
 import { IoMdExit } from "react-icons/io";
 import "../../App.css";
 import { MdAlbum } from "react-icons/md";
+import { RiGlobalLine } from "react-icons/ri";
 import SidebarItem from "./SideBarItem";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
@@ -83,7 +84,15 @@ export default function Sidebar({ activeView, setActiveView }) {
             </Link>
           ) : (
             // Itens de navegação quando está autenticado
+
             <>
+              <SidebarItem
+                icon={FaGlobe}
+                text="Feed"
+                iconSize="text-2xl md:text-3xl"
+                active={activeView === "feed"}
+                onClick={() => setActiveView("feed")}
+              />
               <SidebarItem
                 icon={MdAlbum}
                 text="Álbuns"
@@ -105,6 +114,7 @@ export default function Sidebar({ activeView, setActiveView }) {
                 active={activeView === "classificacoes"}
                 onClick={() => setActiveView("classificacoes")}
               />
+
               <SidebarItem
                 icon={IoMdExit}
                 text="Sair"

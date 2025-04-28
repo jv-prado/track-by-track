@@ -15,22 +15,10 @@ export default function PerfilUsuario() {
   const fileInputRef = useRef(null);
   const { usuario: usuarioFirebase, usuarioDemo, usuarioAtivo } = useAuth();
   const navigate = useNavigate();
-  const isDevelopment = window.location.hostname === "localhost";
 
   useEffect(() => {
     // Verificar se o usuário está logado no Firebase ou em modo Demo
     setCarregando(false);
-
-    // Verificar se há imagem no localStorage (para desenvolvimento)
-    if (isDevelopment && usuarioFirebase) {
-      const savedImage = localStorage.getItem(
-        `profile_image_${usuarioFirebase.uid}`
-      );
-      if (savedImage) {
-        setFotoPerfil(savedImage);
-        return;
-      }
-    }
 
     if (usuarioFirebase?.photoURL) {
       setFotoPerfil(usuarioFirebase.photoURL);
@@ -84,24 +72,9 @@ export default function PerfilUsuario() {
       setCarregando(true);
       setErro("");
 
-      let imageUrl;
-
-      // Em ambiente de desenvolvimento, usar URL.createObjectURL para evitar problemas de CORS
-      if (isDevelopment) {
-        imageUrl = URL.createObjectURL(file);
-
-        // Salvar no localStorage para persistir entre recarregamentos
-        if (usuarioFirebase) {
-          localStorage.setItem(
-            `profile_image_${usuarioFirebase.uid}`,
-            imageUrl
-          );
-        }
-      } else {
-        // Em produção, usar o Firebase Storage
-        const filePath = `profile_pictures/${usuarioFirebase.uid}/${file.name}`;
-        imageUrl = await uploadFile(file, filePath);
-      }
+      // Usar o Firebase Storage para todos os ambientes
+      const filePath = `profile_pictures/${usuarioFirebase.uid}/${file.name}`;
+      const imageUrl = await uploadFile(file, filePath);
 
       // Atualizar a foto do perfil no Firebase Auth
       await updateUserProfile(usuarioFirebase, {

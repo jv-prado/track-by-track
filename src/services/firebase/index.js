@@ -91,7 +91,27 @@ export const fazerLogin = async (email, senha) => {
     const user = userCredential.user;
 
     // Buscar dados adicionais do Firestore
-    const userDoc = await getDoc(doc(db, "usuarios", user.uid));
+    const userRef = doc(db, "usuarios", user.uid);
+    const userDoc = await getDoc(userRef);
+
+    // Sincronizar a foto de perfil do Auth com o Firestore, se necessário
+    if (user.photoURL) {
+      if (!userDoc.exists()) {
+        // Criar documento do usuário se não existir
+        await setDoc(userRef, {
+          nome: user.displayName || "",
+          email: user.email,
+          foto_perfil: user.photoURL,
+          albuns_avaliados: [],
+          data_cadastro: new Date(),
+        });
+      } else if (userDoc.data().foto_perfil !== user.photoURL) {
+        // Atualizar apenas a foto de perfil se for diferente
+        await updateDoc(userRef, {
+          foto_perfil: user.photoURL,
+        });
+      }
+    }
 
     return {
       uid: user.uid,
@@ -278,6 +298,7 @@ export const obterAvaliacoesGlobais = async (limite = 20) => {
 
         // Adicionar esta avaliação ao array de todas as avaliações
         if (mediaEscala5 > 0) {
+          // Usar a foto de perfil do Firestore (que agora é sincronizada)
           todasAvaliacoes.push({
             id: album.id,
             nome: album.nome,
@@ -332,7 +353,16 @@ export const uploadFile = async (file, path) => {
  */
 export const updateUserProfile = async (user, updates) => {
   try {
+    // Atualizar o perfil do usuário no Firebase Auth
     await updateProfile(user, updates);
+
+    // Se a atualização incluir photoURL, também atualize no Firestore
+    if (updates.photoURL) {
+      const userRef = doc(db, "usuarios", user.uid);
+      await updateDoc(userRef, {
+        foto_perfil: updates.photoURL,
+      });
+    }
   } catch (error) {
     console.error("Erro ao atualizar perfil:", error);
     throw error;

@@ -6,7 +6,7 @@ import { useTranslation } from "react-i18next";
 const Splash = () => {
   const navigate = useNavigate();
   const [animationComplete, setAnimationComplete] = useState(false);
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   const handleContinue = () => {
     setAnimationComplete(true);
@@ -14,6 +14,14 @@ const Splash = () => {
       navigate("/login");
     }, 300);
   };
+
+  const changeLanguage = (lng) => {
+    i18n.changeLanguage(lng);
+    localStorage.setItem("i18nextLng", lng);
+  };
+
+  const currentLanguage = i18n.language || "pt-BR";
+  const isPortuguese = currentLanguage.startsWith("pt");
 
   return (
     <div
@@ -35,7 +43,7 @@ const Splash = () => {
         </h1>
 
         <p
-          className="text-gray-300 mb-12 animate-fadeIn"
+          className="text-gray-300 mb-8 animate-fadeIn"
           style={{ animationDelay: "0.3s" }}
         >
           {t(
@@ -44,12 +52,52 @@ const Splash = () => {
           )}
         </p>
 
-        <div className="animate-fadeIn" style={{ animationDelay: "0.6s" }}>
+        <div className="animate-fadeIn mb-6" style={{ animationDelay: "0.6s" }}>
           <button
             onClick={handleContinue}
             className="bg-verde-destaque text-gray-900 font-bold py-3 px-8 rounded-full hover:bg-opacity-90 transition-all transform hover:scale-105 cursor-pointer"
           >
             {t("splash.enterButton", "Entrar ou Cadastrar")}
+          </button>
+        </div>
+
+        {/* Seletor de idioma simplificado com bandeiras - Apenas para dispositivos móveis */}
+        <div
+          className="md:hidden flex justify-center items-center gap-6 mt-6 animate-fadeIn"
+          style={{ animationDelay: "0.9s" }}
+        >
+          {/* Bandeira do Brasil */}
+          <button
+            onClick={() => changeLanguage("pt-BR")}
+            className={`w-12 h-8 rounded-md overflow-hidden border-2 transition-all ${
+              isPortuguese
+                ? "border-verde-destaque scale-110"
+                : "border-gray-600 opacity-80 hover:opacity-100"
+            }`}
+            title="Português"
+          >
+            <img
+              src="/images/flags/brazil.svg"
+              alt="Bandeira do Brasil"
+              className="w-full h-full object-cover"
+            />
+          </button>
+
+          {/* Bandeira dos EUA */}
+          <button
+            onClick={() => changeLanguage("en-US")}
+            className={`w-12 h-8 rounded-md overflow-hidden border-2 transition-all ${
+              !isPortuguese
+                ? "border-verde-destaque scale-110"
+                : "border-gray-600 opacity-80 hover:opacity-100"
+            }`}
+            title="English"
+          >
+            <img
+              src="/images/flags/usa.svg"
+              alt="Bandeira dos EUA"
+              className="w-full h-full object-cover"
+            />
           </button>
         </div>
       </div>

@@ -1,6 +1,25 @@
 @import url("https://fonts.googleapis.com/css2?family=Prompt:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap");
 @import "tailwindcss";
 
+:root {
+  /* Variáveis para espaçamento seguro */
+  --safe-area-inset-top: env(safe-area-inset-top, 0px);
+  --safe-area-inset-right: env(safe-area-inset-right, 0px);
+  --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-area-inset-left: env(safe-area-inset-left, 0px);
+
+  /* Altura da barra de navegação móvel (aproximadamente) */
+  --mobile-nav-height: 60px;
+
+  /* Altura da viewport ajustada para barras de navegação */
+  --vh: 1vh; /* Será calculado via JavaScript */
+
+  /* Altura total do conteúdo, compensando barras de navegação */
+  --app-height: calc(
+    100 * var(--vh) - var(--mobile-nav-height) - var(--safe-area-inset-bottom)
+  );
+}
+
 @theme {
   --font-roboto: "Roboto", sans-serif;
   --font-prompt: "Prompt", sans-serif;
@@ -31,6 +50,15 @@ body {
   -webkit-overflow-scrolling: touch;
   overflow-x: hidden;
   overscroll-behavior: none;
+  height: 100%;
+  /* Usar padding-bottom para compensar a barra de navegação */
+  padding-bottom: var(--safe-area-inset-bottom);
+}
+
+/* Aplicar altura dinâmica ao elemento raiz da aplicação */
+#root {
+  min-height: var(--app-height);
+  padding-bottom: var(--safe-area-inset-bottom);
 }
 
 body {
@@ -51,6 +79,16 @@ input,
 select,
 textarea {
   touch-action: manipulation;
+}
+
+/* Estilos para elementos fixos no fundo da tela (como barras de navegação) */
+.fixed-bottom {
+  padding-bottom: var(--safe-area-inset-bottom);
+}
+
+/* Ajuste para conteúdo principal para evitar que seja coberto por barras de navegação */
+.content-area {
+  min-height: var(--app-height);
 }
 
 @keyframes fadeIn {

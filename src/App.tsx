@@ -133,7 +133,7 @@ function App() {
 
   // Layout principal da aplicação
   return (
-    <div className="flex flex-col md:flex-row w-full md:w-[90vw] lg:w-[85vw] xl:w-[90vw] 2xl:w-[1440px] mx-auto m-2 mt-4 md:mt-12 gap-3 px-2 md:px-0 ">
+    <div className="flex flex-col md:flex-row w-full md:w-[90vw] lg:w-[85vw] xl:w-[90vw] 2xl:w-[1440px] mx-auto m-2 mt-4 md:mt-12 gap-3 px-2 md:px-0 content-area">
       {/* Menu hamburger para mobile */}
       <button
         className="md:hidden flex items-center justify-center bg-cinza-escuro p-3 rounded-xl mb-2 text-white cursor-pointer"
@@ -165,7 +165,7 @@ function App() {
         <Sidebar activeView={activeView} setActiveView={handleViewChange} />
       </div>
 
-      <div className="flex flex-col w-full ">
+      <div className="flex flex-col w-full">
         {/* Barra de pesquisa com posição sticky e z-index alto */}
         <div className="sticky top-10 z-100 flex items-center">
           <div className="flex-grow">
@@ -208,10 +208,12 @@ function App() {
         </div>
         {/* Conteúdo do feed sem barra de rolagem */}
         <div
-          className="overflow-auto h-[calc(100vh-160px)] mt-4 "
+          className="overflow-auto mt-4 mb-safe"
           style={{
             scrollbarWidth: "thin",
             scrollbarColor: " #81fe88 #2C2C2C",
+            height: "calc(var(--app-height) - 80px)",
+            paddingBottom: "var(--safe-area-inset-bottom)",
           }}
         >
           <Routes>
@@ -248,8 +250,8 @@ function App() {
       </div>
 
       {/* Perfil do usuário no canto superior direito - agora sticky */}
-      <div className="hidden md:block md:sticky md:top-10 md:self-start z-40 ">
-        <div className="mb-4  sticky top-10 ">
+      <div className="hidden md:block md:sticky md:top-10 md:self-start z-40">
+        <div className="mb-4 sticky top-10">
           <PerfilUsuario />
         </div>
       </div>

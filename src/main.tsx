@@ -1,8 +1,8 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
-import App from "./App.tsx";
+import App from "./App";
 import { BrowserRouter as Router } from "react-router-dom";
-import { AuthProvider } from "./contexts/AuthContext.tsx";
+import { AuthProvider } from "./contexts/AuthContext";
 import "./index.css";
 
 // Limpar service workers que podem estar interferindo
@@ -13,6 +13,21 @@ if ("serviceWorker" in navigator) {
     }
   });
 }
+
+// Calcular a altura real da viewport em dispositivos móveis
+const setViewportHeight = () => {
+  // Primeiro obtemos a altura real da viewport
+  const vh = window.innerHeight * 0.01;
+  // Então definimos o valor em uma variável CSS
+  document.documentElement.style.setProperty("--vh", `${vh}px`);
+};
+
+// Calcular no carregamento inicial
+setViewportHeight();
+
+// Recalcular quando a janela é redimensionada ou quando ocorre mudança de orientação
+window.addEventListener("resize", setViewportHeight);
+window.addEventListener("orientationchange", setViewportHeight);
 
 // Script para prevenir zoom em dispositivos móveis, especialmente iOS
 document.addEventListener(

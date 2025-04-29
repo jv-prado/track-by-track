@@ -25,6 +25,7 @@ import {
 import { getUsuarioAtual, salvarAvaliacaoAlbum } from "../../services/firebase";
 import { doc, getDoc, updateDoc, arrayRemove } from "firebase/firestore";
 import { db } from "../../services/firebase";
+import { useTranslation } from "react-i18next";
 
 /**
  * Componente para exibir detalhes de um álbum e suas faixas
@@ -33,6 +34,8 @@ import { db } from "../../services/firebase";
  * @param {Function} props.onVoltar - Função para voltar à tela anterior (opcional)
  */
 const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
+  const { t } = useTranslation();
+
   // Obter parâmetros da URL
   const { id: albumIdParam } = useParams();
   const navigate = useNavigate();
@@ -1017,10 +1020,10 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
           onClick={onVoltar}
           className="mb-4 bg-cinza py-2 px-4 rounded-lg hover:bg-cinza-escuro transition-colors text-sm cursor-pointer"
         >
-          Voltar
+          {t("albumDetails.back")}
         </button>
         <p className="text-center text-gray-400 text-base md:text-lg">
-          Não foi possível carregar os detalhes do álbum
+          {t("albumDetails.loadError")}
         </p>
       </div>
     );
@@ -1033,7 +1036,7 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
           onClick={onVoltar}
           className="bg-cinza py-1 px-3 rounded-lg hover:bg-cinza-escuro transition-colors text-xs sm:text-sm cursor-pointer"
         >
-          Voltar
+          {t("albumDetails.back")}
         </button>
 
         {/* Botões de ação para o álbum */}
@@ -1041,19 +1044,19 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
           <button
             onClick={resetarAvaliacoesAlbum}
             className="bg-gray-700 hover:bg-gray-600 text-white py-1 px-2 rounded-lg transition-colors text-xs sm:text-sm flex items-center gap-1 cursor-pointer"
-            title="Resetar avaliações deste álbum"
+            title={t("albumDetails.reset")}
           >
             <FaUndo className="text-xs" />
-            <span className="hidden sm:inline">Resetar</span>
+            <span className="hidden sm:inline">{t("albumDetails.reset")}</span>
           </button>
 
           <button
             onClick={removerAlbum}
             className="bg-red-900 hover:bg-red-800 text-white py-1 px-2 rounded-lg transition-colors text-xs sm:text-sm flex items-center gap-1 cursor-pointer"
-            title="Remover álbum das avaliações"
+            title={t("albumDetails.remove")}
           >
             <FaTrash className="text-xs" />
-            <span className="hidden sm:inline">Remover</span>
+            <span className="hidden sm:inline">{t("albumDetails.remove")}</span>
           </button>
         </div>
       </div>
@@ -1064,20 +1067,20 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
           <div className="bg-cinza-escuro rounded-xl p-5 max-w-md w-full">
             <h3 className="text-lg font-bold text-verde-destaque mb-3">
               {mostrarConfirmacao === "resetar"
-                ? "Resetar avaliações?"
-                : "Remover álbum?"}
+                ? t("albumDetails.resetConfirmTitle")
+                : t("albumDetails.removeConfirmTitle")}
             </h3>
             <p className="text-gray-300 mb-5">
               {mostrarConfirmacao === "resetar"
-                ? "Isso vai zerar todas as suas avaliações para este álbum. Esta ação não pode ser desfeita."
-                : "Isso vai remover este álbum das suas avaliações e apagar todas as notas das faixas. Esta ação não pode ser desfeita."}
+                ? t("albumDetails.resetConfirmMessage")
+                : t("albumDetails.removeConfirmMessage")}
             </p>
             <div className="flex justify-end gap-3">
               <button
                 onClick={cancelarAcao}
                 className="bg-gray-700 py-2 px-4 rounded-lg hover:bg-gray-600 transition-colors cursor-pointer"
               >
-                Cancelar
+                {t("albumDetails.cancel")}
               </button>
               <button
                 onClick={
@@ -1091,7 +1094,7 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
                     : "bg-red-700 hover:bg-red-600"
                 }`}
               >
-                Confirmar
+                {t("albumDetails.confirm")}
               </button>
             </div>
           </div>
@@ -1104,7 +1107,7 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
           {detalhesAlbum.images && detalhesAlbum.images.length > 0 && (
             <img
               src={detalhesAlbum.images[0].url}
-              alt={`Capa do álbum ${detalhesAlbum.name}`}
+              alt={`${detalhesAlbum.name}`}
               className="w-40 h-40 sm:w-48 sm:h-48 md:w-56 md:h-56 lg:w-60 lg:h-60 object-cover rounded-lg shadow-lg"
             />
           )}
@@ -1119,8 +1122,11 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
             {detalhesAlbum.artists.map((a) => a.name).join(", ")}
           </p>
           <p className="text-gray-400 text-center lg:text-left text-xs sm:text-sm md:text-base">
-            {detalhesAlbum.release_date.substring(0, 4)} • {faixas.items.length}{" "}
-            faixas • {calcularDuracaoTotal()}
+            {t("albumDetails.releaseInfo", {
+              year: detalhesAlbum.release_date.substring(0, 4),
+              tracks: faixas.items.length,
+              duration: calcularDuracaoTotal(),
+            })}
           </p>
 
           {/* Botão Escute no Spotify */}
@@ -1135,7 +1141,7 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
               className="bg-green-600 hover:bg-green-700 text-white py-1 px-2 text-xs sm:text-sm font-medium flex items-center gap-1 transition-colors shadow-md rounded-lg"
             >
               <FaSpotify className="text-sm sm:text-base" />
-              Ouvir no Spotify
+              {t("albumDetails.listenOnSpotify")}
             </a>
           </div>
 
@@ -1167,7 +1173,7 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
           <div className="mt-2 md:mt-3">
             <div className="flex justify-between mb-1 gap-1">
               <span className="text-xs text-gray-400">
-                Progresso da avaliação
+                {t("albumDetails.ratingProgress")}
               </span>
               <span className="text-xs text-gray-400">
                 {progressoAvaliacao?.avaliadas || 0}/
@@ -1195,7 +1201,8 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
           {/* Seletores para música favorita e pior música */}
           <div className="bg-gray-800 p-2 rounded-lg">
             <h4 className="text-xs font-medium text-red-500 flex items-center gap-1 mb-1">
-              <IoMdHeart className="inline" /> Música Favorita:
+              <IoMdHeart className="inline" /> {t("albumDetails.favoriteTrack")}
+              :
             </h4>
             <select
               className="w-full bg-gray-700 text-white py-1 px-2 rounded text-xs focus:outline-none focus:ring-1 focus:ring-red-500 text-ellipsis"
@@ -1206,7 +1213,7 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
                 )
               }
             >
-              <option value="">Selecione a música...</option>
+              <option value="">{t("albumDetails.selectTrack")}</option>
               {faixas.items.map((faixa) => (
                 <option key={`fav-${faixa.id}`} value={faixa.id}>
                   {faixa.name.length > 30
@@ -1219,7 +1226,8 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
 
           <div className="bg-gray-800 p-2 rounded-lg">
             <h4 className="text-xs font-medium text-yellow-500 flex items-center gap-1 mb-1">
-              <IoMdHeartDislike className="inline" /> Pior Música:
+              <IoMdHeartDislike className="inline" />{" "}
+              {t("albumDetails.worstTrack")}:
             </h4>
             <select
               className="w-full bg-gray-700 text-white py-1 px-2 rounded text-xs focus:outline-none focus:ring-1 focus:ring-yellow-500 text-ellipsis"
@@ -1228,7 +1236,7 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
                 marcarPiorFaixa(e.target.value === "" ? null : e.target.value)
               }
             >
-              <option value="">Selecione a música...</option>
+              <option value="">{t("albumDetails.selectTrack")}</option>
               {faixas.items.map((faixa) => (
                 <option key={`worst-${faixa.id}`} value={faixa.id}>
                   {faixa.name.length > 30
@@ -1256,24 +1264,28 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
                   d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
                 />
               </svg>
-              Histórico:
+              {t("albumDetails.history")}:
             </h4>
 
             <div className="text-xs text-gray-400 mb-1">
-              <span className="font-medium">Primeira avaliação:</span>
+              <span className="font-medium">
+                {t("albumDetails.firstRating")}:
+              </span>
               <div className="text-gray-300">
                 {datasAvaliacao.temRegistro
                   ? formatarData(datasAvaliacao.primeira)
-                  : "Sem registro"}
+                  : t("albumDetails.noRecord")}
               </div>
             </div>
 
             <div className="text-xs text-gray-400">
-              <span className="font-medium">Última modificação:</span>
+              <span className="font-medium">
+                {t("albumDetails.lastModification")}:
+              </span>
               <div className="text-gray-300">
                 {datasAvaliacao.temRegistro
                   ? formatarData(datasAvaliacao.ultima)
-                  : "Sem registro"}
+                  : t("albumDetails.noRecord")}
               </div>
             </div>
           </div>
@@ -1282,7 +1294,9 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
 
       {/* Lista de faixas */}
       <div className="bg-cinza-escuro rounded-xl p-2 md:p-4 overflow-hidden mb-3">
-        <h3 className="text-base md:text-lg font-bold mb-2 md:mb-3">Faixas</h3>
+        <h3 className="text-base md:text-lg font-bold mb-2 md:mb-3">
+          {t("albumDetails.tracks")}
+        </h3>
 
         <div className="w-full relative">
           {/* Mobile view - sem tempo */}
@@ -1292,9 +1306,11 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
               <div className="font-bold text-gray-400 text-center text-xs">
                 #
               </div>
-              <div className="font-bold text-gray-400 text-xs">Título</div>
+              <div className="font-bold text-gray-400 text-xs">
+                {t("albumDetails.title")}
+              </div>
               <div className="font-bold text-gray-400 text-center text-xs">
-                Nota
+                {t("albumDetails.rating")}
               </div>
             </div>
 
@@ -1328,12 +1344,14 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
               <div className="font-bold text-gray-400 text-center text-xs">
                 #
               </div>
-              <div className="font-bold text-gray-400 text-xs">Título</div>
-              <div className="font-bold text-gray-400 text-center text-xs">
-                Tempo
+              <div className="font-bold text-gray-400 text-xs">
+                {t("albumDetails.title")}
               </div>
               <div className="font-bold text-gray-400 text-center text-xs">
-                Nota
+                {t("albumDetails.time")}
+              </div>
+              <div className="font-bold text-gray-400 text-center text-xs">
+                {t("albumDetails.rating")}
               </div>
             </div>
 
@@ -1370,7 +1388,8 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
         {/* Seletores para música favorita e pior música */}
         <div className="bg-gray-800 p-2 rounded-lg min-w-[160px]">
           <h4 className="text-xs font-medium text-red-500 flex items-center gap-1 mb-1">
-            <IoMdHeart className="inline text-xs" /> Música Favorita:
+            <IoMdHeart className="inline text-xs" />{" "}
+            {t("albumDetails.favoriteTrack")}:
           </h4>
           <select
             className="w-full bg-gray-700 text-white py-1 px-2 rounded text-xs focus:outline-none focus:ring-1 focus:ring-red-500 text-ellipsis"
@@ -1379,7 +1398,7 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
               marcarFaixaFavorita(e.target.value === "" ? null : e.target.value)
             }
           >
-            <option value="">Selecione a música...</option>
+            <option value="">{t("albumDetails.selectTrack")}</option>
             {faixas.items.map((faixa) => (
               <option key={`fav-${faixa.id}`} value={faixa.id}>
                 {faixa.name.length > 30
@@ -1392,7 +1411,8 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
 
         <div className="bg-gray-800 p-2 rounded-lg min-w-[160px]">
           <h4 className="text-xs font-medium text-yellow-500 flex items-center gap-1 mb-1">
-            <IoMdHeartDislike className="inline text-xs" /> Pior Música:
+            <IoMdHeartDislike className="inline text-xs" />{" "}
+            {t("albumDetails.worstTrack")}:
           </h4>
           <select
             className="w-full bg-gray-700 text-white py-1 px-2 rounded text-xs focus:outline-none focus:ring-1 focus:ring-yellow-500 text-ellipsis"
@@ -1401,7 +1421,7 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
               marcarPiorFaixa(e.target.value === "" ? null : e.target.value)
             }
           >
-            <option value="">Selecione a música...</option>
+            <option value="">{t("albumDetails.selectTrack")}</option>
             {faixas.items.map((faixa) => (
               <option key={`worst-${faixa.id}`} value={faixa.id}>
                 {faixa.name.length > 30
@@ -1430,25 +1450,29 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
               d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
             />
           </svg>
-          Histórico de Avaliação:
+          {t("albumDetails.history")}:
         </h4>
 
         <div className="flex flex-col xs:flex-row xs:justify-between gap-2">
           <div className="text-xs text-gray-400">
-            <span className="font-medium">Primeira avaliação:</span>
+            <span className="font-medium">
+              {t("albumDetails.firstRating")}:
+            </span>
             <span className="ml-1 text-gray-300">
               {datasAvaliacao.temRegistro
                 ? formatarData(datasAvaliacao.primeira)
-                : "Sem registro"}
+                : t("albumDetails.noRecord")}
             </span>
           </div>
 
           <div className="text-xs text-gray-400">
-            <span className="font-medium">Última modificação:</span>
+            <span className="font-medium">
+              {t("albumDetails.lastModification")}:
+            </span>
             <span className="ml-1 text-gray-300">
               {datasAvaliacao.temRegistro
                 ? formatarData(datasAvaliacao.ultima)
-                : "Sem registro"}
+                : t("albumDetails.noRecord")}
             </span>
           </div>
         </div>

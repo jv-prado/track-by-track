@@ -101,5 +101,32 @@
     "useDemo": "Usar Modo de Demonstração",
     "starting": "Iniciando...",
     "feedNotAvailable": "O Feed Global não estará disponível, mas as avaliações ficarão salvas no navegador."
+  },
+  "albumDetails": {
+    "back": "Voltar",
+    "reset": "Resetar",
+    "remove": "Remover",
+    "resetConfirmTitle": "Resetar avaliações?",
+    "resetConfirmMessage": "Isso vai zerar todas as suas avaliações para este álbum. Esta ação não pode ser desfeita.",
+    "removeConfirmTitle": "Remover álbum?",
+    "removeConfirmMessage": "Isso vai remover este álbum das suas avaliações e apagar todas as notas das faixas. Esta ação não pode ser desfeita.",
+    "cancel": "Cancelar",
+    "confirm": "Confirmar",
+    "tracks": "Faixas",
+    "title": "Título",
+    "time": "Tempo",
+    "rating": "Nota",
+    "track": "Faixa",
+    "loadError": "Não foi possível carregar os detalhes do álbum",
+    "listenOnSpotify": "Ouvir no Spotify",
+    "ratingProgress": "Progresso da avaliação",
+    "favoriteTrack": "Música Favorita",
+    "worstTrack": "Pior Música",
+    "selectTrack": "Selecione a música...",
+    "history": "Histórico",
+    "firstRating": "Primeira avaliação",
+    "lastModification": "Última modificação",
+    "noRecord": "Sem registro",
+    "releaseInfo": "{{year}} • {{tracks}} faixas • {{duration}}"
   }
 }

@@ -101,5 +101,32 @@
     "useDemo": "Use Demo Mode",
     "starting": "Starting...",
     "feedNotAvailable": "The Global Feed won't be available, but ratings will be saved in your browser."
+  },
+  "albumDetails": {
+    "back": "Back",
+    "reset": "Reset",
+    "remove": "Remove",
+    "resetConfirmTitle": "Reset ratings?",
+    "resetConfirmMessage": "This will reset all your ratings for this album. This action cannot be undone.",
+    "removeConfirmTitle": "Remove album?",
+    "removeConfirmMessage": "This will remove this album from your ratings and delete all track ratings. This action cannot be undone.",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "tracks": "Tracks",
+    "title": "Title",
+    "time": "Time",
+    "rating": "Rating",
+    "track": "Track",
+    "loadError": "Could not load album details",
+    "listenOnSpotify": "Listen on Spotify",
+    "ratingProgress": "Rating progress",
+    "favoriteTrack": "Favorite Track",
+    "worstTrack": "Worst Track",
+    "selectTrack": "Select a track...",
+    "history": "History",
+    "firstRating": "First rating",
+    "lastModification": "Last modification",
+    "noRecord": "No record",
+    "releaseInfo": "{{year}} • {{tracks}} tracks • {{duration}}"
   }
 }

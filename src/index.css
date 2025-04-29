@@ -25,9 +25,32 @@
   --font-label: 400 0.781rem/150% "Prompt", sans-serif;
 }
 
+html,
+body {
+  touch-action: manipulation;
+  -webkit-overflow-scrolling: touch;
+  overflow-x: hidden;
+  overscroll-behavior: none;
+}
+
 body {
   background-color: var(--color-grafite);
   color: var(--color-branco);
+  touch-action: pan-x pan-y;
+}
+
+/* Prevenir seleção de texto */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Ajustes para elementos interativos */
+button,
+a,
+input,
+select,
+textarea {
+  touch-action: manipulation;
 }
 
 @keyframes fadeIn {

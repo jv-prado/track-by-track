@@ -12,6 +12,19 @@ const ListaAlbuns = ({ artistaId, onVoltar }) => {
   const [albuns, setAlbuns] = useState(null);
   const [carregando, setCarregando] = useState(true);
   const [albumSelecionado, setAlbumSelecionado] = useState(null);
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+
+  // Atualizar largura da janela quando ela for redimensionada
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowWidth(window.innerWidth);
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
 
   useEffect(() => {
     const buscarDados = async () => {
@@ -30,6 +43,15 @@ const ListaAlbuns = ({ artistaId, onVoltar }) => {
 
     buscarDados();
   }, [artistaId]);
+
+  // Determinar o número de colunas com base na largura da tela (igual ao MostrarTopArtistas)
+  const getGridColsClass = () => {
+    if (windowWidth < 550) return "grid-cols-2"; // 2 itens por linha em telas menores que 550px
+    if (windowWidth < 1100) return "grid-cols-2"; // 2 itens por linha em telas menores que 1100px
+    if (windowWidth < 1280) return "grid-cols-3"; // lg
+    if (windowWidth < 1536) return "grid-cols-4"; // xl
+    return "grid-cols-5"; // 2xl
+  };
 
   // Quando um álbum é selecionado, mostra seus detalhes
   if (albumSelecionado) {
@@ -59,7 +81,7 @@ const ListaAlbuns = ({ artistaId, onVoltar }) => {
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-verde-destaque"></div>
         </div>
       ) : albuns && albuns.items ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-8">
+        <div className={`grid ${getGridColsClass()} gap-4 md:gap-6 lg:gap-8`}>
           {albuns.items.map((album) => (
             <div
               key={album.id}
@@ -67,11 +89,13 @@ const ListaAlbuns = ({ artistaId, onVoltar }) => {
               onClick={() => setAlbumSelecionado(album.id)}
             >
               {album.images && album.images.length > 0 && (
-                <img
-                  src={album.images[0].url}
-                  alt={`Capa do álbum ${album.name}`}
-                  className="w-full h-auto rounded-lg shadow-lg mb-4"
-                />
+                <div className="w-full aspect-square mb-4">
+                  <img
+                    src={album.images[0].url}
+                    alt={`Capa do álbum ${album.name}`}
+                    className="w-full h-full object-cover rounded-lg shadow-lg"
+                  />
+                </div>
               )}
               <h3 className="font-bold text-lg mb-2 line-clamp-2">
                 {album.name}

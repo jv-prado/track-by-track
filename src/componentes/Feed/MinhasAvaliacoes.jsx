@@ -148,6 +148,14 @@ const MinhasAvaliacoes = () => {
     }
   }, [albumSelecionado]);
 
+  // Garantir que os filtros e ordenação sejam aplicados quando o componente montar
+  useEffect(() => {
+    // Forçar reordenação dos álbuns exibidos quando o componente montar
+    if (albunsAvaliados && albunsAvaliados.length > 0) {
+      recarregarListaAlbuns();
+    }
+  }, []);
+
   // Tentar recuperar autenticação automaticamente ao montar o componente
   useEffect(() => {
     const tentarRecuperarAutenticacao = async () => {
@@ -370,7 +378,7 @@ const MinhasAvaliacoes = () => {
             gap: "1rem",
           }}
         >
-          {/* Mapear cada álbum para um componente de cartão */}
+          {/* Mapear cada álbum para um componente de cartão - garantir que estão em ordem cronológica */}
           {albunsExibidos.map((album) => (
             <CardAlbumAvaliado
               key={album.id}

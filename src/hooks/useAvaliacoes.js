@@ -104,11 +104,13 @@ export default function useAvaliacoes({ termoPesquisaInicial = "" } = {}) {
       });
     }
 
-    // Aplicar ordenação personalizada apenas se ordenação for "padrao"
+    // Aplicar ordenação
     if (ordenacao === "padrao") {
-      // Ordenar por recentes (mais recentes primeiro)
+      // Ordenar por data mais recente primeiro (garantindo que ultimaAtualizacao seja um número)
       albumsFiltrados.sort((a, b) => {
-        return (b.ultimaAtualizacao || 0) - (a.ultimaAtualizacao || 0);
+        const dataA = a.ultimaAtualizacao || 0;
+        const dataB = b.ultimaAtualizacao || 0;
+        return dataB - dataA;
       });
     } else if (ordenacao === "crescente") {
       albumsFiltrados.sort(
@@ -257,10 +259,12 @@ export default function useAvaliacoes({ termoPesquisaInicial = "" } = {}) {
 
     // Aplicar ordenação
     if (ordenacao === "padrao") {
-      // Sempre ordenar com os mais recentes primeiro
-      albumsFiltrados.sort(
-        (a, b) => (b.ultimaAtualizacao || 0) - (a.ultimaAtualizacao || 0)
-      );
+      // Ordenar por data mais recente primeiro (garantindo que ultimaAtualizacao seja um número)
+      albumsFiltrados.sort((a, b) => {
+        const dataA = a.ultimaAtualizacao || 0;
+        const dataB = b.ultimaAtualizacao || 0;
+        return dataB - dataA;
+      });
     } else if (ordenacao === "crescente") {
       albumsFiltrados.sort(
         (a, b) => parseFloat(a.mediaAvaliacao) - parseFloat(b.mediaAvaliacao)
@@ -315,10 +319,22 @@ export default function useAvaliacoes({ termoPesquisaInicial = "" } = {}) {
               (avaliacao) => avaliacao > 0
             ).length;
 
-            // Criar objeto com as informações necessárias
-            const ultimaAtualizacao = album.dataAtualizacao
-              ? new Date(album.dataAtualizacao.toDate()).getTime()
-              : Date.now();
+            // Garantir que temos uma data de atualização válida para ordenação
+            let ultimaAtualizacao;
+            if (album.dataAtualizacao) {
+              // Converter de timestamp do Firestore para milissegundos
+              ultimaAtualizacao = new Date(
+                album.dataAtualizacao.toDate()
+              ).getTime();
+            } else if (album.data_avaliacao) {
+              // Usar data de avaliação como fallback
+              ultimaAtualizacao = new Date(
+                album.data_avaliacao.toDate()
+              ).getTime();
+            } else {
+              // Se não tiver nenhuma data, usar timestamp atual com um offset para ficar no final
+              ultimaAtualizacao = 0;
+            }
 
             return {
               id: album.id,

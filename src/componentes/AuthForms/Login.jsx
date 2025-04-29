@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { fazerLogin, loginComGoogle } from "../../services/firebase";
-import Logo from "../../assets/Logo.svg";
+import Logo from "../../assets/logo.svg";
 import { configurarSincronizacaoAutomatica } from "../../services/avaliacoes";
 
 const Login = () => {

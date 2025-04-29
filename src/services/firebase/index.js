@@ -184,9 +184,11 @@ export const salvarAvaliacaoAlbum = async (
 
     // Verificar se o álbum já existe na lista do usuário
     const albumsAvaliados = userDoc.data().albuns_avaliados || [];
-    const albumExistente = albumsAvaliados.find(
+    const indexAlbumExistente = albumsAvaliados.findIndex(
       (album) => album.id === albumId
     );
+    const albumExistente =
+      indexAlbumExistente >= 0 ? albumsAvaliados[indexAlbumExistente] : null;
 
     const dadosAlbum = {
       id: albumId,
@@ -224,19 +226,20 @@ export const salvarAvaliacaoAlbum = async (
         dadosAlbum.data_primeira_avaliacao = new Date();
       }
 
-      // Atualizar álbum existente
-      await updateDoc(userRef, {
-        albuns_avaliados: arrayRemove(albumExistente),
-      });
+      // Criar uma cópia do array de álbuns
+      const novosAlbunsAvaliados = [...albumsAvaliados];
+      // Substituir o álbum existente pelo novo
+      novosAlbunsAvaliados[indexAlbumExistente] = dadosAlbum;
 
+      // Atualizar com o array modificado em uma única operação
       await updateDoc(userRef, {
-        albuns_avaliados: arrayUnion(dadosAlbum),
+        albuns_avaliados: novosAlbunsAvaliados,
       });
     } else {
       // Para um novo álbum, a data da primeira avaliação é agora
       dadosAlbum.data_primeira_avaliacao = new Date();
 
-      // Adicionar novo álbum
+      // Adicionar novo álbum ao array existente
       await updateDoc(userRef, {
         albuns_avaliados: arrayUnion(dadosAlbum),
       });

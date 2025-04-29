@@ -1,10 +1,12 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Logo from "./sidebar/assets/Logo.svg";
+import { useTranslation } from "react-i18next";
 
 const Splash = () => {
   const navigate = useNavigate();
   const [animationComplete, setAnimationComplete] = useState(false);
+  const { t } = useTranslation();
 
   const handleContinue = () => {
     setAnimationComplete(true);
@@ -23,7 +25,7 @@ const Splash = () => {
         <div className="mb-8">
           <img
             src={Logo}
-            alt="Logo do aplicativo"
+            alt={t("splash.logoAlt", "Logo do aplicativo")}
             className="w-40 md:w-56 lg:w-64 animate-float hover:animate-none relative z-10 mx-auto"
           />
         </div>
@@ -36,8 +38,10 @@ const Splash = () => {
           className="text-gray-300 mb-12 animate-fadeIn"
           style={{ animationDelay: "0.3s" }}
         >
-          Seu app para descobrir, avaliar e registrar todos os álbuns que você
-          ouvir.
+          {t(
+            "splash.description",
+            "Seu app para descobrir, avaliar e registrar todos os álbuns que você ouvir."
+          )}
         </p>
 
         <div className="animate-fadeIn" style={{ animationDelay: "0.6s" }}>
@@ -45,7 +49,7 @@ const Splash = () => {
             onClick={handleContinue}
             className="bg-verde-destaque text-gray-900 font-bold py-3 px-8 rounded-full hover:bg-opacity-90 transition-all transform hover:scale-105 cursor-pointer"
           >
-            Entrar ou Cadastrar
+            {t("splash.enterButton", "Entrar ou Cadastrar")}
           </button>
         </div>
       </div>

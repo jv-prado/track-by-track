@@ -17,6 +17,11 @@
     "continueWith": "ou continue com",
     "enteringAccount": "Entrando..."
   },
+  "splash": {
+    "logoAlt": "Logo do aplicativo",
+    "description": "Seu app para descobrir, avaliar e registrar todos os álbuns que você ouvir.",
+    "enterButton": "Entrar ou Cadastrar"
+  },
   "auth": {
     "email": "Email",
     "password": "Senha",

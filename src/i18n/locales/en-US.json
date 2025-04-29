@@ -17,6 +17,11 @@
     "continueWith": "or continue with",
     "enteringAccount": "Signing in..."
   },
+  "splash": {
+    "logoAlt": "App logo",
+    "description": "Your app to discover, rate and track all the albums you listen to.",
+    "enterButton": "Login or Sign Up"
+  },
   "auth": {
     "email": "Email",
     "password": "Password",

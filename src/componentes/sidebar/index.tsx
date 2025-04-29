@@ -81,7 +81,7 @@ export default function Sidebar({ activeView, setActiveView }) {
       onClick={() => {
         navigate("/login");
       }}
-      className="flex items-center space-x-2 p-3 rounded-xl cursor-pointer text-white hover:bg-verde-claro hover:text-preto transition-colors mt-auto"
+      className="flex items-center justify-center space-x-2 p-2 rounded-xl cursor-pointer text-white hover:bg-verde-claro hover:text-preto transition-colors mt-auto w-full"
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -102,7 +102,7 @@ export default function Sidebar({ activeView, setActiveView }) {
   );
 
   return (
-    <aside className="bg-cinza-escuro rounded-xl py-5 md:py-10 px-4 md:px-10 w-full md:max-w-[200px] flex flex-col items-center gap-6 md:gap-10 mb-4 md:mb-0 md:h-fit relative">
+    <aside className="bg-cinza-escuro rounded-xl py-4 md:py-10 px-4 md:px-10 w-full md:max-w-[200px] flex flex-col items-center gap-4 md:gap-10 mb-4 md:mb-0 md:h-fit relative">
       {/* Botão de troca de idioma no canto superior direito */}
       <button
         onClick={changeLanguage}
@@ -125,8 +125,8 @@ export default function Sidebar({ activeView, setActiveView }) {
           alt="Logo do Track by Track"
         />
       </Link>
-      <nav className="flex flex-col w-full">
-        <ul className="flex flex-col gap-6 md:gap-12 text-center w-full">
+      <nav className="flex flex-col w-full items-center">
+        <ul className="flex flex-col items-center md:items-stretch gap-3 md:gap-12 text-center  max-w-[90%] md:max-w-full">
           {!usuarioAtivoLocal ? (
             // Botão de login quando não está autenticado
             renderLoginOption()

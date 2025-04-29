@@ -8,17 +8,17 @@ export default function SidebarItem({
   return (
     <li className="group cursor-pointer w-full">
       <div
-        className="flex items-center flex-row md:flex-col gap-3 md:gap-1 w-full h-full"
+        className="flex items-center justify-center md:flex-col gap-2 md:gap-1 w-full h-full py-1"
         onClick={onClick}
       >
-        <div className="md:h-8 flex items-center justify-center">
+        <div className="flex items-center justify-center min-w-[24px]">
           <Icon
             className={`${iconSize} ${
               active ? "text-verde-destaque" : ""
             } group-hover:scale-110 transition-all`}
           />
         </div>
-        <div className="md:h-6 flex items-center justify-center w-full overflow-hidden">
+        <div className="flex items-center justify-center w-full overflow-hidden">
           <span
             style={{ font: "var(--font-paragraph)" }}
             className={`${

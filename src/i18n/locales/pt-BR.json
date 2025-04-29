@@ -1,0 +1,100 @@
+{
+  "app": {
+    "feed": "Feed",
+    "albums": "Álbuns",
+    "artists": "Artistas",
+    "myRatings": "Avaliações",
+    "search": "Buscar...",
+    "logout": "Sair",
+    "login": "Entrar",
+    "register": "Registrar",
+    "menu": "Menu",
+    "update": "Atualizar",
+    "loading": "Carregando...",
+    "error": "Erro",
+    "tryAgain": "Tentar novamente",
+    "demoMode": "Modo Demonstração (sem conta)",
+    "continueWith": "ou continue com",
+    "enteringAccount": "Entrando..."
+  },
+  "auth": {
+    "email": "Email",
+    "password": "Senha",
+    "confirmPassword": "Confirmar Senha",
+    "loginButton": "Entrar",
+    "registerButton": "Registrar",
+    "forgotPassword": "Esqueceu a senha?",
+    "noAccount": "Não tem uma conta?",
+    "createAccount": "Cadastre-se",
+    "alreadyAccount": "Já tem uma conta?",
+    "loginHere": "Entrar aqui",
+    "loginError": "Falha ao entrar. Verifique seu email e senha.",
+    "googleLoginError": "Falha ao entrar com Google."
+  },
+  "feedback": {
+    "loading": "Carregando...",
+    "loadingRatings": "Carregando avaliações...",
+    "loadingAlbums": "Carregando álbuns...",
+    "loadingArtists": "Carregando artistas...",
+    "loadingTracks": "Carregando faixas...",
+    "errorLoading": "Erro ao carregar.",
+    "errorLoadingRatings": "Erro ao carregar avaliações.",
+    "errorLoadingAlbums": "Erro ao carregar álbuns.",
+    "reload": "Recarregar página",
+    "unexpectedError": "Ocorreu um erro inesperado."
+  },
+  "feed": {
+    "titulo": "Feed Global",
+    "modoDemo": "Modo demonstração",
+    "atualizar": "Atualizar",
+    "nenhumaAvaliacao": "Nenhuma avaliação encontrada",
+    "sejaPrimeiro": "Seja o primeiro a avaliar um álbum!",
+    "cliqueVerDetalhes": "Clique para ver detalhes do álbum",
+    "ouvirSpotify": "Ouvir no Spotify",
+    "verAvaliacoes": "Ver avaliações",
+    "verAvaliacoesUsuario": "Ver avaliações deste usuário",
+    "fotoUsuario": "Foto de {{nome}}",
+    "capaAlbum": "Capa de {{nome}}",
+    "avaliado": "Avaliado: {{avaliadas}}/{{total}}",
+    "carregando": "Carregando feed...",
+    "erroCarregamento": "Erro ao carregar o feed"
+  },
+  "myRatings": {
+    "title": "Minhas Avaliações",
+    "ratedAlbums": "Meus Álbuns Avaliados",
+    "noAlbumsRated": "Você ainda não avaliou nenhum álbum. Explore álbuns e avalie suas faixas para vê-los aqui.",
+    "noMatchingAlbums": "Nenhum álbum corresponde aos filtros selecionados.",
+    "update": "Atualizar",
+    "loadingAlbums": "Carregando álbuns ({{progress}}%)...",
+    "sessionExpired": "Sessão Expirada",
+    "loginAgain": "Sua sessão expirou ou você não está autenticado. Para continuar usando o aplicativo, faça login novamente.",
+    "loading": "Carregando...",
+    "enterDemoMode": "Entrar no Modo Demonstração",
+    "error": {
+      "title": "Ops! Algo deu errado",
+      "message": "Ocorreu um erro ao tentar exibir suas avaliações. Tente atualizar a página.",
+      "details": "Detalhes",
+      "reload": "Recarregar Página"
+    }
+  },
+  "filters": {
+    "search": "Pesquisar",
+    "albumOrArtistName": "Nome do álbum ou artista",
+    "sortByRating": "Ordenar por nota",
+    "filterByRating": "Filtrar por nota",
+    "rating": "Nota",
+    "to": "a"
+  },
+  "albumCard": {
+    "coverAlt": "Capa do álbum {{albumName}}",
+    "unknownArtist": "Artista desconhecido",
+    "rated": "Avaliado",
+    "viewTracks": "Ver faixas"
+  },
+  "demoMode": {
+    "wantToTry": "Quer experimentar sem criar uma conta?",
+    "useDemo": "Usar Modo de Demonstração",
+    "starting": "Iniciando...",
+    "feedNotAvailable": "O Feed Global não estará disponível, mas as avaliações ficarão salvas no navegador."
+  }
+}

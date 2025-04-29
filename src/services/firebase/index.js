@@ -7,6 +7,8 @@ import {
   signOut,
   onAuthStateChanged,
   updateProfile,
+  GoogleAuthProvider,
+  signInWithPopup,
 } from "firebase/auth";
 import {
   getFirestore,
@@ -37,6 +39,7 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 const storage = getStorage(app);
+const googleProvider = new GoogleAuthProvider();
 
 /**
  * Cadastra um novo usuário
@@ -492,6 +495,43 @@ export const obterAvaliacoesUsuario = async (usuarioId, albumId) => {
   } catch (error) {
     console.error("Erro ao obter avaliações do usuário:", error);
     return null;
+  }
+};
+
+/**
+ * Realiza login com a conta Google
+ * @returns {Promise<Object>} Objeto com dados do usuário logado
+ */
+export const loginComGoogle = async () => {
+  try {
+    const result = await signInWithPopup(auth, googleProvider);
+    const user = result.user;
+
+    // Buscar ou criar documento do usuário no Firestore
+    const userRef = doc(db, "usuarios", user.uid);
+    const userDoc = await getDoc(userRef);
+
+    if (!userDoc.exists()) {
+      // Criar documento do usuário se não existir
+      await setDoc(userRef, {
+        nome: user.displayName || "",
+        email: user.email,
+        foto_perfil: user.photoURL,
+        albuns_avaliados: [],
+        data_cadastro: new Date(),
+      });
+    }
+
+    return {
+      uid: user.uid,
+      email: user.email,
+      nome: user.displayName,
+      foto: user.photoURL,
+      dados: userDoc.exists() ? userDoc.data() : {},
+    };
+  } catch (error) {
+    console.error("Erro ao fazer login com Google:", error);
+    throw error;
   }
 };
 

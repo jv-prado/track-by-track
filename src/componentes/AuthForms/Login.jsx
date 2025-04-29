@@ -1,16 +1,18 @@
-import { useState } from "react";
-import { fazerLogin } from "../../services/firebase";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import Logo from "../sidebar/assets/Logo.svg";
+import { useTranslation } from "react-i18next";
+import { fazerLogin, loginComGoogle } from "../../services/firebase";
+import Logo from "../../assets/Logo.svg";
 import { configurarSincronizacaoAutomatica } from "../../services/avaliacoes";
 
-export default function Login() {
+const Login = () => {
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [erro, setErro] = useState("");
   const [carregando, setCarregando] = useState(false);
   const [carregandoDemo, setCarregandoDemo] = useState(false);
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -23,11 +25,10 @@ export default function Login() {
       // Definir "feed" como a view ativa no localStorage para que o App a utilize
       localStorage.setItem("activeView", "feed");
 
-      // Navegar para a página de feed
       navigate("/feed");
-    } catch (error) {
-      console.error("Erro no login:", error);
-      setErro("Erro ao fazer login. Verifique seu email e senha.");
+    } catch (err) {
+      console.error("Erro no login:", err);
+      setErro(t("auth.loginError"));
     } finally {
       setCarregando(false);
     }
@@ -98,7 +99,7 @@ export default function Login() {
 
       <div className="bg-cinza-escuro p-6 rounded-xl w-full max-w-md">
         <h2 className="text-2xl text-verde-claro font-bold mb-6 text-center">
-          Entre na sua conta
+          {t("app.login")}
         </h2>
 
         {erro && (
@@ -109,7 +110,9 @@ export default function Login() {
 
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
-            <label className="block text-gray-300 mb-2">Email</label>
+            <label className="block text-gray-300 mb-2">
+              {t("auth.email")}
+            </label>
             <input
               type="email"
               value={email}
@@ -120,7 +123,9 @@ export default function Login() {
           </div>
 
           <div className="mb-6">
-            <label className="block text-gray-300 mb-2">Senha</label>
+            <label className="block text-gray-300 mb-2">
+              {t("auth.password")}
+            </label>
             <input
               type="password"
               value={senha}
@@ -135,39 +140,40 @@ export default function Login() {
             disabled={carregando}
             className="w-full bg-[#1ED760] text-black font-bold py-3 px-4 rounded-lg hover:bg-[#1ED760]/90 transition disabled:opacity-50 cursor-pointer"
           >
-            {carregando ? "Entrando..." : "Entrar"}
+            {carregando ? t("app.enteringAccount") : t("auth.loginButton")}
           </button>
         </form>
 
         <div className="mt-6 text-center">
           <p className="text-gray-300">
-            Não tem uma conta?{" "}
+            {t("auth.noAccount")}{" "}
             <button
               onClick={() => navigate("/registro")}
               className="text-[#1ED760] hover:underline font-medium cursor-pointer"
             >
-              Cadastre-se
+              {t("auth.createAccount")}
             </button>
           </p>
         </div>
 
         <div className="mt-8 pt-6 border-t border-gray-700">
           <p className="text-sm text-gray-400 text-center mb-4">
-            Quer experimentar sem criar uma conta?
+            {t("demoMode.wantToTry")}
           </p>
           <button
             onClick={iniciarModoDemo}
             disabled={carregandoDemo}
             className="w-full flex items-center justify-center bg-purple-700 text-white py-3 px-4 rounded-lg font-medium hover:bg-purple-600 transition disabled:opacity-50 cursor-pointer"
           >
-            {carregandoDemo ? "Iniciando..." : "Usar Modo de Demonstração"}
+            {carregandoDemo ? t("demoMode.starting") : t("demoMode.useDemo")}
           </button>
           <p className="text-xs text-gray-500 text-center mt-2">
-            O Feed Global não estára disponível, mas as avaliações ficarão
-            salvas no navegador.
+            {t("demoMode.feedNotAvailable")}
           </p>
         </div>
       </div>
     </div>
   );
-}
+};
+
+export default Login;

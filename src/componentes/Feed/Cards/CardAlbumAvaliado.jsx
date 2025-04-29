@@ -1,4 +1,5 @@
 import { MdReportProblem } from "react-icons/md";
+import { useTranslation } from "react-i18next";
 
 /**
  * Componente que exibe um cartão de álbum avaliado
@@ -9,6 +10,8 @@ import { MdReportProblem } from "react-icons/md";
  * @returns {JSX.Element} Componente de cartão de álbum
  */
 const CardAlbumAvaliado = ({ album, setAlbumSelecionado }) => {
+  const { t } = useTranslation();
+
   // Verificação defensiva para garantir que progressoAvaliacao exista
   const progressoAvaliacao = album.progressoAvaliacao || {
     avaliadas: 0,
@@ -38,7 +41,7 @@ const CardAlbumAvaliado = ({ album, setAlbumSelecionado }) => {
       {album.images && album.images.length > 0 ? (
         <img
           src={album.images[0].url}
-          alt={`Capa do álbum ${album.name}`}
+          alt={t("albumCard.coverAlt", { albumName: album.name })}
           className="w-full h-auto aspect-square object-cover rounded-lg shadow-lg mb-3"
         />
       ) : (
@@ -52,7 +55,8 @@ const CardAlbumAvaliado = ({ album, setAlbumSelecionado }) => {
         {album.name}
       </h3>
       <p className="text-verde-destaque text-xs md:text-sm mb-1 line-clamp-1">
-        {album.artists?.map((a) => a.name).join(", ") || "Artista desconhecido"}
+        {album.artists?.map((a) => a.name).join(", ") ||
+          t("albumCard.unknownArtist")}
       </p>
 
       {/* Informações de avaliação */}
@@ -82,7 +86,9 @@ const CardAlbumAvaliado = ({ album, setAlbumSelecionado }) => {
         {!album.erro && (
           <div>
             <div className="flex justify-between text-xs mb-1">
-              <span className="text-gray-400 text-[10px]">Avaliado:</span>
+              <span className="text-gray-400 text-[10px]">
+                {t("albumCard.rated")}:
+              </span>
               <span className="text-gray-400 text-[10px]">
                 {progressoAvaliacao.avaliadas}/{progressoAvaliacao.total} (
                 {percentualFormatado}%)
@@ -110,7 +116,7 @@ const CardAlbumAvaliado = ({ album, setAlbumSelecionado }) => {
             setAlbumSelecionado(album.id);
           }}
         >
-          Ver faixas
+          {t("albumCard.viewTracks")}
         </button>
       </div>
     </div>

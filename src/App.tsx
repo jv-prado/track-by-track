@@ -16,6 +16,8 @@ import {
 } from "./services/sync";
 import { migrarDadosAvaliacoes } from "./services/avaliacoes";
 import { App as CapApp } from "@capacitor/app";
+import { useTranslation } from "react-i18next";
+import LanguageSelector from "./componentes/LanguageSelector";
 
 // Componente principal da aplicação
 function App() {
@@ -25,6 +27,7 @@ function App() {
   const navigate = useNavigate();
   const location = useLocation();
   const { usuario: usuarioFirebase } = useAuth();
+  const { t } = useTranslation();
 
   // Lidar com o botão voltar usando o plugin oficial do Capacitor
   useEffect(() => {
@@ -130,17 +133,46 @@ function App() {
     }
   }, [usuarioFirebase, location.pathname, activeView]);
 
+  // Renderizar o seletor de idioma apenas para desktop
+  const renderLanguageSelector = () => {
+    // Verifica se a tela é mobile (via CSS media query)
+    const isMobile = window.matchMedia("(max-width: 768px)").matches;
+
+    // No mobile, o seletor de idiomas já está no menu hamburguer
+    if (isMobile) {
+      return null;
+    }
+
+    // Em desktop, mostrar o seletor flutuante
+    return <LanguageSelector />;
+  };
+
   // Renderizar splash, login ou callback
   if (location.pathname === "/splash" || location.pathname === "/") {
-    return <Splash />;
+    return (
+      <>
+        <Splash />
+        {renderLanguageSelector()}
+      </>
+    );
   }
 
   if (location.pathname === "/login") {
-    return <Login />;
+    return (
+      <>
+        <Login />
+        {renderLanguageSelector()}
+      </>
+    );
   }
 
   if (location.pathname === "/registro") {
-    return <Registro />;
+    return (
+      <>
+        <Registro />
+        {renderLanguageSelector()}
+      </>
+    );
   }
 
   // Função para gerenciar a mudança de visão
@@ -164,129 +196,136 @@ function App() {
 
   // Layout principal da aplicação
   return (
-    <div className="flex flex-col md:flex-row w-full md:w-[90vw] lg:w-[85vw] xl:w-[90vw] 2xl:w-[1440px] mx-auto m-2 mt-4 md:mt-12 gap-3 px-2 md:px-0 content-area">
-      {/* Menu hamburger para mobile */}
-      <button
-        className="md:hidden flex items-center justify-center bg-cinza-escuro p-3 rounded-xl mb-2 text-white cursor-pointer"
-        onClick={toggleMenu}
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          className="h-6 w-6"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
+    <>
+      <div className="flex flex-col md:flex-row w-full md:w-[90vw] lg:w-[85vw] xl:w-[90vw] 2xl:w-[1440px] mx-auto m-2 mt-4 md:mt-12 gap-3 px-2 md:px-0 content-area">
+        {/* Menu hamburger para mobile */}
+        <button
+          className="md:hidden flex items-center justify-center bg-cinza-escuro p-3 rounded-xl mb-2 text-white cursor-pointer"
+          onClick={toggleMenu}
         >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M4 6h16M4 12h16M4 18h16"
-          />
-        </svg>
-        <span className="ml-2">Menu</span>
-      </button>
-
-      {/* Sidebar - mostrada/escondida em mobile */}
-      <div
-        className={`${
-          menuAberto ? "block" : "hidden"
-        } md:block md:sticky md:top-10 md:self-start`}
-      >
-        <Sidebar activeView={activeView} setActiveView={handleViewChange} />
-      </div>
-
-      <div className="flex flex-col w-full">
-        {/* Barra de pesquisa com posição sticky e z-index alto */}
-        <div className="sticky top-10 z-100 flex items-center">
-          <div className="flex-grow">
-            <BarraDePesquisa
-              onSearch={handleSearch}
-              activeView={activeView}
-              termoPesquisa={termoPesquisa}
-            />
-          </div>
-
-          {/* Botão de logout para mobile */}
-          <button
-            onClick={() => {
-              // Fazer logout
-              if (usuarioFirebase) {
-                fazerLogout().then(() => {
-                  navigate("/login");
-                });
-              } else {
-                navigate("/login");
-              }
-            }}
-            className="md:hidden ml-2 bg-cinza-escuro text-white p-2 rounded-lg cursor-pointer"
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-6 w-6"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
-              />
-            </svg>
-          </button>
-        </div>
-        {/* Conteúdo do feed sem barra de rolagem */}
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M4 6h16M4 12h16M4 18h16"
+            />
+          </svg>
+          <span className="ml-2">{t("app.menu")}</span>
+        </button>
+
+        {/* Sidebar - mostrada/escondida em mobile */}
         <div
-          className="overflow-auto mt-4 mb-safe"
-          style={{
-            scrollbarWidth: "thin",
-            scrollbarColor: " #81fe88 #2C2C2C",
-            height: "calc(var(--app-height) - 80px)",
-            paddingBottom: "var(--safe-area-inset-bottom)",
-          }}
+          className={`${
+            menuAberto ? "block" : "hidden"
+          } md:block md:sticky md:top-10 md:self-start`}
         >
-          <Routes>
-            <Route
-              path="/feed"
-              element={<Feed activeView="feed" termoPesquisa={termoPesquisa} />}
-            />
-            <Route
-              path="/albuns"
-              element={
-                <Feed activeView="albuns" termoPesquisa={termoPesquisa} />
-              }
-            />
-            <Route
-              path="/artistas"
-              element={
-                <Feed activeView="artistas" termoPesquisa={termoPesquisa} />
-              }
-            />
-            <Route
-              path="/minhas-avaliacoes"
-              element={
-                <Feed
-                  activeView="classificacoes"
-                  termoPesquisa={termoPesquisa}
+          <Sidebar activeView={activeView} setActiveView={handleViewChange} />
+        </div>
+
+        <div className="flex flex-col w-full">
+          {/* Barra de pesquisa com posição sticky e z-index alto */}
+          <div className="sticky top-10 z-100 flex items-center">
+            <div className="flex-grow">
+              <BarraDePesquisa
+                onSearch={handleSearch}
+                activeView={activeView}
+                termoPesquisa={termoPesquisa}
+              />
+            </div>
+
+            {/* Botão de logout para mobile */}
+            <button
+              onClick={() => {
+                // Fazer logout
+                if (usuarioFirebase) {
+                  fazerLogout().then(() => {
+                    navigate("/login");
+                  });
+                } else {
+                  navigate("/login");
+                }
+              }}
+              className="md:hidden ml-2 bg-cinza-escuro text-white p-2 rounded-lg cursor-pointer"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-5 w-5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
                 />
-              }
-            />
-            <Route path="/login" element={<Login />} />
-            <Route path="/registro" element={<Registro />} />
-            <Route path="/album/:id" element={<Feed activeView="album" />} />
-          </Routes>
+              </svg>
+            </button>
+          </div>
+          {/* Conteúdo do feed sem barra de rolagem */}
+          <div
+            className="overflow-auto mt-4 mb-safe"
+            style={{
+              scrollbarWidth: "thin",
+              scrollbarColor: " #81fe88 #2C2C2C",
+              height: "calc(var(--app-height) - 80px)",
+              paddingBottom: "var(--safe-area-inset-bottom)",
+            }}
+          >
+            <Routes>
+              <Route
+                path="/feed"
+                element={
+                  <Feed activeView="feed" termoPesquisa={termoPesquisa} />
+                }
+              />
+              <Route
+                path="/albuns"
+                element={
+                  <Feed activeView="albuns" termoPesquisa={termoPesquisa} />
+                }
+              />
+              <Route
+                path="/artistas"
+                element={
+                  <Feed activeView="artistas" termoPesquisa={termoPesquisa} />
+                }
+              />
+              <Route
+                path="/minhas-avaliacoes"
+                element={
+                  <Feed
+                    activeView="classificacoes"
+                    termoPesquisa={termoPesquisa}
+                  />
+                }
+              />
+              <Route path="/login" element={<Login />} />
+              <Route path="/registro" element={<Registro />} />
+              <Route path="/album/:id" element={<Feed activeView="album" />} />
+            </Routes>
+          </div>
+        </div>
+
+        {/* Perfil do usuário no canto superior direito - agora sticky */}
+        <div className="hidden md:block md:sticky md:top-10 md:self-start z-40">
+          <div className="mb-4 sticky top-10">
+            <PerfilUsuario />
+          </div>
         </div>
       </div>
 
-      {/* Perfil do usuário no canto superior direito - agora sticky */}
-      <div className="hidden md:block md:sticky md:top-10 md:self-start z-40">
-        <div className="mb-4 sticky top-10">
-          <PerfilUsuario />
-        </div>
-      </div>
-    </div>
+      {/* Seletor de idioma */}
+      {renderLanguageSelector()}
+    </>
   );
 }
 

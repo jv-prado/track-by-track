@@ -1,0 +1,100 @@
+{
+  "app": {
+    "feed": "Feed",
+    "albums": "Albums",
+    "artists": "Artists",
+    "myRatings": "My Ratings",
+    "search": "Search...",
+    "logout": "Logout",
+    "login": "Login",
+    "register": "Register",
+    "menu": "Menu",
+    "update": "Update",
+    "loading": "Loading...",
+    "error": "Error",
+    "tryAgain": "Try again",
+    "demoMode": "Demo Mode (no account)",
+    "continueWith": "or continue with",
+    "enteringAccount": "Signing in..."
+  },
+  "auth": {
+    "email": "Email",
+    "password": "Password",
+    "confirmPassword": "Confirm Password",
+    "loginButton": "Login",
+    "registerButton": "Register",
+    "forgotPassword": "Forgot password?",
+    "noAccount": "Don't have an account?",
+    "createAccount": "Sign up",
+    "alreadyAccount": "Already have an account?",
+    "loginHere": "Login here",
+    "loginError": "Failed to login. Check your email and password.",
+    "googleLoginError": "Failed to login with Google."
+  },
+  "feedback": {
+    "loading": "Loading...",
+    "loadingRatings": "Loading ratings...",
+    "loadingAlbums": "Loading albums...",
+    "loadingArtists": "Loading artists...",
+    "loadingTracks": "Loading tracks...",
+    "errorLoading": "Error loading.",
+    "errorLoadingRatings": "Error loading ratings.",
+    "errorLoadingAlbums": "Error loading albums.",
+    "reload": "Reload page",
+    "unexpectedError": "An unexpected error occurred."
+  },
+  "feed": {
+    "titulo": "Global Feed",
+    "modoDemo": "Demo mode",
+    "atualizar": "Update",
+    "nenhumaAvaliacao": "No ratings found",
+    "sejaPrimeiro": "Be the first to rate an album!",
+    "cliqueVerDetalhes": "Click to see album details",
+    "ouvirSpotify": "Listen on Spotify",
+    "verAvaliacoes": "View ratings",
+    "verAvaliacoesUsuario": "View this user's ratings",
+    "fotoUsuario": "{{nome}}'s photo",
+    "capaAlbum": "{{nome}} album cover",
+    "avaliado": "Rated: {{avaliadas}}/{{total}}",
+    "carregando": "Loading feed...",
+    "erroCarregamento": "Error loading feed"
+  },
+  "myRatings": {
+    "title": "My Ratings",
+    "ratedAlbums": "My Rated Albums",
+    "noAlbumsRated": "You haven't rated any albums yet. Explore albums and rate their tracks to see them here.",
+    "noMatchingAlbums": "No albums match the selected filters.",
+    "update": "Update",
+    "loadingAlbums": "Loading albums ({{progress}}%)...",
+    "sessionExpired": "Session Expired",
+    "loginAgain": "Your session has expired or you're not authenticated. To continue using the app, please log in again.",
+    "loading": "Loading...",
+    "enterDemoMode": "Enter Demo Mode",
+    "error": {
+      "title": "Oops! Something went wrong",
+      "message": "An error occurred while trying to display your ratings. Try refreshing the page.",
+      "details": "Details",
+      "reload": "Reload Page"
+    }
+  },
+  "filters": {
+    "search": "Search",
+    "albumOrArtistName": "Album or artist name",
+    "sortByRating": "Sort by rating",
+    "filterByRating": "Filter by rating",
+    "rating": "Rating",
+    "to": "to"
+  },
+  "albumCard": {
+    "coverAlt": "{{albumName}} album cover",
+    "unknownArtist": "Unknown artist",
+    "rated": "Rated",
+    "viewTracks": "View tracks"
+  },
+  "demoMode": {
+    "wantToTry": "Want to try without creating an account?",
+    "useDemo": "Use Demo Mode",
+    "starting": "Starting...",
+    "feedNotAvailable": "The Global Feed won't be available, but ratings will be saved in your browser."
+  }
+}

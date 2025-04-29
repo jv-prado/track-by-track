@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 912 604">
+  <rect width="912" height="604" fill="#fff"/>
+  <g fill="#bf0a30">
+    <rect width="912" height="46.5" y="0"/>
+    <rect width="912" height="46.5" y="93"/>
+    <rect width="912" height="46.5" y="186"/>
+    <rect width="912" height="46.5" y="279"/>
+    <rect width="912" height="46.5" y="372"/>
+    <rect width="912" height="46.5" y="465"/>
+    <rect width="912" height="46.5" y="558"/>
+  </g>
+  <rect width="364.8" height="325.5" fill="#002868"/>
+  <g fill="#fff">
+    <g id="s3">
+      <g id="s4">
+        <g id="s2">
+          <g id="s1">
+            <polygon id="s" points="24.3,14 28.3,26.4 41.5,26.4 30.9,34 35,46.5 24.3,38.9 13.7,46.5 17.8,34 7.2,26.4 20.4,26.4"/>
+            <use x="48.6" href="#s"/>
+            <use x="97.2" href="#s"/>
+            <use x="145.8" href="#s"/>
+            <use x="194.4" href="#s"/>
+          </g>
+          <use y="54.3" href="#s1"/>
+        </g>
+        <use y="108.6" href="#s2"/>
+      </g>
+      <use y="162.9" href="#s4"/>
+    </g>
+    <use y="217.2" href="#s3"/>
+  </g>
+</svg> 

@@ -1,30 +1,52 @@
-import { FaSearch } from "react-icons/fa";
+import React, { useState, useEffect } from "react";
+import { IoSearchOutline } from "react-icons/io5";
+import { useTranslation } from "react-i18next";
 
-interface BarraDePesquisaProps {
-  onSearch: (termo: string) => void;
-  activeView?: string; // Opcional já que não estamos usando
-  termoPesquisa?: string;
-}
+/**
+ * Componente de barra de pesquisa
+ *
+ * @param {Object} props - Propriedades do componente
+ * @param {Function} props.onSearch - Função chamada ao realizar pesquisa
+ * @param {string} props.activeView - Visualização atual ativa
+ * @param {string} props.termoPesquisa - Termo de pesquisa atual
+ * @returns {JSX.Element} Componente de barra de pesquisa
+ */
+const BarraDePesquisa = ({ onSearch, activeView, termoPesquisa = "" }) => {
+  const [termo, setTermo] = useState(termoPesquisa);
+  const { t } = useTranslation();
 
-export default function BarraDePesquisa({
-  onSearch,
-  termoPesquisa = "",
-}: BarraDePesquisaProps) {
-  const handleSearch = (e) => {
-    onSearch(e.target.value);
+  // Atualizar termo quando a visualização ativa mudar
+  useEffect(() => {
+    setTermo(termoPesquisa);
+  }, [termoPesquisa, activeView]);
+
+  // Função para lidar com a mudança no valor do input
+  const handleChange = (event) => {
+    const novoTermo = event.target.value;
+    setTermo(novoTermo);
+    onSearch(novoTermo);
+  };
+
+  // Função para lidar com o envio do formulário
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    onSearch(termo);
   };
 
   return (
-    <div className="relative flex flex-col gap-2 md:gap-4 w-full">
-      <FaSearch className="absolute left-3 top-[13px] md:top-4.5 text-verde-destaque text-sm md:text-base" />
-
+    <form onSubmit={handleSubmit} className="relative w-full flex items-center">
+      <div className="absolute left-4 top-1/2 transform -translate-y-1/2 text-cinza">
+        <IoSearchOutline className="text-xl text-gray-400" />
+      </div>
       <input
-        className="pl-9 md:pl-10 bg-cinza-escuro h-[40px] md:h-[50px] hover:bg-cinza transition-colors rounded-xl text-sm md:text-base w-full"
         type="text"
-        placeholder="Digite o que você procura"
-        value={termoPesquisa}
-        onChange={handleSearch}
+        placeholder={t("app.search")}
+        value={termo}
+        onChange={handleChange}
+        className="w-full pl-12 pr-4 py-3 bg-cinza-escuro text-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-verde-destaque transition-all placeholder-gray-400"
       />
-    </div>
+    </form>
   );
-}
+};
+
+export default BarraDePesquisa;

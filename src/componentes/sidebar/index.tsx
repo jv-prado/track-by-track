@@ -9,11 +9,17 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import { fazerLogout } from "../../services/firebase";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 export default function Sidebar({ activeView, setActiveView }) {
   const { usuario: usuarioFirebase, usuarioDemo, usuarioAtivo } = useAuth();
   const navigate = useNavigate();
+  const { t, i18n } = useTranslation();
   const [modoDemoBrowser, setModoDemo] = useState(false);
+
+  // Determinar o idioma atual
+  const currentLanguage = i18n.language || "pt-BR";
+  const isPortuguese = currentLanguage.startsWith("pt");
 
   // Função para verificar o localStorage e detectar modo demo
   const verificarModoDemo = () => {
@@ -59,11 +65,59 @@ export default function Sidebar({ activeView, setActiveView }) {
     navigate("/login");
   };
 
+  // Função para alternar entre idiomas
+  const changeLanguage = () => {
+    const newLanguage = isPortuguese ? "en-US" : "pt-BR";
+    i18n.changeLanguage(newLanguage);
+    localStorage.setItem("i18nextLng", newLanguage);
+  };
+
   // Verificar se o usuário está autenticado via contexto OU via localStorage
   const usuarioAtivoLocal = usuarioAtivo || modoDemoBrowser;
 
+  // Rendereiza a opção de login no menu de navegação
+  const renderLoginOption = () => (
+    <button
+      onClick={() => {
+        navigate("/login");
+      }}
+      className="flex items-center space-x-2 p-3 rounded-xl cursor-pointer text-white hover:bg-verde-claro hover:text-preto transition-colors mt-auto"
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        className="h-6 w-6"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2}
+          d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"
+        />
+      </svg>
+      <span>{t("app.login")}</span>
+    </button>
+  );
+
   return (
-    <aside className="bg-cinza-escuro rounded-xl py-5 md:py-10 px-4 md:px-10 w-full md:max-w-[200px] flex flex-col items-center gap-6 md:gap-10 mb-4 md:mb-0 md:h-fit">
+    <aside className="bg-cinza-escuro rounded-xl py-5 md:py-10 px-4 md:px-10 w-full md:max-w-[200px] flex flex-col items-center gap-6 md:gap-10 mb-4 md:mb-0 md:h-fit relative">
+      {/* Botão de troca de idioma no canto superior direito */}
+      <button
+        onClick={changeLanguage}
+        className="absolute top-4 right-4 w-8 h-6 rounded overflow-hidden cursor-pointer hover:opacity-80 transition-opacity border border-gray-600 block md:hidden"
+        title={isPortuguese ? "Mudar para inglês" : "Change to Portuguese"}
+      >
+        <img
+          src={
+            isPortuguese ? "/images/flags/usa.svg" : "/images/flags/brazil.svg"
+          }
+          alt={isPortuguese ? "English" : "Português"}
+          className="w-full h-full object-cover"
+        />
+      </button>
+
       <Link to="/">
         <img
           className="w-28 md:w-40 h-auto hover:scale-110 transition-all duration-600"
@@ -75,19 +129,13 @@ export default function Sidebar({ activeView, setActiveView }) {
         <ul className="flex flex-col gap-6 md:gap-12 text-center w-full">
           {!usuarioAtivoLocal ? (
             // Botão de login quando não está autenticado
-            <Link
-              to="/login"
-              className="bg-verde-destaque text-white py-2 px-4 rounded-full font-medium hover:bg-verde-destaque/90 transition-all transform hover:scale-105 flex items-center justify-center gap-2 shadow-lg"
-            >
-              Entrar na sua conta
-            </Link>
+            renderLoginOption()
           ) : (
             // Itens de navegação quando está autenticado
-
             <>
               <SidebarItem
                 icon={FaGlobe}
-                text="Feed"
+                text={t("app.feed")}
                 iconSize="text-2xl md:text-3xl"
                 active={activeView === "feed"}
                 onClick={() => {
@@ -97,7 +145,7 @@ export default function Sidebar({ activeView, setActiveView }) {
               />
               <SidebarItem
                 icon={MdAlbum}
-                text="Álbuns"
+                text={t("app.albums")}
                 iconSize="text-2xl md:text-3xl"
                 active={activeView === "albuns"}
                 onClick={() => {
@@ -107,7 +155,7 @@ export default function Sidebar({ activeView, setActiveView }) {
               />
               <SidebarItem
                 icon={FaUser}
-                text="Artistas"
+                text={t("app.artists")}
                 iconSize="text-2xl md:text-3xl"
                 active={activeView === "artistas"}
                 onClick={() => {
@@ -117,7 +165,7 @@ export default function Sidebar({ activeView, setActiveView }) {
               />
               <SidebarItem
                 icon={IoStarSharp}
-                text="Minhas avaliações"
+                text={t("app.myRatings")}
                 iconSize="text-2xl md:text-3xl"
                 active={activeView === "classificacoes"}
                 onClick={() => {
@@ -126,9 +174,10 @@ export default function Sidebar({ activeView, setActiveView }) {
                 }}
               />
 
+              {/* Botão de logout */}
               <SidebarItem
                 icon={IoMdExit}
-                text="Sair"
+                text={t("app.logout")}
                 iconSize="text-2xl md:text-3xl"
                 onClick={handleLogout}
               />

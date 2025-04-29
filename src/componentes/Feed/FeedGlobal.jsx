@@ -11,12 +11,14 @@ import { IoMdHeart, IoMdHeartDislike } from "react-icons/io";
 import { useNavigate } from "react-router-dom";
 import { FaRegStar } from "react-icons/fa";
 import ModalAvaliacoesUsuario from "./ModalAvaliacoesUsuario";
+import { useTranslation } from "react-i18next";
 
 /**
  * Componente que exibe as últimas avaliações feitas por todos os usuários
  * @returns {JSX.Element} Componente de feed global
  */
 const FeedGlobal = () => {
+  const { t } = useTranslation();
   const [avaliacoes, setAvaliacoes] = useState([]);
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState(null);
@@ -191,9 +193,7 @@ const FeedGlobal = () => {
   };
 
   if (carregando) {
-    return (
-      <Carregamento mensagem="Carregando avaliações de todos os usuários..." />
-    );
+    return <Carregamento mensagem={t("feed.carregando")} />;
   }
 
   if (erro) {
@@ -201,7 +201,7 @@ const FeedGlobal = () => {
       <ErroCarregamento
         mensagem={erro}
         onTentarNovamente={carregarAvaliacoes}
-        titulo="Erro ao carregar feed global"
+        titulo={t("feed.erroCarregamento")}
       />
     );
   }
@@ -211,10 +211,10 @@ const FeedGlobal = () => {
       <div className="flex justify-between items-center mb-6">
         <div>
           <h2 className="text-xl md:text-2xl font-bold text-verde-destaque flex items-center">
-            Feed de Avaliações
+            {t("feed.titulo")}
             {usandoDadosDemo && (
               <span className="text-xs ml-2 bg-amber-700/20 text-amber-500 px-2 py-1 rounded-full">
-                Modo demonstração
+                {t("feed.modoDemo")}
               </span>
             )}
           </h2>
@@ -226,7 +226,7 @@ const FeedGlobal = () => {
             onClick={carregarAvaliacoes}
             className="text-xs md:text-sm bg-verde-destaque/20 hover:bg-verde-destaque/30 text-verde-destaque px-3 py-1 rounded-full transition-colors hover:cursor-pointer"
           >
-            Atualizar
+            {t("feed.atualizar")}
           </button>
         </div>
       </div>
@@ -248,11 +248,9 @@ const FeedGlobal = () => {
             />
           </svg>
           <p className="text-gray-300 text-lg font-medium">
-            Nenhuma avaliação encontrada.
+            {t("feed.nenhumaAvaliacao")}
           </p>
-          <p className="text-gray-500 mt-2">
-            Seja o primeiro a avaliar um álbum!
-          </p>
+          <p className="text-gray-500 mt-2">{t("feed.sejaPrimeiro")}</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-4 md:gap-5">
@@ -261,7 +259,7 @@ const FeedGlobal = () => {
               key={`${avaliacao.id}-${avaliacao.usuario.id}-${index}`}
               className="bg-cinza-escuro rounded-xl overflow-hidden shadow-lg transition-all duration-300 hover:scale-[1.02] hover:shadow-xl flex flex-col h-full cursor-pointer relative hover:bg-cinza-escuro/90 group"
               onClick={(e) => navegarParaAlbum(avaliacao.id, e)}
-              title="Clique para ver detalhes do álbum"
+              title={t("feed.cliqueVerDetalhes")}
             >
               <div className="flex flex-col lg:flex-row h-full">
                 {/* LADO ESQUERDO: Imagem do álbum, nome, artista, usuário e botão Spotify */}
@@ -276,7 +274,9 @@ const FeedGlobal = () => {
                       ) : avaliacao.usuario.foto ? (
                         <img
                           src={avaliacao.usuario.foto}
-                          alt={`Foto de ${avaliacao.usuario.nome}`}
+                          alt={t("feed.fotoUsuario", {
+                            nome: avaliacao.usuario.nome,
+                          })}
                           className="w-full h-full object-cover"
                           onError={(e) => {
                             e.target.style.display = "none";
@@ -325,7 +325,7 @@ const FeedGlobal = () => {
                       ) : avaliacao.imagem ? (
                         <img
                           src={avaliacao.imagem}
-                          alt={`Capa do álbum ${avaliacao.nome}`}
+                          alt={t("feed.capaAlbum", { nome: avaliacao.nome })}
                           className="w-full h-full object-cover rounded-lg"
                           onError={handleImageError}
                           loading="lazy"
@@ -361,18 +361,18 @@ const FeedGlobal = () => {
                         >
                           <FaSpotify className="mr-1 text-green-400" />
                           <span className="whitespace-nowrap">
-                            Ouvir no Spotify
+                            {t("feed.ouvirSpotify")}
                           </span>
                         </a>
 
                         <button
                           className="inline-flex items-center px-2 py-1 bg-gradient-to-r from-verde-destaque/20 to-verde-destaque/30 rounded-md text-xs text-verde-destaque hover:from-verde-destaque/30 hover:to-verde-destaque/40 shadow-sm transition-colors z-20 relative cursor-pointer"
                           onClick={(e) => abrirModalAvaliacoes(avaliacao, e)}
-                          title="Ver avaliações de faixas deste usuário para este álbum"
+                          title={t("feed.verAvaliacoesUsuario")}
                         >
                           <FaRegStar className="mr-1 text-verde-destaque" />
                           <span className="whitespace-nowrap">
-                            Ver avaliações
+                            {t("feed.verAvaliacoes")}
                           </span>
                         </button>
                       </div>
@@ -392,7 +392,7 @@ const FeedGlobal = () => {
                               avaliacao.media || avaliacao.mediaAvaliacao
                             )
                           : "bg-gray-500/50"
-                      } text-cinza-escuro rounded-lg px-3 py-1.5 font-bold text-xl flex items-center justify-center shadow-sm w-20 md:w-24 lg:w-full`}
+                      } text-cinza-escuro rounded-lg px-3 py-1.5 font-bold text-xl flex items-center justify-center shadow-sm w-20 md:w-20 lg:w-20`}
                     >
                       <span
                         className={
@@ -414,8 +414,10 @@ const FeedGlobal = () => {
                       <div className="flex flex-col items-center w-full">
                         <div className="text-xs text-gray-300 mb-1 text-center font-medium truncate w-full">
                           <span className="whitespace-nowrap">
-                            Avaliado: {avaliacao.progresso.avaliadas}/
-                            {avaliacao.progresso.total}
+                            {t("feed.avaliado", {
+                              avaliadas: avaliacao.progresso.avaliadas,
+                              total: avaliacao.progresso.total,
+                            })}
                           </span>
                         </div>
                         <div className="w-16 md:w-20 lg:w-full h-4 bg-gray-800/70 rounded-full overflow-hidden shadow-inner relative">

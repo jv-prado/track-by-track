@@ -10,6 +10,7 @@ import { isAuthenticated, recuperarAutenticacao } from "../../services/auth";
 import { loginWithClientCredentials } from "../../services/api";
 import { configurarSincronizacaoAutomatica } from "../../services/avaliacoes";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 /**
  * Componente de barra de progresso para carregamento
@@ -59,20 +60,19 @@ class TratadorErros extends React.Component {
             <MdReportProblem size={48} className="mx-auto" />
           </div>
           <h2 className="text-2xl font-bold text-red-400 mb-4">
-            Ops! Algo deu errado
+            {this.props.translations.errorTitle}
           </h2>
           <p className="text-gray-400 mb-6">
-            Ocorreu um erro ao tentar exibir suas avaliações. Tente atualizar a
-            página.
+            {this.props.translations.errorMessage}
           </p>
           <p className="text-gray-500 text-sm mt-3 mb-6">
-            Detalhes: {this.state.mensagemErro}
+            {this.props.translations.errorDetails}: {this.state.mensagemErro}
           </p>
           <button
             onClick={() => window.location.reload()}
             className="bg-verde-destaque hover:bg-verde-destaque/80 text-white font-bold py-2 px-6 rounded-full focus:outline-none focus:shadow-outline transition-all cursor-pointer"
           >
-            Recarregar Página
+            {this.props.translations.reloadPage}
           </button>
         </div>
       );
@@ -87,6 +87,7 @@ class TratadorErros extends React.Component {
  * @returns {JSX.Element} Componente de álbuns avaliados
  */
 const MinhasAvaliacoes = () => {
+  const { t } = useTranslation();
   const [autenticado, setAutenticado] = useState(isAuthenticated());
   const [carregandoAuth, setCarregandoAuth] = useState(false);
   const [tentouRecuperar, setTentouRecuperar] = useState(false);
@@ -263,6 +264,7 @@ const MinhasAvaliacoes = () => {
 
   const atualizarListaAlbuns = () => {
     // Recarregar álbuns, mantendo a indicação de progresso visível
+    setCarregamentoProgressivo(true);
     recarregarListaAlbuns();
   };
 
@@ -276,18 +278,17 @@ const MinhasAvaliacoes = () => {
     return (
       <div className="p-8 text-center">
         <h2 className="text-2xl font-bold text-verde-destaque mb-4">
-          Sessão Expirada
+          {t("myRatings.sessionExpired")}
         </h2>
-        <p className="text-gray-400 mb-6">
-          Sua sessão expirou ou você não está autenticado. Para continuar usando
-          o aplicativo, faça login novamente.
-        </p>
+        <p className="text-gray-400 mb-6">{t("myRatings.loginAgain")}</p>
         <button
           onClick={fazerLoginDemo}
           className="bg-verde-destaque hover:bg-verde-destaque/80 text-white font-bold py-2 px-6 rounded-full focus:outline-none focus:shadow-outline transition-all cursor-pointer"
           disabled={carregandoAuth}
         >
-          {carregandoAuth ? "Carregando..." : "Entrar no Modo Demonstração"}
+          {carregandoAuth
+            ? t("myRatings.loading")
+            : t("myRatings.enterDemoMode")}
         </button>
       </div>
     );
@@ -320,12 +321,9 @@ const MinhasAvaliacoes = () => {
     return (
       <div className="p-8 text-center">
         <h2 className="text-2xl font-bold text-verde-destaque mb-4">
-          Minhas Avaliações
+          {t("myRatings.title")}
         </h2>
-        <p className="text-gray-400">
-          Você ainda não avaliou nenhum álbum. Explore álbuns e avalie suas
-          faixas para vê-los aqui.
-        </p>
+        <p className="text-gray-400">{t("myRatings.noAlbumsRated")}</p>
       </div>
     );
   }
@@ -334,14 +332,14 @@ const MinhasAvaliacoes = () => {
     <div className="p-6">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-2xl font-bold text-verde-destaque">
-          Meus Álbuns Avaliados
+          {t("myRatings.ratedAlbums")}
         </h2>
 
         <button
           onClick={atualizarListaAlbuns}
           className="text-sm bg-verde-destaque/20 hover:bg-verde-destaque/30 text-verde-destaque px-3 py-1 rounded-full transition-colors hover:cursor-pointer"
         >
-          Atualizar
+          {t("myRatings.update")}
         </button>
       </div>
 
@@ -350,7 +348,7 @@ const MinhasAvaliacoes = () => {
         <div className="mb-4">
           <BarraProgresso progresso={progressoCarregamento} />
           <p className="text-xs text-gray-400 text-right">
-            Carregando álbuns ({progressoCarregamento}%)...
+            {t("myRatings.loadingAlbums", { progress: progressoCarregamento })}
           </p>
         </div>
       )}
@@ -368,7 +366,7 @@ const MinhasAvaliacoes = () => {
       {/* Exibir mensagem se nenhum álbum corresponder aos filtros */}
       {!albunsExibidos || albunsExibidos.length === 0 ? (
         <p className="text-center text-gray-400 py-8 text-sm md:text-base">
-          Nenhum álbum corresponde aos filtros selecionados.
+          {t("myRatings.noMatchingAlbums")}
         </p>
       ) : (
         <div
@@ -393,10 +391,21 @@ const MinhasAvaliacoes = () => {
 };
 
 // Componente MinhasAvaliacoes envolvido pelo TratadorErros
-const MinhasAvaliacoesComTratamentoErro = () => (
-  <TratadorErros>
-    <MinhasAvaliacoes />
-  </TratadorErros>
-);
+const MinhasAvaliacoesComTratamentoErro = () => {
+  const { t } = useTranslation();
+
+  const errorTranslations = {
+    errorTitle: t("myRatings.error.title"),
+    errorMessage: t("myRatings.error.message"),
+    errorDetails: t("myRatings.error.details"),
+    reloadPage: t("myRatings.error.reload"),
+  };
+
+  return (
+    <TratadorErros translations={errorTranslations}>
+      <MinhasAvaliacoes />
+    </TratadorErros>
+  );
+};
 
 export default MinhasAvaliacoesComTratamentoErro;

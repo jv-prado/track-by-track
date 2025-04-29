@@ -15,6 +15,7 @@ import {
   carregarAvaliacoesSincronizadas,
 } from "./services/sync";
 import { migrarDadosAvaliacoes } from "./services/avaliacoes";
+import { App as CapApp } from "@capacitor/app";
 
 // Componente principal da aplicação
 function App() {
@@ -24,6 +25,36 @@ function App() {
   const navigate = useNavigate();
   const location = useLocation();
   const { usuario: usuarioFirebase } = useAuth();
+
+  // Lidar com o botão voltar usando o plugin oficial do Capacitor
+  useEffect(() => {
+    const setupBackButton = async () => {
+      // Registrar listener para o evento de botão voltar do hardware
+      CapApp.addListener("backButton", () => {
+        // Se estivermos em uma página diferente da principal, voltar para a anterior
+        if (
+          location.pathname !== "/feed" &&
+          location.pathname !== "/login" &&
+          location.pathname !== "/registro" &&
+          location.pathname !== "/splash"
+        ) {
+          navigate(-1);
+        } else if (location.pathname === "/feed") {
+          // No feed principal, não fazer nada ou mostrar diálogo de confirmação
+          console.log("No feed principal, não navegando para trás");
+          // Opcional: mostrar diálogo perguntando se deseja sair
+          // CapApp.exitApp(); // Para sair do app
+        }
+      });
+    };
+
+    setupBackButton();
+
+    return () => {
+      // Limpar o listener ao desmontar
+      CapApp.removeAllListeners();
+    };
+  }, [navigate, location.pathname]);
 
   // Carregar a view ativa do localStorage se disponível
   useEffect(() => {

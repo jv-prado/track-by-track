@@ -1302,14 +1302,14 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
           {/* Mobile view - sem tempo */}
           <div className="xs:hidden">
             {/* Cabeçalho */}
-            <div className="grid grid-cols-[1.5rem_minmax(0,1fr)_6rem] gap-x-1 mb-2">
+            <div className="grid grid-cols-[1.5rem_minmax(0,1fr)_5.5rem] gap-x-1 mb-2">
               <div className="font-bold text-gray-400 text-center text-xs">
                 #
               </div>
               <div className="font-bold text-gray-400 text-xs">
                 {t("albumDetails.title")}
               </div>
-              <div className="font-bold text-gray-400 text-center text-xs">
+              <div className="font-bold text-gray-400 ml-5 md:ml-3 text-xs pr-1">
                 {t("albumDetails.rating")}
               </div>
             </div>
@@ -1318,7 +1318,7 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
             {faixas.items.map((faixa, index) => (
               <div
                 key={faixa.id}
-                className="grid grid-cols-[1.5rem_minmax(0,1fr)_6rem] gap-x-1 py-1.5 border-t border-gray-800"
+                className="grid grid-cols-[1.5rem_minmax(0,1fr)_5.5rem] gap-x-1 py-1.5 border-t border-gray-800"
               >
                 <div className="text-gray-400 text-center text-xs self-center">
                   {index + 1}
@@ -1326,7 +1326,7 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
                 <div className="truncate pr-1 text-xs sm:text-sm self-center font-medium">
                   {faixa.name}
                 </div>
-                <div className="flex justify-center items-center">
+                <div className="flex justify-end items-center pr-1">
                   <Estrelas
                     avaliacao={avaliacoes[faixa.id] || 0}
                     onChange={(estrelas) => avaliarFaixa(faixa.id, estrelas)}
@@ -1350,7 +1350,7 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
               <div className="font-bold text-gray-400 text-center text-xs">
                 {t("albumDetails.time")}
               </div>
-              <div className="font-bold text-gray-400 text-center text-xs">
+              <div className="font-bold text-gray-400 text-center text-xs pr-1">
                 {t("albumDetails.rating")}
               </div>
             </div>
@@ -1370,7 +1370,7 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
                 <div className="text-gray-400 text-center text-xs self-center">
                   {formatarDuracao(faixa.duration_ms)}
                 </div>
-                <div className="flex justify-center items-center">
+                <div className="flex justify-end items-center pr-1">
                   <Estrelas
                     avaliacao={avaliacoes[faixa.id] || 0}
                     onChange={(estrelas) => avaliarFaixa(faixa.id, estrelas)}

@@ -277,54 +277,72 @@ const FeedGlobal = () => {
             >
               <div className="flex flex-col lg:flex-row h-full">
                 {/* LADO ESQUERDO: Imagem do álbum, nome, artista, usuário e botão Spotify */}
-                <div className="flex-grow p-3 flex flex-col min-w-0">
-                  {/* Informações do usuário em primeiro lugar */}
-                  <div className="flex items-center mb-3 text-xs md:text-sm text-gray-300 min-w-0">
-                    <div className="w-6 h-6 md:w-7 md:h-7 rounded-full overflow-hidden bg-gray-800 flex-shrink-0 mr-2 shadow-sm">
-                      {usandoDadosDemo ? (
-                        <div className="w-full h-full flex items-center justify-center bg-verde-destaque/20 text-verde-destaque">
-                          {avaliacao.usuario.nome.charAt(0).toUpperCase()}
-                        </div>
-                      ) : avaliacao.usuario.foto ? (
-                        <img
-                          src={avaliacao.usuario.foto}
-                          alt={t("feed.fotoUsuario", {
-                            nome: avaliacao.usuario.nome,
-                          })}
-                          className="w-full h-full object-cover"
-                          onError={(e) => {
-                            e.target.style.display = "none";
-                            e.target.parentElement.classList.add(
-                              "flex",
-                              "items-center",
-                              "justify-center",
-                              "bg-verde-destaque/20"
-                            );
-                            const fallbackText = document.createElement("div");
-                            fallbackText.className =
-                              "text-verde-destaque text-xs font-bold";
-                            fallbackText.textContent = avaliacao.usuario.nome
-                              .charAt(0)
-                              .toUpperCase();
-                            e.target.parentElement.appendChild(fallbackText);
-                          }}
-                          loading="lazy"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center bg-verde-destaque/20 text-verde-destaque">
-                          {avaliacao.usuario.nome.charAt(0).toUpperCase()}
-                        </div>
-                      )}
-                    </div>
-                    <div className="flex flex-col min-w-0">
-                      <span className="font-medium truncate max-w-[150px] md:max-w-[200px]">
-                        {avaliacao.usuario.nome}
-                      </span>
-                      <span className="text-xs opacity-70 truncate max-w-[150px] md:max-w-[200px]">
-                        {formatarDataSegura(
-                          avaliacao.data || avaliacao.dataAvaliacao
+                <div className="flex-grow p-3 flex flex-col min-w-0 relative">
+                  {/* Informações do usuário e nota (em telas pequenas) */}
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center text-xs md:text-sm text-gray-300 min-w-0">
+                      <div className="w-6 h-6 md:w-7 md:h-7 rounded-full overflow-hidden bg-gray-800 flex-shrink-0 mr-2 shadow-sm">
+                        {usandoDadosDemo ? (
+                          <div className="w-full h-full flex items-center justify-center bg-verde-destaque/20 text-verde-destaque">
+                            {avaliacao.usuario.nome.charAt(0).toUpperCase()}
+                          </div>
+                        ) : avaliacao.usuario.foto ? (
+                          <img
+                            src={avaliacao.usuario.foto}
+                            alt={t("feed.fotoUsuario", {
+                              nome: avaliacao.usuario.nome,
+                            })}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              e.target.style.display = "none";
+                              e.target.parentElement.classList.add(
+                                "flex",
+                                "items-center",
+                                "justify-center",
+                                "bg-verde-destaque/20"
+                              );
+                              const fallbackText =
+                                document.createElement("div");
+                              fallbackText.className =
+                                "text-verde-destaque text-xs font-bold";
+                              fallbackText.textContent = avaliacao.usuario.nome
+                                .charAt(0)
+                                .toUpperCase();
+                              e.target.parentElement.appendChild(fallbackText);
+                            }}
+                            loading="lazy"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center bg-verde-destaque/20 text-verde-destaque">
+                            {avaliacao.usuario.nome.charAt(0).toUpperCase()}
+                          </div>
                         )}
-                      </span>
+                      </div>
+                      <div className="flex flex-col min-w-0">
+                        <span className="font-medium truncate max-w-[150px] md:max-w-[200px]">
+                          {avaliacao.usuario.nome}
+                        </span>
+                        <span className="text-xs opacity-70 truncate max-w-[150px] md:max-w-[200px]">
+                          {formatarDataSegura(
+                            avaliacao.data || avaliacao.dataAvaliacao
+                          )}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Nota em telas pequenas/médias (visível apenas até lg) */}
+                    <div className="lg:hidden">
+                      <div
+                        className={`${obterCorNota(
+                          avaliacao.media || avaliacao.mediaAvaliacao
+                        )} text-cinza-escuro rounded-lg px-2 py-1 font-bold text-lg flex items-center justify-center shadow-sm`}
+                      >
+                        <span className="text-cinza-escuro">
+                          {formatarMedia(
+                            avaliacao.media || avaliacao.mediaAvaliacao
+                          )}
+                        </span>
+                      </div>
                     </div>
                   </div>
 
@@ -394,8 +412,8 @@ const FeedGlobal = () => {
                   </div>
                 </div>
 
-                {/* LADO DIREITO: Avaliação e progresso */}
-                <div className="w-full lg:w-32 xl:w-36 flex-shrink-0 p-3 flex lg:flex-col items-center justify-between lg:justify-center border-t lg:border-t-0 lg:border-l border-gray-700/50 bg-gradient-to-br from-cinza-escuro to-cinza-escuro/95">
+                {/* LADO DIREITO: Avaliação (apenas visível em lg) */}
+                <div className="hidden lg:flex w-32 xl:w-36 flex-shrink-0 p-3 lg:flex-col items-center justify-between lg:justify-center border-t lg:border-t-0 lg:border-l border-gray-700/50 bg-gradient-to-br from-cinza-escuro to-cinza-escuro/95">
                   {/* Avaliação como banner */}
                   <div className="flex lg:flex-col items-center justify-center w-full">
                     <div

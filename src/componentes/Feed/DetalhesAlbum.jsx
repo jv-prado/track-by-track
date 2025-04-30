@@ -1283,10 +1283,17 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
               {/* Botão da média global */}
               <button
                 type="button"
-                className="bg-gray-900 rounded px-1.5 py-1 flex items-center gap-0.5 shadow-md text-[11px] sm:px-2 sm:py-1 sm:gap-1 border border-gray-700 hover:bg-gray-800 transition align-middle cursor-pointer focus:outline-none focus:ring-2 focus:ring-verde-destaque"
-                onClick={() => setMostrarPopoverMedia((v) => !v)}
+                className={`min-h-[39px] bg-gray-900 rounded px-1.5 py-1 flex items-center gap-0.5 shadow-md text-[11px] sm:px-2 sm:py-1 sm:gap-1 border border-gray-700 transition align-middle cursor-pointer focus:outline-none focus:ring-2 focus:ring-verde-destaque ${
+                  mediaGlobal === null
+                    ? "opacity-50 cursor-not-allowed"
+                    : "hover:bg-gray-800"
+                }`}
+                onClick={() =>
+                  mediaGlobal !== null && setMostrarPopoverMedia((v) => !v)
+                }
                 tabIndex={0}
                 aria-label="Ver notas dos usuários"
+                disabled={mediaGlobal === null}
               >
                 <span className="text-[10px] sm:text-xs text-gray-300 font-medium">
                   {t("albumDetails.globalAverage")}
@@ -1321,30 +1328,40 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
                     </span>
                     <div className="flex flex-col gap-1 max-h-[250px] overflow-y-auto">
                       {avaliacoesUsuariosAlbum.length > 0 ? (
-                        avaliacoesUsuariosAlbum.map((av) => (
-                          <span
-                            key={av.usuario.id}
-                            className="flex items-center gap-2 text-xs text-gray-200"
-                          >
-                            {av.usuario.foto ? (
-                              <img
-                                src={av.usuario.foto}
-                                alt={av.usuario.nome}
-                                className="w-5 h-5 rounded-full object-cover"
-                              />
-                            ) : (
-                              <span className="w-5 h-5 rounded-full bg-gray-700 text-gray-200 flex items-center justify-center font-bold text-xs">
-                                {av.usuario.nome?.[0]?.toUpperCase() || "?"}
+                        <>
+                          {avaliacoesUsuariosAlbum.slice(0, 10).map((av) => (
+                            <span
+                              key={av.usuario.id}
+                              className="flex items-center gap-2 text-xs text-gray-200"
+                            >
+                              {av.usuario.foto ? (
+                                <img
+                                  src={av.usuario.foto}
+                                  alt={av.usuario.nome}
+                                  className="w-5 h-5 rounded-full object-cover"
+                                />
+                              ) : (
+                                <span className="w-5 h-5 rounded-full bg-gray-700 text-gray-200 flex items-center justify-center font-bold text-xs">
+                                  {av.usuario.nome?.[0]?.toUpperCase() || "?"}
+                                </span>
+                              )}
+                              <span className="font-bold">
+                                {av.usuario.nome}
                               </span>
-                            )}
-                            <span className="font-bold">{av.usuario.nome}</span>
-                            <span className="ml-auto text-verde-destaque font-bold">
-                              {Number.isInteger(av.mediaAvaliacao)
-                                ? av.mediaAvaliacao
-                                : av.mediaAvaliacao.toFixed(1)}
+                              <span className="ml-auto text-verde-destaque font-bold">
+                                {Number.isInteger(av.mediaAvaliacao)
+                                  ? av.mediaAvaliacao
+                                  : av.mediaAvaliacao.toFixed(1)}
+                              </span>
                             </span>
-                          </span>
-                        ))
+                          ))}
+                          {avaliacoesUsuariosAlbum.length > 10 && (
+                            <span className="text-xs text-gray-400 italic mt-2 block text-center">
+                              Exibindo as 10 avaliações mais recentes de{" "}
+                              {avaliacoesUsuariosAlbum.length}
+                            </span>
+                          )}
+                        </>
                       ) : (
                         <span className="text-xs text-gray-400 italic">
                           {t("albumDetails.notRatedYet")}
@@ -1357,7 +1374,7 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
               {/* Botão Top 3 */}
               <button
                 type="button"
-                className="bg-gray-900 rounded px-1.5 py-1 flex items-center gap-0.5 shadow-md text-[11px] sm:px-2 sm:py-1 sm:gap-1 border border-gray-700 hover:bg-gray-800 transition align-middle cursor-pointer focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                className="min-h-[39px] bg-gray-900 rounded px-1.5 py-1 flex items-center justify-center gap-0.5 shadow-md text-[11px] sm:px-2 sm:py-1 sm:gap-1 border border-gray-700 hover:bg-gray-800 transition align-middle cursor-pointer focus:outline-none focus:ring-2 focus:ring-yellow-400"
                 onClick={() => setMostrarPopover((v) => !v)}
                 tabIndex={0}
                 aria-label="Ver Top 3 favoritas/piores"

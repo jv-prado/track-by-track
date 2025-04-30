@@ -7,18 +7,29 @@ import { MdAlbum } from "react-icons/md";
 import SidebarItem from "./SideBarItem";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
-import { fazerLogout } from "../../services/firebase";
+import {
+  fazerLogout,
+  updateUserProfile,
+  uploadFile,
+} from "../../services/firebase";
 import { useEffect, useState, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import BandeiraBrasil from "../../assets/Flag_of_Brazil.svg";
 import BandeiraEUA from "../../assets/Flag_of_the_United_States.svg";
 
 export default function Sidebar({ activeView, setActiveView }) {
-  const { usuario: usuarioFirebase, usuarioDemo, usuarioAtivo } = useAuth();
+  const {
+    usuario: usuarioFirebase,
+    usuarioDemo,
+    usuarioAtivo,
+    atualizarFotoPerfil,
+  } = useAuth();
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
   const [modoDemoBrowser, setModoDemo] = useState(false);
   const [perfilMenuAberto, setPerfilMenuAberto] = useState(false);
+  const [fotoPerfilLocal, setFotoPerfilLocal] = useState<string | null>(null);
+  const [atualizandoFoto, setAtualizandoFoto] = useState(false);
   const menuRef = useRef(null);
 
   // Determinar o idioma atual
@@ -93,6 +104,9 @@ export default function Sidebar({ activeView, setActiveView }) {
 
   // Função para abrir a câmera ou o seletor de imagem
   const handleTrocarFoto = () => {
+    // Verificar se está atualizando
+    if (atualizandoFoto) return;
+
     // Verificar se é usuário demo
     if (usuarioDemo) {
       // Exibir alguma mensagem de erro (pode ser adicionado um toast ou alert aqui)
@@ -124,10 +138,11 @@ export default function Sidebar({ activeView, setActiveView }) {
         }
 
         try {
-          // Importar as funções do Firebase diretamente aqui
-          const { uploadFile, updateUserProfile } = await import(
-            "../../services/firebase/index"
-          );
+          setAtualizandoFoto(true);
+
+          // Criar uma URL temporária para visualização imediata
+          const urlTemporaria = URL.createObjectURL(file);
+          setFotoPerfilLocal(urlTemporaria);
 
           // Fazer upload do arquivo para o Firebase Storage
           const filePath = `profile_pictures/${usuarioFirebase.uid}/${file.name}`;
@@ -138,10 +153,19 @@ export default function Sidebar({ activeView, setActiveView }) {
             photoURL: imageUrl,
           });
 
-          // Forçar uma atualização da interface
-          window.location.reload();
+          // Se a função de atualizar foto do contexto existir, usá-la
+          if (typeof atualizarFotoPerfil === "function") {
+            atualizarFotoPerfil(imageUrl);
+          }
+
+          // Atualizar a foto local com a URL real
+          setFotoPerfilLocal(imageUrl);
         } catch (error) {
           console.error("Erro ao atualizar foto:", error);
+          // Limpar a foto temporária em caso de erro
+          setFotoPerfilLocal(null);
+        } finally {
+          setAtualizandoFoto(false);
         }
       }
     };
@@ -156,7 +180,10 @@ export default function Sidebar({ activeView, setActiveView }) {
 
   // Obter foto do usuário ou usar fallback
   const obterFotoPerfil = () => {
-    if (usuarioFirebase && usuarioFirebase.photoURL) {
+    // Prioridade: foto temporária local, depois Firebase, depois Demo
+    if (fotoPerfilLocal) {
+      return fotoPerfilLocal;
+    } else if (usuarioFirebase && usuarioFirebase.photoURL) {
       return usuarioFirebase.photoURL;
     } else if (usuarioDemo && usuarioDemo.photoURL) {
       return usuarioDemo.photoURL;
@@ -374,10 +401,11 @@ export default function Sidebar({ activeView, setActiveView }) {
                 {/* Opção: Trocar Foto */}
                 <button
                   onClick={handleTrocarFoto}
-                  className="flex items-center w-full px-3 py-2 hover:bg-cinza-escuro/80 text-left text-sm text-gray-300"
+                  disabled={atualizandoFoto}
+                  className="flex items-center w-full px-3 py-2 hover:bg-cinza-escuro/80 text-left text-sm text-gray-300 disabled:opacity-70"
                 >
                   <FaCamera className="mr-2 text-verde-destaque" />
-                  {t("app.changePhoto")}
+                  {atualizandoFoto ? t("app.updating") : t("app.changePhoto")}
                 </button>
 
                 {/* Opção: Logout */}

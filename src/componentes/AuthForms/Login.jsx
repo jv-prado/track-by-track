@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { fazerLogin, loginComGoogle, auth } from "../../services/firebase";
+import { fazerLogin, auth } from "../../services/firebase";
 import { logInfoAutenticacao } from "../../services/firebase/auth-helper";
 import Logo from "../../assets/logo.svg";
-import { FcGoogle } from "react-icons/fc";
 import { configurarSincronizacaoAutomatica } from "../../services/avaliacoes";
 
 const Login = () => {
@@ -64,37 +63,6 @@ const Login = () => {
       navigate("/feed");
     } catch (err) {
       console.error("Erro no login:", err);
-      setErro(t("auth.loginError"));
-    } finally {
-      setCarregando(false);
-    }
-  };
-
-  const handleGoogleLogin = async () => {
-    setErro("");
-    setCarregando(true);
-
-    try {
-      console.log("Login: Tentando login com Google");
-      await loginComGoogle();
-
-      // Definir "feed" como a view ativa no localStorage para que o App a utilize
-      localStorage.setItem("activeView", "feed");
-
-      // Definir flag para indicar que acabamos de fazer login
-      sessionStorage.setItem("login_redirect", "true");
-
-      // Verificar se login foi bem-sucedido
-      console.log("Login: Verificando autenticação após login com Google");
-      await logInfoAutenticacao();
-
-      // Redirecionar para o feed global
-      console.log(
-        "Login: Redirecionando para feed após login com Google bem-sucedido"
-      );
-      navigate("/feed");
-    } catch (err) {
-      console.error("Erro no login com Google:", err);
       setErro(t("auth.loginError"));
     } finally {
       setCarregando(false);
@@ -210,17 +178,6 @@ const Login = () => {
             {carregando ? t("app.enteringAccount") : t("auth.loginButton")}
           </button>
         </form>
-
-        <div className="mt-4">
-          <button
-            onClick={handleGoogleLogin}
-            disabled={carregando}
-            className="w-full flex items-center justify-center bg-white text-gray-800 font-medium py-2.5 sm:py-3 px-4 rounded-lg hover:bg-gray-100 transition disabled:opacity-50 cursor-pointer text-sm sm:text-base"
-          >
-            <FcGoogle className="mr-2 text-xl" />
-            {t("auth.loginWithGoogle")}
-          </button>
-        </div>
 
         <div className="mt-5 sm:mt-6 text-center">
           <p className="text-gray-300 text-sm sm:text-base">

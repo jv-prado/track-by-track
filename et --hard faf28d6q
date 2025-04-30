@@ -1,0 +1,96 @@
+[33m0c46153[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m HEAD@{0}: reset: moving to 0c46153
+[33m6691c4f[m HEAD@{1}: reset: moving to 6691c4f
+[33md59a138[m HEAD@{2}: commit: teste
+[33m6691c4f[m HEAD@{3}: commit: fix: corrige a posição da nota do usuário
+[33m0c46153[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m HEAD@{4}: reset: moving to 0c4615
+[33mfaf28d6[m HEAD@{5}: reset: moving to HEAD
+[33mfaf28d6[m HEAD@{6}: reset: moving to main
+[33mfaf28d6[m HEAD@{7}: commit: implementa autenticação continua
+[33mab8a0fc[m HEAD@{8}: commit: feat: adiciona botão para o instagram
+[33m35c132f[m HEAD@{9}: commit: style: Padroniza cores da média global em DetalhesAlbum.jsx
+[33m6077fff[m HEAD@{10}: commit: feat: melhoria na segurança
+[33m0c46153[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m HEAD@{11}: commit: feat: tradução nos cards popup media e top3
+[33m1fedd8c[m HEAD@{12}: commit: feat: limita o popup de media geral para 10
+[33m97143a2[m HEAD@{13}: commit: feat: implementa função dos botões de top3 e media
+[33m9737c48[m HEAD@{14}: commit: style: ajusta altura da barra de progresso em mobile
+[33me968109[m HEAD@{15}: commit: feat: adiciona um top 3 de músicas favorias e piores
+[33mea3e5f9[m HEAD@{16}: commit: style: adiciona backgound nas capas de album
+[33m0583a9d[m HEAD@{17}: commit: teste
+[33m28684c6[m HEAD@{18}: reset: moving to 28684c6
+[33m7b08512[m HEAD@{19}: commit: refactor: exclue dobra de estilos
+[33md154f30[m HEAD@{20}: commit: style: ajuste de espaçamento no mobile
+[33m865aa78[m HEAD@{21}: commit: style: cursor pointer no botão top 3
+[33m28684c6[m HEAD@{22}: commit: feat: adiciona botão de top 3
+[33m00ac471[m HEAD@{23}: commit: feat: adiciona card de média geral
+[33m31faa9a[m HEAD@{24}: commit: feat: adiciona política de privacidade e termos de uso
+[33mbec7b90[m HEAD@{25}: reset: moving to bec7b90
+[33mbec7b90[m HEAD@{26}: reset: moving to bec7b90
+[33m574291a[m HEAD@{27}: commit: feat: melhoria na segurança
+[33m9671ddd[m HEAD@{28}: commit: feat: melhoria na segurança
+[33mbec7b90[m HEAD@{29}: reset: moving to origin/main
+[33mbec7b90[m HEAD@{30}: commit: refactor: cards na página do álbum agora mudam de posição em 1536px
+[33m20131d7[m HEAD@{31}: commit: refactor: bottom nav aparece em telas menores que 1024px
+[33mf7c251c[m HEAD@{32}: commit: fix: nome da faixa sobrendo as estrelas no mobile
+[33m18910d7[m HEAD@{33}: reset: moving to origin/main
+[33m18910d7[m HEAD@{34}: commit: style: ajuste no botão do card de álbuns
+[33md76e8c4[m HEAD@{35}: commit: style: ajuste nos cards
+[33mac38f54[m HEAD@{36}: commit: style: padroniza o tamanho h1
+[33m8d60689[m HEAD@{37}: commit: fix: corrige bug de redirecionamento ao sair e logar novamente
+[33me1f0fa9[m HEAD@{38}: commit: style: padroniza o tamanho das notas no mobile
+[33m73f998e[m HEAD@{39}: commit: feat: implementa botão de atualizar em minhas avaliações
+[33meeda774[m HEAD@{40}: commit: refactor: implementa rolagem infinita no feed para evitar demora no carregamento
+[33mcca5f34[m HEAD@{41}: commit: style: ajuste de tamanho de textos no mobile
+[33mc1ef6e7[m HEAD@{42}: commit: style: cards de música favorita e pior antes da tracklist
+[33m1e9779b[m HEAD@{43}: commit: style: novo layout do modal do feed
+[33m1a73335[m HEAD@{44}: reset: moving to origin/main
+[33m1a73335[m HEAD@{45}: commit: refactor: a página não atualiza mais ao trocar a foto de perfil
+[33m57df575[m HEAD@{46}: commit: feat: alterar foto no mobile
+[33mee7e4d4[m HEAD@{47}: commit: style: ajuste tela de login e registor no mobile
+[33m4300555[m HEAD@{48}: commit: style: ajuste o modal no mobile
+[33mc1250d8[m HEAD@{49}: commit: style: ajuste do padding da estrela
+[33mcb263cf[m HEAD@{50}: commit: style: adiciona icone de bandeira no menu novo
+[33m966de24[m HEAD@{51}: commit: fix: url das bandeiras no menu mobile
+[33m9d9d03e[m HEAD@{52}: commit: style: novo layout para o menu mobile
+[33m375a9b6[m HEAD@{53}: commit: style: novo layout para os cards do feed no mobile
+[33m0cdbac0[m HEAD@{54}: commit: style: adiciona ícone no botão atualizar
+[33m782a5be[m HEAD@{55}: commit: fix: mostra apenas álbuns avaliados 100% no Feed Global para evitar floodagem
+[33mdda4088[m HEAD@{56}: commit: feat: idioma padrão é definido a partir do sistema do usuário
+[33m9647cbc[m HEAD@{57}: commit: style: ajuste do texto da splash screen
+[33m8e3fc15[m HEAD@{58}: commit: fix: ajuste das bandeiras
+[33m979e0c2[m HEAD@{59}: commit: feat: app 100% traduzido para inglês
+[33m458d5da[m HEAD@{60}: commit: style: adiciona bandeiras .svg invés de .png
+[33md275548[m HEAD@{61}: commit: feat: implementa troca de idioma no splash para mobile
+[33m0980f8e[m HEAD@{62}: commit: feat: implementa idioma inglês na página de detalhes do álbum
+[33m970865d[m HEAD@{63}: commit: feat: implementa botão de troca de idioma na splash screen
+[33m1206c7a[m HEAD@{64}: commit: feat: implementa splash screen em inglês
+[33mc04cff8[m HEAD@{65}: commit: fix: corrige bug na duplicação de álbums no feed global
+[33m8246fa3[m[33m ([m[1;31morigin/testes[m[33m, [m[1;32mtestes[m[33m)[m HEAD@{66}: checkout: moving from testes to main
+[33m8246fa3[m[33m ([m[1;31morigin/testes[m[33m, [m[1;32mtestes[m[33m)[m HEAD@{67}: reset: moving to main
+[33m8246fa3[m[33m ([m[1;31morigin/testes[m[33m, [m[1;32mtestes[m[33m)[m HEAD@{68}: checkout: moving from main to testes
+[33m8246fa3[m[33m ([m[1;31morigin/testes[m[33m, [m[1;32mtestes[m[33m)[m HEAD@{69}: commit: style: ajuste no menu hamburger
+[33mf8ffeb7[m HEAD@{70}: commit: feat: tradução da página de avaliações
+[33mde867c6[m HEAD@{71}: commit: feat: início da implementação de tradução para inglês
+[33m2fb838f[m HEAD@{72}: commit: Implementação da navegação do botão voltar no Android
+[33m8dfe8ec[m HEAD@{73}: reset: moving to HEAD
+[33m8dfe8ec[m HEAD@{74}: commit: fix: corrige um bug onde ao clicar duas vezes estava dando zoom
+[33mf6f163b[m[33m ([m[1;31morigin/nova-funcionalidade[m[33m, [m[1;32mnova-funcionalidade[m[33m)[m HEAD@{75}: checkout: moving from nova-funcionalidade to main
+[33mf6f163b[m[33m ([m[1;31morigin/nova-funcionalidade[m[33m, [m[1;32mnova-funcionalidade[m[33m)[m HEAD@{76}: checkout: moving from main to nova-funcionalidade
+[33mf6f163b[m[33m ([m[1;31morigin/nova-funcionalidade[m[33m, [m[1;32mnova-funcionalidade[m[33m)[m HEAD@{77}: commit: fix: corrige um bug onde ao clicar duas vezes estava dando zoom
+[33m824a827[m HEAD@{78}: commit: fix: padroniza estilo de grid entre artistas e álbuns
+[33m823f6b3[m HEAD@{79}: commit: fix: mostra os últimos álbuns modificados em primeiro no grid
+[33m454102d[m HEAD@{80}: commit: style: altera a cor das estrelas para um dourado mais vibrante
+[33maeb7dfc[m HEAD@{81}: commit: style: melhorara o estilo dos filtros em Minhas Avaliações
+[33mae788ed[m HEAD@{82}: commit: style: melhorar responsividade nos componentes MostrarTopAlbuns, MostrarTopArtistas e MinhasAvaliacoes
+[33m2ebaf1d[m HEAD@{83}: commit: fix: remove todos os console.log de depuração
+[33m83f12be[m HEAD@{84}: commit: feat: alterar cor da pontuação para cinza enquanto avaliação não estiver completa
+[33ma21a37d[m HEAD@{85}: commit: style: melhoria geral na responsividade
+[33mf073262[m HEAD@{86}: commit: style: melhoria geral na responsividade
+[33m7779962[m HEAD@{87}: commit: feat: Aprimora visualização de progresso na página do álbum e deixa dinâmica de acordo com a porcentagem do progresso
+[33mac7ca07[m HEAD@{88}: commit: feat: Aprimora visualização de progresso no feed global e deixa dinâmica de acordo com a porcentagem do progresso
+[33mf8da240[m HEAD@{89}: commit: feat: Implementação de sistema de rotas completo
+[33m0417333[m HEAD@{90}: commit: feat: Implementação do recurso de visualização de avaliações detalhadas no Feed Global
+[33m5757f20[m HEAD@{91}: commit: style: ajuste geral no Feed Global
+[33m2f0a5c9[m HEAD@{92}: commit: style: ajuste de textos na página de detalhes do álbum
+[33md7dd6c5[m HEAD@{93}: commit: fix: corrige o cálculo de média no feed global
+[33m56cb34d[m HEAD@{94}: commit: feat: sincronizar fotos de perfil do Feed Global
+[33m2cd3ba5[m HEAD@{95}: clone: from github.com:JVPrado1/track-by-track.git

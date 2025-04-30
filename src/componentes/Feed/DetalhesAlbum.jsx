@@ -1468,28 +1468,25 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
                 </div>
               )}
             </div>
-            {/* Bloco da nota do usuário sempre visível abaixo dos botões */}
-            <div className="flex w-full justify-center lg:justify-start mt-0">
-              <div className=" py-1 flex  gap-1.5 shadow-md text-base sm:text-xl transition align-middle">
-                <span className="self-end text-xs sm:text-base text-gray-300 font-medium">
-                  {t("albumDetails.yourRating", "Sua nota:")}
-                </span>
-                <span className="flex items-center">
-                  <span
-                    className={(() => {
-                      const nota = calcularMediaAvaliacoes();
-                      if (nota < 4)
-                        return "text-2xl sm:text-3xl font-extrabold text-red-500";
-                      if (nota < 7)
-                        return "text-2xl sm:text-3xl font-extrabold text-yellow-500 ";
-                      return "text-2xl sm:text-3xl font-extrabold text-verde-destaque";
-                    })()}
-                  >
-                    {Number.isInteger(calcularMediaAvaliacoes())
-                      ? calcularMediaAvaliacoes()
-                      : calcularMediaAvaliacoes().toFixed(1)}
-                  </span>
-                  <span className="text-xs sm:text-base text-gray-400 px-1">
+            {/* Nota do usuário abaixo dos botões, sem fundo e sem borda */}
+            <div className="flex w-full justify-center lg:justify-start ">
+              <div className="flex flex-col items-center">
+                <span
+                  className={(() => {
+                    const nota = calcularMediaAvaliacoes();
+                    if (progressoAvaliacao?.percentual < 100)
+                      return "text-2xl sm:text-3xl font-extrabold text-gray-400";
+                    if (nota < 4)
+                      return "text-2xl sm:text-3xl font-extrabold text-red-500";
+                    if (nota < 7)
+                      return "text-2xl sm:text-3xl font-extrabold text-yellow-500";
+                    return "text-2xl sm:text-3xl font-extrabold text-verde-destaque";
+                  })()}
+                >
+                  {Number.isInteger(calcularMediaAvaliacoes())
+                    ? calcularMediaAvaliacoes()
+                    : calcularMediaAvaliacoes().toFixed(1)}
+                  <span className="text-base sm:text-xl text-gray-400 font-normal ml-1">
                     /10
                   </span>
                 </span>

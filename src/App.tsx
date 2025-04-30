@@ -198,9 +198,9 @@ function App() {
   // Layout principal da aplicação
   return (
     <>
-      <div className="flex flex-col md:flex-row w-full md:w-[90vw] lg:w-[85vw] xl:w-[90vw] 2xl:w-[1440px] mx-auto m-2 mt-4 md:mt-12 gap-3 px-2 md:px-0 content-area">
-        {/* Sidebar sempre visível em desktop, escondida em mobile (agora usando bottom nav) */}
-        <div className="md:sticky md:top-10 md:self-start">
+      <div className="flex flex-col lg:flex-row w-full lg:w-[90vw] xl:w-[85vw] 2xl:w-[90vw] 3xl:w-[1440px] mx-auto m-2 mt-4 lg:mt-12 gap-3 px-2 lg:px-0 content-area">
+        {/* Sidebar sempre visível em desktop (acima de 1000px), escondida em telas menores */}
+        <div className="lg:sticky lg:top-10 lg:self-start">
           <Sidebar activeView={activeView} setActiveView={handleViewChange} />
         </div>
 
@@ -215,9 +215,9 @@ function App() {
               />
             </div>
           </div>
-          {/* Conteúdo do feed sem barra de rolagem, com espaço para a bottom nav em mobile */}
+          {/* Conteúdo do feed sem barra de rolagem, com espaço para a bottom nav em telas abaixo de 1000px */}
           <div
-            className="overflow-auto mt-4 mb-safe pb-16 md:pb-0"
+            className="overflow-auto mt-4 mb-safe pb-16 lg:pb-0"
             style={{
               scrollbarWidth: "thin",
               scrollbarColor: " #81fe88 #2C2C2C",
@@ -260,8 +260,8 @@ function App() {
           </div>
         </div>
 
-        {/* Perfil do usuário no canto superior direito - agora sticky */}
-        <div className="hidden md:block md:sticky md:top-10 md:self-start z-40">
+        {/* Perfil do usuário no canto superior direito - visível apenas em telas acima de 1000px */}
+        <div className="hidden lg:block lg:sticky lg:top-10 lg:self-start z-40">
           <div className="mb-4 sticky top-10">
             <PerfilUsuario />
           </div>

@@ -1334,7 +1334,7 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
                   } else if (largura < 900) {
                     maxWidth = "50vw";
                   } else if (largura < 1200) {
-                    maxWidth = "50vw";
+                    maxWidth = "27vw";
                   } else {
                     maxWidth = "60vw";
                   }

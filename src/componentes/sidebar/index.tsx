@@ -232,8 +232,8 @@ export default function Sidebar({ activeView, setActiveView }) {
   // Renderizando dois layouts diferentes: desktop e mobile
   return (
     <>
-      {/* Desktop Sidebar */}
-      <aside className="hidden md:flex bg-cinza-escuro rounded-xl py-4 md:py-10 px-4 md:px-10 w-full md:max-w-[200px] flex-col items-center gap-4 md:gap-10 mb-4 md:mb-0 md:h-fit relative">
+      {/* Desktop Sidebar - visível apenas em telas acima de 1000px */}
+      <aside className="hidden lg:flex bg-cinza-escuro rounded-xl py-4 md:py-10 px-4 md:px-10 w-full md:max-w-[200px] flex-col items-center gap-4 md:gap-10 mb-4 md:mb-0 md:h-fit relative">
         <Link to="/">
           <img
             className="w-28 md:w-40 h-auto hover:scale-110 transition-all duration-600"
@@ -303,9 +303,9 @@ export default function Sidebar({ activeView, setActiveView }) {
         </nav>
       </aside>
 
-      {/* Mobile Bottom Navigation */}
+      {/* Mobile Bottom Navigation - visível em telas abaixo de 1000px */}
       {usuarioAtivoLocal && (
-        <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-cinza-escuro border-t border-gray-700 z-50 px-1 py-2 flex justify-around items-center safe-bottom">
+        <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-cinza-escuro border-t border-gray-700 z-50 px-1 py-2 flex justify-around items-center safe-bottom">
           <button
             onClick={() => {
               setActiveView("feed");

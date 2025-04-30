@@ -84,7 +84,7 @@ const MostrarTopAlbuns = ({ termoPesquisa }) => {
 
   return (
     <div className="p-6">
-      <h1 className="text-3xl text-center md:text-left font-bold mb-8 text-verde-destaque">
+      <h1 className="md:text-3xl text-2xl text-center md:text-left font-bold mb-8 text-verde-destaque">
         {t("albumSearch.title", "Pesquisar por Álbum")}
       </h1>
 
@@ -147,7 +147,7 @@ const MostrarTopAlbuns = ({ termoPesquisa }) => {
           {t("albumSearch.noAlbumsFound", "Nenhum álbum encontrado")}
         </p>
       ) : (
-        <p className="text-center md:text-left  text-gray-400 text-lg">
+        <p className="text-center md:text-left  text-gray-400 md:text-lg text-sm">
           {t(
             "albumSearch.typeToSearch",
             "Digite um nome de álbum na barra de pesquisa"

@@ -1469,7 +1469,7 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
               )}
             </div>
             {/* Nota do usuário abaixo dos botões, sem fundo e sem borda */}
-            <div className="flex w-full justify-center lg:justify-start ">
+            <div className="flex w-full justify-center lg:justify-start mt-2 ">
               <div className="flex flex-col items-center">
                 <span
                   className={(() => {

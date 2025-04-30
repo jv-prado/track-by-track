@@ -1237,7 +1237,7 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
           <h2 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold text-verde-destaque mb-1 text-center lg:text-left truncate">
             {detalhesAlbum.name}
           </h2>
-          <p className="text-base sm:text-lg md:text-xl mb-1 text-center lg:text-left truncate">
+          <p className="text-base sm:text-lg md:text-xl mb-1 text-center  text-center  lg:text-left truncate">
             {detalhesAlbum.artists.map((a) => a.name).join(", ")}
           </p>
           <p className="text-gray-400 text-center lg:text-left text-xs sm:text-sm md:text-base">

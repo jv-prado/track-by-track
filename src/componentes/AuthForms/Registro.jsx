@@ -2,6 +2,7 @@ import { useState } from "react";
 import { cadastrarUsuario } from "../../services/firebase";
 import { useNavigate, Link } from "react-router-dom";
 import Logo from "../sidebar/assets/Logo.svg";
+import { useTranslation } from "react-i18next";
 
 export default function Registro() {
   const [nome, setNome] = useState("");
@@ -12,6 +13,7 @@ export default function Registro() {
   const [carregando, setCarregando] = useState(false);
   const [consentimento, setConsentimento] = useState(false);
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -33,6 +35,14 @@ export default function Registro() {
 
     try {
       await cadastrarUsuario(email, senha, nome);
+
+      // Definir "feed" como a view ativa no localStorage para que o App a utilize
+      localStorage.setItem("activeView", "feed");
+
+      // Definir flag para indicar que acabamos de fazer login
+      sessionStorage.setItem("login_redirect", "true");
+
+      // Redirecionar para o feed após o registro
       navigate("/feed");
     } catch (error) {
       console.error("Erro no cadastro:", error);

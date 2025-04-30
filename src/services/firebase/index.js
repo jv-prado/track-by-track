@@ -9,6 +9,8 @@ import {
   updateProfile,
   GoogleAuthProvider,
   signInWithPopup,
+  setPersistence,
+  browserLocalPersistence,
 } from "firebase/auth";
 import {
   getFirestore,
@@ -41,6 +43,16 @@ const db = getFirestore(app);
 const storage = getStorage(app);
 const googleProvider = new GoogleAuthProvider();
 
+// Configurar persistência de autenticação para manter os usuários logados
+// Isso garante que o usuário continue logado mesmo após fechar o navegador
+setPersistence(auth, browserLocalPersistence)
+  .then(() => {
+    console.log("Persistência de autenticação configurada com sucesso");
+  })
+  .catch((error) => {
+    console.error("Erro ao configurar persistência de autenticação:", error);
+  });
+
 /**
  * Cadastra um novo usuário
  * @param {string} email - Email do usuário
@@ -50,6 +62,9 @@ const googleProvider = new GoogleAuthProvider();
  */
 export const cadastrarUsuario = async (email, senha, nome) => {
   try {
+    // Configurar persistência antes de criar o usuário para garantir que funcione corretamente
+    await setPersistence(auth, browserLocalPersistence);
+
     // Criar usuário no Firebase Auth
     const userCredential = await createUserWithEmailAndPassword(
       auth,
@@ -90,6 +105,9 @@ export const cadastrarUsuario = async (email, senha, nome) => {
  */
 export const fazerLogin = async (email, senha) => {
   try {
+    // Configurar persistência antes de fazer login para garantir que funcione corretamente
+    await setPersistence(auth, browserLocalPersistence);
+
     const userCredential = await signInWithEmailAndPassword(auth, email, senha);
     const user = userCredential.user;
 
@@ -551,6 +569,9 @@ export const obterAvaliacoesUsuario = async (usuarioId, albumId) => {
  */
 export const loginComGoogle = async () => {
   try {
+    // Configurar persistência antes de fazer login para garantir que funcione corretamente
+    await setPersistence(auth, browserLocalPersistence);
+
     const result = await signInWithPopup(auth, googleProvider);
     const user = result.user;
 

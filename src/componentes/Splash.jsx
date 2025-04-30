@@ -1,15 +1,45 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Logo from "./sidebar/assets/Logo.svg";
 import { useTranslation } from "react-i18next";
 import BandeiraBrasil from "../assets/Flag_of_Brazil.svg";
 import BandeiraEUA from "../assets/Flag_of_the_United_States.svg";
 import { FaInstagram } from "react-icons/fa";
+import { useAuth } from "../contexts/AuthContext";
+import { auth } from "../services/firebase";
 
 const Splash = () => {
   const navigate = useNavigate();
   const [animationComplete, setAnimationComplete] = useState(false);
   const { t, i18n } = useTranslation();
+  const { usuario: usuarioFirebase, usuarioDemo } = useAuth();
+
+  // Verificar se o usuário já está autenticado ao carregar a splash screen
+  useEffect(() => {
+    const verificarAutenticacao = async () => {
+      // Verificar autenticação do Firebase
+      const usuarioAtual = auth.currentUser;
+
+      // Verificar usuário demo
+      const demoToken = localStorage.getItem("demo_token");
+      const demoExpiry = localStorage.getItem("demo_token_expiry");
+      const modoDemo =
+        demoToken && demoExpiry && parseInt(demoExpiry) > Date.now();
+
+      if (usuarioAtual || usuarioFirebase || usuarioDemo || modoDemo) {
+        console.log("Splash: Usuário já autenticado, redirecionando para feed");
+        // Definir feed como tela ativa
+        localStorage.setItem("activeView", "feed");
+        // Redirecionar para o feed
+        setAnimationComplete(true);
+        setTimeout(() => {
+          navigate("/feed", { replace: true });
+        }, 300);
+      }
+    };
+
+    verificarAutenticacao();
+  }, [navigate, usuarioFirebase, usuarioDemo]);
 
   const handleContinue = () => {
     setAnimationComplete(true);

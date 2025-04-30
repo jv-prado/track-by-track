@@ -1468,10 +1468,37 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
                 </div>
               )}
             </div>
+            {/* Bloco da nota do usuário sempre visível abaixo dos botões */}
+            <div className="flex w-full justify-center lg:justify-start mt-0">
+              <div className=" py-1 flex  gap-1.5 shadow-md text-base sm:text-xl transition align-middle">
+                <span className="self-end text-xs sm:text-base text-gray-300 font-medium">
+                  {t("albumDetails.yourRating", "Sua nota:")}
+                </span>
+                <span className="flex items-center">
+                  <span
+                    className={(() => {
+                      const nota = calcularMediaAvaliacoes();
+                      if (nota < 4)
+                        return "text-2xl sm:text-3xl font-extrabold text-red-500";
+                      if (nota < 7)
+                        return "text-2xl sm:text-3xl font-extrabold text-yellow-500 ";
+                      return "text-2xl sm:text-3xl font-extrabold text-verde-destaque";
+                    })()}
+                  >
+                    {Number.isInteger(calcularMediaAvaliacoes())
+                      ? calcularMediaAvaliacoes()
+                      : calcularMediaAvaliacoes().toFixed(1)}
+                  </span>
+                  <span className="text-xs sm:text-base text-gray-400 px-1">
+                    /10
+                  </span>
+                </span>
+              </div>
+            </div>
           </div>
 
           {/* Barra de progresso de avaliação */}
-          <div className="mt-2 md:mt-3">
+          <div className="mt-1 md:mt-0">
             <div className="w-full max-w-[80vw] mx-auto xs:max-w-[180px] md:max-w-full">
               <div className="flex justify-between mb-1 gap-1 xs:gap-1.5 text-center md:text-left">
                 <span className="text-[10px] xs:text-xs md:text-sm text-gray-400">

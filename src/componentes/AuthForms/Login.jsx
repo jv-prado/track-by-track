@@ -1,8 +1,10 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { fazerLogin, loginComGoogle } from "../../services/firebase";
+import { fazerLogin, loginComGoogle, auth } from "../../services/firebase";
+import { logInfoAutenticacao } from "../../services/firebase/auth-helper";
 import Logo from "../../assets/logo.svg";
+import { FcGoogle } from "react-icons/fc";
 import { configurarSincronizacaoAutomatica } from "../../services/avaliacoes";
 
 const Login = () => {
@@ -12,7 +14,31 @@ const Login = () => {
   const [carregando, setCarregando] = useState(false);
   const [carregandoDemo, setCarregandoDemo] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
   const { t, i18n } = useTranslation();
+
+  // Verificar se já está autenticado ao montar o componente
+  useEffect(() => {
+    const verificarAutenticacao = async () => {
+      // Ver se há um usuário atual diretamente do auth
+      const usuarioAtual = auth.currentUser;
+      if (usuarioAtual) {
+        console.log(
+          "Login: Usuário já autenticado, redirecionando para feed",
+          usuarioAtual.email
+        );
+
+        // Redirecionar para o feed se já estiver autenticado
+        navigate("/feed");
+        return;
+      }
+
+      // Verificação secundária através da nossa função auxiliar
+      await logInfoAutenticacao();
+    };
+
+    verificarAutenticacao();
+  }, [navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -20,6 +46,7 @@ const Login = () => {
     setCarregando(true);
 
     try {
+      console.log("Login: Tentando login com email:", email);
       await fazerLogin(email, senha);
 
       // Definir "feed" como a view ativa no localStorage para que o App a utilize
@@ -28,10 +55,46 @@ const Login = () => {
       // Definir flag para indicar que acabamos de fazer login
       sessionStorage.setItem("login_redirect", "true");
 
+      // Verificar se login foi bem-sucedido
+      console.log("Login: Verificando autenticação após login");
+      await logInfoAutenticacao();
+
       // Redirecionar para o feed global
+      console.log("Login: Redirecionando para feed após login bem-sucedido");
       navigate("/feed");
     } catch (err) {
       console.error("Erro no login:", err);
+      setErro(t("auth.loginError"));
+    } finally {
+      setCarregando(false);
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    setErro("");
+    setCarregando(true);
+
+    try {
+      console.log("Login: Tentando login com Google");
+      await loginComGoogle();
+
+      // Definir "feed" como a view ativa no localStorage para que o App a utilize
+      localStorage.setItem("activeView", "feed");
+
+      // Definir flag para indicar que acabamos de fazer login
+      sessionStorage.setItem("login_redirect", "true");
+
+      // Verificar se login foi bem-sucedido
+      console.log("Login: Verificando autenticação após login com Google");
+      await logInfoAutenticacao();
+
+      // Redirecionar para o feed global
+      console.log(
+        "Login: Redirecionando para feed após login com Google bem-sucedido"
+      );
+      navigate("/feed");
+    } catch (err) {
+      console.error("Erro no login com Google:", err);
       setErro(t("auth.loginError"));
     } finally {
       setCarregando(false);
@@ -147,6 +210,17 @@ const Login = () => {
             {carregando ? t("app.enteringAccount") : t("auth.loginButton")}
           </button>
         </form>
+
+        <div className="mt-4">
+          <button
+            onClick={handleGoogleLogin}
+            disabled={carregando}
+            className="w-full flex items-center justify-center bg-white text-gray-800 font-medium py-2.5 sm:py-3 px-4 rounded-lg hover:bg-gray-100 transition disabled:opacity-50 cursor-pointer text-sm sm:text-base"
+          >
+            <FcGoogle className="mr-2 text-xl" />
+            {t("auth.loginWithGoogle")}
+          </button>
+        </div>
 
         <div className="mt-5 sm:mt-6 text-center">
           <p className="text-gray-300 text-sm sm:text-base">

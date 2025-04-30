@@ -3,7 +3,9 @@ import {
   observarAutenticacao,
   getUsuarioAtual,
   fazerLogout,
+  auth,
 } from "../services/firebase/index";
+import { logInfoAutenticacao } from "../services/firebase/auth-helper";
 import { useNavigate } from "react-router-dom";
 
 const AuthContext = createContext();
@@ -19,8 +21,33 @@ export function AuthProvider({ children }) {
   const navigate = useNavigate();
 
   useEffect(() => {
+    console.log(
+      "AuthContext: Inicializando e configurando observadores de autenticação"
+    );
+
+    // Verificar o estado atual de autenticação ao iniciar
+    const usuarioAtual = auth.currentUser;
+    if (usuarioAtual) {
+      console.log("AuthContext: Usuário já autenticado:", usuarioAtual.email);
+      setUsuario(usuarioAtual);
+    }
+
+    // Log de informações sobre a autenticação atual (para depuração)
+    logInfoAutenticacao().then((user) => {
+      if (user) {
+        console.log(
+          "AuthContext: Autenticação verificada via helper:",
+          user.email
+        );
+      }
+    });
+
     // Configura o listener para mudanças de autenticação
     const unsubscribe = observarAutenticacao((user) => {
+      console.log(
+        "AuthContext: Mudança na autenticação detectada:",
+        user ? user.email : "Nenhum usuário"
+      );
       setUsuario(user);
       setCarregando(false);
     });
@@ -66,12 +93,18 @@ export function AuthProvider({ children }) {
 
     // Limpa o listener quando o componente for desmontado
     return () => {
+      console.log("AuthContext: Desmontando e removendo observadores");
       unsubscribe();
       window.removeEventListener("storage", verificarUsuarioDemo);
     };
   }, []);
 
-  // Removido a verificação do token Spotify que não será mais usada
+  // Se o usuário mudar, logar informações para depuração
+  useEffect(() => {
+    if (usuario) {
+      console.log("AuthContext: Usuário atualizado:", usuario.email);
+    }
+  }, [usuario]);
 
   const valor = {
     usuario,

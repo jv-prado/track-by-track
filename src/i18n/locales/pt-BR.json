@@ -36,7 +36,8 @@
     "alreadyAccount": "Já tem uma conta?",
     "loginHere": "Entrar aqui",
     "loginError": "Falha ao entrar. Verifique seu email e senha.",
-    "googleLoginError": "Falha ao entrar com Google."
+    "googleLoginError": "Falha ao entrar com Google.",
+    "loginWithGoogle": "Entrar com Google"
   },
   "feedback": {
     "loading": "Carregando...",
@@ -135,7 +136,8 @@
     "topFavorites": "Top 3 favoritas",
     "topWorst": "Top 3 piores",
     "notRatedYet": "Ainda não foi avaliado",
-    "globalAverageUsers": "Usuários que avaliaram este álbum:"
+    "globalAverageUsers": "Usuários que avaliaram este álbum:",
+    "yourRating": "Sua nota:"
   },
   "userProfile": {
     "loginSignUp": "Entrar ou Cadastrar",

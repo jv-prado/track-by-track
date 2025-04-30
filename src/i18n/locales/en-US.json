@@ -36,7 +36,8 @@
     "alreadyAccount": "Already have an account?",
     "loginHere": "Login here",
     "loginError": "Failed to login. Check your email and password.",
-    "googleLoginError": "Failed to login with Google."
+    "googleLoginError": "Failed to login with Google.",
+    "loginWithGoogle": "Login with Google"
   },
   "feedback": {
     "loading": "Loading...",
@@ -135,7 +136,8 @@
     "topFavorites": "Top 3 favorites",
     "topWorst": "Top 3 worst",
     "notRatedYet": "Not rated yet",
-    "globalAverageUsers": "Users who rated this album:"
+    "globalAverageUsers": "Users who rated this album:",
+    "yourRating": "Your rating:"
   },
   "userProfile": {
     "loginSignUp": "Login or Sign Up",

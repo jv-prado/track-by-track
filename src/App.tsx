@@ -18,14 +18,95 @@ import { App as CapApp } from "@capacitor/app";
 import LanguageSelector from "./componentes/LanguageSelector";
 import PoliticaDePrivacidade from "./componentes/PoliticaDePrivacidade";
 import TermosDeUso from "./componentes/TermosDeUso";
+import { auth } from "./services/firebase";
+import { logInfoAutenticacao } from "./services/firebase/auth-helper";
+import { diagnosticarProblemasAutenticacao } from "./services/debug";
 
 // Componente principal da aplicação
 function App() {
   const [activeView, setActiveView] = useState("");
   const [termoPesquisa, setTermoPesquisa] = useState("");
+  const [carregandoAuth, setCarregandoAuth] = useState(true);
   const navigate = useNavigate();
   const location = useLocation();
-  const { usuario: usuarioFirebase } = useAuth();
+  const { usuario: usuarioFirebase, usuarioDemo } = useAuth();
+
+  // Verificar a autenticação ao iniciar o aplicativo
+  useEffect(() => {
+    const verificarPersistenciaAuth = async () => {
+      console.log("App: Verificando persistência de autenticação");
+      setCarregandoAuth(true);
+
+      // Verificar se há um usuário autenticado usando o objeto auth
+      const currentUser = auth.currentUser;
+      if (currentUser) {
+        console.log(
+          "App: Usuário autenticado via auth.currentUser:",
+          currentUser.email
+        );
+
+        // Se estiver na página inicial ou splash e o usuário já estiver logado,
+        // redirecionar diretamente para o feed
+        if (location.pathname === "/" || location.pathname === "/splash") {
+          console.log(
+            "App: Redirecionando usuário logado diretamente para o feed"
+          );
+          setActiveView("feed");
+          localStorage.setItem("activeView", "feed");
+          navigate("/feed", { replace: true });
+        }
+      } else {
+        console.log("App: Nenhum usuário autenticado via auth.currentUser");
+
+        // Verificar através do helper
+        const userFromHelper = await logInfoAutenticacao();
+        if (userFromHelper) {
+          console.log(
+            "App: Usuário autenticado via helper:",
+            userFromHelper.email
+          );
+
+          // Também redirecionar se o usuário for encontrado pelo helper
+          if (location.pathname === "/" || location.pathname === "/splash") {
+            console.log(
+              "App: Redirecionando usuário logado (via helper) para o feed"
+            );
+            setActiveView("feed");
+            localStorage.setItem("activeView", "feed");
+            navigate("/feed", { replace: true });
+          }
+        } else {
+          console.log(
+            "App: Nenhum usuário autenticado via helper, executando diagnóstico"
+          );
+          await diagnosticarProblemasAutenticacao();
+        }
+      }
+
+      setCarregandoAuth(false);
+    };
+
+    verificarPersistenciaAuth();
+  }, [navigate, location.pathname]);
+
+  // Verificar se há um usuário demo que também deveria pular a splashscreen
+  useEffect(() => {
+    // Verificar se tem um usuário demo ativo
+    const demoToken = localStorage.getItem("demo_token");
+    const demoExpiry = localStorage.getItem("demo_token_expiry");
+    const modoDemo =
+      demoToken && demoExpiry && parseInt(demoExpiry) > Date.now();
+
+    if (
+      modoDemo &&
+      (location.pathname === "/" || location.pathname === "/splash")
+    ) {
+      console.log("App: Usuário demo detectado, redirecionando para o feed");
+      setActiveView("feed");
+      localStorage.setItem("activeView", "feed");
+      navigate("/feed", { replace: true });
+    }
+  }, [navigate, location.pathname]);
 
   // Lidar com o botão voltar usando o plugin oficial do Capacitor
   useEffect(() => {
@@ -78,6 +159,22 @@ function App() {
       const modoDemo =
         demoToken && demoExpiry && parseInt(demoExpiry) > Date.now();
 
+      // Se o usuário estiver na página inicial ou splash e já estiver autenticado (Firebase ou Demo),
+      // redirecionar para o feed
+      if (
+        (location.pathname === "/" || location.pathname === "/splash") &&
+        (usuarioFirebase || modoDemo)
+      ) {
+        console.log(
+          "App: Redirecionando usuário autenticado da splash para o feed"
+        );
+        setActiveView("feed");
+        localStorage.setItem("activeView", "feed");
+        navigate("/feed", { replace: true });
+        return;
+      }
+
+      // Se não estiver autenticado e estiver tentando acessar uma rota protegida, redirecionar para login
       if (
         !usuarioFirebase &&
         !modoDemo && // Verificar autenticação Firebase ou Demo
@@ -155,7 +252,21 @@ function App() {
   };
 
   // Renderizar splash, login ou callback
-  if (location.pathname === "/splash" || location.pathname === "/") {
+  // Mostrar tela de carregamento enquanto verifica autenticação
+  if (carregandoAuth) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-gray-900 to-black">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-500"></div>
+      </div>
+    );
+  }
+
+  // Renderizar splash apenas se o usuário não estiver autenticado
+  if (
+    (location.pathname === "/splash" || location.pathname === "/") &&
+    !usuarioFirebase &&
+    !usuarioDemo
+  ) {
     return (
       <>
         <Splash />

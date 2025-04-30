@@ -183,7 +183,7 @@ const ModalAvaliacoesUsuario = ({ usuarioId, albumId, onClose }) => {
       className="fixed inset-0 bg-black/70 flex items-center justify-center z-[9999] modal-overlay p-4 sm:p-6"
       onClick={handleOverlayClick}
     >
-      <div className="bg-cinza-escuro rounded-xl p-4 md:p-6 max-w-lg w-full max-h-[90vh] overflow-y-auto shadow-xl mx-auto my-auto">
+      <div className="bg-cinza-escuro rounded-xl p-4 md:p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto shadow-xl mx-auto my-auto">
         {/* Cabeçalho do modal */}
         <div className="flex justify-between items-center mb-3 md:mb-4">
           <div className="flex items-center">
@@ -259,7 +259,7 @@ const ModalAvaliacoesUsuario = ({ usuarioId, albumId, onClose }) => {
                   <th className="pb-2 font-normal">
                     {t("albumDetails.track", "Faixa")}
                   </th>
-                  <th className="pb-2 font-normal text-center">
+                  <th className="pb-2 font-normal text-center w-1/5 text-center">
                     {t("albumDetails.rating", "Avaliação")}
                   </th>
                 </tr>
@@ -277,8 +277,8 @@ const ModalAvaliacoesUsuario = ({ usuarioId, albumId, onClose }) => {
                       <td className="py-1 md:py-2 text-xs md:text-sm truncate max-w-[180px]">
                         {faixa.nome}
                       </td>
-                      <td className="py-1 md:py-2 text-center">
-                        <div className="flex justify-center">
+                      <td className="py-1 md:py-2 text-right">
+                        <div className="flex justify-end pr-1.5 md:pr-3.5">
                           <Estrelas
                             avaliacao={faixa.nota}
                             somenteLeitura={true}

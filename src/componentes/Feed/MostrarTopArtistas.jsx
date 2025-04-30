@@ -71,7 +71,7 @@ const MostrarTopArtistas = ({ termoPesquisa }) => {
 
   return (
     <div className="p-6">
-      <h1 className="text-3xl font-bold mb-8 text-verde-destaque">
+      <h1 className="text-3xl text-center md:text-left font-bold mb-8 text-verde-destaque">
         {t("artistSearch.title", "Pesquisar por Artista")}
       </h1>
 
@@ -124,7 +124,7 @@ const MostrarTopArtistas = ({ termoPesquisa }) => {
           {t("artistSearch.noArtistsFound", "Nenhum artista encontrado")}
         </p>
       ) : (
-        <p className="text-center text-gray-400 text-lg">
+        <p className="text-center md:text-left text-gray-400 text-lg">
           {t(
             "artistSearch.typeToSearch",
             "Digite um nome de artista na barra de pesquisa"

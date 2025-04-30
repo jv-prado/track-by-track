@@ -16,6 +16,8 @@ import {
 import { migrarDadosAvaliacoes } from "./services/avaliacoes";
 import { App as CapApp } from "@capacitor/app";
 import LanguageSelector from "./componentes/LanguageSelector";
+import PoliticaDePrivacidade from "./componentes/PoliticaDePrivacidade";
+import TermosDeUso from "./componentes/TermosDeUso";
 
 // Componente principal da aplicação
 function App() {
@@ -82,7 +84,9 @@ function App() {
         location.pathname !== "/" &&
         location.pathname !== "/login" &&
         location.pathname !== "/registro" &&
-        location.pathname !== "/splash"
+        location.pathname !== "/splash" &&
+        location.pathname !== "/politica-de-privacidade" &&
+        location.pathname !== "/termos-de-uso"
       ) {
         navigate("/login");
       }
@@ -256,6 +260,11 @@ function App() {
               <Route path="/login" element={<Login />} />
               <Route path="/registro" element={<Registro />} />
               <Route path="/album/:id" element={<Feed activeView="album" />} />
+              <Route
+                path="/politica-de-privacidade"
+                element={<PoliticaDePrivacidade />}
+              />
+              <Route path="/termos-de-uso" element={<TermosDeUso />} />
             </Routes>
           </div>
         </div>

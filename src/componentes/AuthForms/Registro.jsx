@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { cadastrarUsuario } from "../../services/firebase";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import Logo from "../sidebar/assets/Logo.svg";
 
 export default function Registro() {
@@ -10,6 +10,7 @@ export default function Registro() {
   const [confirmarSenha, setConfirmarSenha] = useState("");
   const [erro, setErro] = useState("");
   const [carregando, setCarregando] = useState(false);
+  const [consentimento, setConsentimento] = useState(false);
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -18,6 +19,13 @@ export default function Registro() {
 
     if (senha !== confirmarSenha) {
       setErro("As senhas não coincidem");
+      return;
+    }
+
+    if (!consentimento) {
+      setErro(
+        "Você precisa aceitar os termos de uso e política de privacidade"
+      );
       return;
     }
 
@@ -115,9 +123,49 @@ export default function Registro() {
             />
           </div>
 
+          <div className="mb-5 sm:mb-6">
+            <div className="flex items-start">
+              <div className="flex items-center h-5">
+                <input
+                  id="consentimento"
+                  type="checkbox"
+                  checked={consentimento}
+                  onChange={(e) => setConsentimento(e.target.checked)}
+                  className="w-4 h-4 rounded accent-[#1ED760] focus:ring-2 focus:ring-verde-destaque"
+                  required
+                />
+              </div>
+              <label
+                htmlFor="consentimento"
+                className="ml-2 text-sm sm:text-base text-gray-300"
+              >
+                Aceito a{" "}
+                <Link
+                  to="/politica-de-privacidade"
+                  className="text-[#1ED760] hover:underline"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Política de Privacidade
+                </Link>{" "}
+                e os{" "}
+                <Link
+                  to="/termos-de-uso"
+                  className="text-[#1ED760] hover:underline"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Termos de Uso
+                </Link>
+                . Concordo com a coleta e processamento dos meus dados pessoais
+                conforme descrito na política de privacidade.
+              </label>
+            </div>
+          </div>
+
           <button
             type="submit"
-            disabled={carregando}
+            disabled={carregando || !consentimento}
             className="w-full bg-[#1ED760] text-black font-bold py-2.5 sm:py-3 px-4 rounded-lg hover:bg-verde-destaque/90 transition disabled:opacity-50 cursor-pointer text-sm sm:text-base"
           >
             {carregando ? "Cadastrando..." : "Cadastrar"}

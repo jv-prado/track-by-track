@@ -280,8 +280,10 @@ export default function useAvaliacoes({ termoPesquisaInicial = "" } = {}) {
 
   /**
    * Carrega os álbuns avaliados pelo usuário
+   * @returns {Promise<void>} Promise que resolve quando o carregamento estiver completo
    */
   const carregarAlbunsAvaliados = async () => {
+    console.log("Iniciando carregamento de álbuns avaliados");
     setCarregando(true);
     setErro(null);
     setProgressoCarregamento(0);
@@ -299,16 +301,22 @@ export default function useAvaliacoes({ termoPesquisaInicial = "" } = {}) {
       // Se o usuário estiver usando o Firebase e não estiver em modo demo, buscar álbuns dele
       if (usuarioFirebase && !modoDemo) {
         try {
+          console.log("Buscando álbuns avaliados do Firebase");
           // Buscar álbuns avaliados do Firebase
           const albunsFirebase = await obterAlbunsAvaliados();
 
           // Se não tiver avaliações, inicializar arrays vazios e sair
           if (!albunsFirebase || albunsFirebase.length === 0) {
+            console.log("Nenhum álbum encontrado no Firebase");
             setAlbunsAvaliados([]);
             setAlbunsExibidos([]);
             setCarregando(false);
             return;
           }
+
+          console.log(
+            `Processando ${albunsFirebase.length} álbuns do Firebase`
+          );
 
           // Processar os álbuns para extrair informações importantes
           const albumsProcessados = albunsFirebase.map((album) => {
@@ -351,6 +359,7 @@ export default function useAvaliacoes({ termoPesquisaInicial = "" } = {}) {
             };
           });
 
+          console.log("Carregando dados sincronizados do Firebase");
           // Também carregar os dados mais atualizados para evitar a necessidade
           // para manter consistência com outros componentes
           const dadosFirebase = await carregarAvaliacoesSincronizadas();
@@ -364,6 +373,9 @@ export default function useAvaliacoes({ termoPesquisaInicial = "" } = {}) {
             (a, b) => (b.ultimaAtualizacao || 0) - (a.ultimaAtualizacao || 0)
           );
 
+          console.log(
+            `Carregamento de ${albumsOrdenados.length} álbuns do Firebase concluído`
+          );
           setAlbunsAvaliados(albumsOrdenados);
           setAlbunsExibidos(albumsOrdenados);
           setCarregando(false);
@@ -376,11 +388,13 @@ export default function useAvaliacoes({ termoPesquisaInicial = "" } = {}) {
         }
       } else {
         // Se estiver em modo demo ou não estiver usando Firebase, usar dados em memória
+        console.log("Carregando álbuns a partir dos dados em memória");
         const avaliacoesFaixas = getAvaliacoesFaixas();
         const mapaFaixasAlbuns = getMapaFaixasAlbuns();
 
         // Forçar carregamento dos dados do localStorage no modo demo
         if (modoDemo) {
+          console.log("Modo demo ativo, carregando dados do localStorage");
           // Verificar se o flag de modo demo está ativo
           if (localStorage.getItem("modo_demo_ativo") !== "true") {
             localStorage.setItem("modo_demo_ativo", "true");
@@ -392,6 +406,7 @@ export default function useAvaliacoes({ termoPesquisaInicial = "" } = {}) {
 
         // Se não temos o mapa de faixas para álbuns, não podemos mostrar os álbuns
         if (Object.keys(mapaFaixasAlbuns).length === 0) {
+          console.log("Nenhum mapeamento de faixas para álbuns encontrado");
           setAlbunsAvaliados([]);
           setAlbunsExibidos([]);
           setCarregando(false);
@@ -400,8 +415,12 @@ export default function useAvaliacoes({ termoPesquisaInicial = "" } = {}) {
 
         // Obter IDs de álbuns únicos
         const idsAlbuns = obterAlbunsUnicos();
+        console.log(
+          `Encontrados ${idsAlbuns.length} álbuns únicos para buscar`
+        );
 
         if (idsAlbuns.length === 0) {
+          console.log("Nenhum álbum único encontrado");
           setAlbunsAvaliados([]);
           setAlbunsExibidos([]);
           setCarregando(false);
@@ -411,6 +430,7 @@ export default function useAvaliacoes({ termoPesquisaInicial = "" } = {}) {
         // Decidir se usa carregamento progressivo
         if (carregamentoProgressivo) {
           try {
+            console.log("Iniciando carregamento progressivo");
             // No modo progressivo, definimos carregando como false mais cedo
             // para permitir que a interface mostre os álbuns à medida que são carregados
             setCarregando(false);
@@ -424,10 +444,15 @@ export default function useAvaliacoes({ termoPesquisaInicial = "" } = {}) {
             }
 
             // Chamar a função com o callback de progresso
+            console.log(
+              `Buscando detalhes para ${idsAlbuns.length} álbuns de forma progressiva`
+            );
             const resultados = await buscarDetalhesAlbunsEmLote(
               idsAlbuns,
               (atual, total) => {
-                setProgressoCarregamento(Math.floor((atual / total) * 100));
+                const porcentagem = Math.floor((atual / total) * 100);
+                setProgressoCarregamento(porcentagem);
+                console.log(`Progresso do carregamento: ${porcentagem}%`);
               },
               onAlbumCarregado
             );
@@ -436,6 +461,9 @@ export default function useAvaliacoes({ termoPesquisaInicial = "" } = {}) {
             const albumsValidos = resultados.filter((album) => !album.erro);
 
             // Garantir que temos a lista completa no final
+            console.log(
+              `Carregamento concluído: ${albumsValidos.length} álbuns válidos de ${resultados.length} total`
+            );
             setAlbunsAvaliados(albumsValidos);
             aplicarFiltrosEOrdenacao();
 
@@ -459,6 +487,7 @@ export default function useAvaliacoes({ termoPesquisaInicial = "" } = {}) {
         } else {
           // Modo tradicional (não progressivo)
           try {
+            console.log("Iniciando carregamento tradicional (não progressivo)");
             const resultados = await buscarDetalhesAlbunsEmLote(idsAlbuns);
 
             // Filtrar álbuns com erro, se houver muitos erros mostrar mensagem
@@ -569,8 +598,11 @@ export default function useAvaliacoes({ termoPesquisaInicial = "" } = {}) {
 
   /**
    * Recarrega a lista de álbuns, atualizando suas avaliações
+   * @returns {Promise<void>} Promise que resolve quando a recarga estiver completa
    */
   const recarregarListaAlbuns = async () => {
+    console.log("Iniciando recarga da lista de álbuns");
+
     // Verificar se estamos em modo de demonstração
     const demoToken = localStorage.getItem("demo_token");
     const demoExpiry = localStorage.getItem("demo_token_expiry");
@@ -582,6 +614,7 @@ export default function useAvaliacoes({ termoPesquisaInicial = "" } = {}) {
       setErro("Sessão expirada. Faça login novamente.");
       setCarregando(false);
       setAutenticado(false);
+      console.log("Recarga cancelada: sessão expirada");
       return;
     }
 
@@ -591,12 +624,15 @@ export default function useAvaliacoes({ termoPesquisaInicial = "" } = {}) {
 
       if (usuarioFirebase && !modoDemo) {
         // Recarregar diretamente do Firebase
-        carregarAlbunsAvaliados();
+        console.log("Recarregando álbuns do Firebase");
+        await carregarAlbunsAvaliados();
+        console.log("Recarga do Firebase concluída");
         return;
       }
 
       // Se estiver em modo demo, recarregar dados do localStorage
       if (modoDemo) {
+        console.log("Recarregando álbuns do modo demo (localStorage)");
         // Recarregar dados do localStorage para garantir que temos os mais atualizados
         setAvaliacoesFaixas(
           JSON.parse(localStorage.getItem("avaliacoesFaixas") || "{}")
@@ -611,23 +647,40 @@ export default function useAvaliacoes({ termoPesquisaInicial = "" } = {}) {
         );
 
         // Para uma mudança visual imediata, recarregar completamente
-        carregarAlbunsAvaliados();
+        await carregarAlbunsAvaliados();
+        console.log("Recarga do modo demo concluída");
         return;
       }
 
       // Se não estiver usando Firebase, usar dados em memória
+      console.log("Recarregando álbuns usando dados em memória");
       const avaliacoesFaixas = getAvaliacoesFaixas();
       const mapaFaixasAlbuns = getMapaFaixasAlbuns();
 
       if (Object.keys(mapaFaixasAlbuns).length === 0) {
+        console.log("Não há álbuns mapeados em memória, recarga concluída");
         return;
       }
 
+      console.log(`Recalculando médias para ${albunsAvaliados.length} álbuns`);
+
       // Recalcular médias e progressos de avaliações para álbuns existentes
       const albunsAtualizados = await Promise.all(
-        albunsAvaliados.map(async (album) => {
+        albunsAvaliados.map(async (album, index) => {
+          // Atualizar progresso a cada 10% de álbuns processados
+          if (
+            index % Math.max(1, Math.floor(albunsAvaliados.length / 10)) ===
+            0
+          ) {
+            const percentualProgresso =
+              Math.floor((index / albunsAvaliados.length) * 95) + 5;
+            setProgressoCarregamento(percentualProgresso);
+            console.log(`Progresso da recarga: ${percentualProgresso}%`);
+          }
+
           if (album.erro) {
             // Tentar novamente para álbuns que falharam anteriormente
+            console.log(`Tentando novamente o álbum com erro: ${album.id}`);
             return await buscarDetalhesAlbumSeguro(album.id);
           }
 
@@ -664,6 +717,10 @@ export default function useAvaliacoes({ termoPesquisaInicial = "" } = {}) {
         })
       );
 
+      // Concluir o progresso
+      setProgressoCarregamento(100);
+      console.log("Recálculo de médias concluído, ordenando álbuns");
+
       // Ordenar a lista para que os álbuns recentemente avaliados apareçam primeiro
       const albunsOrdenados = [...albunsAtualizados].sort((a, b) => {
         return (b.ultimaAtualizacao || 0) - (a.ultimaAtualizacao || 0);
@@ -671,8 +728,10 @@ export default function useAvaliacoes({ termoPesquisaInicial = "" } = {}) {
 
       setAlbunsAvaliados(albunsOrdenados);
       aplicarFiltrosEOrdenacao();
+      console.log("Recarga concluída, álbuns atualizados");
     } catch (erro) {
       console.error("Erro ao recarregar lista de álbuns:", erro);
+      throw erro; // Re-throw para que o chamador possa tratar o erro
     }
   };
 
@@ -784,5 +843,6 @@ export default function useAvaliacoes({ termoPesquisaInicial = "" } = {}) {
     progressoCarregamento,
     carregamentoProgressivo,
     setCarregamentoProgressivo,
+    setProgressoCarregamento,
   };
 }

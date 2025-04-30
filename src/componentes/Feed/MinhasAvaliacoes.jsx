@@ -114,6 +114,7 @@ const MinhasAvaliacoes = () => {
     carregamentoProgressivo,
     setCarregamentoProgressivo,
     recarregarListaAlbuns,
+    setProgressoCarregamento,
   } = useAvaliacoes();
 
   // Atualizar largura da janela quando ela for redimensionada
@@ -262,10 +263,49 @@ const MinhasAvaliacoes = () => {
     }
   };
 
-  const atualizarListaAlbuns = () => {
-    // Recarregar álbuns, mantendo a indicação de progresso visível
+  const atualizarListaAlbuns = async () => {
+    // Indicar que estamos atualizando os dados
     setCarregamentoProgressivo(true);
-    recarregarListaAlbuns();
+
+    // Verificar se setProgressoCarregamento existe antes de chamá-lo
+    if (typeof setProgressoCarregamento === "function") {
+      setProgressoCarregamento(5); // Iniciar com um progresso pequeno para feedback visual
+    }
+
+    console.log("Iniciando atualização da lista de álbuns");
+
+    try {
+      // Simular progresso durante o carregamento
+      const intervaloProgresso = setInterval(() => {
+        setProgressoCarregamento((prev) => {
+          // Aumentar gradualmente até 90% (os 10% finais serão quando concluir)
+          if (prev < 90) {
+            return prev + Math.floor(Math.random() * 10) + 5;
+          }
+          return prev;
+        });
+      }, 900);
+
+      // Aguardar a conclusão da recarga
+      await recarregarListaAlbuns();
+
+      // Limpar o intervalo e definir 100% quando concluído
+      clearInterval(intervaloProgresso);
+      setProgressoCarregamento(100);
+
+      // Após um breve momento, esconder a barra de progresso
+      setTimeout(() => {
+        setProgressoCarregamento(0);
+        setCarregamentoProgressivo(false);
+      }, 200);
+
+      console.log("Lista de álbuns atualizada com sucesso");
+    } catch (erro) {
+      console.error("Erro ao atualizar lista de álbuns:", erro);
+      // Em caso de erro, também limpar o progresso
+      setProgressoCarregamento(0);
+      setCarregamentoProgressivo(false);
+    }
   };
 
   // Exibir indicador de carregamento enquanto verificamos a autenticação

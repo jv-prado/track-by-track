@@ -11,7 +11,7 @@ import { loginWithClientCredentials } from "../../services/api";
 import { configurarSincronizacaoAutomatica } from "../../services/avaliacoes";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-
+import { GrUpdate } from "react-icons/gr";
 /**
  * Componente de barra de progresso para carregamento
  * @param {Object} props - Propriedades do componente
@@ -337,9 +337,10 @@ const MinhasAvaliacoes = () => {
 
         <button
           onClick={atualizarListaAlbuns}
-          className="text-sm bg-verde-destaque/20 hover:bg-verde-destaque/30 text-verde-destaque px-3 py-1 rounded-full transition-colors hover:cursor-pointer"
+          className="text-sm bg-verde-destaque/20 hover:bg-verde-destaque/30 text-verde-destaque px-3 py-1 rounded-full transition-colors hover:cursor-pointer flex items-center gap-2"
         >
           {t("myRatings.update")}
+          <GrUpdate className="text-verde-destaque" />
         </button>
       </div>
 

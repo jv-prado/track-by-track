@@ -1222,25 +1222,26 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
 
       <div className="flex flex-col lg:flex-row gap-3 lg:gap-6 mb-3 lg:mb-6">
         {/* Capa do álbum */}
-        <div className="flex-shrink-0 mx-auto lg:mx-0">
+        <div className="flex-shrink-0 mx-auto lg:mx-0 bg-gray-800 rounded-lg p-2">
           {detalhesAlbum.images && detalhesAlbum.images.length > 0 && (
             <img
               src={detalhesAlbum.images[0].url}
               alt={`${detalhesAlbum.name}`}
-              className="w-40 h-40 sm:w-48 sm:h-48 md:w-56 md:h-56 lg:w-60 lg:h-60 object-cover rounded-lg shadow-lg"
+              className="w-40 h-40 sm:w-48 sm:h-48 md:w-56 md:h-56 lg:w-60 lg:h-60 object-cover rounded-xl shadow-2xl border-2 border-gray-700 transition-transform duration-300 hover:scale-105 hover:shadow-[0_8px_32px_0_rgba(0,0,0,0.45)] bg-gray-800"
+              style={{ aspectRatio: "1 / 1" }}
             />
           )}
         </div>
 
         {/* Informações do álbum */}
-        <div className="flex flex-col mt-3 lg:mt-0 flex-grow min-w-0">
-          <h2 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold text-verde-destaque mb-1 text-center lg:text-left truncate">
+        <div className="flex flex-col mt-0 lg:mt-0 flex-grow min-w-0">
+          <h2 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold text-verde-destaque mb-0.5 text-center lg:text-left truncate">
             {detalhesAlbum.name}
           </h2>
-          <p className="text-base sm:text-lg md:text-xl mb-1 text-center  text-center  lg:text-left truncate">
+          <p className="text-base sm:text-lg md:text-xl mb-0.5 text-center  lg:text-left truncate">
             {detalhesAlbum.artists.map((a) => a.name).join(", ")}
           </p>
-          <p className="text-gray-400 text-center lg:text-left text-xs sm:text-sm md:text-base">
+          <p className="mb-0.5 text-gray-400 text-center lg:text-left text-xs sm:text-sm md:text-base">
             {t("albumDetails.releaseInfo", {
               year: detalhesAlbum.release_date.substring(0, 4),
               tracks: faixas.items.length,
@@ -1248,146 +1249,128 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
             })}
           </p>
 
-          {/* Card de média global do álbum */}
-          <div className="mt-2 md:mt-3 flex items-center justify-center lg:justify-start">
-            <div className="bg-gray-900 rounded px-1.5 py-0.5 flex items-center gap-0.5 shadow-md text-[11px] sm:px-2 sm:py-1 sm:gap-1">
-              <span className="text-[10px] sm:text-xs text-gray-300 font-medium">
-                {t("albumDetails.globalAverage")}
-              </span>
-              <span className="flex items-center">
-                {mediaGlobal !== null ? (
-                  <>
-                    <span className="text-base sm:text-lg font-bold text-verde-destaque">
-                      {Number.isInteger(mediaGlobal)
-                        ? mediaGlobal
-                        : mediaGlobal.toFixed(1)}
-                    </span>
-                    <span className="text-[10px] sm:text-xs text-gray-400">
-                      /10
-                    </span>
-                  </>
-                ) : (
-                  <span className="text-xs text-gray-400 italic">
-                    {t("albumDetails.notRatedYet")}
-                  </span>
-                )}
-              </span>
-            </div>
-          </div>
-
-          {/* Botão para ver favoritas/piores globais */}
-          <div className="mt-1 md:mt-2 flex items-center justify-center lg:justify-start relative">
-            <div className="relative">
-              <button
-                className="bg-gray-900 rounded px-2 py-1 text-[11px] flex items-center gap-1 shadow-md border border-gray-700 hover:bg-gray-800 transition"
-                onClick={() => setMostrarPopover((v) => !v)}
-                type="button"
-              >
-                <span className="text-[10px] sm:text-xs text-gray-300 font-medium">
-                  Top 3 favoritas/piores
-                </span>
-              </button>
-              {mostrarPopover && (
-                <div
-                  ref={popoverRef}
-                  className="absolute z-50 mt-2 left-1/2 -translate-x-1/2 sm:left-auto sm:right-0 sm:top-full sm:translate-x-80 sm:-translate-y-0 bg-gray-900 border border-gray-700 rounded-lg shadow-lg p-3 flex flex-col sm:flex-row gap-3 min-w-[220px]"
-                  style={{ minWidth: 220 }}
-                >
-                  <div className="flex flex-col items-start min-w-[120px]">
-                    <span className="text-xs text-green-400 font-medium mb-1">
-                      <span className="font-bold">T</span>
-                      {t("albumDetails.topFavorites").slice(1)}
-                    </span>
-                    {faixasFavoritasGlobais.length > 0 ? (
-                      faixasFavoritasGlobais.map((faixa, idx) => (
-                        <span
-                          key={faixa.id}
-                          className="flex items-center text-xs text-gray-200 truncate w-full"
-                        >
-                          <span className="text-green-300 font-bold mr-1">
-                            {idx + 1}º
-                          </span>
-                          <span className="truncate flex-1">{faixa.nome}</span>
-                          <span className="ml-1 text-green-200 font-bold">
-                            {faixa.percentual}%
-                          </span>
-                        </span>
-                      ))
-                    ) : (
-                      <span className="text-xs text-gray-400 italic">
-                        {t("albumDetails.notRatedYet")}
-                      </span>
-                    )}
-                  </div>
-                  <div className="flex flex-col items-start min-w-[120px]">
-                    <span className="text-xs text-red-400 font-medium mb-1">
-                      <span className="font-bold">T</span>
-                      {t("albumDetails.topWorst").slice(1)}
-                    </span>
-                    {faixasPioresGlobais.length > 0 ? (
-                      faixasPioresGlobais.map((faixa, idx) => (
-                        <span
-                          key={faixa.id}
-                          className="flex items-center text-xs text-gray-200 truncate w-full"
-                        >
-                          <span className="text-red-300 font-bold mr-1">
-                            {idx + 1}º
-                          </span>
-                          <span className="truncate flex-1">{faixa.nome}</span>
-                          <span className="ml-1 text-red-200 font-bold">
-                            {faixa.percentual}%
-                          </span>
-                        </span>
-                      ))
-                    ) : (
-                      <span className="text-xs text-gray-400 italic">
-                        {t("albumDetails.notRatedYet")}
-                      </span>
-                    )}
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Botão Escute no Spotify */}
-          <div className="mt-2 md:mt-3 flex items-center justify-center lg:justify-start">
-            <a
-              href={
-                detalhesAlbum.external_urls?.spotify ||
-                `https://open.spotify.com/album/${detalhesAlbum.id}`
-              }
-              target="_blank"
-              rel="noopener noreferrer"
-              className="bg-green-600 hover:bg-green-700 text-white py-1 px-2 text-xs sm:text-sm font-medium flex items-center gap-1 transition-colors shadow-md rounded-lg"
-            >
-              <FaSpotify className="text-sm sm:text-base" />
-              {t("albumDetails.listenOnSpotify")}
-            </a>
-          </div>
-
-          <div className="mt-3 md:mt-4 flex items-center justify-center lg:justify-start">
-            <span
-              className={`text-xl sm:text-2xl md:text-3xl font-bold mr-2 ${(() => {
-                // Verificar primeiro se o álbum está totalmente avaliado
-                if (progressoAvaliacao?.percentual < 100) {
-                  return "text-gray-400"; // Cor cinza enquanto não estiver 100% avaliado
+          {/* Bloco de ações: Spotify, média global e Top 3 */}
+          <div className="mt-2 md:mt-3 flex flex-col gap-2 w-full">
+            {/* Botão Escute no Spotify sempre primeiro, sozinho em uma linha no mobile */}
+            <div className="flex w-full justify-center  lg:justify-start">
+              <a
+                href={
+                  detalhesAlbum.external_urls?.spotify ||
+                  `https://open.spotify.com/album/${detalhesAlbum.id}`
                 }
-
-                const media = calcularMediaAvaliacoes();
-                if (media < 4) return "text-red-500";
-                if (media < 7) return "text-yellow-500";
-                return "text-verde-destaque";
-              })()}`}
-            >
-              {(() => {
-                const media = calcularMediaAvaliacoes();
-                return Number.isInteger(media)
-                  ? media.toString()
-                  : media.toFixed(1);
-              })()}
-            </span>
-            <span className="text-sm md:text-base text-gray-400">/10</span>
+                target="_blank"
+                rel="noopener noreferrer"
+                className="bg-green-600 hover:bg-green-700 text-white py-1 px-2 text-xs sm:text-sm font-medium flex items-center gap-1 transition-colors shadow-md rounded-lg"
+              >
+                <FaSpotify className="text-sm sm:text-base" />
+                {t("albumDetails.listenOnSpotify")}
+              </a>
+            </div>
+            {/* Bloco de média global + Top 3, juntos na linha de baixo no mobile, lado a lado no desktop */}
+            <div className="flex flex-row items-start justify-center gap-2 w-full lg:justify-start">
+              <div className="bg-gray-900 rounded px-1.5 py-1 flex items-center gap-0.5 shadow-md text-[11px] sm:px-2 sm:py-1 sm:gap-1">
+                <span className="text-[10px] sm:text-xs text-gray-300 font-medium">
+                  {t("albumDetails.globalAverage")}
+                </span>
+                <span className="flex items-center">
+                  {mediaGlobal !== null ? (
+                    <>
+                      <span className="text-base sm:text-lg font-bold text-verde-destaque">
+                        {Number.isInteger(mediaGlobal)
+                          ? mediaGlobal
+                          : mediaGlobal.toFixed(1)}
+                      </span>
+                      <span className="text-[10px] sm:text-xs text-gray-400">
+                        /10
+                      </span>
+                    </>
+                  ) : (
+                    <span className="text-xs text-gray-400 italic">
+                      {t("albumDetails.notRatedYet")}
+                    </span>
+                  )}
+                </span>
+              </div>
+              <div className="relative flex items-center h-full">
+                <button
+                  className="bg-gray-900 rounded px-2 py-1 text-[11px] flex items-center gap-1 shadow-md border border-gray-700 hover:bg-gray-800 transition align-middle"
+                  onClick={() => setMostrarPopover((v) => !v)}
+                  type="button"
+                >
+                  <span className="text-[10px] sm:text-xs text-gray-300 font-medium">
+                    Top 3 favoritas/piores
+                  </span>
+                </button>
+                {mostrarPopover && (
+                  <div
+                    ref={popoverRef}
+                    className="fixed left-1/2 top-1/2 z-50 -translate-x-1/2 -translate-y-1/2"
+                  >
+                    <div
+                      className="bg-gray-900 border border-gray-700 rounded-lg shadow-lg p-3 flex flex-col sm:flex-row gap-3 min-w-[220px]"
+                      style={{ minWidth: 220 }}
+                    >
+                      <div className="flex flex-col items-start min-w-[120px]">
+                        <span className="text-xs text-green-400 font-medium mb-1">
+                          <span className="font-bold">T</span>
+                          {t("albumDetails.topFavorites").slice(1)}
+                        </span>
+                        {faixasFavoritasGlobais.length > 0 ? (
+                          faixasFavoritasGlobais.map((faixa, idx) => (
+                            <span
+                              key={faixa.id}
+                              className="flex items-center text-xs text-gray-200 truncate w-full"
+                            >
+                              <span className="text-green-300 font-bold mr-1">
+                                {idx + 1}º
+                              </span>
+                              <span className="truncate flex-1">
+                                {faixa.nome}
+                              </span>
+                              <span className="ml-1 text-green-200 font-bold">
+                                {faixa.percentual}%
+                              </span>
+                            </span>
+                          ))
+                        ) : (
+                          <span className="text-xs text-gray-400 italic">
+                            {t("albumDetails.notRatedYet")}
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex flex-col items-start min-w-[120px]">
+                        <span className="text-xs text-red-400 font-medium mb-1">
+                          <span className="font-bold">T</span>
+                          {t("albumDetails.topWorst").slice(1)}
+                        </span>
+                        {faixasPioresGlobais.length > 0 ? (
+                          faixasPioresGlobais.map((faixa, idx) => (
+                            <span
+                              key={faixa.id}
+                              className="flex items-center text-xs text-gray-200 truncate w-full"
+                            >
+                              <span className="text-red-300 font-bold mr-1">
+                                {idx + 1}º
+                              </span>
+                              <span className="truncate flex-1">
+                                {faixa.nome}
+                              </span>
+                              <span className="ml-1 text-red-200 font-bold">
+                                {faixa.percentual}%
+                              </span>
+                            </span>
+                          ))
+                        ) : (
+                          <span className="text-xs text-gray-400 italic">
+                            {t("albumDetails.notRatedYet")}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
 
           {/* Barra de progresso de avaliação */}

@@ -111,7 +111,9 @@ export default function Sidebar({ activeView, setActiveView }) {
       >
         <img
           src={
-            isPortuguese ? "/images/flags/usa.svg" : "/images/flags/brazil.svg"
+            isPortuguese
+              ? "/src/assets/Flag_of_Brazil.svg"
+              : "/src/assets/Flag_of_the_United_States.svg"
           }
           alt={isPortuguese ? "English" : "Português"}
           className="w-full h-full object-cover"

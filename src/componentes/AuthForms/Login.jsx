@@ -25,6 +25,7 @@ const Login = () => {
       // Definir "feed" como a view ativa no localStorage para que o App a utilize
       localStorage.setItem("activeView", "feed");
 
+      // Redirecionar para o feed global
       navigate("/feed");
     } catch (err) {
       console.error("Erro no login:", err);

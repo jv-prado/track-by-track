@@ -83,6 +83,10 @@ export default function Sidebar({ activeView, setActiveView }) {
       localStorage.removeItem("demo_token_expiry");
       localStorage.removeItem("demo_usuario");
       localStorage.removeItem("modo_demo_ativo");
+
+      // Definir a view ativa como "feed" para o próximo login
+      localStorage.setItem("activeView", "feed");
+
       window.location.href = "/login";
       return;
     }
@@ -91,6 +95,10 @@ export default function Sidebar({ activeView, setActiveView }) {
     if (usuarioFirebase) {
       await fazerLogout();
     }
+
+    // Definir a view ativa como "feed" para o próximo login
+    localStorage.setItem("activeView", "feed");
+
     navigate("/login");
   };
 

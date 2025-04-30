@@ -71,7 +71,7 @@ const MostrarTopArtistas = ({ termoPesquisa }) => {
 
   return (
     <div className="p-6">
-      <h1 className="md:text-3xl text-2xl text-center md:text-left font-bold mb-8 text-verde-destaque">
+      <h1 className="text-2xl text-center md:text-left font-bold mb-4 text-verde-destaque">
         {t("artistSearch.title", "Pesquisar por Artista")}
       </h1>
 

@@ -73,18 +73,19 @@ const MostrarTopAlbuns = ({ termoPesquisa }) => {
     );
   }
 
-  // Determinar o número de colunas com base na largura da tela
-  const getGridColsClass = () => {
-    if (windowWidth < 550) return "grid-cols-2"; // 2 álbuns por linha em telas menores que 550px
-    if (windowWidth < 1100) return "grid-cols-2"; // 2 álbuns por linha em telas menores que 1100px
-    if (windowWidth < 1280) return "grid-cols-3"; // lg
-    if (windowWidth < 1536) return "grid-cols-4"; // xl
-    return "grid-cols-5"; // 2xl
+  // Determinar o número de colunas com base na largura da tela (similar a MinhasAvaliacoes.jsx)
+  const getGridCols = () => {
+    if (windowWidth < 550) return 2; // 2 álbuns por linha em telas menores que 550px
+    if (windowWidth < 1100) return 2; // 2 álbuns por linha em telas menores que 1100px
+    if (windowWidth < 1500) return 3; // 3 álbuns por linha em telas médias
+    return 5; // 5 álbuns por linha em telas grandes
   };
+
+  const gridCols = getGridCols();
 
   return (
     <div className="p-6">
-      <h1 className="md:text-3xl text-2xl text-center md:text-left font-bold mb-8 text-verde-destaque">
+      <h1 className=" text-2xl font-bold text-verde-destaque mb-4">
         {t("albumSearch.title", "Pesquisar por Álbum")}
       </h1>
 
@@ -93,14 +94,20 @@ const MostrarTopAlbuns = ({ termoPesquisa }) => {
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-verde-destaque"></div>
         </div>
       ) : albuns && albuns.items && albuns.items.length > 0 ? (
-        <div className={`grid ${getGridColsClass()} gap-4 md:gap-6 lg:gap-8`}>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: `repeat(${gridCols}, 1fr)`,
+            gap: "1rem",
+          }}
+        >
           {albuns.items.slice(0, 10).map((album) => (
             <div
               key={album.id}
-              className="flex flex-col bg-cinza-escuro rounded-xl p-4 hover:bg-cinza transition-all duration-300 transform hover:scale-105 cursor-pointer"
+              className="flex flex-col bg-cinza-escuro rounded-xl p-3 hover:bg-cinza transition-all duration-300 transform hover:scale-105 cursor-pointer"
               onClick={() => setAlbumSelecionado(album.id)}
             >
-              <div className="w-full aspect-square mb-4 overflow-hidden rounded-lg shadow-lg">
+              <div className="w-full aspect-square mb-2 overflow-hidden rounded-lg shadow-lg">
                 {album.images && album.images.length > 0 ? (
                   <img
                     src={album.images[0].url}
@@ -119,13 +126,13 @@ const MostrarTopAlbuns = ({ termoPesquisa }) => {
                   </div>
                 )}
               </div>
-              <h2 className="font-bold text-lg mb-2 line-clamp-2">
+              <h2 className="font-bold text-base mb-1 line-clamp-2">
                 {album.name}
               </h2>
-              <p className="text-verde-destaque mb-1 text-sm md:text-base line-clamp-1">
+              <p className="text-verde-destaque text-sm line-clamp-1">
                 {album.artists[0].name}
               </p>
-              <p className="text-sm text-gray-400">
+              <p className="text-xs text-gray-400">
                 {t("albumSearch.releaseYear", "Lançamento: {{year}}", {
                   year: new Date(album.release_date).getFullYear(),
                 })}
@@ -135,7 +142,7 @@ const MostrarTopAlbuns = ({ termoPesquisa }) => {
                   e.stopPropagation();
                   setAlbumSelecionado(album.id);
                 }}
-                className="mt-4 cursor-pointer bg-verde-destaque text-cinza-escuro py-2 px-4 rounded-lg hover:bg-verde-pastel transition-colors mt-auto"
+                className="mt-2 cursor-pointer bg-verde-destaque/20 hover:bg-verde-destaque/30 text-verde-destaque text-sm px-3 py-1 rounded-full transition-colors mt-auto flex justify-center items-center"
               >
                 {t("albumSearch.viewTracks", "Ver faixas")}
               </button>
@@ -147,7 +154,7 @@ const MostrarTopAlbuns = ({ termoPesquisa }) => {
           {t("albumSearch.noAlbumsFound", "Nenhum álbum encontrado")}
         </p>
       ) : (
-        <p className="text-center md:text-left  text-gray-400 md:text-lg text-sm">
+        <p className="text-center md:text-left text-gray-400 md:text-lg text-sm">
           {t(
             "albumSearch.typeToSearch",
             "Digite um nome de álbum na barra de pesquisa"

@@ -360,7 +360,7 @@ const MinhasAvaliacoes = () => {
   if (!albunsAvaliados || albunsAvaliados.length === 0) {
     return (
       <div className="p-8 text-center">
-        <h2 className="text-2xl font-bold text-verde-destaque mb-4">
+        <h2 className="text-3xl font-bold text-verde-destaque mb-4">
           {t("myRatings.title")}
         </h2>
         <p className="text-gray-400">{t("myRatings.noAlbumsRated")}</p>

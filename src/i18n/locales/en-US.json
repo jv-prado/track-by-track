@@ -130,7 +130,8 @@
     "firstRating": "First rating",
     "lastModification": "Last modification",
     "noRecord": "No record",
-    "releaseInfo": "{{year}} • {{tracks}} tracks • {{duration}}"
+    "releaseInfo": "{{year}} • {{tracks}} tracks • {{duration}}",
+    "globalAverage": "Global average:"
   },
   "userProfile": {
     "loginSignUp": "Login or Sign Up",

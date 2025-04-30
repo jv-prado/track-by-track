@@ -22,7 +22,11 @@ import {
   setMapaFaixasAlbuns,
   recarregarAvaliacoes,
 } from "../../services/avaliacoes";
-import { getUsuarioAtual, salvarAvaliacaoAlbum } from "../../services/firebase";
+import {
+  getUsuarioAtual,
+  salvarAvaliacaoAlbum,
+  obterAvaliacoesGlobais,
+} from "../../services/firebase";
 import { doc, getDoc, updateDoc, arrayRemove } from "firebase/firestore";
 import { db } from "../../services/firebase";
 import { useTranslation } from "react-i18next";
@@ -80,6 +84,7 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
     ultima: null,
     temRegistro: false,
   });
+  const [mediaGlobal, setMediaGlobal] = useState(null);
 
   // Verificação defensiva para garantir que progressoAvaliacao seja sempre válido
   useEffect(() => {
@@ -310,6 +315,34 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
   // Iniciar busca de dados quando o componente carregar
   useEffect(() => {
     buscarDados();
+  }, [albumId]);
+
+  // Buscar média global do álbum ao carregar
+  useEffect(() => {
+    async function fetchMediaGlobal() {
+      if (!albumId) return;
+      try {
+        const avaliacoes = await obterAvaliacoesGlobais(500); // Pega até 500 avaliações globais
+        // Filtrar apenas avaliações do álbum atual e com progresso 100%
+        const avaliacoesDoAlbum = avaliacoes.filter(
+          (av) =>
+            av.id === albumId && av.progresso && av.progresso.percentual >= 100
+        );
+        if (avaliacoesDoAlbum.length > 0) {
+          const soma = avaliacoesDoAlbum.reduce(
+            (acc, av) => acc + av.mediaAvaliacao,
+            0
+          );
+          const media = soma / avaliacoesDoAlbum.length;
+          setMediaGlobal(media);
+        } else {
+          setMediaGlobal(null);
+        }
+      } catch (e) {
+        setMediaGlobal(null);
+      }
+    }
+    fetchMediaGlobal();
   }, [albumId]);
 
   // Função para formatar duração em minutos:segundos
@@ -1128,6 +1161,23 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
               duration: calcularDuracaoTotal(),
             })}
           </p>
+
+          {/* Card de média global do álbum */}
+          <div className="mt-2 md:mt-3 flex items-center justify-center lg:justify-start">
+            <div className="bg-gray-900 rounded px-1.5 py-0.5 flex items-center gap-0.5 shadow-md text-[11px] sm:px-2 sm:py-1 sm:gap-1">
+              <span className="text-[10px] sm:text-xs text-gray-300 font-medium">
+                {t("albumDetails.globalAverage")}:
+              </span>
+              <span className="text-base sm:text-lg font-bold text-verde-destaque">
+                {mediaGlobal !== null
+                  ? Number.isInteger(mediaGlobal)
+                    ? mediaGlobal
+                    : mediaGlobal.toFixed(1)
+                  : "-"}
+              </span>
+              <span className="text-[10px] sm:text-xs text-gray-400">/10</span>
+            </div>
+          </div>
 
           {/* Botão Escute no Spotify */}
           <div className="mt-2 md:mt-3 flex items-center justify-center lg:justify-start">

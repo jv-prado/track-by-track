@@ -90,6 +90,10 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
   const [faixasPioresGlobais, setFaixasPioresGlobais] = useState([]);
   const [mostrarPopover, setMostrarPopover] = useState(false);
   const popoverRef = useRef();
+  // Novo estado para popover da média geral
+  const [mostrarPopoverMedia, setMostrarPopoverMedia] = useState(false);
+  const popoverMediaRef = useRef();
+  const [avaliacoesUsuariosAlbum, setAvaliacoesUsuariosAlbum] = useState([]);
 
   // Verificação defensiva para garantir que progressoAvaliacao seja sempre válido
   useEffect(() => {
@@ -333,6 +337,7 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
           (av) =>
             av.id === albumId && av.progresso && av.progresso.percentual >= 100
         );
+        setAvaliacoesUsuariosAlbum(avaliacoesDoAlbum); // <-- Salva avaliações dos usuários
         if (avaliacoesDoAlbum.length > 0) {
           // Média global
           const soma = avaliacoesDoAlbum.reduce(
@@ -1110,8 +1115,14 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
       if (popoverRef.current && !popoverRef.current.contains(event.target)) {
         setMostrarPopover(false);
       }
+      if (
+        popoverMediaRef.current &&
+        !popoverMediaRef.current.contains(event.target)
+      ) {
+        setMostrarPopoverMedia(false);
+      }
     }
-    if (mostrarPopover) {
+    if (mostrarPopover || mostrarPopoverMedia) {
       document.addEventListener("mousedown", handleClickOutside, true);
     } else {
       document.removeEventListener("mousedown", handleClickOutside, true);
@@ -1119,7 +1130,7 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
     return () => {
       document.removeEventListener("mousedown", handleClickOutside, true);
     };
-  }, [mostrarPopover]);
+  }, [mostrarPopover, mostrarPopoverMedia]);
 
   // Exibir indicador de carregamento
   if (carregando) {
@@ -1268,8 +1279,15 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
               </a>
             </div>
             {/* Bloco de média global + Top 3, juntos na linha de baixo no mobile, lado a lado no desktop */}
-            <div className="flex flex-row items-center lg:items-start justify-center gap-2 w-full lg:justify-start">
-              <div className="bg-gray-900 rounded px-1.5 py-1 flex items-center gap-0.5 shadow-md text-[11px] sm:px-2 sm:py-1 sm:gap-1">
+            <div className="flex flex-row items-start md:items-center justify-center gap-2 w-full lg:justify-start lg:relative">
+              {/* Botão da média global */}
+              <button
+                type="button"
+                className="bg-gray-900 rounded px-1.5 py-1 flex items-center gap-0.5 shadow-md text-[11px] sm:px-2 sm:py-1 sm:gap-1 border border-gray-700 hover:bg-gray-800 transition align-middle cursor-pointer focus:outline-none focus:ring-2 focus:ring-verde-destaque"
+                onClick={() => setMostrarPopoverMedia((v) => !v)}
+                tabIndex={0}
+                aria-label="Ver notas dos usuários"
+              >
                 <span className="text-[10px] sm:text-xs text-gray-300 font-medium">
                   {t("albumDetails.globalAverage")}
                 </span>
@@ -1281,8 +1299,8 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
                           ? mediaGlobal
                           : mediaGlobal.toFixed(1)}
                       </span>
-                      <span className="text-[10px] sm:text-xs text-gray-400">
-                        /10
+                      <span className="text-[10px] sm:text-xs text-gray-400 px-1">
+                        / 10
                       </span>
                     </>
                   ) : (
@@ -1291,49 +1309,90 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
                     </span>
                   )}
                 </span>
-              </div>
-              <div className="relative flex items-center h-full">
-                <span
-                  className="bg-gray-900 rounded px-1.5 py-1 flex items-center gap-0.5 shadow-md text-[11px] sm:px-2 sm:py-1 sm:gap-1 border border-gray-700 hover:bg-gray-800 transition align-middle cursor-pointer"
-                  onClick={() => setMostrarPopover((v) => !v)}
-                  tabIndex={0}
-                  role="button"
-                  onKeyPress={(e) => {
-                    if (e.key === "Enter" || e.key === " ")
-                      setMostrarPopover((v) => !v);
-                  }}
+              </button>
+              {mostrarPopoverMedia && (
+                <div
+                  ref={popoverMediaRef}
+                  className="z-50 fixed left-1/2 top-auto bottom-auto mt-10 -translate-x-1/2 lg:absolute lg:left-0 lg:right-auto lg:top-full lg:mt-2 lg:translate-x-0 lg:translate-y-0"
                 >
-                  <GiPodium className="text-yellow-400 text-base mr-1" />
-                  <span className="text-[10px] sm:text-xs text-gray-300 font-medium">
-                    Top 3 favoritas/piores
-                  </span>
+                  <div className="bg-gray-900 border border-gray-700 rounded-lg shadow-lg p-3 min-w-[220px] max-w-[90vw]">
+                    <span className="text-xs text-verde-destaque font-bold mb-2 block">
+                      Usuários que avaliaram este álbum:
+                    </span>
+                    <div className="flex flex-col gap-1 max-h-[250px] overflow-y-auto">
+                      {avaliacoesUsuariosAlbum.length > 0 ? (
+                        avaliacoesUsuariosAlbum.map((av) => (
+                          <span
+                            key={av.usuario.id}
+                            className="flex items-center gap-2 text-xs text-gray-200"
+                          >
+                            {av.usuario.foto ? (
+                              <img
+                                src={av.usuario.foto}
+                                alt={av.usuario.nome}
+                                className="w-5 h-5 rounded-full object-cover"
+                              />
+                            ) : (
+                              <span className="w-5 h-5 rounded-full bg-gray-700 text-gray-200 flex items-center justify-center font-bold text-xs">
+                                {av.usuario.nome?.[0]?.toUpperCase() || "?"}
+                              </span>
+                            )}
+                            <span className="font-bold">{av.usuario.nome}</span>
+                            <span className="ml-auto text-verde-destaque font-bold">
+                              {Number.isInteger(av.mediaAvaliacao)
+                                ? av.mediaAvaliacao
+                                : av.mediaAvaliacao.toFixed(1)}
+                            </span>
+                          </span>
+                        ))
+                      ) : (
+                        <span className="text-xs text-gray-400 italic">
+                          {t("albumDetails.notRatedYet")}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+              {/* Botão Top 3 */}
+              <button
+                type="button"
+                className="bg-gray-900 rounded px-1.5 py-1 flex items-center gap-0.5 shadow-md text-[11px] sm:px-2 sm:py-1 sm:gap-1 border border-gray-700 hover:bg-gray-800 transition align-middle cursor-pointer focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                onClick={() => setMostrarPopover((v) => !v)}
+                tabIndex={0}
+                aria-label="Ver Top 3 favoritas/piores"
+              >
+                <GiPodium className="text-yellow-400 text-base" />
+                <span className="text-[10px] sm:text-xs p-1.5 text-gray-300 font-bold">
+                  Top 3
                 </span>
-                {mostrarPopover && (
-                  <div
-                    ref={popoverRef}
-                    className="fixed left-1/2 top-1/2 z-50 -translate-x-1/2 -translate-y-1/2 sm:absolute sm:left-0 sm:top-full sm:mt-2 sm:translate-x-0 sm:translate-y-0"
-                  >
-                    <div
-                      className="bg-gray-900 border border-gray-700 rounded-lg shadow-lg p-3 flex flex-col sm:flex-row gap-3 min-w-[220px]"
-                      style={{ minWidth: 220 }}
-                    >
-                      <div className="flex flex-col items-start min-w-[120px] sm:pr-4 sm:border-r sm:border-gray-700">
-                        <span className="text-xs text-green-400 font-bold mb-1">
-                          {t("albumDetails.topFavorites")}
+              </button>
+              {mostrarPopover && (
+                <div
+                  ref={popoverRef}
+                  className="z-50 fixed left-1/2 top-auto bottom-auto mt-10 -translate-x-1/2 lg:absolute lg:left-0 lg:right-auto lg:top-full lg:mt-2 lg:translate-x-0 lg:translate-y-0"
+                >
+                  <div className="bg-gray-900 border border-gray-700 rounded-lg shadow-lg p-3 min-w-[220px] max-w-[90vw]">
+                    <div className="flex flex-col md:flex-row gap-3 max-h-[250px] overflow-y-auto">
+                      <div className="flex flex-col items-start min-w-[120px] md:pr-4 md:border-r md:border-gray-700">
+                        <span className="text-xs text-green-400 font-extrabold mb-2 ">
+                          Top 3 favoritas
                         </span>
                         {faixasFavoritasGlobais.length > 0 ? (
                           faixasFavoritasGlobais.map((faixa, idx) => (
                             <span
                               key={faixa.id}
-                              className="flex items-center text-xs text-gray-200 truncate w-full"
+                              className="flex items-center w-full justify-between gap-2 text-xs text-gray-200"
                             >
-                              <span className="text-green-300 font-bold mr-1">
-                                {idx + 1}º
+                              <span className="flex items-center min-w-0">
+                                <span className="text-green-300 font-bold mr-1">
+                                  {idx + 1}º
+                                </span>
+                                <span className="truncate flex-1">
+                                  {faixa.nome}
+                                </span>
                               </span>
-                              <span className="truncate flex-1">
-                                {faixa.nome}
-                              </span>
-                              <span className="ml-1 text-green-200 font-bold">
+                              <span className="ml-1 text-green-200 font-bold flex-shrink-0">
                                 {faixa.percentual}%
                               </span>
                             </span>
@@ -1344,23 +1403,25 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
                           </span>
                         )}
                       </div>
-                      <div className="flex flex-col items-start min-w-[120px] sm:pl-4">
-                        <span className="text-xs text-red-400 font-bold mb-1">
-                          {t("albumDetails.topWorst")}
+                      <div className="flex flex-col items-start min-w-[120px] md:pl-4">
+                        <span className="text-xs text-red-400 font-extrabold mb-2">
+                          Top 3 piores
                         </span>
                         {faixasPioresGlobais.length > 0 ? (
                           faixasPioresGlobais.map((faixa, idx) => (
                             <span
                               key={faixa.id}
-                              className="flex items-center text-xs text-gray-200 truncate w-full"
+                              className="flex items-center w-full justify-between gap-2 text-xs text-gray-200"
                             >
-                              <span className="text-red-300 font-bold mr-1">
-                                {idx + 1}º
+                              <span className="flex items-center min-w-0">
+                                <span className="text-red-300 font-bold mr-1">
+                                  {idx + 1}º
+                                </span>
+                                <span className="truncate flex-1">
+                                  {faixa.nome}
+                                </span>
                               </span>
-                              <span className="truncate flex-1">
-                                {faixa.nome}
-                              </span>
-                              <span className="ml-1 text-red-200 font-bold">
+                              <span className="ml-1 text-red-200 font-bold flex-shrink-0">
                                 {faixa.percentual}%
                               </span>
                             </span>
@@ -1373,8 +1434,8 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
                       </div>
                     </div>
                   </div>
-                )}
-              </div>
+                </div>
+              )}
             </div>
           </div>
 
@@ -1709,6 +1770,17 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
           </div>
         </div>
       </div>
+
+      {/* Overlay de modal para popovers em mobile e desktop */}
+      {(mostrarPopover || mostrarPopoverMedia) && (
+        <div
+          className="fixed inset-0 bg-black/60 z-40"
+          onClick={() => {
+            setMostrarPopover(false);
+            setMostrarPopoverMedia(false);
+          }}
+        />
+      )}
     </div>
   );
 };

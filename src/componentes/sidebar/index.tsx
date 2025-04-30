@@ -10,6 +10,8 @@ import { useAuth } from "../../contexts/AuthContext";
 import { fazerLogout } from "../../services/firebase";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
+import BandeiraBrasil from "../../assets/Flag_of_Brazil.svg";
+import BandeiraEUA from "../../assets/Flag_of_the_United_States.svg";
 
 export default function Sidebar({ activeView, setActiveView }) {
   const { usuario: usuarioFirebase, usuarioDemo, usuarioAtivo } = useAuth();
@@ -244,11 +246,7 @@ export default function Sidebar({ activeView, setActiveView }) {
             className="flex flex-col items-center justify-center pt-1 pb-1 px-2 rounded-lg text-gray-400"
           >
             <img
-              src={
-                isPortuguese
-                  ? "/src/assets/Flag_of_Brazil.svg"
-                  : "/src/assets/Flag_of_the_United_States.svg"
-              }
+              src={isPortuguese ? BandeiraBrasil : BandeiraEUA}
               alt={isPortuguese ? "English" : "Português"}
               className="w-5 h-5 object-cover rounded-full border border-gray-600"
             />

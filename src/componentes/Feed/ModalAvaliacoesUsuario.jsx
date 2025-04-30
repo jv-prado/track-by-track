@@ -93,6 +93,14 @@ const ModalAvaliacoesUsuario = ({ usuarioId, albumId, onClose }) => {
     }
   };
 
+  // Função para determinar a cor da nota baseada no valor (igual ao FeedGlobal)
+  const obterCorNota = (nota) => {
+    const notaNum = parseFloat(nota);
+    if (notaNum < 4) return "bg-red-500 text-white";
+    if (notaNum < 7) return "bg-yellow-500 text-gray-900";
+    return "bg-verde-destaque text-cinza-escuro";
+  };
+
   // Mostrar indicador de carregamento
   if (carregando) {
     return (
@@ -237,7 +245,12 @@ const ModalAvaliacoesUsuario = ({ usuarioId, albumId, onClose }) => {
               </a>
             </div>
           </div>
-          <div className="bg-verde-destaque text-cinza-escuro rounded-lg px-2 py-1 md:px-3 md:py-2 font-bold text-lg md:text-2xl flex items-center justify-center min-w-10">
+          <div
+            className={
+              `rounded-lg px-2 py-1 md:px-3 md:py-2 font-bold text-lg md:text-2xl flex items-center justify-center min-w-10 w-14 md:w-20 ` +
+              obterCorNota(mediaFinal)
+            }
+          >
             {Number.isInteger(mediaFinal)
               ? mediaFinal.toString()
               : mediaFinal.toFixed(1)}

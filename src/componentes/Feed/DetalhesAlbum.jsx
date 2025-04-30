@@ -1160,6 +1160,14 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
     );
   }
 
+  // Função para determinar a cor da nota baseada no valor (igual ao FeedGlobal)
+  const obterCorNota = (nota) => {
+    const notaNum = parseFloat(nota);
+    if (notaNum < 4) return "text-red-500";
+    if (notaNum < 7) return "text-yellow-500";
+    return "text-verde-destaque";
+  };
+
   return (
     <div className="p-1 sm:p-2 md:p-4 max-w-full overflow-hidden">
       <div className="flex justify-between items-center mb-2 md:mb-4">
@@ -1301,7 +1309,11 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
                 <span className="flex items-center">
                   {mediaGlobal !== null ? (
                     <>
-                      <span className="text-base sm:text-lg font-bold text-verde-destaque">
+                      <span
+                        className={`text-base sm:text-lg font-bold ${obterCorNota(
+                          mediaGlobal
+                        )}`}
+                      >
                         {Number.isInteger(mediaGlobal)
                           ? mediaGlobal
                           : mediaGlobal.toFixed(1)}

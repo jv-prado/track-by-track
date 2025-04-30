@@ -134,7 +134,8 @@
     "globalAverage": "Global average:",
     "topFavorites": "Top 3 favorites",
     "topWorst": "Top 3 worst",
-    "notRatedYet": "Not rated yet"
+    "notRatedYet": "Not rated yet",
+    "globalAverageUsers": "Users who rated this album:"
   },
   "userProfile": {
     "loginSignUp": "Login or Sign Up",

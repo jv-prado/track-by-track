@@ -1324,7 +1324,7 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
                 >
                   <div className="bg-gray-900 border border-gray-700 rounded-lg shadow-lg p-3 min-w-[220px] max-w-[90vw]">
                     <span className="text-xs text-verde-destaque font-bold mb-2 block">
-                      Usuários que avaliaram este álbum:
+                      {t("albumDetails.globalAverageUsers")}
                     </span>
                     <div className="flex flex-col gap-1 max-h-[250px] overflow-y-auto">
                       {avaliacoesUsuariosAlbum.length > 0 ? (
@@ -1357,8 +1357,10 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
                           ))}
                           {avaliacoesUsuariosAlbum.length > 10 && (
                             <span className="text-xs text-gray-400 italic mt-2 block text-center">
-                              Exibindo as 10 avaliações mais recentes de{" "}
-                              {avaliacoesUsuariosAlbum.length}
+                              {t("albumDetails.showingRecentRatings", {
+                                shown: 10,
+                                total: avaliacoesUsuariosAlbum.length,
+                              })}
                             </span>
                           )}
                         </>
@@ -1393,7 +1395,7 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
                     <div className="flex flex-col md:flex-row gap-3 max-h-[250px] overflow-y-auto">
                       <div className="flex flex-col items-start min-w-[120px] md:pr-4 md:border-r md:border-gray-700">
                         <span className="text-xs text-green-400 font-extrabold mb-2 ">
-                          Top 3 favoritas
+                          {t("albumDetails.topFavorites")}
                         </span>
                         {faixasFavoritasGlobais.length > 0 ? (
                           faixasFavoritasGlobais.map((faixa, idx) => (
@@ -1422,7 +1424,7 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
                       </div>
                       <div className="flex flex-col items-start min-w-[120px] md:pl-4">
                         <span className="text-xs text-red-400 font-extrabold mb-2">
-                          Top 3 piores
+                          {t("albumDetails.topWorst")}
                         </span>
                         {faixasPioresGlobais.length > 0 ? (
                           faixasPioresGlobais.map((faixa, idx) => (

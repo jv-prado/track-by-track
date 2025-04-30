@@ -1160,7 +1160,7 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
         </button>
 
         {/* Botões de ação para o álbum */}
-        <div className="flex gap-1 sm:gap-2">
+        <div className="flex gap-1 sm:gap-2 items-center sm:items-end">
           <button
             onClick={resetarAvaliacoesAlbum}
             className="bg-gray-700 hover:bg-gray-600 text-white py-1 px-2 rounded-lg transition-colors text-xs sm:text-sm flex items-center gap-1 cursor-pointer"
@@ -1268,7 +1268,7 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
               </a>
             </div>
             {/* Bloco de média global + Top 3, juntos na linha de baixo no mobile, lado a lado no desktop */}
-            <div className="flex flex-row items-start justify-center gap-2 w-full lg:justify-start">
+            <div className="flex flex-row items-center lg:items-start justify-center gap-2 w-full lg:justify-start">
               <div className="bg-gray-900 rounded px-1.5 py-1 flex items-center gap-0.5 shadow-md text-[11px] sm:px-2 sm:py-1 sm:gap-1">
                 <span className="text-[10px] sm:text-xs text-gray-300 font-medium">
                   {t("albumDetails.globalAverage")}
@@ -1380,17 +1380,19 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
 
           {/* Barra de progresso de avaliação */}
           <div className="mt-2 md:mt-3">
-            <div className="flex justify-between mb-1 gap-1">
-              <span className="text-xs text-gray-400">
-                {t("albumDetails.ratingProgress")}
-              </span>
-              <span className="text-xs text-gray-400">
-                {progressoAvaliacao?.avaliadas || 0}/
-                {progressoAvaliacao?.total || 0} (
-                {Math.floor(progressoAvaliacao?.percentual || 0)}%)
-              </span>
+            <div className="w-full max-w-[80vw] mx-auto xs:max-w-[180px] md:max-w-full">
+              <div className="flex justify-between mb-1 gap-1 xs:gap-1.5 text-center md:text-left">
+                <span className="text-[10px] xs:text-xs md:text-sm text-gray-400">
+                  {t("albumDetails.ratingProgress")}
+                </span>
+                <span className="text-[10px] xs:text-xs md:text-sm text-gray-400">
+                  {progressoAvaliacao?.avaliadas || 0}/
+                  {progressoAvaliacao?.total || 0} (
+                  {Math.floor(progressoAvaliacao?.percentual || 0)}%)
+                </span>
+              </div>
             </div>
-            <div className="w-full h-2.5 bg-cinza rounded-full overflow-hidden relative">
+            <div className="w-full max-w-[80vw] mx-auto xs:max-w-[180px] md:max-w-full md:ml-0 h-1.5 xs:h-2 md:h-2.5 lg:h-3 xl:h-3 bg-cinza/70 xs:bg-cinza rounded-full overflow-hidden relative">
               <div
                 className={`h-full transition-all duration-300 ease-in-out ${
                   Math.floor(progressoAvaliacao?.percentual || 0) >= 100

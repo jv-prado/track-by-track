@@ -8,14 +8,8 @@
             "match": {
               "/usuarios/{userId}": {
                 "allow": {
-                  "read": "request.auth != null",
+                  "read": "request.auth != null && request.auth.uid == userId",
                   "write": "request.auth != null && request.auth.uid == userId"
-                }
-              },
-              "/{document=**}": {
-                "allow": {
-                  "read": "request.auth != null",
-                  "write": "request.auth != null"
                 }
               }
             }

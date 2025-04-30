@@ -1196,8 +1196,8 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
           </div>
         </div>
 
-        {/* Exibição da música favorita e pior música - Versão desktop */}
-        <div className="hidden lg:flex flex-col justify-start gap-3 text-left ml-auto min-w-[180px] max-w-[220px] flex-shrink-0">
+        {/* Exibição da música favorita e pior música - Versão desktop (apenas em telas maiores que 1450px) */}
+        <div className="hidden 2xl:flex flex-col justify-start gap-3 text-left ml-auto min-w-[180px] max-w-[220px] flex-shrink-0">
           {/* Seletores para música favorita e pior música */}
           <div className="bg-gray-800 p-2 rounded-lg">
             <h4 className="text-xs font-medium text-red-500 flex items-center gap-1 mb-1">
@@ -1404,8 +1404,8 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
         </div>
       </div>
 
-      {/* Cards de preferências - Seção móvel */}
-      <div className="grid grid-cols-1 xs:grid-cols-2 gap-3 mt-3 lg:hidden">
+      {/* Cards de preferências e histórico - Versão para telas menores que 1450px */}
+      <div className="grid grid-cols-1 xs:grid-cols-2 gap-3 mt-3 2xl:hidden">
         {/* Seletores para música favorita e pior música */}
         <div className="bg-gray-800 p-2 rounded-lg min-w-[160px]">
           <h4 className="text-xs font-medium text-red-500 flex items-center gap-1 mb-1">
@@ -1452,49 +1452,49 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
             ))}
           </select>
         </div>
-      </div>
 
-      {/* Card de histórico para visualização móvel */}
-      <div className="bg-gray-800 p-2 rounded-lg mt-3 lg:hidden">
-        <h4 className="text-xs font-medium text-blue-400 flex items-center gap-1 mb-1">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-3 w-3 inline"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-            />
-          </svg>
-          {t("albumDetails.history")}:
-        </h4>
+        {/* Card de histórico */}
+        <div className="bg-gray-800 p-2 rounded-lg xs:col-span-2">
+          <h4 className="text-xs font-medium text-blue-400 flex items-center gap-1 mb-1">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-3 w-3 inline"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+              />
+            </svg>
+            {t("albumDetails.history")}:
+          </h4>
 
-        <div className="flex flex-col xs:flex-row xs:justify-between gap-2">
-          <div className="text-xs text-gray-400">
-            <span className="font-medium">
-              {t("albumDetails.firstRating")}:
-            </span>
-            <span className="ml-1 text-gray-300">
-              {datasAvaliacao.temRegistro
-                ? formatarData(datasAvaliacao.primeira)
-                : t("albumDetails.noRecord")}
-            </span>
-          </div>
+          <div className="flex flex-col xs:flex-row xs:justify-between gap-2">
+            <div className="text-xs text-gray-400">
+              <span className="font-medium">
+                {t("albumDetails.firstRating")}:
+              </span>
+              <span className="ml-1 text-gray-300">
+                {datasAvaliacao.temRegistro
+                  ? formatarData(datasAvaliacao.primeira)
+                  : t("albumDetails.noRecord")}
+              </span>
+            </div>
 
-          <div className="text-xs text-gray-400">
-            <span className="font-medium">
-              {t("albumDetails.lastModification")}:
-            </span>
-            <span className="ml-1 text-gray-300">
-              {datasAvaliacao.temRegistro
-                ? formatarData(datasAvaliacao.ultima)
-                : t("albumDetails.noRecord")}
-            </span>
+            <div className="text-xs text-gray-400">
+              <span className="font-medium">
+                {t("albumDetails.lastModification")}:
+              </span>
+              <span className="ml-1 text-gray-300">
+                {datasAvaliacao.temRegistro
+                  ? formatarData(datasAvaliacao.ultima)
+                  : t("albumDetails.noRecord")}
+              </span>
+            </div>
           </div>
         </div>
       </div>

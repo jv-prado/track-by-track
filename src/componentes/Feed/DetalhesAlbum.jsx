@@ -1294,7 +1294,7 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
 
       {/* Lista de faixas */}
       <div className="bg-cinza-escuro rounded-xl p-2 md:p-4 overflow-hidden mb-3">
-        <h3 className="text-base md:text-lg font-bold mb-2 md:mb-3">
+        <h3 className="text-base md:text-2xl font-bold mb-2 md:mb-3">
           {t("albumDetails.tracks")}
         </h3>
 
@@ -1323,9 +1323,30 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
                 <div className="text-gray-400 text-center text-xs self-center">
                   {index + 1}
                 </div>
-                <div className="truncate pr-1 text-xs sm:text-sm self-center font-medium">
-                  {faixa.name}
-                </div>
+                {(() => {
+                  // Script para definir o maxWidth conforme o tamanho da tela (5 breakpoints)
+                  let maxWidth = "120px";
+                  const largura = window.innerWidth;
+                  if (largura < 400) {
+                    maxWidth = "47vw";
+                  } else if (largura < 600) {
+                    maxWidth = "50vw";
+                  } else if (largura < 900) {
+                    maxWidth = "50vw";
+                  } else if (largura < 1200) {
+                    maxWidth = "50vw";
+                  } else {
+                    maxWidth = "60vw";
+                  }
+                  return (
+                    <div
+                      className="truncate pr-1 text-xs sm:text-sm self-center font-medium"
+                      style={{ maxWidth }}
+                    >
+                      {faixa.name}
+                    </div>
+                  );
+                })()}
                 <div className="flex justify-end items-center pr-1">
                   <Estrelas
                     avaliacao={avaliacoes[faixa.id] || 0}

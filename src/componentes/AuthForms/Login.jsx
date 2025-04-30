@@ -25,6 +25,9 @@ const Login = () => {
       // Definir "feed" como a view ativa no localStorage para que o App a utilize
       localStorage.setItem("activeView", "feed");
 
+      // Definir flag para indicar que acabamos de fazer login
+      sessionStorage.setItem("login_redirect", "true");
+
       // Redirecionar para o feed global
       navigate("/feed");
     } catch (err) {
@@ -55,6 +58,9 @@ const Login = () => {
 
       // Definir "feed" como a view ativa
       localStorage.setItem("activeView", "feed");
+
+      // Definir flag para indicar que acabamos de fazer login
+      sessionStorage.setItem("login_redirect", "true");
 
       // Inicializar estruturas de dados para avaliações se não existirem
       if (!localStorage.getItem("avaliacoesFaixas")) {

@@ -244,6 +244,34 @@ const ModalAvaliacoesUsuario = ({ usuarioId, albumId, onClose }) => {
           </div>
         </div>
 
+        {/* Favoritas e piores */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 md:gap-3 mb-3 md:mb-4">
+          {avaliacao.preferencias?.faixaFavorita && (
+            <div className="bg-cinza rounded-lg p-2 md:p-3">
+              <h5 className="text-xs md:text-sm text-red-400 mb-1 flex items-center gap-1">
+                <IoMdHeart className="text-base md:text-lg" />{" "}
+                {t("albumDetails.favoriteTrack", "Música Favorita")}
+              </h5>
+              <p className="text-white font-medium text-xs truncate">
+                {avaliacao.preferencias.faixaFavoritaNome ||
+                  obterNomeFaixa(avaliacao.preferencias.faixaFavorita)}
+              </p>
+            </div>
+          )}
+
+          {avaliacao.preferencias?.piorFaixa && (
+            <div className="bg-cinza rounded-lg p-2 md:p-3">
+              <h5 className="text-xs md:text-sm text-yellow-500 mb-1 flex items-center gap-1">
+                <IoMdHeartDislike className="text-base md:text-lg" />{" "}
+                {t("albumDetails.worstTrack", "Pior Música")}
+              </h5>
+              <p className="text-white font-medium text-xs truncate">
+                {avaliacao.preferencias.piorFaixaNome ||
+                  obterNomeFaixa(avaliacao.preferencias.piorFaixa)}
+              </p>
+            </div>
+          )}
+        </div>
         {/* Lista de avaliações das faixas */}
         <div className="mb-2">
           <h4 className="font-medium text-white text-sm md:text-base mb-2">
@@ -301,35 +329,6 @@ const ModalAvaliacoesUsuario = ({ usuarioId, albumId, onClose }) => {
               </tbody>
             </table>
           </div>
-        </div>
-
-        {/* Favoritas e piores */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 md:gap-3 mb-3 md:mb-4">
-          {avaliacao.preferencias?.faixaFavorita && (
-            <div className="bg-cinza rounded-lg p-2 md:p-3">
-              <h5 className="text-xs md:text-sm text-red-400 mb-1 flex items-center gap-1">
-                <IoMdHeart className="text-base md:text-lg" />{" "}
-                {t("albumDetails.favoriteTrack", "Música Favorita")}
-              </h5>
-              <p className="text-white font-medium text-xs truncate">
-                {avaliacao.preferencias.faixaFavoritaNome ||
-                  obterNomeFaixa(avaliacao.preferencias.faixaFavorita)}
-              </p>
-            </div>
-          )}
-
-          {avaliacao.preferencias?.piorFaixa && (
-            <div className="bg-cinza rounded-lg p-2 md:p-3">
-              <h5 className="text-xs md:text-sm text-yellow-500 mb-1 flex items-center gap-1">
-                <IoMdHeartDislike className="text-base md:text-lg" />{" "}
-                {t("albumDetails.worstTrack", "Pior Música")}
-              </h5>
-              <p className="text-white font-medium text-xs truncate">
-                {avaliacao.preferencias.piorFaixaNome ||
-                  obterNomeFaixa(avaliacao.preferencias.piorFaixa)}
-              </p>
-            </div>
-          )}
         </div>
 
         {/* Botão de fechar */}

@@ -117,8 +117,19 @@ function App() {
       // Configurar sincronização de avaliações
       const limparSincronizacao = configurarSincronizacao();
 
+      // Verificar se acabamos de fazer login
+      const origemLogin = sessionStorage.getItem("login_redirect");
+      if (origemLogin === "true") {
+        // Limpar a flag de redirecionamento
+        sessionStorage.removeItem("login_redirect");
+
+        // Forçar navegação para feed e atualizar activeView
+        setActiveView("feed");
+        localStorage.setItem("activeView", "feed");
+        navigate("/feed", { replace: true });
+      }
       // Se o usuário acabou de fazer login e está na página de feed, mas não tem activeView
-      if (location.pathname === "/feed" && !activeView) {
+      else if (location.pathname === "/feed" && !activeView) {
         setActiveView("feed");
         localStorage.setItem("activeView", "feed");
       }
@@ -126,7 +137,7 @@ function App() {
       // Limpar sincronização ao desmontar
       return limparSincronizacao;
     }
-  }, [usuarioFirebase, location.pathname, activeView]);
+  }, [usuarioFirebase, location.pathname, activeView, navigate]);
 
   // Renderizar o seletor de idioma apenas para desktop
   const renderLanguageSelector = () => {

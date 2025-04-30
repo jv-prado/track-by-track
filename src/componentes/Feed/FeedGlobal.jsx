@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { obterAvaliacoesGlobais } from "../../services/firebase/index";
 import Carregamento from "../Feedback/Carregamento";
 import ErroCarregamento from "../Feedback/ErroCarregamento";
@@ -22,12 +22,20 @@ const FeedGlobal = () => {
   const { t } = useTranslation();
   const [avaliacoes, setAvaliacoes] = useState([]);
   const [carregando, setCarregando] = useState(true);
+  const [carregandoMais, setCarregandoMais] = useState(false);
   const [erro, setErro] = useState(null);
   const [usandoDadosDemo, setUsandoDadosDemo] = useState(false);
   const { usuario: usuarioFirebase } = useAuth();
   const navigate = useNavigate();
   const [modalAberto, setModalAberto] = useState(false);
   const [avaliacaoSelecionada, setAvaliacaoSelecionada] = useState(null);
+  const [pagina, setPagina] = useState(1);
+  const [temMaisAvaliacoes, setTemMaisAvaliacoes] = useState(true);
+  const observerRef = useRef(null);
+  const ultimaAvaliacaoRef = useRef(null);
+
+  // Quantidade de avaliações carregadas por página
+  const LIMITE_POR_PAGINA = 10;
 
   // Função para navegar para a página de detalhes do álbum
   const navegarParaAlbum = (albumId, event) => {
@@ -61,16 +69,36 @@ const FeedGlobal = () => {
     setAvaliacaoSelecionada(null);
   };
 
+  // Observer para detectar quando o usuário chegou ao final da lista
+  const ultimoElementoRef = useCallback(
+    (node) => {
+      if (carregandoMais) return;
+
+      if (observerRef.current) observerRef.current.disconnect();
+
+      observerRef.current = new IntersectionObserver((entries) => {
+        if (entries[0].isIntersecting && (temMaisAvaliacoes || pagina === 1)) {
+          carregarMaisAvaliacoes();
+        }
+      });
+
+      if (node) observerRef.current.observe(node);
+    },
+    [carregandoMais, temMaisAvaliacoes, pagina]
+  );
+
   // Buscar as avaliações globais ao montar o componente
   useEffect(() => {
     carregarAvaliacoes();
   }, []);
 
-  // Função para carregar as avaliações
+  // Função para carregar as avaliações iniciais
   const carregarAvaliacoes = async () => {
     setCarregando(true);
     setErro(null);
     setUsandoDadosDemo(false);
+    setPagina(1);
+    setTemMaisAvaliacoes(true);
 
     // Verificar se o usuário está em modo demo
     const demoToken = localStorage.getItem("demo_token");
@@ -82,17 +110,20 @@ const FeedGlobal = () => {
     if (!usuarioFirebase || modoDemo) {
       console.log("Usando dados de demonstração para o feed global");
       // Filtrar apenas avaliações com 100% de progresso
-      const avaliacoesFiltradas = avaliacoesGlobaisDemo.filter(
-        (avaliacao) => (avaliacao.progresso?.percentual || 0) >= 100
-      );
+      const avaliacoesFiltradas = avaliacoesGlobaisDemo
+        .filter((avaliacao) => (avaliacao.progresso?.percentual || 0) >= 100)
+        .slice(0, LIMITE_POR_PAGINA);
+
       setAvaliacoes(avaliacoesFiltradas);
       setUsandoDadosDemo(true);
       setCarregando(false);
+      // Se os dados demo tiverem menos avaliações que o limite, não há mais para carregar
+      setTemMaisAvaliacoes(avaliacoesFiltradas.length >= LIMITE_POR_PAGINA);
       return;
     }
 
     try {
-      const avaliacoesGlobais = await obterAvaliacoesGlobais(30);
+      const avaliacoesGlobais = await obterAvaliacoesGlobais(LIMITE_POR_PAGINA);
       // Validar e processar as imagens antes de definir o estado
       const avaliacoesProcessadas = avaliacoesGlobais
         .map((avaliacao) => ({
@@ -107,6 +138,13 @@ const FeedGlobal = () => {
         .filter((avaliacao) => (avaliacao.progresso?.percentual || 0) >= 100);
 
       setAvaliacoes(avaliacoesProcessadas);
+      setTemMaisAvaliacoes(avaliacoesProcessadas.length >= LIMITE_POR_PAGINA);
+
+      // Guardar referência da última avaliação carregada
+      if (avaliacoesProcessadas.length > 0) {
+        ultimaAvaliacaoRef.current =
+          avaliacoesProcessadas[avaliacoesProcessadas.length - 1];
+      }
     } catch (error) {
       console.error("Erro ao carregar feed global:", error);
 
@@ -117,16 +155,122 @@ const FeedGlobal = () => {
       ) {
         console.log("Erro de permissão, usando dados de demonstração");
         // Filtrar apenas avaliações com 100% de progresso
-        const avaliacoesFiltradas = avaliacoesGlobaisDemo.filter(
-          (avaliacao) => (avaliacao.progresso?.percentual || 0) >= 100
-        );
+        const avaliacoesFiltradas = avaliacoesGlobaisDemo
+          .filter((avaliacao) => (avaliacao.progresso?.percentual || 0) >= 100)
+          .slice(0, LIMITE_POR_PAGINA);
+
         setAvaliacoes(avaliacoesFiltradas);
         setUsandoDadosDemo(true);
+        // Se os dados demo tiverem menos avaliações que o limite, não há mais para carregar
+        setTemMaisAvaliacoes(avaliacoesFiltradas.length >= LIMITE_POR_PAGINA);
       } else {
         setErro(error.message || "Erro ao carregar as avaliações globais");
       }
     } finally {
       setCarregando(false);
+    }
+  };
+
+  // Função para carregar mais avaliações quando o usuário rolar a página
+  const carregarMaisAvaliacoes = async () => {
+    if (carregandoMais) return;
+
+    setCarregandoMais(true);
+    console.log("Carregando mais avaliações da página", pagina + 1);
+
+    // Para dados de demonstração, simplesmente adicionar mais avaliações da lista demo
+    if (usandoDadosDemo) {
+      const proximaPagina = pagina + 1;
+      const inicio = (proximaPagina - 1) * LIMITE_POR_PAGINA;
+      const fim = inicio + LIMITE_POR_PAGINA;
+
+      const novasAvaliacoes = avaliacoesGlobaisDemo
+        .filter((avaliacao) => (avaliacao.progresso?.percentual || 0) >= 100)
+        .slice(inicio, fim);
+
+      if (novasAvaliacoes.length > 0) {
+        setAvaliacoes((prev) => [...prev, ...novasAvaliacoes]);
+        setPagina(proximaPagina);
+      }
+
+      // Verificar se ainda há mais avaliações para carregar
+      setTemMaisAvaliacoes(novasAvaliacoes.length >= LIMITE_POR_PAGINA);
+      setCarregandoMais(false);
+      return;
+    }
+
+    try {
+      // Usar a última avaliação carregada como ponto de partida para a próxima consulta
+      const ultimaAvaliacao = ultimaAvaliacaoRef.current;
+
+      console.log(
+        "Buscando a partir da avaliação:",
+        ultimaAvaliacao?.id,
+        "usuário:",
+        ultimaAvaliacao?.usuario?.id
+      );
+
+      // Esta função precisará ser modificada no Firebase para suportar paginação
+      const novasAvaliacoes = await obterAvaliacoesGlobais(
+        LIMITE_POR_PAGINA,
+        ultimaAvaliacao
+      );
+
+      console.log(`Encontradas ${novasAvaliacoes.length} novas avaliações`);
+
+      // Processar as novas avaliações
+      const avaliacoesProcessadas = novasAvaliacoes
+        .map((avaliacao) => ({
+          ...avaliacao,
+          imagem: validarUrlImagem(avaliacao.imagem),
+          usuario: {
+            ...avaliacao.usuario,
+            foto: validarUrlImagem(avaliacao.usuario.foto),
+          },
+        }))
+        .filter((avaliacao) => (avaliacao.progresso?.percentual || 0) >= 100);
+
+      console.log(
+        `${avaliacoesProcessadas.length} avaliações processadas com progresso 100%`
+      );
+
+      // Adicionar as novas avaliações ao array existente
+      if (avaliacoesProcessadas.length > 0) {
+        setAvaliacoes((prev) => {
+          // Verificar se há duplicatas e apenas adicionar as novas
+          const idsExistentes = new Set(
+            prev.map((a) => `${a.id}-${a.usuario.id}`)
+          );
+
+          const novasAvaliacoesFiltradas = avaliacoesProcessadas.filter(
+            (a) => !idsExistentes.has(`${a.id}-${a.usuario.id}`)
+          );
+
+          console.log(
+            `Adicionando ${novasAvaliacoesFiltradas.length} avaliações únicas`
+          );
+
+          // Se existem itens novos, atualizar a referência da última avaliação
+          if (novasAvaliacoesFiltradas.length > 0) {
+            ultimaAvaliacaoRef.current =
+              novasAvaliacoesFiltradas[novasAvaliacoesFiltradas.length - 1];
+          }
+
+          return [...prev, ...novasAvaliacoesFiltradas];
+        });
+
+        setPagina(pagina + 1);
+      }
+
+      // Verificar se ainda há mais avaliações para carregar
+      // Mesmo se vier menos que o limite, continuamos tentando carregar mais
+      // a menos que não tenha vindo nenhuma avaliação
+      setTemMaisAvaliacoes(avaliacoesProcessadas.length > 0);
+    } catch (error) {
+      console.error("Erro ao carregar mais avaliações:", error);
+      // Não mostrar erro para o usuário ao carregar mais, apenas log
+    } finally {
+      setCarregandoMais(false);
     }
   };
 
@@ -274,6 +418,7 @@ const FeedGlobal = () => {
               className="bg-cinza-escuro rounded-xl overflow-hidden shadow-lg transition-all duration-300 hover:scale-[1.02] hover:shadow-xl flex flex-col h-full cursor-pointer relative hover:bg-cinza-escuro/90 group"
               onClick={(e) => navegarParaAlbum(avaliacao.id, e)}
               title={t("feed.cliqueVerDetalhes")}
+              ref={index === avaliacoes.length - 1 ? ultimoElementoRef : null}
             >
               <div className="flex flex-col lg:flex-row h-full">
                 {/* LADO ESQUERDO: Imagem do álbum, nome, artista, usuário e botão Spotify */}
@@ -432,6 +577,19 @@ const FeedGlobal = () => {
               </div>
             </div>
           ))}
+
+          {/* Indicador de carregamento quando estiver buscando mais avaliações */}
+          {carregandoMais && (
+            <div className="py-4 flex justify-center items-center">
+              <div className="w-8 h-8 border-4 border-verde-destaque/20 border-t-verde-destaque rounded-full animate-spin"></div>
+              <span className="ml-2 text-sm text-verde-destaque">
+                {t("feed.carregandoMais")}
+              </span>
+            </div>
+          )}
+
+          {/* Mensagem quando não há mais avaliações para carregar */}
+          {/* Removido conforme solicitado */}
         </div>
       )}
 

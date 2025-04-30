@@ -277,15 +277,26 @@ export const obterAlbunsAvaliados = async () => {
 /**
  * Obtém as médias de avaliações mais recentes de todos os usuários
  * @param {number} limite - Número máximo de avaliações a retornar
+ * @param {Object} ultimaAvaliacao - A última avaliação obtida anteriormente, para paginação
  * @returns {Promise<Array>} Array com as avaliações mais recentes
  */
-export const obterAvaliacoesGlobais = async (limite = 20) => {
+export const obterAvaliacoesGlobais = async (
+  limite = 20,
+  ultimaAvaliacao = null
+) => {
   try {
+    console.log(
+      `Buscando até ${limite} avaliações globais${
+        ultimaAvaliacao ? " a partir de uma referência" : ""
+      }`
+    );
+
     // Referência para a coleção de usuários
     const usuariosRef = collection(db, "usuarios");
 
     // Buscar todos os documentos de usuários
     const snapshot = await getDocs(usuariosRef);
+    console.log(`Encontrados ${snapshot.size} usuários`);
 
     // Array para armazenar todas as avaliações
     let todasAvaliacoes = [];
@@ -294,6 +305,8 @@ export const obterAvaliacoesGlobais = async (limite = 20) => {
     snapshot.forEach((doc) => {
       const dadosUsuario = doc.data();
       const albuns = dadosUsuario.albuns_avaliados || [];
+
+      console.log(`Usuário ${doc.id} tem ${albuns.length} álbuns avaliados`);
 
       // Para cada álbum avaliado pelo usuário
       albuns.forEach((album) => {
@@ -376,11 +389,42 @@ export const obterAvaliacoesGlobais = async (limite = 20) => {
       });
     });
 
+    console.log(
+      `Total de ${todasAvaliacoes.length} avaliações processadas antes da filtragem`
+    );
+
     // Ordenar por data de avaliação (mais recentes primeiro)
     todasAvaliacoes.sort((a, b) => b.dataAvaliacao - a.dataAvaliacao);
 
+    // Se temos uma avaliação de referência para paginação
+    if (ultimaAvaliacao) {
+      // Encontrar índice da última avaliação usada como ponto de referência
+      const ultimoIndice = todasAvaliacoes.findIndex(
+        (av) =>
+          av.id === ultimaAvaliacao.id &&
+          av.usuario.id === ultimaAvaliacao.usuario.id
+      );
+
+      console.log(`Última avaliação encontrada no índice ${ultimoIndice}`);
+
+      // Se encontrou, filtrar para pegar apenas avaliações após este índice
+      if (ultimoIndice !== -1) {
+        todasAvaliacoes = todasAvaliacoes.slice(ultimoIndice + 1);
+        console.log(
+          `Restaram ${todasAvaliacoes.length} avaliações após a referência`
+        );
+      } else {
+        console.log(
+          "Avaliação de referência não encontrada, retornando todas avaliações"
+        );
+      }
+    }
+
     // Limitar ao número especificado
-    return todasAvaliacoes.slice(0, limite);
+    const avaliacoesFiltradas = todasAvaliacoes.slice(0, limite);
+    console.log(`Retornando ${avaliacoesFiltradas.length} avaliações`);
+
+    return avaliacoesFiltradas;
   } catch (error) {
     console.error("Erro ao obter avaliações globais:", error);
     return [];

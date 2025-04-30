@@ -15,7 +15,9 @@
     "tryAgain": "Try again",
     "demoMode": "Demo Mode (no account)",
     "continueWith": "or continue with",
-    "enteringAccount": "Signing in..."
+    "enteringAccount": "Signing in...",
+    "profile": "Profile",
+    "changePhoto": "Change photo"
   },
   "splash": {
     "logoAlt": "App logo",

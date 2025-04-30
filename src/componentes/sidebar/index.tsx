@@ -1,5 +1,5 @@
 import Logo from "./assets/Logo.svg";
-import { FaUser, FaGlobe } from "react-icons/fa";
+import { FaUser, FaGlobe, FaCamera } from "react-icons/fa";
 import { IoStarSharp } from "react-icons/io5";
 import { IoMdExit } from "react-icons/io";
 import "../../App.css";
@@ -8,7 +8,7 @@ import SidebarItem from "./SideBarItem";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import { fazerLogout } from "../../services/firebase";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import BandeiraBrasil from "../../assets/Flag_of_Brazil.svg";
 import BandeiraEUA from "../../assets/Flag_of_the_United_States.svg";
@@ -18,6 +18,8 @@ export default function Sidebar({ activeView, setActiveView }) {
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
   const [modoDemoBrowser, setModoDemo] = useState(false);
+  const [perfilMenuAberto, setPerfilMenuAberto] = useState(false);
+  const menuRef = useRef(null);
 
   // Determinar o idioma atual
   const currentLanguage = i18n.language || "pt-BR";
@@ -36,6 +38,20 @@ export default function Sidebar({ activeView, setActiveView }) {
       setModoDemo(false);
     }
   };
+
+  // Fechar o menu ao clicar fora dele
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setPerfilMenuAberto(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [menuRef]);
 
   // Verificar o localStorage ao montar o componente e quando ele for atualizado
   useEffect(() => {
@@ -72,10 +88,44 @@ export default function Sidebar({ activeView, setActiveView }) {
     const newLanguage = isPortuguese ? "en-US" : "pt-BR";
     i18n.changeLanguage(newLanguage);
     localStorage.setItem("i18nextLng", newLanguage);
+    setPerfilMenuAberto(false);
+  };
+
+  // Função para abrir a câmera ou o seletor de imagem
+  const handleTrocarFoto = () => {
+    // Aqui você pode implementar a lógica para trocar a foto do usuário
+    console.log("Trocar foto do usuário");
+    // Simular a abertura de um seletor de arquivo
+    const inputElement = document.createElement("input");
+    inputElement.type = "file";
+    inputElement.accept = "image/*";
+    inputElement.onchange = (e) => {
+      // Lógica para processar a imagem selecionada
+      const fileInput = e.target as HTMLInputElement;
+      if (fileInput.files && fileInput.files[0]) {
+        console.log("Arquivo selecionado:", fileInput.files[0].name);
+      }
+    };
+    inputElement.click();
+    setPerfilMenuAberto(false);
   };
 
   // Verificar se o usuário está autenticado via contexto OU via localStorage
   const usuarioAtivoLocal = usuarioAtivo || modoDemoBrowser;
+
+  // Obter foto do usuário ou usar fallback
+  const obterFotoPerfil = () => {
+    if (usuarioFirebase && usuarioFirebase.photoURL) {
+      return usuarioFirebase.photoURL;
+    } else if (usuarioDemo && usuarioDemo.photoURL) {
+      return usuarioDemo.photoURL;
+    }
+    return null;
+  };
+
+  const fotoPerfil = obterFotoPerfil();
+  const nomeUsuario =
+    usuarioFirebase?.displayName || usuarioDemo?.nome || "Usuário";
 
   // Rendereiza a opção de login no menu de navegação
   const renderLoginOption = () => (
@@ -240,18 +290,66 @@ export default function Sidebar({ activeView, setActiveView }) {
             <span className="text-xs mt-1">{t("app.myRatings")}</span>
           </button>
 
-          {/* Botão de menu em vez de botão de logout */}
-          <button
-            onClick={changeLanguage}
-            className="flex flex-col items-center justify-center pt-1 pb-1 px-2 rounded-lg text-gray-400"
-          >
-            <img
-              src={isPortuguese ? BandeiraBrasil : BandeiraEUA}
-              alt={isPortuguese ? "English" : "Português"}
-              className="w-5 h-5 object-cover rounded-full border border-gray-600"
-            />
-            <span className="text-xs mt-1">{isPortuguese ? "PT" : "EN"}</span>
-          </button>
+          {/* Perfil do Usuário - Foto com Menu Dropdown */}
+          <div className="relative" ref={menuRef}>
+            <button
+              onClick={() => setPerfilMenuAberto(!perfilMenuAberto)}
+              className="flex flex-col items-center justify-center pt-1 pb-1 px-2 rounded-lg text-gray-400"
+            >
+              <div className="w-6 h-6 rounded-full overflow-hidden border border-gray-600 flex items-center justify-center bg-verde-destaque/20">
+                {fotoPerfil ? (
+                  <img
+                    src={fotoPerfil}
+                    alt={nomeUsuario}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <span className="text-verde-destaque text-sm font-bold">
+                    {nomeUsuario.charAt(0).toUpperCase()}
+                  </span>
+                )}
+              </div>
+              <span className="text-xs mt-1">{t("app.profile")}</span>
+            </button>
+
+            {/* Menu Dropdown */}
+            {perfilMenuAberto && (
+              <div className="absolute bottom-full right-0 mb-2 bg-cinza-escuro rounded-lg shadow-lg border border-gray-700 overflow-hidden w-36">
+                {/* Opção: Trocar Idioma */}
+                <button
+                  onClick={changeLanguage}
+                  className="flex items-center w-full px-3 py-2 hover:bg-cinza-escuro/80 text-left text-sm text-gray-300"
+                >
+                  <div className="flex items-center">
+                    <img
+                      src={isPortuguese ? BandeiraEUA : BandeiraBrasil}
+                      alt={isPortuguese ? "English" : "Português"}
+                      className="w-5 h-3 mr-2 object-cover"
+                    />
+                    {isPortuguese ? "English" : "Português"}
+                  </div>
+                </button>
+
+                {/* Opção: Trocar Foto */}
+                <button
+                  onClick={handleTrocarFoto}
+                  className="flex items-center w-full px-3 py-2 hover:bg-cinza-escuro/80 text-left text-sm text-gray-300"
+                >
+                  <FaCamera className="mr-2 text-verde-destaque" />
+                  {t("app.changePhoto")}
+                </button>
+
+                {/* Opção: Logout */}
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center w-full px-3 py-2 hover:bg-cinza-escuro/80 text-left text-sm text-gray-300 border-t border-gray-700"
+                >
+                  <IoMdExit className="mr-2 text-verde-destaque" />
+                  {t("app.logout")}
+                </button>
+              </div>
+            )}
+          </div>
         </nav>
       )}
     </>

@@ -15,7 +15,9 @@
     "tryAgain": "Tentar novamente",
     "demoMode": "Modo Demonstração (sem conta)",
     "continueWith": "ou continue com",
-    "enteringAccount": "Entrando..."
+    "enteringAccount": "Entrando...",
+    "profile": "Perfil",
+    "changePhoto": "Alterar foto"
   },
   "splash": {
     "logoAlt": "Logo do aplicativo",

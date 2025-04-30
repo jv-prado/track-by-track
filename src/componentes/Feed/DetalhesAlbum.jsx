@@ -1475,7 +1475,7 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
                   className={(() => {
                     const nota = calcularMediaAvaliacoes();
                     if (progressoAvaliacao?.percentual < 100)
-                      return "text-2xl sm:text-3xl font-extrabold text-gray-400";
+                      return "text-2xl sm:text-3xl font-extrabold font-extrabold text-gray-400";
                     if (nota < 4)
                       return "text-2xl sm:text-3xl font-extrabold text-red-500";
                     if (nota < 7)

@@ -116,7 +116,7 @@ export default function PerfilUsuario() {
     <div className="bg-cinza-escuro rounded-xl p-3">
       <div className="flex items-center gap-3">
         {/* Avatar do usuário */}
-        <div className="relative group">
+        <div className="relative">
           <div className="w-10 h-10 rounded-full bg-verde-pastel flex items-center justify-center text-cinza-escuro font-bold overflow-hidden">
             {fotoPerfil ? (
               <img
@@ -134,7 +134,8 @@ export default function PerfilUsuario() {
             <>
               <button
                 onClick={handleTrocarFoto}
-                className="absolute inset-0 w-full h-full rounded-full bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                className="absolute inset-0 w-full h-full rounded-full bg-black/50 flex items-center justify-center opacity-70 md:opacity-0 md:hover:opacity-70 active:opacity-70 transition-opacity"
+                aria-label={t("userProfile.changePhoto") || "Trocar foto"}
               >
                 <FaCamera className="text-white text-sm" />
               </button>

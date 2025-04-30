@@ -93,19 +93,60 @@ export default function Sidebar({ activeView, setActiveView }) {
 
   // Função para abrir a câmera ou o seletor de imagem
   const handleTrocarFoto = () => {
-    // Aqui você pode implementar a lógica para trocar a foto do usuário
-    console.log("Trocar foto do usuário");
-    // Simular a abertura de um seletor de arquivo
+    // Verificar se é usuário demo
+    if (usuarioDemo) {
+      // Exibir alguma mensagem de erro (pode ser adicionado um toast ou alert aqui)
+      console.error("Usuários demo não podem alterar a foto");
+      setPerfilMenuAberto(false);
+      return;
+    }
+
+    // Criar e configurar um elemento input
     const inputElement = document.createElement("input");
     inputElement.type = "file";
     inputElement.accept = "image/*";
-    inputElement.onchange = (e) => {
-      // Lógica para processar a imagem selecionada
+
+    inputElement.onchange = async (e) => {
       const fileInput = e.target as HTMLInputElement;
       if (fileInput.files && fileInput.files[0]) {
-        console.log("Arquivo selecionado:", fileInput.files[0].name);
+        const file = fileInput.files[0];
+
+        // Verificar se o arquivo é uma imagem
+        if (!file.type.startsWith("image/")) {
+          console.error("O arquivo deve ser uma imagem");
+          return;
+        }
+
+        // Verificar o tamanho do arquivo (máximo 5MB)
+        if (file.size > 5 * 1024 * 1024) {
+          console.error("O arquivo deve ter menos de 5MB");
+          return;
+        }
+
+        try {
+          // Importar as funções do Firebase diretamente aqui
+          const { uploadFile, updateUserProfile } = await import(
+            "../../services/firebase/index"
+          );
+
+          // Fazer upload do arquivo para o Firebase Storage
+          const filePath = `profile_pictures/${usuarioFirebase.uid}/${file.name}`;
+          const imageUrl = await uploadFile(file, filePath);
+
+          // Atualizar o perfil do usuário com a nova foto
+          await updateUserProfile(usuarioFirebase, {
+            photoURL: imageUrl,
+          });
+
+          // Forçar uma atualização da interface
+          window.location.reload();
+        } catch (error) {
+          console.error("Erro ao atualizar foto:", error);
+        }
       }
     };
+
+    // Simular o clique no input
     inputElement.click();
     setPerfilMenuAberto(false);
   };

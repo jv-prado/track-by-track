@@ -1,5 +1,5 @@
 import Logo from "./assets/Logo.svg";
-import { FaUser, FaGlobe, FaCamera } from "react-icons/fa";
+import { FaUser, FaGlobe, FaCamera, FaInstagram } from "react-icons/fa";
 import { IoStarSharp } from "react-icons/io5";
 import { IoMdExit } from "react-icons/io";
 import "../../App.css";
@@ -301,6 +301,19 @@ export default function Sidebar({ activeView, setActiveView }) {
             )}
           </ul>
         </nav>
+        {/* Instagram - Desktop Sidebar */}
+        <a
+          href="https://www.instagram.com/trackbytrackapp"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center justify-center w-full mt-4 px-3 py-1.5 rounded-md bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-500 hover:to-pink-400 transition-all duration-300 opacity-80 hover:opacity-100 hover:shadow-sm hover:shadow-pink-500/20"
+          title="Instagram"
+          style={{ textDecoration: "none" }}
+        >
+          <FaInstagram className="text-white text-sm mr-2" />
+          <span className="text-white text-xs font-medium">Instagram</span>
+        </a>
+        {/* Fim Instagram - Desktop Sidebar */}
       </aside>
 
       {/* Mobile Bottom Navigation - visível em telas abaixo de 1000px */}

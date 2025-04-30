@@ -4,6 +4,7 @@ import Logo from "./sidebar/assets/Logo.svg";
 import { useTranslation } from "react-i18next";
 import BandeiraBrasil from "../assets/Flag_of_Brazil.svg";
 import BandeiraEUA from "../assets/Flag_of_the_United_States.svg";
+import { FaInstagram } from "react-icons/fa";
 
 const Splash = () => {
   const navigate = useNavigate();
@@ -62,6 +63,27 @@ const Splash = () => {
             {t("splash.enterButton", "Entrar ou Cadastrar")}
           </button>
         </div>
+
+        {/* Instagram - Splash Screen */}
+        <div
+          className="flex justify-center mt-5 mb-6 animate-fadeIn"
+          style={{ animationDelay: "0.75s" }}
+        >
+          <a
+            href="https://www.instagram.com/trackbytrackapp"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-3 px-4 py-2 rounded-full bg-gradient-to-r from-purple-600/90 to-pink-500/90 hover:from-purple-500 hover:to-pink-400 transition-all duration-300 group hover:shadow-md hover:shadow-pink-500/20 hover:scale-105"
+            title="Siga-nos no Instagram"
+            style={{ textDecoration: "none" }}
+          >
+            <FaInstagram className="text-white" />
+            <span className="text-white text-sm font-medium pr-1">
+              Instagram
+            </span>
+          </a>
+        </div>
+        {/* Fim Instagram - Splash Screen */}
 
         {/* Seletor de idioma simplificado com bandeiras - Apenas para dispositivos móveis */}
         <div

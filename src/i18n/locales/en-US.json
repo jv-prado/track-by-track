@@ -128,5 +128,19 @@
     "lastModification": "Last modification",
     "noRecord": "No record",
     "releaseInfo": "{{year}} • {{tracks}} tracks • {{duration}}"
+  },
+  "userProfile": {
+    "loginSignUp": "Login or Sign Up",
+    "profilePicture": "Profile picture",
+    "demoUser": "Demo User",
+    "user": "User",
+    "demoMode": "Demo Mode",
+    "demoPhotoError": "Demo users cannot change their profile picture",
+    "invalidImageError": "Please select a valid image file",
+    "fileSizeError": "The image must be at most 5MB",
+    "uploadError": "Error updating profile picture. Please try again.",
+    "dataSavedLocally": "Data saved locally",
+    "ratingsSavedToAccount": "Ratings saved to account",
+    "logout": "Logout"
   }
 }

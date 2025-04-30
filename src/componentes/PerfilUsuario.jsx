@@ -7,8 +7,10 @@ import {
 } from "../services/firebase/index";
 import { useNavigate } from "react-router-dom";
 import { FaCamera } from "react-icons/fa";
+import { useTranslation } from "react-i18next";
 
 export default function PerfilUsuario() {
+  const { t, i18n } = useTranslation();
   const [carregando, setCarregando] = useState(true);
   const [fotoPerfil, setFotoPerfil] = useState(null);
   const [erro, setErro] = useState("");
@@ -46,7 +48,7 @@ export default function PerfilUsuario() {
 
   const handleTrocarFoto = () => {
     if (usuarioDemo) {
-      setErro("Usuários de demonstração não podem trocar a foto de perfil");
+      setErro(t("userProfile.demoPhotoError"));
       return;
     }
     fileInputRef.current?.click();
@@ -58,13 +60,13 @@ export default function PerfilUsuario() {
 
     // Verificar se o arquivo é uma imagem
     if (!file.type.startsWith("image/")) {
-      setErro("Por favor, selecione um arquivo de imagem válido");
+      setErro(t("userProfile.invalidImageError"));
       return;
     }
 
     // Verificar o tamanho do arquivo (máximo 5MB)
     if (file.size > 5 * 1024 * 1024) {
-      setErro("A imagem deve ter no máximo 5MB");
+      setErro(t("userProfile.fileSizeError"));
       return;
     }
 
@@ -84,7 +86,7 @@ export default function PerfilUsuario() {
       setFotoPerfil(imageUrl);
     } catch (error) {
       console.error("Erro ao atualizar foto:", error);
-      setErro("Erro ao atualizar a foto de perfil. Tente novamente.");
+      setErro(t("userProfile.uploadError"));
     } finally {
       setCarregando(false);
     }
@@ -105,7 +107,7 @@ export default function PerfilUsuario() {
         <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24" fill="currentColor">
           <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z" />
         </svg>
-        Entrar ou Cadastrar
+        {t("userProfile.loginSignUp")}
       </a>
     );
   }
@@ -119,7 +121,7 @@ export default function PerfilUsuario() {
             {fotoPerfil ? (
               <img
                 src={fotoPerfil}
-                alt="Foto do perfil"
+                alt={t("userProfile.profilePicture")}
                 className="w-full h-full object-cover"
               />
             ) : usuarioDemo ? (
@@ -150,11 +152,14 @@ export default function PerfilUsuario() {
         <div className="flex-1 overflow-hidden">
           <p className="font-bold text-sm truncate">
             {usuarioDemo
-              ? usuarioDemo.nome || "Usuário Demo"
-              : usuarioFirebase?.displayName || "Usuário"}
+              ? usuarioDemo.nome ||
+                (i18n.language.startsWith("en") ? "Demo User" : "Usuário Demo")
+              : usuarioFirebase?.displayName || t("userProfile.user")}
           </p>
           <p className="text-xs text-gray-400 truncate">
-            {usuarioDemo ? "Modo Demonstração" : usuarioFirebase?.email || ""}
+            {usuarioDemo
+              ? t("userProfile.demoMode")
+              : usuarioFirebase?.email || ""}
           </p>
         </div>
       </div>
@@ -172,8 +177,8 @@ export default function PerfilUsuario() {
             />
           </svg>
           {usuarioDemo
-            ? "Dados salvos localmente"
-            : "Avaliações salvas na conta"}
+            ? t("userProfile.dataSavedLocally")
+            : t("userProfile.ratingsSavedToAccount")}
         </div>
 
         {/* Botão de logout */}
@@ -181,7 +186,7 @@ export default function PerfilUsuario() {
           onClick={handleLogout}
           className="text-xs py-1 px-2 bg-cinza-medio text-white rounded w-full hover:bg-cinza-claro/20 cursor-pointer"
         >
-          Sair
+          {t("userProfile.logout")}
         </button>
       </div>
     </div>

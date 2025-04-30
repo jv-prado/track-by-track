@@ -152,7 +152,6 @@ function App() {
     return (
       <>
         <Splash />
-        {renderLanguageSelector()}
       </>
     );
   }

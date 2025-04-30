@@ -12,7 +12,7 @@ const Login = () => {
   const [carregando, setCarregando] = useState(false);
   const [carregandoDemo, setCarregandoDemo] = useState(false);
   const navigate = useNavigate();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -41,7 +41,7 @@ const Login = () => {
       // Criar um "usuário demo" no localStorage
       const usuarioDemo = {
         id: "usuario-demo-" + Date.now(),
-        nome: "Usuário Demo",
+        nome: i18n.language.startsWith("en") ? "Demo User" : "Usuário Demo",
         email: "demo@example.com",
         tipo: "demo",
       };

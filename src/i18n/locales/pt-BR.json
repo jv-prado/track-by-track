@@ -128,5 +128,19 @@
     "lastModification": "Última modificação",
     "noRecord": "Sem registro",
     "releaseInfo": "{{year}} • {{tracks}} faixas • {{duration}}"
+  },
+  "userProfile": {
+    "loginSignUp": "Entrar ou Cadastrar",
+    "profilePicture": "Foto do perfil",
+    "demoUser": "Usuário Demo",
+    "user": "Usuário",
+    "demoMode": "Modo Demonstração",
+    "demoPhotoError": "Usuários de demonstração não podem trocar a foto de perfil",
+    "invalidImageError": "Por favor, selecione um arquivo de imagem válido",
+    "fileSizeError": "A imagem deve ter no máximo 5MB",
+    "uploadError": "Erro ao atualizar a foto de perfil. Tente novamente.",
+    "dataSavedLocally": "Dados salvos localmente",
+    "ratingsSavedToAccount": "Avaliações salvas na conta",
+    "logout": "Sair"
   }
 }

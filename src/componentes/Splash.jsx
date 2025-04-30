@@ -63,13 +63,13 @@ const Splash = () => {
 
         {/* Seletor de idioma simplificado com bandeiras - Apenas para dispositivos móveis */}
         <div
-          className="md:hidden flex justify-center items-center gap-6 mt-6 animate-fadeIn"
+          className=" flex justify-center items-center gap-6 mt-6 animate-fadeIn"
           style={{ animationDelay: "0.9s" }}
         >
           {/* Bandeira do Brasil */}
           <button
             onClick={() => changeLanguage("pt-BR")}
-            className={`w-12 h-8 rounded-md overflow-hidden border-2 transition-all ${
+            className={`w-12 h-8 rounded-md overflow-hidden border-2 transition-all cursor-pointer ${
               isPortuguese
                 ? "border-verde-destaque scale-110"
                 : "border-gray-600 opacity-80 hover:opacity-100"
@@ -77,7 +77,7 @@ const Splash = () => {
             title="Português"
           >
             <img
-              src="/images/flags/brazil.svg"
+              src="/src/assets/Flag_of_Brazil.svg"
               alt="Bandeira do Brasil"
               className="w-full h-full object-cover"
             />
@@ -86,7 +86,7 @@ const Splash = () => {
           {/* Bandeira dos EUA */}
           <button
             onClick={() => changeLanguage("en-US")}
-            className={`w-12 h-8 rounded-md overflow-hidden border-2 transition-all ${
+            className={`w-12 h-8 rounded-md overflow-hidden border-2 transition-all cursor-pointer ${
               !isPortuguese
                 ? "border-verde-destaque scale-110"
                 : "border-gray-600 opacity-80 hover:opacity-100"
@@ -94,7 +94,7 @@ const Splash = () => {
             title="English"
           >
             <img
-              src="/images/flags/usa.svg"
+              src="/src/assets/Flag_of_the_United_States.svg"
               alt="Bandeira dos EUA"
               className="w-full h-full object-cover"
             />

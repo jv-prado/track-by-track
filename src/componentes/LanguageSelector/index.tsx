@@ -65,7 +65,7 @@ const LanguageSelector: React.FC = () => {
               title="English"
             >
               <img
-                src="/images/flags/usa.svg"
+                src="/src/assets/Flag_of_the_United_States.svg"
                 alt="USA Flag"
                 style={{
                   width: "100%",
@@ -102,7 +102,7 @@ const LanguageSelector: React.FC = () => {
               title="Português"
             >
               <img
-                src="/images/flags/brazil.svg"
+                src="/src/assets/Flag_of_Brazil.svg"
                 alt="Brazil Flag"
                 style={{
                   width: "100%",
@@ -146,8 +146,8 @@ const LanguageSelector: React.FC = () => {
           <img
             src={
               isPortuguese
-                ? "/images/flags/brazil.svg"
-                : "/images/flags/usa.svg"
+                ? "/src/assets/Flag_of_Brazil.svg"
+                : "/src/assets/Flag_of_the_United_States.svg"
             }
             alt={isPortuguese ? "Brazil Flag" : "USA Flag"}
             style={{

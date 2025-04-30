@@ -9,14 +9,12 @@ import Splash from "./componentes/Splash";
 import Login from "./componentes/AuthForms/Login";
 import Registro from "./componentes/AuthForms/Registro";
 import { useAuth } from "./contexts/AuthContext";
-import { fazerLogout } from "./services/firebase";
 import {
   configurarSincronizacao,
   carregarAvaliacoesSincronizadas,
 } from "./services/sync";
 import { migrarDadosAvaliacoes } from "./services/avaliacoes";
 import { App as CapApp } from "@capacitor/app";
-import { useTranslation } from "react-i18next";
 import LanguageSelector from "./componentes/LanguageSelector";
 
 // Componente principal da aplicação
@@ -26,7 +24,6 @@ function App() {
   const navigate = useNavigate();
   const location = useLocation();
   const { usuario: usuarioFirebase } = useAuth();
-  const { t } = useTranslation();
 
   // Lidar com o botão voltar usando o plugin oficial do Capacitor
   useEffect(() => {

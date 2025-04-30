@@ -97,10 +97,10 @@ const ModalAvaliacoesUsuario = ({ usuarioId, albumId, onClose }) => {
   if (carregando) {
     return (
       <div
-        className="fixed inset-0 bg-black/70 flex items-center justify-center z-[9999] modal-overlay"
+        className="fixed inset-0 bg-black/70 flex items-center justify-center z-[9999] modal-overlay p-4"
         onClick={handleOverlayClick}
       >
-        <div className="bg-cinza-escuro rounded-xl p-6 max-w-lg w-full shadow-xl">
+        <div className="bg-cinza-escuro rounded-xl p-6 max-w-lg w-full m-auto shadow-xl">
           <Carregamento
             mensagem={t("feedback.loadingRatings", "Carregando avaliações...")}
           />
@@ -113,10 +113,10 @@ const ModalAvaliacoesUsuario = ({ usuarioId, albumId, onClose }) => {
   if (erro || !avaliacao) {
     return (
       <div
-        className="fixed inset-0 bg-black/70 flex items-center justify-center z-[9999] modal-overlay"
+        className="fixed inset-0 bg-black/70 flex items-center justify-center z-[9999] modal-overlay p-4"
         onClick={handleOverlayClick}
       >
-        <div className="bg-cinza-escuro rounded-xl p-6 max-w-lg w-full shadow-xl">
+        <div className="bg-cinza-escuro rounded-xl p-6 max-w-lg w-full m-auto shadow-xl">
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-xl font-bold text-verde-destaque">
               {t("userRatings.title", "Avaliações")}
@@ -180,43 +180,47 @@ const ModalAvaliacoesUsuario = ({ usuarioId, albumId, onClose }) => {
 
   return (
     <div
-      className="fixed inset-0 bg-black/70 flex items-center justify-center z-[9999] modal-overlay"
+      className="fixed inset-0 bg-black/70 flex items-center justify-center z-[9999] modal-overlay p-4 sm:p-6"
       onClick={handleOverlayClick}
     >
-      <div className="bg-cinza-escuro rounded-xl p-4 md:p-6 max-w-lg w-full max-h-[90vh] overflow-y-auto shadow-xl">
+      <div className="bg-cinza-escuro rounded-xl p-4 md:p-6 max-w-lg w-full max-h-[90vh] overflow-y-auto shadow-xl mx-auto my-auto">
         {/* Cabeçalho do modal */}
-        <div className="flex justify-between items-center mb-4">
+        <div className="flex justify-between items-center mb-3 md:mb-4">
           <div className="flex items-center">
-            <h3 className="text-lg md:text-xl font-bold text-verde-destaque">
+            <h3 className="text-base md:text-xl font-bold text-verde-destaque">
               {t("userRatings.ratingsFrom", "Avaliações de {{name}}", {
                 name: avaliacao.usuario.nome,
               })}
             </h3>
           </div>
           <button onClick={onClose} className="text-gray-400 hover:text-white">
-            <IoMdClose size={24} />
+            <IoMdClose size={22} />
           </button>
         </div>
 
         {/* Informações do álbum */}
-        <div className="flex gap-4 mb-4 items-center">
+        <div className="flex gap-3 md:gap-4 mb-3 md:mb-4 items-center">
           {avaliacao.imagem ? (
             <img
               src={avaliacao.imagem}
               alt={avaliacao.nome}
-              className="w-20 h-20 object-cover rounded-lg shadow-md"
+              className="w-16 h-16 md:w-20 md:h-20 object-cover rounded-lg shadow-md"
             />
           ) : (
-            <div className="w-20 h-20 bg-cinza flex items-center justify-center rounded-lg">
-              <span className="text-gray-400">
+            <div className="w-16 h-16 md:w-20 md:h-20 bg-cinza flex items-center justify-center rounded-lg">
+              <span className="text-gray-400 text-xs md:text-sm">
                 {t("userRatings.noCover", "Sem capa")}
               </span>
             </div>
           )}
-          <div className="flex-grow">
-            <h4 className="font-bold text-white">{avaliacao.nome}</h4>
-            <p className="text-verde-destaque">{avaliacao.artista}</p>
-            <p className="text-gray-400 text-sm">
+          <div className="flex-grow min-w-0">
+            <h4 className="font-bold text-white text-sm md:text-base truncate">
+              {avaliacao.nome}
+            </h4>
+            <p className="text-verde-destaque text-xs md:text-sm truncate">
+              {avaliacao.artista}
+            </p>
+            <p className="text-gray-400 text-xs">
               {t("userRatings.ratedOn", "Avaliado em {{date}}", {
                 date: formatarData(avaliacao.dataAvaliacao),
               })}
@@ -233,7 +237,7 @@ const ModalAvaliacoesUsuario = ({ usuarioId, albumId, onClose }) => {
               </a>
             </div>
           </div>
-          <div className="bg-verde-destaque text-cinza-escuro rounded-lg px-3 py-2 font-bold text-xl md:text-2xl flex items-center justify-center">
+          <div className="bg-verde-destaque text-cinza-escuro rounded-lg px-2 py-1 md:px-3 md:py-2 font-bold text-lg md:text-2xl flex items-center justify-center min-w-10">
             {Number.isInteger(mediaFinal)
               ? mediaFinal.toString()
               : mediaFinal.toFixed(1)}
@@ -242,14 +246,16 @@ const ModalAvaliacoesUsuario = ({ usuarioId, albumId, onClose }) => {
 
         {/* Lista de avaliações das faixas */}
         <div className="mb-2">
-          <h4 className="font-medium text-white mb-2">
+          <h4 className="font-medium text-white text-sm md:text-base mb-2">
             {t("userRatings.ratingsByTrack", "Avaliações por faixa:")}
           </h4>
-          <div className="bg-cinza rounded-lg p-3">
+          <div className="bg-cinza rounded-lg p-2 md:p-3">
             <table className="w-full">
               <thead>
-                <tr className="text-left text-sm text-gray-400 border-b border-gray-700">
-                  <th className="pb-2 font-normal w-10 text-center">#</th>
+                <tr className="text-left text-xs md:text-sm text-gray-400 border-b border-gray-700">
+                  <th className="pb-2 font-normal w-8 md:w-10 text-center">
+                    #
+                  </th>
                   <th className="pb-2 font-normal">
                     {t("albumDetails.track", "Faixa")}
                   </th>
@@ -265,11 +271,13 @@ const ModalAvaliacoesUsuario = ({ usuarioId, albumId, onClose }) => {
                       key={faixa.id}
                       className="border-b border-gray-800 last:border-b-0"
                     >
-                      <td className="py-2 text-xs text-gray-400 text-center">
+                      <td className="py-1 md:py-2 text-xs text-gray-400 text-center">
                         {faixa.numero}
                       </td>
-                      <td className="py-2 text-sm">{faixa.nome}</td>
-                      <td className="py-2 text-center">
+                      <td className="py-1 md:py-2 text-xs md:text-sm truncate max-w-[180px]">
+                        {faixa.nome}
+                      </td>
+                      <td className="py-1 md:py-2 text-center">
                         <div className="flex justify-center">
                           <Estrelas
                             avaliacao={faixa.nota}
@@ -282,7 +290,10 @@ const ModalAvaliacoesUsuario = ({ usuarioId, albumId, onClose }) => {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan="3" className="py-3 text-center text-gray-400">
+                    <td
+                      colSpan="3"
+                      className="py-2 md:py-3 text-center text-gray-400 text-xs md:text-sm"
+                    >
                       {t("userRatings.noTracksRated", "Nenhuma faixa avaliada")}
                     </td>
                   </tr>
@@ -293,14 +304,14 @@ const ModalAvaliacoesUsuario = ({ usuarioId, albumId, onClose }) => {
         </div>
 
         {/* Favoritas e piores */}
-        <div className="grid grid-cols-2 gap-3 mb-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 md:gap-3 mb-3 md:mb-4">
           {avaliacao.preferencias?.faixaFavorita && (
-            <div className="bg-cinza rounded-lg p-3">
-              <h5 className="text-sm text-red-400 mb-1 flex items-center gap-1">
-                <IoMdHeart className="text-lg" />{" "}
+            <div className="bg-cinza rounded-lg p-2 md:p-3">
+              <h5 className="text-xs md:text-sm text-red-400 mb-1 flex items-center gap-1">
+                <IoMdHeart className="text-base md:text-lg" />{" "}
                 {t("albumDetails.favoriteTrack", "Música Favorita")}
               </h5>
-              <p className="text-white font-medium text-xs">
+              <p className="text-white font-medium text-xs truncate">
                 {avaliacao.preferencias.faixaFavoritaNome ||
                   obterNomeFaixa(avaliacao.preferencias.faixaFavorita)}
               </p>
@@ -308,12 +319,12 @@ const ModalAvaliacoesUsuario = ({ usuarioId, albumId, onClose }) => {
           )}
 
           {avaliacao.preferencias?.piorFaixa && (
-            <div className="bg-cinza rounded-lg p-3">
-              <h5 className="text-sm text-yellow-500 mb-1 flex items-center gap-1">
-                <IoMdHeartDislike className="text-lg" />{" "}
+            <div className="bg-cinza rounded-lg p-2 md:p-3">
+              <h5 className="text-xs md:text-sm text-yellow-500 mb-1 flex items-center gap-1">
+                <IoMdHeartDislike className="text-base md:text-lg" />{" "}
                 {t("albumDetails.worstTrack", "Pior Música")}
               </h5>
-              <p className="text-white font-medium text-xs">
+              <p className="text-white font-medium text-xs truncate">
                 {avaliacao.preferencias.piorFaixaNome ||
                   obterNomeFaixa(avaliacao.preferencias.piorFaixa)}
               </p>
@@ -322,10 +333,10 @@ const ModalAvaliacoesUsuario = ({ usuarioId, albumId, onClose }) => {
         </div>
 
         {/* Botão de fechar */}
-        <div className="text-center mt-4">
+        <div className="text-center mt-3 md:mt-4">
           <button
             onClick={onClose}
-            className="bg-gray-700 hover:bg-gray-600 text-white py-2 px-4 rounded-lg"
+            className="bg-gray-700 hover:bg-gray-600 text-white py-1.5 md:py-2 px-4 rounded-lg text-sm md:text-base cursor-pointer"
           >
             {t("albumDetails.close", "Fechar")}
           </button>

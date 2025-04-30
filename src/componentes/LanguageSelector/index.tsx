@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
+import BandeiraBrasil from "../../assets/Flag_of_Brazil.svg";
+import BandeiraEUA from "../../assets/Flag_of_the_United_States.svg";
 
 const LanguageSelector: React.FC = () => {
   const { i18n } = useTranslation();
@@ -65,7 +67,7 @@ const LanguageSelector: React.FC = () => {
               title="English"
             >
               <img
-                src="/src/assets/Flag_of_the_United_States.svg"
+                src={BandeiraEUA}
                 alt="USA Flag"
                 style={{
                   width: "100%",
@@ -102,7 +104,7 @@ const LanguageSelector: React.FC = () => {
               title="Português"
             >
               <img
-                src="/src/assets/Flag_of_Brazil.svg"
+                src={BandeiraBrasil}
                 alt="Brazil Flag"
                 style={{
                   width: "100%",
@@ -144,11 +146,7 @@ const LanguageSelector: React.FC = () => {
           title={isPortuguese ? "Português" : "English"}
         >
           <img
-            src={
-              isPortuguese
-                ? "/src/assets/Flag_of_Brazil.svg"
-                : "/src/assets/Flag_of_the_United_States.svg"
-            }
+            src={isPortuguese ? BandeiraBrasil : BandeiraEUA}
             alt={isPortuguese ? "Brazil Flag" : "USA Flag"}
             style={{
               width: "100%",

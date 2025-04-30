@@ -2,8 +2,8 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Logo from "./sidebar/assets/Logo.svg";
 import { useTranslation } from "react-i18next";
-import BandeiraBrasil from "./sidebar/assets/Flag_of_Brazil.svg";
-import BandeiraEUA from "./sidebar/assets/Flag_of_the_United_States.svg";
+import BandeiraBrasil from "../assets/Flag_of_Brazil.svg";
+import BandeiraEUA from "../assets/Flag_of_the_United_States.svg";
 
 const Splash = () => {
   const navigate = useNavigate();

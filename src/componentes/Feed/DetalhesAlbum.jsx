@@ -7,6 +7,7 @@ import Estrelas from "../Avaliacao/Estrelas";
 import { MdReportProblem } from "react-icons/md";
 import { IoMdHeart, IoMdHeartDislike } from "react-icons/io";
 import { FaTrash, FaUndo, FaSpotify } from "react-icons/fa";
+import { GiPodium } from "react-icons/gi";
 import { notificarAvaliacoesAlteradas } from "../../services/sync";
 import { useParams, useNavigate } from "react-router-dom";
 import Carregamento from "../Feedback/Carregamento";
@@ -1292,28 +1293,33 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
                 </span>
               </div>
               <div className="relative flex items-center h-full">
-                <button
-                  className="bg-gray-900 rounded px-2 py-1 text-[11px] flex items-center gap-1 shadow-md border border-gray-700 hover:bg-gray-800 transition align-middle"
+                <span
+                  className="bg-gray-900 rounded px-1.5 py-1 flex items-center gap-0.5 shadow-md text-[11px] sm:px-2 sm:py-1 sm:gap-1 border border-gray-700 hover:bg-gray-800 transition align-middle cursor-pointer"
                   onClick={() => setMostrarPopover((v) => !v)}
-                  type="button"
+                  tabIndex={0}
+                  role="button"
+                  onKeyPress={(e) => {
+                    if (e.key === "Enter" || e.key === " ")
+                      setMostrarPopover((v) => !v);
+                  }}
                 >
+                  <GiPodium className="text-yellow-400 text-base mr-1" />
                   <span className="text-[10px] sm:text-xs text-gray-300 font-medium">
                     Top 3 favoritas/piores
                   </span>
-                </button>
+                </span>
                 {mostrarPopover && (
                   <div
                     ref={popoverRef}
-                    className="fixed left-1/2 top-1/2 z-50 -translate-x-1/2 -translate-y-1/2"
+                    className="fixed left-1/2 top-1/2 z-50 -translate-x-1/2 -translate-y-1/2 sm:absolute sm:left-0 sm:top-full sm:mt-2 sm:translate-x-0 sm:translate-y-0"
                   >
                     <div
                       className="bg-gray-900 border border-gray-700 rounded-lg shadow-lg p-3 flex flex-col sm:flex-row gap-3 min-w-[220px]"
                       style={{ minWidth: 220 }}
                     >
-                      <div className="flex flex-col items-start min-w-[120px]">
-                        <span className="text-xs text-green-400 font-medium mb-1">
-                          <span className="font-bold">T</span>
-                          {t("albumDetails.topFavorites").slice(1)}
+                      <div className="flex flex-col items-start min-w-[120px] sm:pr-4 sm:border-r sm:border-gray-700">
+                        <span className="text-xs text-green-400 font-bold mb-1">
+                          {t("albumDetails.topFavorites")}
                         </span>
                         {faixasFavoritasGlobais.length > 0 ? (
                           faixasFavoritasGlobais.map((faixa, idx) => (
@@ -1338,10 +1344,9 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
                           </span>
                         )}
                       </div>
-                      <div className="flex flex-col items-start min-w-[120px]">
-                        <span className="text-xs text-red-400 font-medium mb-1">
-                          <span className="font-bold">T</span>
-                          {t("albumDetails.topWorst").slice(1)}
+                      <div className="flex flex-col items-start min-w-[120px] sm:pl-4">
+                        <span className="text-xs text-red-400 font-bold mb-1">
+                          {t("albumDetails.topWorst")}
                         </span>
                         {faixasPioresGlobais.length > 0 ? (
                           faixasPioresGlobais.map((faixa, idx) => (

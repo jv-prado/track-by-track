@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { buscarArtista } from "../../services/spotify";
 import ListaAlbuns from "./ListaAlbuns";
+import { useTranslation } from "react-i18next";
 
 /**
  * Componente para exibir os artistas encontrados na pesquisa
@@ -12,6 +13,7 @@ const MostrarTopArtistas = ({ termoPesquisa }) => {
   const [carregando, setCarregando] = useState(false);
   const [artistaSelecionado, setArtistaSelecionado] = useState(null);
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+  const { t } = useTranslation();
 
   // Atualizar largura da janela quando ela for redimensionada
   useEffect(() => {
@@ -70,7 +72,7 @@ const MostrarTopArtistas = ({ termoPesquisa }) => {
   return (
     <div className="p-6">
       <h1 className="text-3xl font-bold mb-8 text-verde-destaque">
-        Pesquisar por Artista
+        {t("artistSearch.title", "Pesquisar por Artista")}
       </h1>
 
       {carregando ? (
@@ -89,7 +91,9 @@ const MostrarTopArtistas = ({ termoPesquisa }) => {
                 <div className="w-full aspect-square mb-4">
                   <img
                     src={artista.images[0].url}
-                    alt={`Foto de ${artista.name}`}
+                    alt={t("artistSearch.photoAlt", "Foto de {{artistName}}", {
+                      artistName: artista.name,
+                    })}
                     className="w-full h-full object-cover rounded-lg shadow-lg"
                   />
                 </div>
@@ -99,7 +103,9 @@ const MostrarTopArtistas = ({ termoPesquisa }) => {
               </h2>
 
               <p className="text-sm text-gray-400">
-                Seguidores: {artista.followers?.total.toLocaleString()}
+                {t("artistSearch.followers", "Seguidores: {{count}}", {
+                  count: artista.followers?.total.toLocaleString(),
+                })}
               </p>
               <button
                 onClick={(e) => {
@@ -108,18 +114,21 @@ const MostrarTopArtistas = ({ termoPesquisa }) => {
                 }}
                 className="mt-4 cursor-pointer bg-verde-destaque text-cinza-escuro py-2 px-4 rounded-lg hover:bg-verde-pastel transition-colors mt-auto"
               >
-                Ver álbuns
+                {t("artistSearch.viewAlbums", "Ver álbuns")}
               </button>
             </div>
           ))}
         </div>
       ) : termoPesquisa ? (
         <p className="text-center text-gray-400 text-lg">
-          Nenhum artista encontrado
+          {t("artistSearch.noArtistsFound", "Nenhum artista encontrado")}
         </p>
       ) : (
         <p className="text-center text-gray-400 text-lg">
-          Digite um nome de artista na barra de pesquisa
+          {t(
+            "artistSearch.typeToSearch",
+            "Digite um nome de artista na barra de pesquisa"
+          )}
         </p>
       )}
     </div>

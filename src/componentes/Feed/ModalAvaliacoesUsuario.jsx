@@ -7,6 +7,7 @@ import { FaSpotify } from "react-icons/fa";
 import Carregamento from "../Feedback/Carregamento";
 import Estrelas from "../Avaliacao/Estrelas";
 import { IoMdHeart, IoMdHeartDislike } from "react-icons/io";
+import { useTranslation } from "react-i18next";
 
 /**
  * Modal para exibir avaliações de um usuário específico para um álbum
@@ -22,6 +23,7 @@ const ModalAvaliacoesUsuario = ({ usuarioId, albumId, onClose }) => {
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState(null);
   const [mediaCalculada, setMediaCalculada] = useState(0);
+  const { t } = useTranslation();
 
   // Carregar avaliações do usuário para o álbum
   useEffect(() => {
@@ -51,14 +53,19 @@ const ModalAvaliacoesUsuario = ({ usuarioId, albumId, onClose }) => {
         }
       } catch (error) {
         console.error("Erro ao carregar dados:", error);
-        setErro("Não foi possível carregar as avaliações deste usuário.");
+        setErro(
+          t(
+            "userRatings.errorLoading",
+            "Não foi possível carregar as avaliações deste usuário."
+          )
+        );
       } finally {
         setCarregando(false);
       }
     };
 
     carregarDados();
-  }, [usuarioId, albumId]);
+  }, [usuarioId, albumId, t]);
 
   // Função para obter o nome da faixa a partir do ID
   const obterNomeFaixa = (faixaId) => {
@@ -74,7 +81,9 @@ const ModalAvaliacoesUsuario = ({ usuarioId, albumId, onClose }) => {
     }
 
     // Se tudo falhar, mostrar apenas o número da faixa
-    return `Faixa ${faixaId.slice(-2)}`;
+    return t("userRatings.trackNumber", "Faixa {{number}}", {
+      number: faixaId.slice(-2),
+    });
   };
 
   // Manipulador para clicar fora do modal e fechá-lo
@@ -92,7 +101,9 @@ const ModalAvaliacoesUsuario = ({ usuarioId, albumId, onClose }) => {
         onClick={handleOverlayClick}
       >
         <div className="bg-cinza-escuro rounded-xl p-6 max-w-lg w-full shadow-xl">
-          <Carregamento mensagem="Carregando avaliações..." />
+          <Carregamento
+            mensagem={t("feedback.loadingRatings", "Carregando avaliações...")}
+          />
         </div>
       </div>
     );
@@ -108,7 +119,7 @@ const ModalAvaliacoesUsuario = ({ usuarioId, albumId, onClose }) => {
         <div className="bg-cinza-escuro rounded-xl p-6 max-w-lg w-full shadow-xl">
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-xl font-bold text-verde-destaque">
-              Avaliações
+              {t("userRatings.title", "Avaliações")}
             </h3>
             <button
               onClick={onClose}
@@ -118,7 +129,11 @@ const ModalAvaliacoesUsuario = ({ usuarioId, albumId, onClose }) => {
             </button>
           </div>
           <p className="text-gray-400 text-center py-8">
-            {erro || "Não foram encontradas avaliações para este álbum."}
+            {erro ||
+              t(
+                "userRatings.noRatingsFound",
+                "Não foram encontradas avaliações para este álbum."
+              )}
           </p>
         </div>
       </div>
@@ -173,7 +188,9 @@ const ModalAvaliacoesUsuario = ({ usuarioId, albumId, onClose }) => {
         <div className="flex justify-between items-center mb-4">
           <div className="flex items-center">
             <h3 className="text-lg md:text-xl font-bold text-verde-destaque">
-              Avaliações de {avaliacao.usuario.nome}
+              {t("userRatings.ratingsFrom", "Avaliações de {{name}}", {
+                name: avaliacao.usuario.nome,
+              })}
             </h3>
           </div>
           <button onClick={onClose} className="text-gray-400 hover:text-white">
@@ -191,14 +208,18 @@ const ModalAvaliacoesUsuario = ({ usuarioId, albumId, onClose }) => {
             />
           ) : (
             <div className="w-20 h-20 bg-cinza flex items-center justify-center rounded-lg">
-              <span className="text-gray-400">Sem capa</span>
+              <span className="text-gray-400">
+                {t("userRatings.noCover", "Sem capa")}
+              </span>
             </div>
           )}
           <div className="flex-grow">
             <h4 className="font-bold text-white">{avaliacao.nome}</h4>
             <p className="text-verde-destaque">{avaliacao.artista}</p>
             <p className="text-gray-400 text-sm">
-              Avaliado em {formatarData(avaliacao.dataAvaliacao)}
+              {t("userRatings.ratedOn", "Avaliado em {{date}}", {
+                date: formatarData(avaliacao.dataAvaliacao),
+              })}
             </p>
             <div className="mt-1">
               <a
@@ -208,7 +229,7 @@ const ModalAvaliacoesUsuario = ({ usuarioId, albumId, onClose }) => {
                 className="inline-flex items-center text-xs text-gray-300 hover:text-green-400"
               >
                 <FaSpotify className="mr-1 text-green-400" />
-                Ouvir no Spotify
+                {t("albumDetails.listenOnSpotify", "Ouvir no Spotify")}
               </a>
             </div>
           </div>
@@ -221,14 +242,20 @@ const ModalAvaliacoesUsuario = ({ usuarioId, albumId, onClose }) => {
 
         {/* Lista de avaliações das faixas */}
         <div className="mb-2">
-          <h4 className="font-medium text-white mb-2">Avaliações por faixa:</h4>
+          <h4 className="font-medium text-white mb-2">
+            {t("userRatings.ratingsByTrack", "Avaliações por faixa:")}
+          </h4>
           <div className="bg-cinza rounded-lg p-3">
             <table className="w-full">
               <thead>
                 <tr className="text-left text-sm text-gray-400 border-b border-gray-700">
                   <th className="pb-2 font-normal w-10 text-center">#</th>
-                  <th className="pb-2 font-normal">Faixa</th>
-                  <th className="pb-2 font-normal text-center">Avaliação</th>
+                  <th className="pb-2 font-normal">
+                    {t("albumDetails.track", "Faixa")}
+                  </th>
+                  <th className="pb-2 font-normal text-center">
+                    {t("albumDetails.rating", "Avaliação")}
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -256,7 +283,7 @@ const ModalAvaliacoesUsuario = ({ usuarioId, albumId, onClose }) => {
                 ) : (
                   <tr>
                     <td colSpan="3" className="py-3 text-center text-gray-400">
-                      Nenhuma faixa avaliada
+                      {t("userRatings.noTracksRated", "Nenhuma faixa avaliada")}
                     </td>
                   </tr>
                 )}
@@ -270,7 +297,8 @@ const ModalAvaliacoesUsuario = ({ usuarioId, albumId, onClose }) => {
           {avaliacao.preferencias?.faixaFavorita && (
             <div className="bg-cinza rounded-lg p-3">
               <h5 className="text-sm text-red-400 mb-1 flex items-center gap-1">
-                <IoMdHeart className="text-lg" /> Música Favorita
+                <IoMdHeart className="text-lg" />{" "}
+                {t("albumDetails.favoriteTrack", "Música Favorita")}
               </h5>
               <p className="text-white font-medium text-xs">
                 {avaliacao.preferencias.faixaFavoritaNome ||
@@ -282,7 +310,8 @@ const ModalAvaliacoesUsuario = ({ usuarioId, albumId, onClose }) => {
           {avaliacao.preferencias?.piorFaixa && (
             <div className="bg-cinza rounded-lg p-3">
               <h5 className="text-sm text-yellow-500 mb-1 flex items-center gap-1">
-                <IoMdHeartDislike className="text-lg" /> Pior Música
+                <IoMdHeartDislike className="text-lg" />{" "}
+                {t("albumDetails.worstTrack", "Pior Música")}
               </h5>
               <p className="text-white font-medium text-xs">
                 {avaliacao.preferencias.piorFaixaNome ||
@@ -298,7 +327,7 @@ const ModalAvaliacoesUsuario = ({ usuarioId, albumId, onClose }) => {
             onClick={onClose}
             className="bg-gray-700 hover:bg-gray-600 text-white py-2 px-4 rounded-lg"
           >
-            Fechar
+            {t("albumDetails.close", "Fechar")}
           </button>
         </div>
       </div>

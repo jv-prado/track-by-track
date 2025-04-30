@@ -112,6 +112,7 @@
     "removeConfirmMessage": "This will remove this album from your ratings and delete all track ratings. This action cannot be undone.",
     "cancel": "Cancel",
     "confirm": "Confirm",
+    "close": "Close",
     "tracks": "Tracks",
     "title": "Title",
     "time": "Time",
@@ -142,5 +143,32 @@
     "dataSavedLocally": "Data saved locally",
     "ratingsSavedToAccount": "Ratings saved to account",
     "logout": "Logout"
+  },
+  "userRatings": {
+    "title": "Ratings",
+    "ratingsFrom": "{{name}}'s Ratings",
+    "noCover": "No cover",
+    "ratedOn": "Rated on {{date}}",
+    "ratingsByTrack": "Ratings by track:",
+    "noTracksRated": "No tracks rated",
+    "errorLoading": "Could not load this user's ratings.",
+    "noRatingsFound": "No ratings found for this album.",
+    "trackNumber": "Track {{number}}"
+  },
+  "albumSearch": {
+    "title": "Search for Albums",
+    "coverAlt": "{{albumName}} album cover",
+    "releaseYear": "Released: {{year}}",
+    "viewTracks": "View tracks",
+    "noAlbumsFound": "No albums found",
+    "typeToSearch": "Type an album name in the search bar"
+  },
+  "artistSearch": {
+    "title": "Search for Artists",
+    "photoAlt": "Photo of {{artistName}}",
+    "followers": "Followers: {{count}}",
+    "viewAlbums": "View albums",
+    "noArtistsFound": "No artists found",
+    "typeToSearch": "Type an artist name in the search bar"
   }
 }

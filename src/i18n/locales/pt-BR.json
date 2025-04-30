@@ -112,6 +112,7 @@
     "removeConfirmMessage": "Isso vai remover este álbum das suas avaliações e apagar todas as notas das faixas. Esta ação não pode ser desfeita.",
     "cancel": "Cancelar",
     "confirm": "Confirmar",
+    "close": "Fechar",
     "tracks": "Faixas",
     "title": "Título",
     "time": "Tempo",
@@ -142,5 +143,32 @@
     "dataSavedLocally": "Dados salvos localmente",
     "ratingsSavedToAccount": "Avaliações salvas na conta",
     "logout": "Sair"
+  },
+  "userRatings": {
+    "title": "Avaliações",
+    "ratingsFrom": "Avaliações de {{name}}",
+    "noCover": "Sem capa",
+    "ratedOn": "Avaliado em {{date}}",
+    "ratingsByTrack": "Avaliações por faixa:",
+    "noTracksRated": "Nenhuma faixa avaliada",
+    "errorLoading": "Não foi possível carregar as avaliações deste usuário.",
+    "noRatingsFound": "Não foram encontradas avaliações para este álbum.",
+    "trackNumber": "Faixa {{number}}"
+  },
+  "albumSearch": {
+    "title": "Pesquisar por Álbum",
+    "coverAlt": "Capa do álbum {{albumName}}",
+    "releaseYear": "Lançamento: {{year}}",
+    "viewTracks": "Ver faixas",
+    "noAlbumsFound": "Nenhum álbum encontrado",
+    "typeToSearch": "Digite um nome de álbum na barra de pesquisa"
+  },
+  "artistSearch": {
+    "title": "Pesquisar por Artista",
+    "photoAlt": "Foto de {{artistName}}",
+    "followers": "Seguidores: {{count}}",
+    "viewAlbums": "Ver álbuns",
+    "noArtistsFound": "Nenhum artista encontrado",
+    "typeToSearch": "Digite um nome de artista na barra de pesquisa"
   }
 }

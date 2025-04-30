@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { buscarAlbum } from "../../services/spotify";
 import DetalhesAlbum from "./DetalhesAlbum";
 import { MdMusicNote } from "react-icons/md";
+import { useTranslation } from "react-i18next";
 
 /**
  * Componente para exibir os álbuns encontrados na pesquisa
@@ -13,6 +14,7 @@ const MostrarTopAlbuns = ({ termoPesquisa }) => {
   const [carregando, setCarregando] = useState(false);
   const [albumSelecionado, setAlbumSelecionado] = useState(null);
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+  const { t } = useTranslation();
 
   // Atualizar largura da janela quando ela for redimensionada
   useEffect(() => {
@@ -83,7 +85,7 @@ const MostrarTopAlbuns = ({ termoPesquisa }) => {
   return (
     <div className="p-6">
       <h1 className="text-3xl font-bold mb-8 text-verde-destaque">
-        Pesquisar por Álbum
+        {t("albumSearch.title", "Pesquisar por Álbum")}
       </h1>
 
       {carregando ? (
@@ -102,7 +104,11 @@ const MostrarTopAlbuns = ({ termoPesquisa }) => {
                 {album.images && album.images.length > 0 ? (
                   <img
                     src={album.images[0].url}
-                    alt={`Capa do álbum ${album.name}`}
+                    alt={t(
+                      "albumSearch.coverAlt",
+                      "Capa do álbum {{albumName}}",
+                      { albumName: album.name }
+                    )}
                     className="w-full h-full object-cover"
                     onError={handleImageError}
                     loading="lazy"
@@ -120,7 +126,9 @@ const MostrarTopAlbuns = ({ termoPesquisa }) => {
                 {album.artists[0].name}
               </p>
               <p className="text-sm text-gray-400">
-                Lançamento: {new Date(album.release_date).getFullYear()}
+                {t("albumSearch.releaseYear", "Lançamento: {{year}}", {
+                  year: new Date(album.release_date).getFullYear(),
+                })}
               </p>
               <button
                 onClick={(e) => {
@@ -129,18 +137,21 @@ const MostrarTopAlbuns = ({ termoPesquisa }) => {
                 }}
                 className="mt-4 cursor-pointer bg-verde-destaque text-cinza-escuro py-2 px-4 rounded-lg hover:bg-verde-pastel transition-colors mt-auto"
               >
-                Ver faixas
+                {t("albumSearch.viewTracks", "Ver faixas")}
               </button>
             </div>
           ))}
         </div>
       ) : termoPesquisa ? (
         <p className="text-center text-gray-400 text-lg">
-          Nenhum álbum encontrado
+          {t("albumSearch.noAlbumsFound", "Nenhum álbum encontrado")}
         </p>
       ) : (
         <p className="text-center text-gray-400 text-lg">
-          Digite um nome de álbum na barra de pesquisa
+          {t(
+            "albumSearch.typeToSearch",
+            "Digite um nome de álbum na barra de pesquisa"
+          )}
         </p>
       )}
     </div>

@@ -43,7 +43,7 @@ const Splash = () => {
         </h1>
 
         <p
-          className="text-gray-300 mb-8 animate-fadeIn"
+          className="text-gray-300 mb-8 animate-fadeIn w-80"
           style={{ animationDelay: "0.3s" }}
         >
           {t(

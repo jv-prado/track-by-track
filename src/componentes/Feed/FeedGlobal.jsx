@@ -80,7 +80,11 @@ const FeedGlobal = () => {
     // Se o usuário não estiver autenticado ou estiver em modo demo, usar dados de demonstração
     if (!usuarioFirebase || modoDemo) {
       console.log("Usando dados de demonstração para o feed global");
-      setAvaliacoes(avaliacoesGlobaisDemo);
+      // Filtrar apenas avaliações com 100% de progresso
+      const avaliacoesFiltradas = avaliacoesGlobaisDemo.filter(
+        (avaliacao) => (avaliacao.progresso?.percentual || 0) >= 100
+      );
+      setAvaliacoes(avaliacoesFiltradas);
       setUsandoDadosDemo(true);
       setCarregando(false);
       return;
@@ -89,14 +93,18 @@ const FeedGlobal = () => {
     try {
       const avaliacoesGlobais = await obterAvaliacoesGlobais(30);
       // Validar e processar as imagens antes de definir o estado
-      const avaliacoesProcessadas = avaliacoesGlobais.map((avaliacao) => ({
-        ...avaliacao,
-        imagem: validarUrlImagem(avaliacao.imagem),
-        usuario: {
-          ...avaliacao.usuario,
-          foto: validarUrlImagem(avaliacao.usuario.foto),
-        },
-      }));
+      const avaliacoesProcessadas = avaliacoesGlobais
+        .map((avaliacao) => ({
+          ...avaliacao,
+          imagem: validarUrlImagem(avaliacao.imagem),
+          usuario: {
+            ...avaliacao.usuario,
+            foto: validarUrlImagem(avaliacao.usuario.foto),
+          },
+        }))
+        // Filtrar apenas avaliações com 100% de progresso
+        .filter((avaliacao) => (avaliacao.progresso?.percentual || 0) >= 100);
+
       setAvaliacoes(avaliacoesProcessadas);
     } catch (error) {
       console.error("Erro ao carregar feed global:", error);
@@ -107,7 +115,11 @@ const FeedGlobal = () => {
         error.message.includes("permissions")
       ) {
         console.log("Erro de permissão, usando dados de demonstração");
-        setAvaliacoes(avaliacoesGlobaisDemo);
+        // Filtrar apenas avaliações com 100% de progresso
+        const avaliacoesFiltradas = avaliacoesGlobaisDemo.filter(
+          (avaliacao) => (avaliacao.progresso?.percentual || 0) >= 100
+        );
+        setAvaliacoes(avaliacoesFiltradas);
         setUsandoDadosDemo(true);
       } else {
         setErro(error.message || "Erro ao carregar as avaliações globais");
@@ -382,80 +394,20 @@ const FeedGlobal = () => {
 
                 {/* LADO DIREITO: Avaliação e progresso */}
                 <div className="w-full lg:w-32 xl:w-36 flex-shrink-0 p-3 flex lg:flex-col items-center justify-between lg:justify-center border-t lg:border-t-0 lg:border-l border-gray-700/50 bg-gradient-to-br from-cinza-escuro to-cinza-escuro/95">
-                  {/* Avaliação como banner - com cor baseada no progresso e na nota */}
+                  {/* Avaliação como banner */}
                   <div className="flex lg:flex-col items-center justify-center w-full">
                     <div
-                      className={`${
-                        // Só aplicar cor baseada na nota se o progresso for 100%
-                        (avaliacao.progresso?.percentual || 0) >= 100
-                          ? obterCorNota(
-                              avaliacao.media || avaliacao.mediaAvaliacao
-                            )
-                          : "bg-gray-500/50"
-                      } text-cinza-escuro rounded-lg px-3 py-1.5 font-bold text-xl flex items-center justify-center shadow-sm w-20 md:w-20 lg:w-20`}
+                      className={`${obterCorNota(
+                        avaliacao.media || avaliacao.mediaAvaliacao
+                      )} text-cinza-escuro rounded-lg px-3 py-1.5 font-bold text-xl flex items-center justify-center shadow-sm w-20 md:w-20 lg:w-20`}
                     >
-                      <span
-                        className={
-                          (avaliacao.progresso?.percentual || 0) >= 100
-                            ? "text-cinza-escuro"
-                            : "text-gray-200"
-                        }
-                      >
+                      <span className="text-cinza-escuro">
                         {formatarMedia(
                           avaliacao.media || avaliacao.mediaAvaliacao
                         )}
                       </span>
                     </div>
                   </div>
-
-                  {/* Progresso da avaliação */}
-                  {avaliacao.progresso && (
-                    <div className="flex lg:flex-col items-center lg:mt-2 w-full">
-                      <div className="flex flex-col items-center w-full">
-                        <div className="text-xs text-gray-300 mb-1 text-center font-medium truncate w-full">
-                          <span className="whitespace-nowrap">
-                            {t("feed.avaliado", {
-                              avaliadas: avaliacao.progresso.avaliadas,
-                              total: avaliacao.progresso.total,
-                            })}
-                          </span>
-                        </div>
-                        <div className="w-16 md:w-20 lg:w-full h-4 bg-gray-800/70 rounded-full overflow-hidden shadow-inner relative">
-                          <div
-                            className={`h-full transition-all ${
-                              Math.floor(
-                                avaliacao.progresso?.percentual || 0
-                              ) >= 100
-                                ? "bg-verde-destaque"
-                                : "bg-gray-500/50"
-                            }`}
-                            style={{
-                              width: `${avaliacao.progresso.percentual || 0}%`,
-                            }}
-                          ></div>
-                          <div
-                            className={`absolute inset-0 flex items-center justify-center text-xs font-bold ${
-                              Math.floor(
-                                avaliacao.progresso?.percentual || 0
-                              ) >= 100
-                                ? "text-black"
-                                : "text-gray-200"
-                            }`}
-                            style={{
-                              textShadow:
-                                Math.floor(
-                                  avaliacao.progresso?.percentual || 0
-                                ) >= 100
-                                  ? "none"
-                                  : "0px 0px 2px #000, 0px 0px 3px #000",
-                            }}
-                          >
-                            {Math.floor(avaliacao.progresso.percentual || 0)}%
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
                 </div>
               </div>
             </div>

@@ -161,7 +161,7 @@
     "title": "Search for Albums",
     "coverAlt": "{{albumName}} album cover",
     "releaseYear": "Released: {{year}}",
-    "viewTracks": "View tracks",
+    "viewTracks": "Rate album",
     "noAlbumsFound": "No albums found",
     "typeToSearch": "Type an album name in the search bar"
   },

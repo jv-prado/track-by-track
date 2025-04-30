@@ -161,7 +161,7 @@
     "title": "Pesquisar por Álbum",
     "coverAlt": "Capa do álbum {{albumName}}",
     "releaseYear": "Lançamento: {{year}}",
-    "viewTracks": "Ver faixas",
+    "viewTracks": "Avaliar",
     "noAlbumsFound": "Nenhum álbum encontrado",
     "typeToSearch": "Digite um nome de álbum na barra de pesquisa"
   },

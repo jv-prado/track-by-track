@@ -110,7 +110,8 @@ const MostrarTopAlbuns = ({ termoPesquisa }) => {
               style={{
                 minWidth: "160px",
                 maxWidth: "200px",
-                minHeight: "320px",
+                maxHeight: "320px",
+                minHeight: "310px",
                 height: "340px",
                 boxShadow: "0 2px 8px 0 rgba(0,0,0,0.08)",
                 transition: "box-shadow 0.2s",
@@ -141,7 +142,7 @@ const MostrarTopAlbuns = ({ termoPesquisa }) => {
               <div className="flex flex-col flex-1 items-center w-full">
                 {/* Título do álbum centralizado verticalmente no espaço reservado */}
                 <div
-                  className="flex items-center justify-center w-full mb-1"
+                  className="flex items-center justify-center w-full "
                   style={{
                     minHeight: "48px",
                     maxHeight: "48px",
@@ -166,7 +167,7 @@ const MostrarTopAlbuns = ({ termoPesquisa }) => {
                 </div>
 
                 {/* Artista */}
-                <p className="text-verde-destaque text-xs md:text-sm mb-0.5 line-clamp-1 font-medium text-center w-full mt-2.5">
+                <p className="text-verde-destaque text-xs md:text-sm mt-1 mb-0.5 line-clamp-1 font-medium text-center w-full ">
                   {album.artists[0].name}
                 </p>
 
@@ -178,11 +179,10 @@ const MostrarTopAlbuns = ({ termoPesquisa }) => {
                 </p>
 
                 {/* Espaço flexível para distribuir o conteúdo */}
-                <div className="flex-1" />
 
                 {/* Botão sempre na parte inferior */}
                 <button
-                  className="mt-0 w-full bg-verde-destaque/90 text-cinza-escuro py-1 px-2 rounded-lg hover:bg-verde-pastel transition-colors text-xs md:text-sm cursor-pointer font-semibold shadow-sm"
+                  className="mt-2 w-full bg-verde-destaque/90 text-cinza-escuro py-1 px-2 rounded-lg hover:bg-verde-pastel transition-colors text-xs md:text-sm cursor-pointer font-semibold shadow-sm"
                   onClick={(e) => {
                     e.stopPropagation();
                     setAlbumSelecionado(album.id);

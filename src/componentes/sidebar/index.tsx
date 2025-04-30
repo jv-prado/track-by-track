@@ -101,92 +101,161 @@ export default function Sidebar({ activeView, setActiveView }) {
     </button>
   );
 
+  // Renderizando dois layouts diferentes: desktop e mobile
   return (
-    <aside className="bg-cinza-escuro rounded-xl py-4 md:py-10 px-4 md:px-10 w-full md:max-w-[200px] flex flex-col items-center gap-4 md:gap-10 mb-4 md:mb-0 md:h-fit relative">
-      {/* Botão de troca de idioma no canto superior direito */}
-      <button
-        onClick={changeLanguage}
-        className="absolute top-4 right-4 w-8 h-6 rounded overflow-hidden cursor-pointer hover:opacity-80 transition-opacity border border-gray-600 block md:hidden"
-        title={isPortuguese ? "Mudar para inglês" : "Change to Portuguese"}
-      >
-        <img
-          src={
-            isPortuguese
-              ? "/src/assets/Flag_of_Brazil.svg"
-              : "/src/assets/Flag_of_the_United_States.svg"
-          }
-          alt={isPortuguese ? "English" : "Português"}
-          className="w-full h-full object-cover"
-        />
-      </button>
+    <>
+      {/* Desktop Sidebar */}
+      <aside className="hidden md:flex bg-cinza-escuro rounded-xl py-4 md:py-10 px-4 md:px-10 w-full md:max-w-[200px] flex-col items-center gap-4 md:gap-10 mb-4 md:mb-0 md:h-fit relative">
+        <Link to="/">
+          <img
+            className="w-28 md:w-40 h-auto hover:scale-110 transition-all duration-600"
+            src={Logo}
+            alt="Logo do Track by Track"
+          />
+        </Link>
+        <nav className="flex flex-col w-full items-center">
+          <ul className="flex flex-col items-center md:items-stretch gap-3 md:gap-12 text-center max-w-[90%] md:max-w-full">
+            {!usuarioAtivoLocal ? (
+              // Botão de login quando não está autenticado
+              renderLoginOption()
+            ) : (
+              // Itens de navegação quando está autenticado
+              <>
+                <SidebarItem
+                  icon={FaGlobe}
+                  text={t("app.feed")}
+                  iconSize="text-2xl md:text-3xl"
+                  active={activeView === "feed"}
+                  onClick={() => {
+                    setActiveView("feed");
+                    navigate("/feed");
+                  }}
+                />
+                <SidebarItem
+                  icon={MdAlbum}
+                  text={t("app.albums")}
+                  iconSize="text-2xl md:text-3xl"
+                  active={activeView === "albuns"}
+                  onClick={() => {
+                    setActiveView("albuns");
+                    navigate("/albuns");
+                  }}
+                />
+                <SidebarItem
+                  icon={FaUser}
+                  text={t("app.artists")}
+                  iconSize="text-2xl md:text-3xl"
+                  active={activeView === "artistas"}
+                  onClick={() => {
+                    setActiveView("artistas");
+                    navigate("/artistas");
+                  }}
+                />
+                <SidebarItem
+                  icon={IoStarSharp}
+                  text={t("app.myRatings")}
+                  iconSize="text-2xl md:text-3xl"
+                  active={activeView === "classificacoes"}
+                  onClick={() => {
+                    setActiveView("classificacoes");
+                    navigate("/minhas-avaliacoes");
+                  }}
+                />
 
-      <Link to="/">
-        <img
-          className="w-28 md:w-40 h-auto hover:scale-110 transition-all duration-600"
-          src={Logo}
-          alt="Logo do Track by Track"
-        />
-      </Link>
-      <nav className="flex flex-col w-full items-center">
-        <ul className="flex flex-col items-center md:items-stretch gap-3 md:gap-12 text-center  max-w-[90%] md:max-w-full">
-          {!usuarioAtivoLocal ? (
-            // Botão de login quando não está autenticado
-            renderLoginOption()
-          ) : (
-            // Itens de navegação quando está autenticado
-            <>
-              <SidebarItem
-                icon={FaGlobe}
-                text={t("app.feed")}
-                iconSize="text-2xl md:text-3xl"
-                active={activeView === "feed"}
-                onClick={() => {
-                  setActiveView("feed");
-                  navigate("/feed");
-                }}
-              />
-              <SidebarItem
-                icon={MdAlbum}
-                text={t("app.albums")}
-                iconSize="text-2xl md:text-3xl"
-                active={activeView === "albuns"}
-                onClick={() => {
-                  setActiveView("albuns");
-                  navigate("/albuns");
-                }}
-              />
-              <SidebarItem
-                icon={FaUser}
-                text={t("app.artists")}
-                iconSize="text-2xl md:text-3xl"
-                active={activeView === "artistas"}
-                onClick={() => {
-                  setActiveView("artistas");
-                  navigate("/artistas");
-                }}
-              />
-              <SidebarItem
-                icon={IoStarSharp}
-                text={t("app.myRatings")}
-                iconSize="text-2xl md:text-3xl"
-                active={activeView === "classificacoes"}
-                onClick={() => {
-                  setActiveView("classificacoes");
-                  navigate("/minhas-avaliacoes");
-                }}
-              />
+                {/* Botão de logout */}
+                <SidebarItem
+                  icon={IoMdExit}
+                  text={t("app.logout")}
+                  iconSize="text-2xl md:text-3xl"
+                  onClick={handleLogout}
+                />
+              </>
+            )}
+          </ul>
+        </nav>
+      </aside>
 
-              {/* Botão de logout */}
-              <SidebarItem
-                icon={IoMdExit}
-                text={t("app.logout")}
-                iconSize="text-2xl md:text-3xl"
-                onClick={handleLogout}
-              />
-            </>
-          )}
-        </ul>
-      </nav>
-    </aside>
+      {/* Mobile Bottom Navigation */}
+      {usuarioAtivoLocal && (
+        <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-cinza-escuro border-t border-gray-700 z-50 px-1 py-2 flex justify-around items-center safe-bottom">
+          <button
+            onClick={() => {
+              setActiveView("feed");
+              navigate("/feed");
+            }}
+            className={`flex flex-col items-center justify-center pt-1 pb-1 px-2 rounded-lg ${
+              activeView === "feed"
+                ? "text-verde-destaque bg-verde-destaque/10"
+                : "text-gray-400"
+            }`}
+          >
+            <FaGlobe className="text-xl" />
+            <span className="text-xs mt-1">{t("app.feed")}</span>
+          </button>
+
+          <button
+            onClick={() => {
+              setActiveView("albuns");
+              navigate("/albuns");
+            }}
+            className={`flex flex-col items-center justify-center pt-1 pb-1 px-2 rounded-lg ${
+              activeView === "albuns"
+                ? "text-verde-destaque bg-verde-destaque/10"
+                : "text-gray-400"
+            }`}
+          >
+            <MdAlbum className="text-xl" />
+            <span className="text-xs mt-1">{t("app.albums")}</span>
+          </button>
+
+          <button
+            onClick={() => {
+              setActiveView("artistas");
+              navigate("/artistas");
+            }}
+            className={`flex flex-col items-center justify-center pt-1 pb-1 px-2 rounded-lg ${
+              activeView === "artistas"
+                ? "text-verde-destaque bg-verde-destaque/10"
+                : "text-gray-400"
+            }`}
+          >
+            <FaUser className="text-xl" />
+            <span className="text-xs mt-1">{t("app.artists")}</span>
+          </button>
+
+          <button
+            onClick={() => {
+              setActiveView("classificacoes");
+              navigate("/minhas-avaliacoes");
+            }}
+            className={`flex flex-col items-center justify-center pt-1 pb-1 px-2 rounded-lg ${
+              activeView === "classificacoes"
+                ? "text-verde-destaque bg-verde-destaque/10"
+                : "text-gray-400"
+            }`}
+          >
+            <IoStarSharp className="text-xl" />
+            <span className="text-xs mt-1">{t("app.myRatings")}</span>
+          </button>
+
+          {/* Botão de menu em vez de botão de logout */}
+          <button
+            onClick={changeLanguage}
+            className="flex flex-col items-center justify-center pt-1 pb-1 px-2 rounded-lg text-gray-400"
+          >
+            <img
+              src={
+                isPortuguese
+                  ? "/src/assets/Flag_of_Brazil.svg"
+                  : "/src/assets/Flag_of_the_United_States.svg"
+              }
+              alt={isPortuguese ? "English" : "Português"}
+              className="w-5 h-5 object-cover rounded-full border border-gray-600"
+            />
+            <span className="text-xs mt-1">{isPortuguese ? "PT" : "EN"}</span>
+          </button>
+        </nav>
+      )}
+    </>
   );
 }

@@ -23,7 +23,6 @@ import LanguageSelector from "./componentes/LanguageSelector";
 function App() {
   const [activeView, setActiveView] = useState("");
   const [termoPesquisa, setTermoPesquisa] = useState("");
-  const [menuAberto, setMenuAberto] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const { usuario: usuarioFirebase } = useAuth();
@@ -69,10 +68,6 @@ function App() {
 
   const handleSearch = (termo) => {
     setTermoPesquisa(termo);
-  };
-
-  const toggleMenu = () => {
-    setMenuAberto(!menuAberto);
   };
 
   // Verifica o estado de autenticação ao iniciar
@@ -185,7 +180,6 @@ function App() {
     localStorage.setItem("activeView", view);
 
     setActiveView(view);
-    setMenuAberto(false); // Fecha o menu ao selecionar uma opção
 
     // Garantir que estamos na rota /feed
     if (location.pathname !== "/feed") {
@@ -197,34 +191,8 @@ function App() {
   return (
     <>
       <div className="flex flex-col md:flex-row w-full md:w-[90vw] lg:w-[85vw] xl:w-[90vw] 2xl:w-[1440px] mx-auto m-2 mt-4 md:mt-12 gap-3 px-2 md:px-0 content-area">
-        {/* Menu hamburger para mobile */}
-        <button
-          className="md:hidden flex items-center justify-center bg-cinza-escuro p-3 rounded-xl mb-2 text-white cursor-pointer"
-          onClick={toggleMenu}
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-6 w-6"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M4 6h16M4 12h16M4 18h16"
-            />
-          </svg>
-          <span className="ml-2">{t("app.menu")}</span>
-        </button>
-
-        {/* Sidebar - mostrada/escondida em mobile */}
-        <div
-          className={`${
-            menuAberto ? "block" : "hidden"
-          } md:block md:sticky md:top-10 md:self-start`}
-        >
+        {/* Sidebar sempre visível em desktop, escondida em mobile (agora usando bottom nav) */}
+        <div className="md:sticky md:top-10 md:self-start">
           <Sidebar activeView={activeView} setActiveView={handleViewChange} />
         </div>
 
@@ -269,14 +237,14 @@ function App() {
               </svg>
             </button>
           </div>
-          {/* Conteúdo do feed sem barra de rolagem */}
+          {/* Conteúdo do feed sem barra de rolagem, com espaço para a bottom nav em mobile */}
           <div
-            className="overflow-auto mt-4 mb-safe"
+            className="overflow-auto mt-4 mb-safe pb-16 md:pb-0"
             style={{
               scrollbarWidth: "thin",
               scrollbarColor: " #81fe88 #2C2C2C",
               height: "calc(var(--app-height) - 80px)",
-              paddingBottom: "var(--safe-area-inset-bottom)",
+              paddingBottom: "calc(var(--safe-area-inset-bottom) + 60px)",
             }}
           >
             <Routes>

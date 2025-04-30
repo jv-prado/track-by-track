@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Logo from "./sidebar/assets/Logo.svg";
 import { useTranslation } from "react-i18next";
+import BandeiraBrasil from "./sidebar/assets/Flag_of_Brazil.svg";
+import BandeiraEUA from "./sidebar/assets/Flag_of_the_United_States.svg";
 
 const Splash = () => {
   const navigate = useNavigate();
@@ -77,7 +79,7 @@ const Splash = () => {
             title="Português"
           >
             <img
-              src="/src/assets/Flag_of_Brazil.svg"
+              src={BandeiraBrasil}
               alt="Bandeira do Brasil"
               className="w-full h-full object-cover"
             />
@@ -94,7 +96,7 @@ const Splash = () => {
             title="English"
           >
             <img
-              src="/src/assets/Flag_of_the_United_States.svg"
+              src={BandeiraEUA}
               alt="Bandeira dos EUA"
               className="w-full h-full object-cover"
             />

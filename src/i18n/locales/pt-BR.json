@@ -131,7 +131,10 @@
     "lastModification": "Última modificação",
     "noRecord": "Sem registro",
     "releaseInfo": "{{year}} • {{tracks}} faixas • {{duration}}",
-    "globalAverage": "Média geral:"
+    "globalAverage": "Média geral:",
+    "topFavorites": "Top 3 favoritas",
+    "topWorst": "Top 3 piores",
+    "notRatedYet": "Ainda não foi avaliado"
   },
   "userProfile": {
     "loginSignUp": "Entrar ou Cadastrar",

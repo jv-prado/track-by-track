@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   buscarFaixasPorAlbum,
   buscarDetalhesAlbum,
@@ -85,6 +85,10 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
     temRegistro: false,
   });
   const [mediaGlobal, setMediaGlobal] = useState(null);
+  const [faixasFavoritasGlobais, setFaixasFavoritasGlobais] = useState([]);
+  const [faixasPioresGlobais, setFaixasPioresGlobais] = useState([]);
+  const [mostrarPopover, setMostrarPopover] = useState(false);
+  const popoverRef = useRef();
 
   // Verificação defensiva para garantir que progressoAvaliacao seja sempre válido
   useEffect(() => {
@@ -322,28 +326,93 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
     async function fetchMediaGlobal() {
       if (!albumId) return;
       try {
-        const avaliacoes = await obterAvaliacoesGlobais(500); // Pega até 500 avaliações globais
+        const avaliacoes = await obterAvaliacoesGlobais(500);
         // Filtrar apenas avaliações do álbum atual e com progresso 100%
         const avaliacoesDoAlbum = avaliacoes.filter(
           (av) =>
             av.id === albumId && av.progresso && av.progresso.percentual >= 100
         );
         if (avaliacoesDoAlbum.length > 0) {
+          // Média global
           const soma = avaliacoesDoAlbum.reduce(
             (acc, av) => acc + av.mediaAvaliacao,
             0
           );
           const media = soma / avaliacoesDoAlbum.length;
           setMediaGlobal(media);
+
+          // Contagem de favoritas e piores
+          const contagemFavoritas = {};
+          const contagemPiores = {};
+          let totalFavoritas = 0;
+          let totalPiores = 0;
+          avaliacoesDoAlbum.forEach((av) => {
+            if (av.preferencias && av.preferencias.faixaFavorita) {
+              contagemFavoritas[av.preferencias.faixaFavorita] =
+                (contagemFavoritas[av.preferencias.faixaFavorita] || 0) + 1;
+              totalFavoritas++;
+            }
+            if (av.preferencias && av.preferencias.piorFaixa) {
+              contagemPiores[av.preferencias.piorFaixa] =
+                (contagemPiores[av.preferencias.piorFaixa] || 0) + 1;
+              totalPiores++;
+            }
+          });
+
+          // Obter nomes das faixas
+          const nomesFaixas = {};
+          if (faixas && faixas.items && Array.isArray(faixas.items)) {
+            faixas.items.forEach((f) => {
+              nomesFaixas[f.id] = f.name;
+            });
+          } else if (
+            avaliacoesDoAlbum[0] &&
+            avaliacoesDoAlbum[0].faixas &&
+            Array.isArray(avaliacoesDoAlbum[0].faixas)
+          ) {
+            avaliacoesDoAlbum[0].faixas.forEach((f) => {
+              nomesFaixas[f.id] = f.nome;
+            });
+          }
+
+          // Top 3 favoritas
+          const favoritas = Object.entries(contagemFavoritas)
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, 3)
+            .map(([id, count]) => ({
+              id,
+              nome: nomesFaixas[id] || id,
+              percentual:
+                totalFavoritas > 0
+                  ? Math.round((count / totalFavoritas) * 100)
+                  : 0,
+            }));
+          setFaixasFavoritasGlobais(favoritas);
+
+          // Top 3 piores
+          const piores = Object.entries(contagemPiores)
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, 3)
+            .map(([id, count]) => ({
+              id,
+              nome: nomesFaixas[id] || id,
+              percentual:
+                totalPiores > 0 ? Math.round((count / totalPiores) * 100) : 0,
+            }));
+          setFaixasPioresGlobais(piores);
         } else {
           setMediaGlobal(null);
+          setFaixasFavoritasGlobais([]);
+          setFaixasPioresGlobais([]);
         }
       } catch (e) {
         setMediaGlobal(null);
+        setFaixasFavoritasGlobais([]);
+        setFaixasPioresGlobais([]);
       }
     }
     fetchMediaGlobal();
-  }, [albumId]);
+  }, [faixas, albumId]);
 
   // Função para formatar duração em minutos:segundos
   const formatarDuracao = (ms) => {
@@ -1034,6 +1103,23 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
     };
   }, [faixas, albumId]);
 
+  // Fechar popover ao clicar fora
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (popoverRef.current && !popoverRef.current.contains(event.target)) {
+        setMostrarPopover(false);
+      }
+    }
+    if (mostrarPopover) {
+      document.addEventListener("mousedown", handleClickOutside, true);
+    } else {
+      document.removeEventListener("mousedown", handleClickOutside, true);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside, true);
+    };
+  }, [mostrarPopover]);
+
   // Exibir indicador de carregamento
   if (carregando) {
     return <Carregamento />;
@@ -1166,16 +1252,101 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
           <div className="mt-2 md:mt-3 flex items-center justify-center lg:justify-start">
             <div className="bg-gray-900 rounded px-1.5 py-0.5 flex items-center gap-0.5 shadow-md text-[11px] sm:px-2 sm:py-1 sm:gap-1">
               <span className="text-[10px] sm:text-xs text-gray-300 font-medium">
-                {t("albumDetails.globalAverage")}:
+                {t("albumDetails.globalAverage")}
               </span>
-              <span className="text-base sm:text-lg font-bold text-verde-destaque">
-                {mediaGlobal !== null
-                  ? Number.isInteger(mediaGlobal)
-                    ? mediaGlobal
-                    : mediaGlobal.toFixed(1)
-                  : "-"}
+              <span className="flex items-center">
+                {mediaGlobal !== null ? (
+                  <>
+                    <span className="text-base sm:text-lg font-bold text-verde-destaque">
+                      {Number.isInteger(mediaGlobal)
+                        ? mediaGlobal
+                        : mediaGlobal.toFixed(1)}
+                    </span>
+                    <span className="text-[10px] sm:text-xs text-gray-400">
+                      /10
+                    </span>
+                  </>
+                ) : (
+                  <span className="text-xs text-gray-400 italic">
+                    {t("albumDetails.notRatedYet")}
+                  </span>
+                )}
               </span>
-              <span className="text-[10px] sm:text-xs text-gray-400">/10</span>
+            </div>
+          </div>
+
+          {/* Botão para ver favoritas/piores globais */}
+          <div className="mt-1 md:mt-2 flex items-center justify-center lg:justify-start relative">
+            <div className="relative">
+              <button
+                className="bg-gray-900 rounded px-2 py-1 text-[11px] flex items-center gap-1 shadow-md border border-gray-700 hover:bg-gray-800 transition"
+                onClick={() => setMostrarPopover((v) => !v)}
+                type="button"
+              >
+                <span className="text-[10px] sm:text-xs text-gray-300 font-medium">
+                  Top 3 favoritas/piores
+                </span>
+              </button>
+              {mostrarPopover && (
+                <div
+                  ref={popoverRef}
+                  className="absolute z-50 mt-2 left-1/2 -translate-x-1/2 sm:left-auto sm:right-0 sm:top-full sm:translate-x-80 sm:-translate-y-0 bg-gray-900 border border-gray-700 rounded-lg shadow-lg p-3 flex flex-col sm:flex-row gap-3 min-w-[220px]"
+                  style={{ minWidth: 220 }}
+                >
+                  <div className="flex flex-col items-start min-w-[120px]">
+                    <span className="text-xs text-green-400 font-medium mb-1">
+                      <span className="font-bold">T</span>
+                      {t("albumDetails.topFavorites").slice(1)}
+                    </span>
+                    {faixasFavoritasGlobais.length > 0 ? (
+                      faixasFavoritasGlobais.map((faixa, idx) => (
+                        <span
+                          key={faixa.id}
+                          className="flex items-center text-xs text-gray-200 truncate w-full"
+                        >
+                          <span className="text-green-300 font-bold mr-1">
+                            {idx + 1}º
+                          </span>
+                          <span className="truncate flex-1">{faixa.nome}</span>
+                          <span className="ml-1 text-green-200 font-bold">
+                            {faixa.percentual}%
+                          </span>
+                        </span>
+                      ))
+                    ) : (
+                      <span className="text-xs text-gray-400 italic">
+                        {t("albumDetails.notRatedYet")}
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex flex-col items-start min-w-[120px]">
+                    <span className="text-xs text-red-400 font-medium mb-1">
+                      <span className="font-bold">T</span>
+                      {t("albumDetails.topWorst").slice(1)}
+                    </span>
+                    {faixasPioresGlobais.length > 0 ? (
+                      faixasPioresGlobais.map((faixa, idx) => (
+                        <span
+                          key={faixa.id}
+                          className="flex items-center text-xs text-gray-200 truncate w-full"
+                        >
+                          <span className="text-red-300 font-bold mr-1">
+                            {idx + 1}º
+                          </span>
+                          <span className="truncate flex-1">{faixa.nome}</span>
+                          <span className="ml-1 text-red-200 font-bold">
+                            {faixa.percentual}%
+                          </span>
+                        </span>
+                      ))
+                    ) : (
+                      <span className="text-xs text-gray-400 italic">
+                        {t("albumDetails.notRatedYet")}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 

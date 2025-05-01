@@ -18,14 +18,12 @@
     "enteringAccount": "Signing in...",
     "profile": "Profile",
     "changePhoto": "Change photo",
-    "selectAlbumsOrArtists": "Select albums or artists from the menu"
+    "selectAlbumsOrArtists": "Select albums or artists from the menu",
+    "suggestion": "Search for albums or artists in the menu"
   },
   "splash": {
     "logoAlt": "App logo",
     "description": "Discover new albums. Rate track by track. Record everything in one place.",
-    "description1": "Discover new albums.",
-    "description2": "Rate track by track.",
-    "description3": "Keep everything in one place.",
     "enterButton": "Login or Sign Up"
   },
   "auth": {

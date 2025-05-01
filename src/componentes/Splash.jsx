@@ -14,53 +14,6 @@ const Splash = () => {
   const { t, i18n } = useTranslation();
   const { usuario: usuarioFirebase, usuarioDemo } = useAuth();
 
-  // Efeito de digitação para a descrição
-  const [descriptionLines, setDescriptionLines] = useState([
-    t("splash.description1", "Descubra novos álbuns."),
-    t("splash.description2", "Avalie faixa por faixa."),
-    t("splash.description3", "Registre tudo em um só lugar."),
-  ]);
-  const [typedLines, setTypedLines] = useState(["", "", ""]);
-  const [currentLine, setCurrentLine] = useState(0);
-  const [charIndex, setCharIndex] = useState(0);
-
-  // Atualiza as linhas de descrição quando o idioma mudar
-  useEffect(() => {
-    setDescriptionLines([
-      t("splash.description1", "Descubra novos álbuns."),
-      t("splash.description2", "Avalie faixa por faixa."),
-      t("splash.description3", "Registre tudo em um só lugar."),
-    ]);
-    setTypedLines(["", "", ""]);
-    setCurrentLine(0);
-    setCharIndex(0);
-  }, [i18n.language, t]);
-
-  useEffect(() => {
-    let timeout;
-    if (currentLine < descriptionLines.length) {
-      if (charIndex < descriptionLines[currentLine].length) {
-        timeout = setTimeout(() => {
-          setTypedLines((prev) => {
-            const newLines = [...prev];
-            newLines[currentLine] = descriptionLines[currentLine].slice(
-              0,
-              charIndex + 1
-            );
-            return newLines;
-          });
-          setCharIndex((prev) => prev + 1);
-        }, 28);
-      } else {
-        timeout = setTimeout(() => {
-          setCurrentLine((prev) => prev + 1);
-          setCharIndex(0);
-        }, 350);
-      }
-    }
-    return () => clearTimeout(timeout);
-  }, [charIndex, currentLine, descriptionLines]);
-
   // Verificar se o usuário já está autenticado ao carregar a splash screen
   useEffect(() => {
     const verificarAutenticacao = async () => {
@@ -123,21 +76,13 @@ const Splash = () => {
         </h1>
 
         <p
-          className="text-gray-300 mb-8 animate-fadeIn w-80 text-center mx-auto leading-relaxed min-h-[90px]"
+          className="text-gray-300 mb-8 animate-fadeIn w-80 text-center mx-auto"
           style={{ animationDelay: "0.3s" }}
         >
-          <span className="block mb-1">
-            {typedLines[0]}
-            {currentLine === 0 && <span className="animate-pulse">|</span>}
-          </span>
-          <span className="block mb-1">
-            {typedLines[1]}
-            {currentLine === 1 && <span className="animate-pulse">|</span>}
-          </span>
-          <span className="block">
-            {typedLines[2]}
-            {currentLine === 2 && <span className="animate-pulse">|</span>}
-          </span>
+          {t(
+            "splash.description",
+            "Seu app para descobrir, avaliar e registrar todos os álbuns que você ouvir."
+          )}
         </p>
 
         <div

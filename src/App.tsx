@@ -312,7 +312,7 @@ function App() {
     }
   };
 
-  // Layout principal da aplicação
+  // Layout principal da aplicaçãom
   return (
     <>
       <div className="flex flex-col lg:flex-row w-full lg:w-[90vw] xl:w-[85vw] 2xl:w-[1440px]  mx-auto m-2 mt-4 lg:mt-12 gap-3 px-2 lg:px-0 content-area">

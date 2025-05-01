@@ -18,14 +18,12 @@
     "enteringAccount": "Entrando...",
     "profile": "Perfil",
     "changePhoto": "Alterar foto",
-    "selectAlbumsOrArtists": "Selecione álbuns ou artistas no menu"
+    "selectAlbumsOrArtists": "Selecione álbuns ou artistas no menu",
+    "suggestion": "Busque por álbuns ou artistas no menu"
   },
   "splash": {
     "logoAlt": "Logo do aplicativo",
     "description": "Descubra novos álbuns. Avalie faixa por faixa. Registre tudo em um só lugar.",
-    "description1": "Descubra novos álbuns.",
-    "description2": "Avalie faixa por faixa.",
-    "description3": "Registre tudo em um só lugar.",
     "enterButton": "Entrar ou Cadastrar"
   },
   "auth": {

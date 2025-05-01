@@ -503,12 +503,33 @@ const MinhasAvaliacoes = () => {
                 <div className="flex-grow min-w-0 mx-2 flex flex-col justify-center">
                   <div className="flex justify-between items-start">
                     <div>
-                      <h3 className="font-bold text-sm md:text-base lg:text-lg line-clamp-1 text-white truncate pr-1">
+                      <h3
+                        className="font-bold text-sm md:text-base lg:text-lg text-white truncate overflow-hidden whitespace-nowrap pr-1"
+                        style={{
+                          maxWidth:
+                            window.innerWidth < 430
+                              ? "150px"
+                              : window.innerWidth < 1000
+                              ? "180px"
+                              : window.innerWidth < 1300
+                              ? "260px"
+                              : window.innerWidth < 1500
+                              ? "320px"
+                              : "600px",
+                        }}
+                        title={album.name}
+                      >
                         {album.name}
                       </h3>
                       <p className="text-verde-destaque text-xs md:text-sm line-clamp-1 font-medium truncate pr-1">
-                        {album.artists?.map((a) => a.name).join(", ") ||
-                          t("albumCard.unknownArtist")}
+                        {album.artists &&
+                        album.artists.map((a) => a.name).join(", ").length > 28
+                          ? album.artists
+                              .map((a) => a.name)
+                              .join(", ")
+                              .substring(0, 25) + "..."
+                          : album.artists?.map((a) => a.name).join(", ") ||
+                            t("albumCard.unknownArtist")}
                       </p>
                     </div>
 

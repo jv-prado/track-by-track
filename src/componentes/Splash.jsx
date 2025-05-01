@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import Logo from "./sidebar/assets/Logo.svg";
 import { useTranslation } from "react-i18next";
 import BandeiraBrasil from "../assets/Flag_of_Brazil.svg";
@@ -153,6 +153,26 @@ const Splash = () => {
               className="w-full h-full object-cover"
             />
           </button>
+        </div>
+
+        {/* Links para Política de Privacidade e Termos de Uso */}
+        <div
+          className="flex justify-center items-center gap-4 mt-8 animate-fadeIn"
+          style={{ animationDelay: "1s" }}
+        >
+          <Link
+            to="/politica-de-privacidade"
+            className="text-gray-400 text-xs hover:text-verde-destaque transition-colors"
+          >
+            {t("privacyPolicy.title")}
+          </Link>
+          <span className="text-gray-600">•</span>
+          <Link
+            to="/termos-de-uso"
+            className="text-gray-400 text-xs hover:text-verde-destaque transition-colors"
+          >
+            {t("termsOfUse.title")}
+          </Link>
         </div>
       </div>
     </div>

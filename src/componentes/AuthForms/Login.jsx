@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { fazerLogin, auth } from "../../services/firebase";
 import { logInfoAutenticacao } from "../../services/firebase/auth-helper";
@@ -210,6 +210,23 @@ const Login = () => {
           <p className="text-xs text-gray-500 text-center mt-2">
             {t("demoMode.feedNotAvailable")}
           </p>
+        </div>
+
+        {/* Links para Política de Privacidade e Termos de Uso */}
+        <div className="mt-6 pt-4 border-t border-gray-700 flex justify-center items-center gap-4">
+          <Link
+            to="/politica-de-privacidade"
+            className="text-gray-400 text-xs hover:text-verde-destaque transition-colors"
+          >
+            {t("privacyPolicy.title")}
+          </Link>
+          <span className="text-gray-600">•</span>
+          <Link
+            to="/termos-de-uso"
+            className="text-gray-400 text-xs hover:text-verde-destaque transition-colors"
+          >
+            {t("termsOfUse.title")}
+          </Link>
         </div>
       </div>
     </div>

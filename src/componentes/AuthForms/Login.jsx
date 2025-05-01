@@ -126,6 +126,11 @@ const Login = () => {
     }
   };
 
+  const handleRegistrar = () => {
+    // Navegar para a página de registro mantendo o idioma atual
+    navigate("/registro");
+  };
+
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-gray-900 to-black p-3 sm:p-4">
       <div className="mb-4 sm:mb-6">
@@ -183,7 +188,7 @@ const Login = () => {
           <p className="text-gray-300 text-sm sm:text-base">
             {t("auth.noAccount")}{" "}
             <button
-              onClick={() => navigate("/registro")}
+              onClick={handleRegistrar}
               className="text-[#1ED760] hover:underline font-medium cursor-pointer"
             >
               {t("auth.createAccount")}

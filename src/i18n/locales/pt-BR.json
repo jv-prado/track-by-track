@@ -37,7 +37,15 @@
     "loginHere": "Entrar aqui",
     "loginError": "Falha ao entrar. Verifique seu email e senha.",
     "googleLoginError": "Falha ao entrar com Google.",
-    "loginWithGoogle": "Entrar com Google"
+    "loginWithGoogle": "Entrar com Google",
+    "acceptTerms": "Aceito a",
+    "andThe": "e os",
+    "passwordMismatch": "As senhas não coincidem",
+    "acceptTermsRequired": "Você precisa aceitar os termos de uso e política de privacidade",
+    "emailInUse": "Email já está em uso",
+    "weakPassword": "Senha muito fraca. Use pelo menos 6 caracteres",
+    "registerError": "Erro ao criar conta. Tente novamente.",
+    "registeringAccount": "Cadastrando..."
   },
   "feedback": {
     "loading": "Carregando...",
@@ -179,5 +187,19 @@
     "viewAlbums": "Ver álbuns",
     "noArtistsFound": "Nenhum artista encontrado",
     "typeToSearch": "Digite um nome de artista na barra de pesquisa"
+  },
+  "privacyPolicy": {
+    "title": "Política de Privacidade",
+    "intro": "Sua privacidade é importante para nós. Coletamos e utilizamos alguns dados pessoais de acordo com a legislação vigente, principalmente para garantir a melhor experiência possível na plataforma.",
+    "dataUsage": "Ao criar uma conta, você concorda com a coleta e uso das informações fornecidas, como nome, e-mail e preferências musicais, para fins de autenticação, personalização e segurança.",
+    "dataSharing": "Seus dados não serão compartilhados com terceiros sem seu consentimento, exceto quando exigido por lei.",
+    "support": "Para mais informações ou dúvidas, entre em contato com nosso suporte."
+  },
+  "termsOfUse": {
+    "title": "Termos de Uso",
+    "agreement": "Ao utilizar esta plataforma, você concorda em respeitar as regras e políticas estabelecidas, incluindo o uso responsável das funcionalidades e o fornecimento de informações verdadeiras no cadastro.",
+    "prohibited": "Não é permitido utilizar a plataforma para fins ilícitos, ofensivos ou que violem direitos de terceiros.",
+    "breach": "O descumprimento dos termos pode resultar em suspensão ou exclusão da conta.",
+    "updates": "Estes termos podem ser atualizados periodicamente. Recomendamos que você os revise regularmente."
   }
 }

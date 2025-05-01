@@ -37,7 +37,15 @@
     "loginHere": "Login here",
     "loginError": "Failed to login. Check your email and password.",
     "googleLoginError": "Failed to login with Google.",
-    "loginWithGoogle": "Login with Google"
+    "loginWithGoogle": "Login with Google",
+    "acceptTerms": "I accept the",
+    "andThe": "and the",
+    "passwordMismatch": "Passwords do not match",
+    "acceptTermsRequired": "You need to accept the terms of use and privacy policy",
+    "emailInUse": "Email is already in use",
+    "weakPassword": "Password is too weak. Use at least 6 characters",
+    "registerError": "Error creating account. Please try again.",
+    "registeringAccount": "Registering..."
   },
   "feedback": {
     "loading": "Loading...",
@@ -179,5 +187,19 @@
     "viewAlbums": "View albums",
     "noArtistsFound": "No artists found",
     "typeToSearch": "Type an artist name in the search bar"
+  },
+  "privacyPolicy": {
+    "title": "Privacy Policy",
+    "intro": "Your privacy is important to us. We collect and use some personal data in accordance with current legislation, mainly to ensure the best possible experience on the platform.",
+    "dataUsage": "By creating an account, you agree to the collection and use of the information provided, such as name, email, and musical preferences, for authentication, personalization, and security purposes.",
+    "dataSharing": "Your data will not be shared with third parties without your consent, except when required by law.",
+    "support": "For more information or questions, please contact our support."
+  },
+  "termsOfUse": {
+    "title": "Terms of Use",
+    "agreement": "By using this platform, you agree to respect the established rules and policies, including the responsible use of features and providing truthful information during registration.",
+    "prohibited": "It is not permitted to use the platform for illegal, offensive purposes or that violate third-party rights.",
+    "breach": "Failure to comply with the terms may result in account suspension or deletion.",
+    "updates": "These terms may be updated periodically. We recommend that you review them regularly."
   }
 }

@@ -20,14 +20,12 @@ export default function Registro() {
     setErro("");
 
     if (senha !== confirmarSenha) {
-      setErro("As senhas não coincidem");
+      setErro(t("auth.passwordMismatch"));
       return;
     }
 
     if (!consentimento) {
-      setErro(
-        "Você precisa aceitar os termos de uso e política de privacidade"
-      );
+      setErro(t("auth.acceptTermsRequired"));
       return;
     }
 
@@ -47,18 +45,19 @@ export default function Registro() {
     } catch (error) {
       console.error("Erro no cadastro:", error);
       if (error.code === "auth/email-already-in-use") {
-        setErro("Email já está em uso");
+        setErro(t("auth.emailInUse"));
       } else if (error.code === "auth/weak-password") {
-        setErro("Senha muito fraca. Use pelo menos 6 caracteres");
+        setErro(t("auth.weakPassword"));
       } else {
-        setErro("Erro ao criar conta. Tente novamente.");
+        setErro(t("auth.registerError"));
       }
     } finally {
       setCarregando(false);
     }
   };
 
-  const handleSpotifyLogin = () => {
+  const handleLogin = () => {
+    // Navegar para a página de login mantendo o idioma atual
     navigate("/login");
   };
 
@@ -70,7 +69,7 @@ export default function Registro() {
 
       <div className="bg-cinza-escuro p-5 sm:p-6 rounded-xl w-full max-w-md">
         <h2 className="text-xl sm:text-2xl text-white font-bold mb-4 sm:mb-6 text-center">
-          Criar Conta
+          {t("auth.createAccount")}
         </h2>
 
         {erro && (
@@ -82,7 +81,7 @@ export default function Registro() {
         <form onSubmit={handleSubmit}>
           <div className="mb-3 sm:mb-4">
             <label className="block text-gray-300 mb-1.5 sm:mb-2 text-sm sm:text-base">
-              Nome
+              {t("userProfile.user")}
             </label>
             <input
               type="text"
@@ -95,7 +94,7 @@ export default function Registro() {
 
           <div className="mb-3 sm:mb-4">
             <label className="block text-gray-300 mb-1.5 sm:mb-2 text-sm sm:text-base">
-              Email
+              {t("auth.email")}
             </label>
             <input
               type="email"
@@ -108,7 +107,7 @@ export default function Registro() {
 
           <div className="mb-3 sm:mb-4">
             <label className="block text-gray-300 mb-1.5 sm:mb-2 text-sm sm:text-base">
-              Senha
+              {t("auth.password")}
             </label>
             <input
               type="password"
@@ -122,7 +121,7 @@ export default function Registro() {
 
           <div className="mb-5 sm:mb-6">
             <label className="block text-gray-300 mb-1.5 sm:mb-2 text-sm sm:text-base">
-              Confirmar Senha
+              {t("auth.confirmPassword")}
             </label>
             <input
               type="password"
@@ -149,26 +148,25 @@ export default function Registro() {
                 htmlFor="consentimento"
                 className="ml-2 text-sm sm:text-base text-gray-300"
               >
-                Aceito a{" "}
+                {t("auth.acceptTerms", "Aceito a")}{" "}
                 <Link
                   to="/politica-de-privacidade"
                   className="text-[#1ED760] hover:underline"
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  Política de Privacidade
+                  {t("privacyPolicy.title")}
                 </Link>{" "}
-                e os{" "}
+                {t("auth.andThe", "e os")}{" "}
                 <Link
                   to="/termos-de-uso"
                   className="text-[#1ED760] hover:underline"
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  Termos de Uso
+                  {t("termsOfUse.title")}
                 </Link>
-                . Concordo com a coleta e processamento dos meus dados pessoais
-                conforme descrito na política de privacidade.
+                .
               </label>
             </div>
           </div>
@@ -178,18 +176,20 @@ export default function Registro() {
             disabled={carregando || !consentimento}
             className="w-full bg-[#1ED760] text-black font-bold py-2.5 sm:py-3 px-4 rounded-lg hover:bg-verde-destaque/90 transition disabled:opacity-50 cursor-pointer text-sm sm:text-base"
           >
-            {carregando ? "Cadastrando..." : "Cadastrar"}
+            {carregando
+              ? t("auth.registeringAccount")
+              : t("auth.registerButton")}
           </button>
         </form>
 
         <div className="mt-5 sm:mt-6 text-center">
           <p className="text-gray-300 text-sm sm:text-base">
-            Já tem uma conta?{" "}
+            {t("auth.alreadyAccount")}{" "}
             <button
-              onClick={() => navigate("/login")}
+              onClick={handleLogin}
               className="text-[#1ED760] hover:underline font-medium cursor-pointer"
             >
-              Entrar
+              {t("auth.loginHere")}
             </button>
           </p>
         </div>

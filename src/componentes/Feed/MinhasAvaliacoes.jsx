@@ -12,6 +12,8 @@ import { configurarSincronizacaoAutomatica } from "../../services/avaliacoes";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { GrUpdate } from "react-icons/gr";
+import { BsGrid3X3GapFill, BsListUl } from "react-icons/bs";
+import { MdMusicNote } from "react-icons/md";
 /**
  * Componente de barra de progresso para carregamento
  * @param {Object} props - Propriedades do componente
@@ -94,6 +96,12 @@ const MinhasAvaliacoes = () => {
   const [carregandoTela, setCarregandoTela] = useState(true);
   const [estavaNaTelaDetalhes, setEstavaNaTelaDetalhes] = useState(false);
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+  const [modoVisualizacao, setModoVisualizacao] = useState(() => {
+    const preferenciaUsuario = localStorage.getItem(
+      "preferenciaModoVisualizacao"
+    );
+    return preferenciaUsuario || "grade"; // 'grade' ou 'lista'
+  });
   const navigate = useNavigate();
 
   const {
@@ -137,6 +145,14 @@ const MinhasAvaliacoes = () => {
   };
 
   const gridCols = getGridCols();
+
+  // Alternar entre os modos de visualização e salvar a preferência
+  const alternarModoVisualizacao = () => {
+    const novoModo = modoVisualizacao === "grade" ? "lista" : "grade";
+    setModoVisualizacao(novoModo);
+    // Salvar a preferência no localStorage
+    localStorage.setItem("preferenciaModoVisualizacao", novoModo);
+  };
 
   // Recarregar a lista quando o usuário voltar da tela de detalhes de álbum
   useEffect(() => {
@@ -375,13 +391,31 @@ const MinhasAvaliacoes = () => {
           {t("myRatings.ratedAlbums")}
         </h2>
 
-        <button
-          onClick={atualizarListaAlbuns}
-          className="text-sm bg-verde-destaque/20 hover:bg-verde-destaque/30 text-verde-destaque px-3 py-1 rounded-full transition-colors hover:cursor-pointer flex items-center gap-2"
-        >
-          {t("myRatings.update")}
-          <GrUpdate className="text-verde-destaque" />
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={alternarModoVisualizacao}
+            className="text-sm bg-verde-destaque/20 hover:bg-verde-destaque/30 text-verde-destaque px-3 py-1 rounded-full transition-colors hover:cursor-pointer flex items-center gap-2"
+            title={
+              modoVisualizacao === "grade"
+                ? t("myRatings.viewAsList")
+                : t("myRatings.viewAsGrid")
+            }
+          >
+            {modoVisualizacao === "grade" ? (
+              <BsListUl className="text-verde-destaque" />
+            ) : (
+              <BsGrid3X3GapFill className="text-verde-destaque" />
+            )}
+          </button>
+
+          <button
+            onClick={atualizarListaAlbuns}
+            className="text-sm bg-verde-destaque/20 hover:bg-verde-destaque/30 text-verde-destaque px-3 py-1 rounded-full transition-colors hover:cursor-pointer flex items-center gap-2"
+          >
+            {t("myRatings.update")}
+            <GrUpdate className="text-verde-destaque" />
+          </button>
+        </div>
       </div>
 
       {/* Barra de progresso */}
@@ -409,7 +443,7 @@ const MinhasAvaliacoes = () => {
         <p className="text-center text-gray-400 py-8 text-sm md:text-base">
           {t("myRatings.noMatchingAlbums")}
         </p>
-      ) : (
+      ) : modoVisualizacao === "grade" ? (
         <div
           style={{
             display: "grid",
@@ -424,6 +458,143 @@ const MinhasAvaliacoes = () => {
               album={album}
               setAlbumSelecionado={setAlbumSelecionado}
             />
+          ))}
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 gap-3 md:gap-4">
+          {albunsExibidos.map((album) => (
+            <div
+              key={album.id}
+              className="bg-cinza-escuro rounded-xl overflow-hidden shadow-lg transition-all duration-300 hover:scale-[1.02] hover:shadow-xl flex flex-col h-full cursor-pointer relative hover:bg-cinza-escuro/90 group"
+              onClick={() => setAlbumSelecionado(album.id)}
+              title={t("feed.cliqueVerDetalhes")}
+            >
+              <div className="flex h-full py-3 px-2 md:py-3 md:px-4 lg:py-4">
+                {/* LADO ESQUERDO: Imagem do álbum */}
+                <div className="flex-shrink-0 w-16 h-16 md:w-18 md:h-18 lg:w-20 lg:h-20 bg-cinza-escuro rounded-lg overflow-hidden mx-2">
+                  {album.images && album.images.length > 0 ? (
+                    <img
+                      src={album.images[0].url}
+                      alt={t("albumCard.coverAlt", { albumName: album.name })}
+                      className="w-full h-full object-cover rounded-lg"
+                      onError={(e) => {
+                        e.target.style.display = "none";
+                        e.target.parentElement.classList.add(
+                          "flex",
+                          "items-center",
+                          "justify-center",
+                          "bg-cinza-escuro"
+                        );
+                        const fallbackIcon = document.createElement("div");
+                        fallbackIcon.innerHTML =
+                          '<div class="text-verde-destaque text-4xl"><svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path fill="none" d="M0 0h24v24H0z"></path><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"></path></svg></div>';
+                        e.target.parentElement.appendChild(fallbackIcon);
+                      }}
+                      loading="lazy"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center bg-cinza-escuro rounded-lg">
+                      <MdMusicNote className="text-verde-destaque text-3xl" />
+                    </div>
+                  )}
+                </div>
+
+                {/* MEIO: Nome, artista e botões */}
+                <div className="flex-grow min-w-0 mx-2 flex flex-col justify-center">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h3 className="font-bold text-sm md:text-base lg:text-lg line-clamp-1 text-white truncate pr-1">
+                        {album.name}
+                      </h3>
+                      <p className="text-verde-destaque text-xs md:text-sm line-clamp-1 font-medium truncate pr-1">
+                        {album.artists?.map((a) => a.name).join(", ") ||
+                          t("albumCard.unknownArtist")}
+                      </p>
+                    </div>
+
+                    {/* Nota compacta */}
+                    <div
+                      className={`${(() => {
+                        if (
+                          album.progressoAvaliacao &&
+                          album.progressoAvaliacao.percentual < 100
+                        ) {
+                          return "bg-gray-400";
+                        }
+                        const nota = parseFloat(album.mediaAvaliacao || 0);
+                        if (nota < 4) return "bg-red-500";
+                        if (nota < 7) return "bg-yellow-500";
+                        return "bg-verde-destaque";
+                      })()} text-cinza-escuro rounded-lg px-3 py-1 md:px-4 md:py-2 text-lg md:text-2xl lg:text-3xl font-bold flex items-center shadow-sm`}
+                    >
+                      {album.mediaAvaliacao
+                        ? Number.isInteger(album.mediaAvaliacao)
+                          ? album.mediaAvaliacao.toString()
+                          : album.mediaAvaliacao.toFixed(1)
+                        : "0"}
+                    </div>
+                  </div>
+
+                  {/* Progresso e botão do Spotify em linha */}
+                  <div className="flex items-center mt-2 md:mt-3 gap-2 justify-between">
+                    {/* Progresso compacto */}
+                    {album.progressoAvaliacao && (
+                      <div className="flex-grow max-w-xl">
+                        <div className="w-full h-1.5 md:h-1.5 bg-cinza rounded-full overflow-hidden">
+                          <div
+                            className={`h-full transition-all duration-300 ease-in-out ${
+                              album.progressoAvaliacao.percentual >= 100
+                                ? "bg-verde-destaque"
+                                : "bg-blue-500/50"
+                            }`}
+                            style={{
+                              width: `${Math.floor(
+                                album.progressoAvaliacao.percentual
+                              )}%`,
+                            }}
+                          ></div>
+                        </div>
+                        <div className="flex justify-between text-xs text-gray-400 mt-0.5 md:mt-1">
+                          <span>
+                            {Math.floor(album.progressoAvaliacao.percentual)}%
+                          </span>
+                          <span>
+                            {album.progressoAvaliacao.avaliadas}/
+                            {album.progressoAvaliacao.total}
+                          </span>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Apenas o botão do Spotify */}
+                    <a
+                      href={`https://open.spotify.com/album/${album.id}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center px-2 py-1 md:px-3 md:py-1.5 bg-black/30 rounded text-xs md:text-xs text-gray-300 hover:text-green-400 hover:bg-black/50 transition-colors z-20 relative flex-shrink-0"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <span className="text-green-400 mr-1">
+                        <svg
+                          stroke="currentColor"
+                          fill="currentColor"
+                          stroke-width="0"
+                          viewBox="0 0 448 512"
+                          height="1em"
+                          width="1em"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path d="M224 0C100.3 0 0 100.3 0 224c0 123.76 100.3 224 224 224 123.76 0 224-100.24 224-224C448 100.3 347.76 0 224 0zm93.77 328.46c-3.94 5.2-11.1 6.37-16.4 2.14-45.12-27.48-101.7-33.73-168.45-18.44-6.52 1.34-13.4-2.78-14.95-9.47-1.5-6.62 2.83-13.4 9.44-14.94 73.25-16.72 136.2-9.59 187.13 21.5 5.26 3.2 6.38 10.5 3.23 15.38zm25.08-56.3c-5 6.9-14.25 8.34-21.1 3.5-51.65-31.62-130.34-40.9-191.46-22.33-7.83 2.3-16.08-2.1-18.5-9.92-2.27-7.8 2.1-16.1 9.92-18.36 69.68-21.14 156.2-10.8 216.27 25.9 6.9 4.9 8.34 14.3 3.5 21.2zm2.2-55.8c-62.62-37.1-166.04-40.9-225.92-22.73-9.4 2.9-19.3-2.4-22.2-11.8-2.85-9.4 2.43-19.8 11.8-22.2 68.5-20.9 182.6-16.8 253.8 25.7 8.5 5.05 11.46 16.0 6.45 24.6-5.03 8.63-15.97 11.6-24.57 6.6z"></path>
+                        </svg>
+                      </span>
+                      <span className="whitespace-nowrap">
+                        {t("feed.ouvirSpotify")}
+                      </span>
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
           ))}
         </div>
       )}

@@ -212,7 +212,7 @@
     "title": "Exclusão de Conta",
     "description": "Nesta página, você pode solicitar a exclusão da sua conta e dados associados ao Track by Track.",
     "instructions": "Para solicitar a exclusão da sua conta, envie um email para o endereço abaixo com o assunto 'Solicitação de Exclusão de Conta' e o email associado à sua conta.",
-    "emailContact": "suporte@trackbytrackapp.com",
+    "emailContact": "contatotrackbytrack@gmail.com",
     "dataDeleted": "Dados que serão excluídos:",
     "dataKept": "Dados que serão mantidos:",
     "deleteItems": [

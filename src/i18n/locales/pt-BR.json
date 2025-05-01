@@ -22,7 +22,10 @@
   },
   "splash": {
     "logoAlt": "Logo do aplicativo",
-    "description": "Seu app para descobrir, avaliar e registrar todos os álbuns que você ouvir.",
+    "description": "Descubra novos álbuns. Avalie faixa por faixa. Registre tudo em um só lugar.",
+    "description1": "Descubra novos álbuns.",
+    "description2": "Avalie faixa por faixa.",
+    "description3": "Registre tudo em um só lugar.",
     "enterButton": "Entrar ou Cadastrar"
   },
   "auth": {
@@ -76,7 +79,8 @@
     "carregando": "Carregando feed...",
     "erroCarregamento": "Erro ao carregar o feed",
     "new": "Novo",
-    "updated": "Atualizado"
+    "updated": "Atualizado",
+    "details": "Detalhes"
   },
   "myRatings": {
     "title": "Minhas Avaliações",

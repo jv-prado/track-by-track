@@ -22,7 +22,10 @@
   },
   "splash": {
     "logoAlt": "App logo",
-    "description": "Your app to discover, rate and track all the albums you listen to.",
+    "description": "Discover new albums. Rate track by track. Record everything in one place.",
+    "description1": "Discover new albums.",
+    "description2": "Rate track by track.",
+    "description3": "Keep everything in one place.",
     "enterButton": "Login or Sign Up"
   },
   "auth": {
@@ -76,7 +79,8 @@
     "carregando": "Loading feed...",
     "erroCarregamento": "Error loading feed",
     "new": "New",
-    "updated": "Updated"
+    "updated": "Updated",
+    "details": "Details"
   },
   "myRatings": {
     "title": "My Ratings",

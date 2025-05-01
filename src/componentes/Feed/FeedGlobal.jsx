@@ -844,7 +844,7 @@ const FeedGlobal = () => {
                                   {t("feed.verAvaliacoes")}
                                 </span>
                                 <span className="whitespace-nowrap min-[501px]:hidden">
-                                  Detalhes
+                                  {t("feed.details")}
                                 </span>
                               </button>
                             </div>
@@ -1019,7 +1019,7 @@ const FeedGlobal = () => {
                                   {t("feed.verAvaliacoes")}
                                 </span>
                                 <span className="whitespace-nowrap min-[501px]:hidden">
-                                  Detalhes
+                                  {t("feed.details")}
                                 </span>
                               </button>
                             </div>

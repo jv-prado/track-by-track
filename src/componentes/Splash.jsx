@@ -14,6 +14,53 @@ const Splash = () => {
   const { t, i18n } = useTranslation();
   const { usuario: usuarioFirebase, usuarioDemo } = useAuth();
 
+  // Efeito de digitação para a descrição
+  const [descriptionLines, setDescriptionLines] = useState([
+    t("splash.description1", "Descubra novos álbuns."),
+    t("splash.description2", "Avalie faixa por faixa."),
+    t("splash.description3", "Registre tudo em um só lugar."),
+  ]);
+  const [typedLines, setTypedLines] = useState(["", "", ""]);
+  const [currentLine, setCurrentLine] = useState(0);
+  const [charIndex, setCharIndex] = useState(0);
+
+  // Atualiza as linhas de descrição quando o idioma mudar
+  useEffect(() => {
+    setDescriptionLines([
+      t("splash.description1", "Descubra novos álbuns."),
+      t("splash.description2", "Avalie faixa por faixa."),
+      t("splash.description3", "Registre tudo em um só lugar."),
+    ]);
+    setTypedLines(["", "", ""]);
+    setCurrentLine(0);
+    setCharIndex(0);
+  }, [i18n.language, t]);
+
+  useEffect(() => {
+    let timeout;
+    if (currentLine < descriptionLines.length) {
+      if (charIndex < descriptionLines[currentLine].length) {
+        timeout = setTimeout(() => {
+          setTypedLines((prev) => {
+            const newLines = [...prev];
+            newLines[currentLine] = descriptionLines[currentLine].slice(
+              0,
+              charIndex + 1
+            );
+            return newLines;
+          });
+          setCharIndex((prev) => prev + 1);
+        }, 28);
+      } else {
+        timeout = setTimeout(() => {
+          setCurrentLine((prev) => prev + 1);
+          setCharIndex(0);
+        }, 350);
+      }
+    }
+    return () => clearTimeout(timeout);
+  }, [charIndex, currentLine, descriptionLines]);
+
   // Verificar se o usuário já está autenticado ao carregar a splash screen
   useEffect(() => {
     const verificarAutenticacao = async () => {
@@ -62,7 +109,7 @@ const Splash = () => {
         animationComplete ? "opacity-0" : "opacity-100"
       }`}
     >
-      <div className="text-center max-w-md">
+      <div className="text-center max-w-md mx-auto">
         <div className="mb-8">
           <img
             src={Logo}
@@ -71,21 +118,32 @@ const Splash = () => {
           />
         </div>
 
-        <h1 className="text-3xl md:text-4xl font-bold text-verde-destaque mb-6 animate-fadeIn">
+        <h1 className="text-3xl md:text-4xl font-bold text-verde-destaque mb-6 animate-fadeIn text-center">
           Track by Track
         </h1>
 
         <p
-          className="text-gray-300 mb-8 animate-fadeIn w-80"
+          className="text-gray-300 mb-8 animate-fadeIn w-80 text-center mx-auto leading-relaxed min-h-[90px]"
           style={{ animationDelay: "0.3s" }}
         >
-          {t(
-            "splash.description",
-            "Seu app para descobrir, avaliar e registrar todos os álbuns que você ouvir."
-          )}
+          <span className="block mb-1">
+            {typedLines[0]}
+            {currentLine === 0 && <span className="animate-pulse">|</span>}
+          </span>
+          <span className="block mb-1">
+            {typedLines[1]}
+            {currentLine === 1 && <span className="animate-pulse">|</span>}
+          </span>
+          <span className="block">
+            {typedLines[2]}
+            {currentLine === 2 && <span className="animate-pulse">|</span>}
+          </span>
         </p>
 
-        <div className="animate-fadeIn mb-6" style={{ animationDelay: "0.6s" }}>
+        <div
+          className="animate-fadeIn mb-6 text-center"
+          style={{ animationDelay: "0.6s" }}
+        >
           <button
             onClick={handleContinue}
             className="bg-verde-destaque text-gray-900 font-bold py-3 px-8 rounded-full hover:bg-opacity-90 transition-all transform hover:scale-105 cursor-pointer"
@@ -96,7 +154,7 @@ const Splash = () => {
 
         {/* Instagram - Splash Screen */}
         <div
-          className="flex justify-center mt-5 mb-6 animate-fadeIn"
+          className="flex justify-center mt-5 mb-6 animate-fadeIn text-center"
           style={{ animationDelay: "0.75s" }}
         >
           <a
@@ -117,7 +175,7 @@ const Splash = () => {
 
         {/* Seletor de idioma simplificado com bandeiras - Apenas para dispositivos móveis */}
         <div
-          className=" flex justify-center items-center gap-6 mt-6 animate-fadeIn"
+          className="flex justify-center items-center gap-6 mt-6 animate-fadeIn text-center"
           style={{ animationDelay: "0.9s" }}
         >
           {/* Bandeira do Brasil */}
@@ -157,7 +215,7 @@ const Splash = () => {
 
         {/* Links para Política de Privacidade e Termos de Uso */}
         <div
-          className="flex justify-center items-center gap-4 mt-8 animate-fadeIn"
+          className="flex justify-center items-center gap-4 mt-8 animate-fadeIn text-center"
           style={{ animationDelay: "1s" }}
         >
           <Link

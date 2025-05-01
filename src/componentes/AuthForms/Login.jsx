@@ -213,27 +213,44 @@ const Login = () => {
         </div>
 
         {/* Links para Política de Privacidade e Termos de Uso */}
-        <div className="mt-6 pt-4 border-t border-gray-700 flex justify-center items-center gap-4">
-          <Link
-            to="/politica-de-privacidade"
-            className="text-gray-400 text-xs hover:text-verde-destaque transition-colors"
-          >
-            {t("privacyPolicy.title")}
-          </Link>
-          <span className="text-gray-600">•</span>
-          <Link
-            to="/termos-de-uso"
-            className="text-gray-400 text-xs hover:text-verde-destaque transition-colors"
-          >
-            {t("termsOfUse.title")}
-          </Link>
-          <span className="text-gray-600">•</span>
-          <Link
-            to="/exclusao-de-conta"
-            className="text-gray-400 text-xs hover:text-verde-destaque transition-colors"
-          >
-            {t("accountDeletion.title")}
-          </Link>
+        <div className="mt-6 pt-4 border-t border-gray-700 w-full">
+          <div className="flex justify-center items-center gap-4 text-center w-full">
+            <Link
+              to="/politica-de-privacidade"
+              className="flex-1 text-gray-400 text-xs hover:text-verde-destaque transition-colors break-words text-center max-w-[80px] sm:max-w-none"
+              style={{
+                minWidth: 0,
+                wordBreak: "break-word",
+                whiteSpace: "normal",
+              }}
+            >
+              {t("privacyPolicy.title")}
+            </Link>
+            <span className="text-gray-600">|</span>
+            <Link
+              to="/termos-de-uso"
+              className="flex-1 text-gray-400 text-xs hover:text-verde-destaque transition-colors break-words text-center max-w-[80px] sm:max-w-none"
+              style={{
+                minWidth: 0,
+                wordBreak: "break-word",
+                whiteSpace: "normal",
+              }}
+            >
+              {t("termsOfUse.title")}
+            </Link>
+            <span className="text-gray-600">|</span>
+            <Link
+              to="/exclusao-de-conta"
+              className="flex-1 text-gray-400 text-xs hover:text-verde-destaque transition-colors break-words text-center max-w-[80px] sm:max-w-none"
+              style={{
+                minWidth: 0,
+                wordBreak: "break-word",
+                whiteSpace: "normal",
+              }}
+            >
+              {t("accountDeletion.title")}
+            </Link>
+          </div>
         </div>
       </div>
     </div>

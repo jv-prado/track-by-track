@@ -166,14 +166,14 @@ const Splash = () => {
           >
             {t("privacyPolicy.title")}
           </Link>
-          <span className="text-gray-600">•</span>
+          <span className="text-gray-600">|</span>
           <Link
             to="/termos-de-uso"
             className="text-gray-400 text-xs hover:text-verde-destaque transition-colors"
           >
             {t("termsOfUse.title")}
           </Link>
-          <span className="text-gray-600">•</span>
+          <span className="text-gray-600">|</span>
           <Link
             to="/exclusao-de-conta"
             className="text-gray-400 text-xs hover:text-verde-destaque transition-colors"

@@ -11,6 +11,9 @@ import {
   signInWithPopup,
   setPersistence,
   browserLocalPersistence,
+  deleteUser,
+  reauthenticateWithCredential,
+  EmailAuthProvider,
 } from "firebase/auth";
 import {
   getFirestore,
@@ -22,6 +25,8 @@ import {
   arrayRemove,
   collection,
   getDocs,
+  deleteDoc,
+  writeBatch,
 } from "firebase/firestore";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
 
@@ -599,6 +604,115 @@ export const loginComGoogle = async () => {
     };
   } catch (error) {
     console.error("Erro ao fazer login com Google:", error);
+    throw error;
+  }
+};
+
+/**
+ * Reautentica o usuário atual
+ * @param {string} senha - Senha atual do usuário
+ * @returns {Promise<UserCredential>} - Credencial de reautenticação
+ */
+export const reautenticarUsuario = async (senha) => {
+  const user = getUsuarioAtual();
+  if (!user) throw new Error("Usuário não autenticado");
+
+  const credential = EmailAuthProvider.credential(user.email, senha);
+  return await reauthenticateWithCredential(user, credential);
+};
+
+/**
+ * Exclui a conta do usuário atual e seus dados
+ * @param {string} senha - Senha atual do usuário para reautenticação
+ * @returns {Promise<void>}
+ */
+export const excluirConta = async (senha) => {
+  try {
+    const user = getUsuarioAtual();
+    if (!user) throw new Error("Usuário não autenticado");
+
+    // Reautenticar o usuário antes de operações sensíveis
+    await reautenticarUsuario(senha);
+
+    // Excluir dados do usuário no Firestore
+    const userRef = doc(db, "usuarios", user.uid);
+
+    // Excluir avaliações do usuário na coleção global de avaliações
+    const avaliacoesRef = collection(db, "avaliacoes");
+    const avaliacoesSnap = await getDocs(avaliacoesRef);
+
+    const batch = writeBatch(db);
+
+    // Adicionar operação de exclusão do documento do usuário
+    batch.delete(userRef);
+
+    // Adicionar operações de exclusão das avaliações do usuário
+    avaliacoesSnap.forEach((doc) => {
+      if (doc.data().usuario_id === user.uid) {
+        batch.delete(doc.ref);
+      }
+    });
+
+    // Executar todas as operações em batch
+    await batch.commit();
+
+    // Finalmente, excluir a conta do usuário no Firebase Auth
+    await deleteUser(user);
+
+    return true;
+  } catch (error) {
+    console.error("Erro ao excluir conta:", error);
+    throw error;
+  }
+};
+
+/**
+ * Exclui uma conta com email e senha fornecidos
+ * @param {string} email - Email da conta a ser excluída
+ * @param {string} senha - Senha da conta
+ * @returns {Promise<boolean>} True se a exclusão for bem-sucedida
+ */
+export const excluirContaComEmailSenha = async (email, senha) => {
+  try {
+    // Fazer login primeiro com as credenciais fornecidas
+    const userCredential = await signInWithEmailAndPassword(auth, email, senha);
+    const user = userCredential.user;
+
+    if (!user) throw new Error("Falha ao autenticar usuário");
+
+    // Excluir dados do usuário no Firestore
+    const userRef = doc(db, "usuarios", user.uid);
+
+    // Verificar se o documento existe
+    const userDoc = await getDoc(userRef);
+
+    if (userDoc.exists()) {
+      // Excluir avaliações do usuário na coleção global de avaliações
+      const avaliacoesRef = collection(db, "avaliacoes");
+      const avaliacoesSnap = await getDocs(avaliacoesRef);
+
+      const batch = writeBatch(db);
+
+      // Adicionar operação de exclusão do documento do usuário
+      batch.delete(userRef);
+
+      // Adicionar operações de exclusão das avaliações do usuário
+      avaliacoesSnap.forEach((doc) => {
+        if (doc.data().usuario_id === user.uid) {
+          batch.delete(doc.ref);
+        }
+      });
+
+      // Executar todas as operações em batch
+      await batch.commit();
+    }
+
+    // Finalmente, excluir a conta do usuário no Firebase Auth
+    await deleteUser(user);
+
+    return true;
+  } catch (error) {
+    console.error("Erro ao excluir conta com email e senha:", error);
     throw error;
   }
 };

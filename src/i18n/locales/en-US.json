@@ -226,6 +226,25 @@
       "Information required for legal compliance (up to 90 days after deletion)"
     ],
     "timeframe": "Your request will be processed within 30 days, and you will receive an email confirmation when the deletion is complete.",
-    "demo": "Demo mode users: Your data is only stored locally on your device. To delete this data, simply clear your browser cache or uninstall the application."
+    "demo": "Demo mode users: Your data is only stored locally on your device. To delete this data, simply clear your browser cache or uninstall the application.",
+    "autoDeleteWarning": "You can also delete your account directly from the application. This action is irreversible and all your data will be permanently deleted.",
+    "deleteAccount": "Delete my account",
+    "confirmTitle": "Confirm account deletion",
+    "confirmWarning": "This action is irreversible. All your data will be permanently deleted and cannot be recovered.",
+    "enterEmail": "Enter your email",
+    "enterPassword": "Enter your current password",
+    "confirmTypeDelete": "To confirm, type DELETE",
+    "deleting": "Deleting...",
+    "confirmDelete": "Confirm deletion",
+    "errorEmptyField": "Please fill in all fields",
+    "errorConfirmText": "The confirmation text must be 'DELETE'",
+    "errorWrongPassword": "Incorrect password",
+    "errorInvalidEmail": "Invalid email",
+    "errorUserNotFound": "User not found",
+    "errorReauth": "Please login again before trying this operation",
+    "errorGeneric": "Error deleting account. Please try again.",
+    "successTitle": "Account successfully deleted",
+    "successMessage": "All your information has been removed from our servers.",
+    "clearLocalData": "Clear my local data"
   }
 }

@@ -226,6 +226,25 @@
       "Informações necessárias para conformidade legal (até 90 dias após a exclusão)"
     ],
     "timeframe": "Sua solicitação será processada em até 30 dias, e você receberá uma confirmação por email quando a exclusão for concluída.",
-    "demo": "Usuários no modo demonstração: Seus dados são armazenados apenas localmente no seu dispositivo. Para excluir esses dados, simplesmente limpe o cache do navegador ou desinstale o aplicativo."
+    "demo": "Usuários no modo demonstração: Seus dados são armazenados apenas localmente no seu dispositivo. Para excluir esses dados, simplesmente limpe o cache do navegador ou desinstale o aplicativo.",
+    "autoDeleteWarning": "Você também pode excluir sua conta diretamente pelo aplicativo. Esta ação é irreversível e todos os seus dados serão permanentemente excluídos.",
+    "deleteAccount": "Excluir minha conta",
+    "confirmTitle": "Confirmar exclusão de conta",
+    "confirmWarning": "Esta ação é irreversível. Todos os seus dados serão permanentemente excluídos e não poderão ser recuperados.",
+    "enterEmail": "Digite seu email",
+    "enterPassword": "Digite sua senha atual",
+    "confirmTypeDelete": "Para confirmar, digite DELETAR",
+    "deleting": "Excluindo...",
+    "confirmDelete": "Confirmar exclusão",
+    "errorEmptyField": "Preencha todos os campos",
+    "errorConfirmText": "O texto de confirmação deve ser 'DELETAR'",
+    "errorWrongPassword": "Senha incorreta",
+    "errorInvalidEmail": "Email inválido",
+    "errorUserNotFound": "Usuário não encontrado",
+    "errorReauth": "Por favor, faça login novamente antes de tentar esta operação",
+    "errorGeneric": "Erro ao excluir a conta. Tente novamente.",
+    "successTitle": "Conta excluída com sucesso",
+    "successMessage": "Todas as suas informações foram removidas dos nossos servidores.",
+    "clearLocalData": "Limpar meus dados locais"
   }
 }

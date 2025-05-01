@@ -13,6 +13,7 @@ import { FaRegStar } from "react-icons/fa";
 import { GrUpdate } from "react-icons/gr";
 import ModalAvaliacoesUsuario from "./ModalAvaliacoesUsuario";
 import { useTranslation } from "react-i18next";
+import { BsGrid3X3GapFill, BsListUl } from "react-icons/bs";
 
 /**
  * Componente que exibe as últimas avaliações feitas por todos os usuários
@@ -33,6 +34,49 @@ const FeedGlobal = () => {
   const [temMaisAvaliacoes, setTemMaisAvaliacoes] = useState(true);
   const observerRef = useRef(null);
   const ultimaAvaliacaoRef = useRef(null);
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+  const [modoVisualizacao, setModoVisualizacao] = useState(() => {
+    const preferenciaUsuario = localStorage.getItem(
+      "preferenciaModoVisualizacao"
+    );
+    return preferenciaUsuario || "grade"; // 'grade' ou 'lista'
+  });
+  const [fade, setFade] = useState(true);
+
+  // Padronização da função de alternância de modo de visualização
+  const alternarModoVisualizacao = () => {
+    setFade(false);
+    setTimeout(() => {
+      setModoVisualizacao(modoVisualizacao === "grade" ? "lista" : "grade");
+      setFade(true);
+    }, 180);
+    localStorage.setItem(
+      "preferenciaModoVisualizacao",
+      modoVisualizacao === "grade" ? "lista" : "grade"
+    );
+  };
+
+  // Atualizar largura da janela quando ela for redimensionada
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowWidth(window.innerWidth);
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
+
+  // Determinar o número de colunas com base na largura da tela
+  const getGridCols = () => {
+    if (windowWidth < 550) return 2; // 2 itens por linha em telas menores que 550px
+    if (windowWidth < 1100) return 2; // 2 itens por linha em telas menores que 1100px
+    if (windowWidth < 1500) return 3; // 3 itens por linha em telas médias
+    return 5; // 5 itens por linha em telas grandes
+  };
+
+  const gridCols = getGridCols();
 
   // Quantidade de avaliações carregadas por página
   const LIMITE_POR_PAGINA = 10;
@@ -377,7 +421,26 @@ const FeedGlobal = () => {
           </h2>
         </div>
 
-        <div>
+        <div className="flex items-center gap-2">
+          {/* Botão para alternar modo de visualização, visível apenas se houver resultados */}
+          {avaliacoes && avaliacoes.length > 0 && (
+            <button
+              onClick={alternarModoVisualizacao}
+              className="text-sm bg-verde-destaque/20 hover:bg-verde-destaque/30 text-verde-destaque px-3 py-1 rounded-full transition-colors hover:cursor-pointer flex items-center gap-2"
+              title={
+                modoVisualizacao === "grade"
+                  ? t("artistSearch.viewAsList", "Ver como lista")
+                  : t("artistSearch.viewAsGrid", "Ver como grade")
+              }
+            >
+              {modoVisualizacao === "grade" ? (
+                <BsListUl className="text-verde-destaque" />
+              ) : (
+                <BsGrid3X3GapFill className="text-verde-destaque" />
+              )}
+            </button>
+          )}
+
           {/* Botão para atualizar */}
           <button
             onClick={carregarAvaliacoes}
@@ -411,76 +474,76 @@ const FeedGlobal = () => {
           <p className="text-gray-500 mt-2">{t("feed.sejaPrimeiro")}</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-4 md:gap-5">
-          {avaliacoes.map((avaliacao, index) => (
+        <div
+          className={`transition-opacity duration-180 ${
+            fade ? "opacity-100" : "opacity-0"
+          }`}
+        >
+          {modoVisualizacao === "grade" ? (
             <div
-              key={`${avaliacao.id}-${avaliacao.usuario.id}-${index}`}
-              className="bg-cinza-escuro rounded-xl overflow-hidden shadow-lg transition-all duration-300 hover:scale-[1.02] hover:shadow-xl flex flex-col h-full cursor-pointer relative hover:bg-cinza-escuro/90 group"
-              onClick={(e) => navegarParaAlbum(avaliacao.id, e)}
-              title={t("feed.cliqueVerDetalhes")}
-              ref={index === avaliacoes.length - 1 ? ultimoElementoRef : null}
+              style={{
+                display: "grid",
+                gridTemplateColumns: `repeat(${gridCols}, 1fr)`,
+                gap: "1rem",
+              }}
             >
-              <div className="flex flex-col lg:flex-row h-full">
-                {/* LADO ESQUERDO: Imagem do álbum, nome, artista, usuário e botão Spotify */}
-                <div className="flex-grow p-3 flex flex-col min-w-0 relative">
-                  {/* Informações do usuário e nota (em telas pequenas) */}
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center text-xs md:text-sm text-gray-300 min-w-0">
-                      <div className="w-6 h-6 md:w-7 md:h-7 rounded-full overflow-hidden bg-gray-800 flex-shrink-0 mr-2 shadow-sm">
-                        {usandoDadosDemo ? (
-                          <div className="w-full h-full flex items-center justify-center bg-verde-destaque/20 text-verde-destaque">
-                            {avaliacao.usuario.nome.charAt(0).toUpperCase()}
-                          </div>
-                        ) : avaliacao.usuario.foto ? (
-                          <img
-                            src={avaliacao.usuario.foto}
-                            alt={t("feed.fotoUsuario", {
-                              nome: avaliacao.usuario.nome,
-                            })}
-                            className="w-full h-full object-cover"
-                            onError={(e) => {
-                              e.target.style.display = "none";
-                              e.target.parentElement.classList.add(
-                                "flex",
-                                "items-center",
-                                "justify-center",
-                                "bg-verde-destaque/20"
-                              );
-                              const fallbackText =
-                                document.createElement("div");
-                              fallbackText.className =
-                                "text-verde-destaque text-xs font-bold";
-                              fallbackText.textContent = avaliacao.usuario.nome
-                                .charAt(0)
-                                .toUpperCase();
-                              e.target.parentElement.appendChild(fallbackText);
-                            }}
-                            loading="lazy"
-                          />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center bg-verde-destaque/20 text-verde-destaque">
-                            {avaliacao.usuario.nome.charAt(0).toUpperCase()}
-                          </div>
+              {avaliacoes.map((avaliacao, index) => (
+                <div
+                  key={`${avaliacao.id}-${avaliacao.usuario.id}-${index}`}
+                  className="bg-cinza-escuro rounded-xl overflow-hidden shadow-lg transition-all duration-300 hover:scale-[1.02] hover:shadow-xl flex flex-col h-full cursor-pointer relative hover:bg-cinza-escuro/90 group p-3"
+                  onClick={(e) => navegarParaAlbum(avaliacao.id, e)}
+                  title={t("feed.cliqueVerDetalhes")}
+                  ref={
+                    index === avaliacoes.length - 1 ? ultimoElementoRef : null
+                  }
+                >
+                  {/* Imagem do álbum */}
+                  <div className="w-full aspect-square bg-cinza-escuro rounded-lg overflow-hidden mb-3">
+                    {usandoDadosDemo ? (
+                      <div className="w-full h-full bg-gradient-to-br from-verde-destaque/10 to-verde-destaque/30 rounded-lg flex items-center justify-center">
+                        <MdMusicNote className="text-verde-destaque text-3xl md:text-4xl animate-pulse" />
+                      </div>
+                    ) : avaliacao.imagem ? (
+                      <img
+                        src={avaliacao.imagem}
+                        alt={t("feed.capaAlbum", { nome: avaliacao.nome })}
+                        className="w-full h-full object-cover rounded-lg"
+                        onError={handleImageError}
+                        loading="lazy"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center bg-cinza-escuro rounded-lg">
+                        <MdMusicNote className="text-verde-destaque text-4xl" />
+                      </div>
+                    )}
+                  </div>
+                  {/* Linha com nome, banda, nota e botões */}
+                  <div className="flex flex-row items-center justify-between gap-2 w-full">
+                    <div className="flex flex-col min-w-0 flex-1">
+                      <h3
+                        className="font-bold text-sm md:text-base line-clamp-1 text-white truncate pr-1"
+                        title={avaliacao.nome}
+                      >
+                        {avaliacao.nome}
+                      </h3>
+                      <p
+                        className="text-verde-destaque text-xs md:text-sm line-clamp-1 font-medium truncate pr-1 mb-0"
+                        title={avaliacao.artista}
+                      >
+                        {avaliacao.artista}
+                      </p>
+                      {/* Linha com data da avaliação */}
+                      <span className="text-xs opacity-70 truncate max-w-[120px] mt-1 block">
+                        {formatarDataSegura(
+                          avaliacao.data || avaliacao.dataAvaliacao
                         )}
-                      </div>
-                      <div className="flex flex-col min-w-0">
-                        <span className="font-medium truncate max-w-[150px] md:max-w-[200px]">
-                          {avaliacao.usuario.nome}
-                        </span>
-                        <span className="text-xs opacity-70 truncate max-w-[150px] md:max-w-[200px]">
-                          {formatarDataSegura(
-                            avaliacao.data || avaliacao.dataAvaliacao
-                          )}
-                        </span>
-                      </div>
+                      </span>
                     </div>
-
-                    {/* Nota em telas pequenas/médias (visível apenas até lg) */}
-                    <div className="lg:hidden">
+                    <div className="flex flex-col items-end gap-2 min-w-[70px]">
                       <div
                         className={`${obterCorNota(
                           avaliacao.media || avaliacao.mediaAvaliacao
-                        )} text-cinza-escuro rounded-lg px-2 py-1 font-bold text-lg flex items-center justify-center shadow-sm w-13 md:w-20`}
+                        )} text-cinza-escuro rounded-lg px-3 py-1 font-bold text-base flex items-center justify-center shadow-sm mb-1`}
                       >
                         <span className="text-cinza-escuro">
                           {formatarMedia(
@@ -488,43 +551,7 @@ const FeedGlobal = () => {
                           )}
                         </span>
                       </div>
-                    </div>
-                  </div>
-
-                  {/* Parte média: imagem, nome e artista */}
-                  <div className="flex gap-3 min-w-0">
-                    {/* Imagem do álbum */}
-                    <div className="flex-shrink-0 w-16 h-16 md:w-20 md:h-20 bg-cinza-escuro rounded-lg overflow-hidden">
-                      {usandoDadosDemo ? (
-                        <div className="w-full h-full bg-gradient-to-br from-verde-destaque/10 to-verde-destaque/30 rounded-lg flex items-center justify-center">
-                          <MdMusicNote className="text-verde-destaque text-3xl md:text-4xl animate-pulse" />
-                        </div>
-                      ) : avaliacao.imagem ? (
-                        <img
-                          src={avaliacao.imagem}
-                          alt={t("feed.capaAlbum", { nome: avaliacao.nome })}
-                          className="w-full h-full object-cover rounded-lg"
-                          onError={handleImageError}
-                          loading="lazy"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center bg-cinza-escuro rounded-lg">
-                          <MdMusicNote className="text-verde-destaque text-4xl" />
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Nome e artista */}
-                    <div className="flex-grow min-w-0">
-                      <h3 className="font-bold text-sm md:text-base line-clamp-1 text-white truncate pr-1">
-                        {avaliacao.nome}
-                      </h3>
-                      <p className="text-verde-destaque text-xs md:text-sm line-clamp-1 font-medium truncate pr-1 mb-2">
-                        {avaliacao.artista}
-                      </p>
-
-                      {/* Botões do Spotify e Ver avaliações */}
-                      <div className="flex flex-wrap gap-2">
+                      <div className="flex gap-1">
                         <a
                           href={
                             usandoDadosDemo
@@ -534,49 +561,205 @@ const FeedGlobal = () => {
                           target="_blank"
                           rel="noopener noreferrer"
                           className="inline-flex items-center px-2 py-1 bg-black/30 rounded-md text-xs text-gray-300 hover:text-green-400 hover:bg-black/50 transition-colors z-20 relative"
-                          onClick={(e) => e.stopPropagation()} // Evitar que o clique no botão acione a navegação
+                          onClick={(e) => e.stopPropagation()}
                         >
-                          <FaSpotify className="mr-1 text-green-400" />
-                          <span className="whitespace-nowrap">
-                            {t("feed.ouvirSpotify")}
-                          </span>
+                          <FaSpotify className="text-green-400" />
                         </a>
-
                         <button
                           className="inline-flex items-center px-2 py-1 bg-gradient-to-r from-verde-destaque/20 to-verde-destaque/30 rounded-md text-xs text-verde-destaque hover:from-verde-destaque/30 hover:to-verde-destaque/40 shadow-sm transition-colors z-20 relative cursor-pointer"
                           onClick={(e) => abrirModalAvaliacoes(avaliacao, e)}
                           title={t("feed.verAvaliacoesUsuario")}
                         >
-                          <FaRegStar className="mr-1 text-verde-destaque" />
-                          <span className="whitespace-nowrap">
-                            {t("feed.verAvaliacoes")}
-                          </span>
+                          <FaRegStar className="text-verde-destaque" />
                         </button>
                       </div>
                     </div>
                   </div>
+                  {/* Detalhe centralizado com usuário na base do card */}
+                  <div className="flex items-center justify-center mt-4 mb-1">
+                    <div className="w-8 h-8 rounded-full overflow-hidden bg-gray-800 flex items-center justify-center shadow-sm">
+                      {usandoDadosDemo ? (
+                        <div className="w-full h-full flex items-center justify-center bg-verde-destaque/20 text-verde-destaque">
+                          {avaliacao.usuario.nome.charAt(0).toUpperCase()}
+                        </div>
+                      ) : avaliacao.usuario.foto ? (
+                        <img
+                          src={avaliacao.usuario.foto}
+                          alt={t("feed.fotoUsuario", {
+                            nome: avaliacao.usuario.nome,
+                          })}
+                          className="w-full h-full object-cover"
+                          loading="lazy"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center bg-verde-destaque/20 text-verde-destaque">
+                          {avaliacao.usuario.nome.charAt(0).toUpperCase()}
+                        </div>
+                      )}
+                    </div>
+                    <span className="ml-2 text-xs text-gray-300 truncate max-w-[100px] text-center">
+                      {avaliacao.usuario.nome}
+                    </span>
+                  </div>
                 </div>
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 gap-4 md:gap-5">
+              {avaliacoes.map((avaliacao, index) => (
+                <div
+                  key={`${avaliacao.id}-${avaliacao.usuario.id}-${index}`}
+                  className="bg-cinza-escuro rounded-xl overflow-hidden shadow-lg transition-all duration-300 hover:scale-[1.02] hover:shadow-xl flex flex-col h-full cursor-pointer relative hover:bg-cinza-escuro/90 group"
+                  onClick={(e) => navegarParaAlbum(avaliacao.id, e)}
+                  title={t("feed.cliqueVerDetalhes")}
+                  ref={
+                    index === avaliacoes.length - 1 ? ultimoElementoRef : null
+                  }
+                >
+                  <div className="flex flex-col lg:flex-row h-full">
+                    {/* LADO ESQUERDO: Imagem do álbum, nome, artista, usuário e botão Spotify */}
+                    <div className="flex-grow p-3 flex flex-col min-w-0 relative">
+                      {/* Informações do usuário e nota (em telas pequenas) */}
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex flex-row items-center min-w-0 gap-2">
+                          <div className="w-6 h-6 md:w-7 md:h-7 rounded-full overflow-hidden bg-gray-800 flex-shrink-0 shadow-sm">
+                            {usandoDadosDemo ? (
+                              <div className="w-full h-full flex items-center justify-center bg-verde-destaque/20 text-verde-destaque">
+                                {avaliacao.usuario.nome.charAt(0).toUpperCase()}
+                              </div>
+                            ) : avaliacao.usuario.foto ? (
+                              <img
+                                src={avaliacao.usuario.foto}
+                                alt={t("feed.fotoUsuario", {
+                                  nome: avaliacao.usuario.nome,
+                                })}
+                                className="w-full h-full object-cover"
+                                loading="lazy"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center bg-verde-destaque/20 text-verde-destaque">
+                                {avaliacao.usuario.nome.charAt(0).toUpperCase()}
+                              </div>
+                            )}
+                          </div>
+                          <span className="font-medium truncate max-w-[120px] md:max-w-[180px]">
+                            {avaliacao.usuario.nome}
+                          </span>
+                          <span className="text-xs opacity-70 truncate max-w-[80px]">
+                            {formatarDataSegura(
+                              avaliacao.data || avaliacao.dataAvaliacao
+                            )}
+                          </span>
+                        </div>
 
-                {/* LADO DIREITO: Avaliação (apenas visível em lg) */}
-                <div className="hidden lg:flex w-32 xl:w-36 flex-shrink-0 p-3 lg:flex-col items-center justify-between lg:justify-center border-t lg:border-t-0 lg:border-l border-gray-700/50 bg-gradient-to-br from-cinza-escuro to-cinza-escuro/95">
-                  {/* Avaliação como banner */}
-                  <div className="flex lg:flex-col items-center justify-center w-full">
-                    <div
-                      className={`${obterCorNota(
-                        avaliacao.media || avaliacao.mediaAvaliacao
-                      )} text-cinza-escuro rounded-lg px-3 py-1.5 font-bold text-xl flex items-center justify-center shadow-sm w-20 md:w-20 lg:w-20`}
-                    >
-                      <span className="text-cinza-escuro">
-                        {formatarMedia(
-                          avaliacao.media || avaliacao.mediaAvaliacao
-                        )}
-                      </span>
+                        {/* Nota em telas pequenas/médias (visível apenas até lg) */}
+                        <div className="lg:hidden">
+                          <div
+                            className={`${obterCorNota(
+                              avaliacao.media || avaliacao.mediaAvaliacao
+                            )} text-cinza-escuro rounded-lg px-2 py-1 font-bold text-lg flex items-center justify-center shadow-sm w-13 md:w-20`}
+                          >
+                            <span className="text-cinza-escuro">
+                              {formatarMedia(
+                                avaliacao.media || avaliacao.mediaAvaliacao
+                              )}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Parte média: imagem, nome e artista */}
+                      <div className="flex gap-3 min-w-0">
+                        {/* Imagem do álbum */}
+                        <div className="flex-shrink-0 w-16 h-16 md:w-20 md:h-20 bg-cinza-escuro rounded-lg overflow-hidden">
+                          {usandoDadosDemo ? (
+                            <div className="w-full h-full bg-gradient-to-br from-verde-destaque/10 to-verde-destaque/30 rounded-lg flex items-center justify-center">
+                              <MdMusicNote className="text-verde-destaque text-3xl md:text-4xl animate-pulse" />
+                            </div>
+                          ) : avaliacao.imagem ? (
+                            <img
+                              src={avaliacao.imagem}
+                              alt={t("feed.capaAlbum", {
+                                nome: avaliacao.nome,
+                              })}
+                              className="w-full h-full object-cover rounded-lg"
+                              onError={handleImageError}
+                              loading="lazy"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center bg-cinza-escuro rounded-lg">
+                              <MdMusicNote className="text-verde-destaque text-4xl" />
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Nome e artista */}
+                        <div className="flex-grow min-w-0">
+                          <h3 className="font-bold text-sm md:text-base line-clamp-1 text-white truncate pr-1">
+                            {avaliacao.nome}
+                          </h3>
+                          <p className="text-verde-destaque text-xs md:text-sm line-clamp-1 font-medium truncate pr-1 mb-2">
+                            {avaliacao.artista}
+                          </p>
+
+                          {/* Botões do Spotify e Ver avaliações */}
+                          <div className="flex flex-wrap gap-2">
+                            <a
+                              href={
+                                usandoDadosDemo
+                                  ? "https://open.spotify.com/"
+                                  : `https://open.spotify.com/album/${avaliacao.id}`
+                              }
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center px-2 py-1 bg-black/30 rounded-md text-xs text-gray-300 hover:text-green-400 hover:bg-black/50 transition-colors z-20 relative"
+                              onClick={(e) => e.stopPropagation()} // Evitar que o clique no botão acione a navegação
+                            >
+                              <FaSpotify className="mr-1 text-green-400" />
+                              <span className="whitespace-nowrap">
+                                {t("feed.ouvirSpotify")}
+                              </span>
+                            </a>
+
+                            <button
+                              className="inline-flex items-center px-2 py-1 bg-gradient-to-r from-verde-destaque/20 to-verde-destaque/30 rounded-md text-xs text-verde-destaque hover:from-verde-destaque/30 hover:to-verde-destaque/40 shadow-sm transition-colors z-20 relative cursor-pointer"
+                              onClick={(e) =>
+                                abrirModalAvaliacoes(avaliacao, e)
+                              }
+                              title={t("feed.verAvaliacoesUsuario")}
+                            >
+                              <FaRegStar className="mr-1 text-verde-destaque" />
+                              <span className="whitespace-nowrap">
+                                {t("feed.verAvaliacoes")}
+                              </span>
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* LADO DIREITO: Avaliação (apenas visível em lg) */}
+                    <div className="hidden lg:flex w-32 xl:w-36 flex-shrink-0 p-3 lg:flex-col items-center justify-between lg:justify-center border-t lg:border-t-0 lg:border-l border-gray-700/50 bg-gradient-to-br from-cinza-escuro to-cinza-escuro/95">
+                      {/* Avaliação como banner */}
+                      <div className="flex lg:flex-col items-center justify-center w-full">
+                        <div
+                          className={`${obterCorNota(
+                            avaliacao.media || avaliacao.mediaAvaliacao
+                          )} text-cinza-escuro rounded-lg px-3 py-1.5 font-bold text-xl flex items-center justify-center shadow-sm w-20 md:w-20 lg:w-20`}
+                        >
+                          <span className="text-cinza-escuro">
+                            {formatarMedia(
+                              avaliacao.media || avaliacao.mediaAvaliacao
+                            )}
+                          </span>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
+              ))}
             </div>
-          ))}
+          )}
 
           {/* Indicador de carregamento quando estiver buscando mais avaliações */}
           {carregandoMais && (
@@ -587,9 +770,6 @@ const FeedGlobal = () => {
               </span>
             </div>
           )}
-
-          {/* Mensagem quando não há mais avaliações para carregar */}
-          {/* Removido conforme solicitado */}
         </div>
       )}
 

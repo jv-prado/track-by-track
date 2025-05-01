@@ -18,6 +18,7 @@ import { App as CapApp } from "@capacitor/app";
 import LanguageSelector from "./componentes/LanguageSelector";
 import PoliticaDePrivacidade from "./componentes/PoliticaDePrivacidade";
 import TermosDeUso from "./componentes/TermosDeUso";
+import ExclusaoDeConta from "./componentes/ExclusaoDeConta";
 import { auth } from "./services/firebase";
 import { logInfoAutenticacao } from "./services/firebase/auth-helper";
 import { diagnosticarProblemasAutenticacao } from "./services/debug";
@@ -183,7 +184,8 @@ function App() {
         location.pathname !== "/registro" &&
         location.pathname !== "/splash" &&
         location.pathname !== "/politica-de-privacidade" &&
-        location.pathname !== "/termos-de-uso"
+        location.pathname !== "/termos-de-uso" &&
+        location.pathname !== "/exclusao-de-conta"
       ) {
         navigate("/login");
       }
@@ -376,6 +378,7 @@ function App() {
                 element={<PoliticaDePrivacidade />}
               />
               <Route path="/termos-de-uso" element={<TermosDeUso />} />
+              <Route path="/exclusao-de-conta" element={<ExclusaoDeConta />} />
             </Routes>
           </div>
         </div>

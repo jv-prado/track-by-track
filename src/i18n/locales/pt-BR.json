@@ -207,5 +207,25 @@
     "prohibited": "Não é permitido utilizar a plataforma para fins ilícitos, ofensivos ou que violem direitos de terceiros.",
     "breach": "O descumprimento dos termos pode resultar em suspensão ou exclusão da conta.",
     "updates": "Estes termos podem ser atualizados periodicamente. Recomendamos que você os revise regularmente."
+  },
+  "accountDeletion": {
+    "title": "Exclusão de Conta",
+    "description": "Nesta página, você pode solicitar a exclusão da sua conta e dados associados ao Track by Track.",
+    "instructions": "Para solicitar a exclusão da sua conta, envie um email para o endereço abaixo com o assunto 'Solicitação de Exclusão de Conta' e o email associado à sua conta.",
+    "emailContact": "suporte@trackbytrackapp.com",
+    "dataDeleted": "Dados que serão excluídos:",
+    "dataKept": "Dados que serão mantidos:",
+    "deleteItems": [
+      "Informações da conta (nome, email, foto de perfil)",
+      "Avaliações e classificações de álbuns e faixas",
+      "Histórico de uso e preferências",
+      "Quaisquer dados pessoais associados"
+    ],
+    "keptItems": [
+      "Dados agregados e anônimos para fins estatísticos",
+      "Informações necessárias para conformidade legal (até 90 dias após a exclusão)"
+    ],
+    "timeframe": "Sua solicitação será processada em até 30 dias, e você receberá uma confirmação por email quando a exclusão for concluída.",
+    "demo": "Usuários no modo demonstração: Seus dados são armazenados apenas localmente no seu dispositivo. Para excluir esses dados, simplesmente limpe o cache do navegador ou desinstale o aplicativo."
   }
 }

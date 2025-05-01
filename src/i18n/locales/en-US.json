@@ -207,5 +207,25 @@
     "prohibited": "It is not permitted to use the platform for illegal, offensive purposes or that violate third-party rights.",
     "breach": "Failure to comply with the terms may result in account suspension or deletion.",
     "updates": "These terms may be updated periodically. We recommend that you review them regularly."
+  },
+  "accountDeletion": {
+    "title": "Account Deletion",
+    "description": "On this page, you can request the deletion of your account and associated data from Track by Track.",
+    "instructions": "To request account deletion, please send an email to the address below with the subject 'Account Deletion Request' and the email associated with your account.",
+    "emailContact": "support@trackbytrackapp.com",
+    "dataDeleted": "Data that will be deleted:",
+    "dataKept": "Data that will be retained:",
+    "deleteItems": [
+      "Account information (name, email, profile picture)",
+      "Album and track ratings and reviews",
+      "Usage history and preferences",
+      "Any associated personal data"
+    ],
+    "keptItems": [
+      "Aggregated and anonymous data for statistical purposes",
+      "Information required for legal compliance (up to 90 days after deletion)"
+    ],
+    "timeframe": "Your request will be processed within 30 days, and you will receive an email confirmation when the deletion is complete.",
+    "demo": "Demo mode users: Your data is only stored locally on your device. To delete this data, simply clear your browser cache or uninstall the application."
   }
 }

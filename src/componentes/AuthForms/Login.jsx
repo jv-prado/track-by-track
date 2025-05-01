@@ -227,6 +227,13 @@ const Login = () => {
           >
             {t("termsOfUse.title")}
           </Link>
+          <span className="text-gray-600">•</span>
+          <Link
+            to="/exclusao-de-conta"
+            className="text-gray-400 text-xs hover:text-verde-destaque transition-colors"
+          >
+            {t("accountDeletion.title")}
+          </Link>
         </div>
       </div>
     </div>

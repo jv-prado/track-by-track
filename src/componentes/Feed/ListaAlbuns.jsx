@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { buscarAlbunsPorArtista } from "../../services/spotify";
 import DetalhesAlbum from "./DetalhesAlbum";
+import { useTranslation } from "react-i18next";
 
 /**
  * Componente para exibir os álbuns de um artista
@@ -13,6 +14,7 @@ const ListaAlbuns = ({ artistaId, onVoltar }) => {
   const [carregando, setCarregando] = useState(true);
   const [albumSelecionado, setAlbumSelecionado] = useState(null);
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+  const { t } = useTranslation();
 
   // Atualizar largura da janela quando ela for redimensionada
   useEffect(() => {
@@ -69,11 +71,11 @@ const ListaAlbuns = ({ artistaId, onVoltar }) => {
         onClick={onVoltar}
         className="mb-4 bg-cinza py-2 px-4 rounded-lg hover:bg-cinza-escuro transition-colors cursor-pointer"
       >
-        Voltar para artistas
+        {t("artistAlbums.backToArtists", "Voltar para artistas")}
       </button>
 
       <h2 className="text-2xl font-bold mb-6 text-verde-destaque">
-        Álbuns do Artista
+        {t("artistAlbums.title", "Álbuns do Artista")}
       </h2>
 
       {carregando ? (
@@ -92,7 +94,11 @@ const ListaAlbuns = ({ artistaId, onVoltar }) => {
                 <div className="w-full aspect-square mb-4">
                   <img
                     src={album.images[0].url}
-                    alt={`Capa do álbum ${album.name}`}
+                    alt={t(
+                      "albumCard.coverAlt",
+                      "Capa do álbum {{albumName}}",
+                      { albumName: album.name }
+                    )}
                     className="w-full h-full object-cover rounded-lg shadow-lg"
                   />
                 </div>
@@ -104,10 +110,14 @@ const ListaAlbuns = ({ artistaId, onVoltar }) => {
                 {album.artists.map((a) => a.name).join(", ")}
               </p>
               <p className="text-sm text-gray-400">
-                Lançamento: {new Date(album.release_date).getFullYear()}
+                {t("albumSearch.releaseYear", "Lançamento: {{year}}", {
+                  year: new Date(album.release_date).getFullYear(),
+                })}
               </p>
               <p className="text-sm text-gray-400 mt-1">
-                Faixas: {album.total_tracks}
+                {t("artistAlbums.tracks", "Faixas: {{count}}", {
+                  count: album.total_tracks,
+                })}
               </p>
               <button
                 className="mt-4 bg-verde-destaque text-cinza-escuro py-2 px-4 rounded-lg hover:bg-verde-pastel transition-colors cursor-pointer"
@@ -116,14 +126,17 @@ const ListaAlbuns = ({ artistaId, onVoltar }) => {
                   setAlbumSelecionado(album.id);
                 }}
               >
-                Ver faixas
+                {t("albumCard.viewTracks", "Ver faixas")}
               </button>
             </div>
           ))}
         </div>
       ) : (
         <p className="text-center text-gray-400 text-lg">
-          Nenhum álbum encontrado para este artista
+          {t(
+            "artistAlbums.noAlbumsFound",
+            "Nenhum álbum encontrado para este artista"
+          )}
         </p>
       )}
     </div>

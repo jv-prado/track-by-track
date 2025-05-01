@@ -188,6 +188,12 @@
     "noArtistsFound": "No artists found",
     "typeToSearch": "Type an artist name in the search bar"
   },
+  "artistAlbums": {
+    "title": "Artist's Albums",
+    "tracks": "Tracks: {{count}}",
+    "noAlbumsFound": "No albums found for this artist",
+    "backToArtists": "Back to artists"
+  },
   "privacyPolicy": {
     "title": "Privacy Policy",
     "intro": "Your privacy is important to us. We collect and use some personal data in accordance with current legislation, mainly to ensure the best possible experience on the platform.",

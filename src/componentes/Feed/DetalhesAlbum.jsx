@@ -450,6 +450,13 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
     // Verificar se o usuário está logado no Firebase
     const usuarioFirebase = getUsuarioAtual();
 
+    // Calcular o progresso atual para verificar se já estava 100% antes da alteração
+    const progressoAtual = calcularProgressoAvaliacao(faixas, avaliacoes);
+    const estaCompleto = progressoAtual.percentual === 100;
+
+    // Guardar a média anterior para comparar depois (antes de qualquer alteração)
+    const mediaAnterior = calcularMediaAvaliacoes();
+
     // Atualiza as avaliações localmente
     let novasAvaliacoes = { ...avaliacoes };
 
@@ -462,13 +469,38 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
 
     setAvaliacoes(novasAvaliacoes);
 
-    // Calcular progresso corretamente considerando apenas as faixas do álbum atual
-    setProgressoAvaliacao(calcularProgressoAvaliacao(faixas, novasAvaliacoes));
+    // Calcular progresso correto após as mudanças
+    const novoProgresso = calcularProgressoAvaliacao(faixas, novasAvaliacoes);
+    setProgressoAvaliacao(novoProgresso);
+
+    // Calcular nova média após a avaliação
+    const novaMedia = calcularMediaAvaliacoes();
+
+    // Log para debug
+    console.log(
+      `Média anterior: ${mediaAnterior}, Nova média: ${novaMedia}, Progresso atual: ${progressoAtual.percentual}%, Novo progresso: ${novoProgresso.percentual}%`
+    );
 
     if (usuarioFirebase) {
       // Para usuário logado, salvar diretamente no Firebase
       try {
         if (detalhesAlbum) {
+          // LÓGICA CORRIGIDA:
+          // Se o álbum já estava completo (100%), qualquer alteração é uma atualização
+          // Mesmo que a média não mude, se já está 100% e mudamos alguma nota, é uma atualização
+          const isAtualizado = estaCompleto;
+
+          // É primeira avaliação completa se:
+          // Agora está 100% completo MAS não estava antes
+          const isPrimeiraAvaliacaoConcluida =
+            novoProgresso.percentual === 100 && !estaCompleto;
+
+          console.log(
+            `É atualização: ${isAtualizado}, É primeira avaliação completa: ${isPrimeiraAvaliacaoConcluida}`
+          );
+
+          // Se for uma atualização, isPrimeiraAvaliacao deve sempre ser false
+          // Ou seja, a presença de isAtualizado=true deve forçar isPrimeiraAvaliacao=false
           await salvarAvaliacaoAlbum(
             albumId,
             novasAvaliacoes,
@@ -479,11 +511,13 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
               faixaFavorita,
               piorFaixa,
             },
-            faixas // Passar as faixas para salvar os nomes
+            faixas, // Passar as faixas para salvar os nomes
+            isAtualizado, // Indicar se é uma atualização
+            isPrimeiraAvaliacaoConcluida // Indicar se é a primeira avaliação completa
           );
         }
       } catch (error) {
-        // Erro ao salvar avaliação
+        console.error("Erro ao salvar avaliação:", error);
       }
     } else {
       // Para usuário não logado ou modo demo, atualizar o localStorage global

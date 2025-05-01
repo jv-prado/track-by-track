@@ -184,6 +184,8 @@ export const observarAutenticacao = (callback) => {
  * @param {string} imagem - URL da imagem do álbum
  * @param {Object} preferencias - Preferências de faixa favorita e pior faixa (opcional)
  * @param {Array} faixas - Array com as faixas do álbum (opcional)
+ * @param {boolean} isAtualizado - Indica se é uma atualização de avaliação já concluída (opcional)
+ * @param {boolean} isPrimeiraAvaliacaoConcluida - Indica se é a primeira vez que o álbum atinge 100% (opcional)
  */
 export const salvarAvaliacaoAlbum = async (
   albumId,
@@ -192,7 +194,9 @@ export const salvarAvaliacaoAlbum = async (
   artista,
   imagem,
   preferencias = null,
-  faixas = null
+  faixas = null,
+  isAtualizado = false,
+  isPrimeiraAvaliacaoConcluida = false
 ) => {
   try {
     const user = getUsuarioAtual();
@@ -222,6 +226,38 @@ export const salvarAvaliacaoAlbum = async (
       data_avaliacao: new Date(),
     };
 
+    // Calcular a média de avaliações para este álbum
+    let soma = 0;
+    let faixasAvaliadas = 0;
+    let totalFaixas = 0;
+
+    if (faixas && Array.isArray(faixas.items)) {
+      totalFaixas = faixas.items.length;
+
+      // Contar apenas faixas com avaliação > 0
+      faixas.items.forEach((faixa) => {
+        const avaliacao = avaliacoesFaixas[faixa.id] || 0;
+        if (avaliacao > 0) {
+          soma += avaliacao;
+          faixasAvaliadas++;
+        }
+      });
+    }
+
+    // Calcular média e percentual
+    const percentualAvaliado =
+      totalFaixas > 0 ? Math.round((faixasAvaliadas / totalFaixas) * 100) : 0;
+    const mediaEscala5 = faixasAvaliadas > 0 ? soma / faixasAvaliadas : 0;
+    const mediaAvaliacao = mediaEscala5 * 2; // Convertendo para escala 0-10
+
+    // Salvar a média calculada e progresso no objeto
+    dadosAlbum.mediaAvaliacao = mediaAvaliacao;
+    dadosAlbum.progresso = {
+      avaliadas: faixasAvaliadas,
+      total: totalFaixas,
+      percentual: percentualAvaliado,
+    };
+
     // Adicionar preferências se fornecidas
     if (preferencias) {
       dadosAlbum.preferencias = preferencias;
@@ -239,6 +275,7 @@ export const salvarAvaliacaoAlbum = async (
       dadosAlbum.faixas = albumExistente.faixas;
     }
 
+    // NOVA ABORDAGEM: Usar flag isPrimeiraAvaliacao com período de graça de 1h
     if (albumExistente) {
       // Se o álbum já existe, preservar a data da primeira avaliação
       if (albumExistente.data_primeira_avaliacao) {
@@ -247,6 +284,74 @@ export const salvarAvaliacaoAlbum = async (
       } else {
         // Se não tiver data da primeira avaliação registrada, usar a data atual
         dadosAlbum.data_primeira_avaliacao = new Date();
+      }
+
+      // LÓGICA COM PERÍODO DE GRAÇA:
+      // Se for uma atualização, verifica se está dentro do período de graça de 1h
+      if (isAtualizado) {
+        // Verificar se o álbum tem uma data de primeira avaliação completa
+        const dataCompletou = albumExistente.data_completou_100
+          ? albumExistente.data_completou_100.toDate
+            ? albumExistente.data_completou_100.toDate()
+            : new Date(albumExistente.data_completou_100)
+          : null;
+
+        // Se não tiver data de primeira conclusão, usar a data de primeira avaliação
+        const dataReferencia =
+          dataCompletou ||
+          (albumExistente.data_primeira_avaliacao
+            ? albumExistente.data_primeira_avaliacao.toDate
+              ? albumExistente.data_primeira_avaliacao.toDate()
+              : new Date(albumExistente.data_primeira_avaliacao)
+            : new Date());
+
+        // Verificar se passou mais de 1 hora desde a primeira avaliação completa
+        const agora = new Date();
+        const umaHoraEmMs = 60 * 60 * 1000; // 1 hora em milissegundos
+        const dentroDoPeríodoDeGraca =
+          agora.getTime() - dataReferencia.getTime() <= umaHoraEmMs;
+
+        console.log(`Álbum ${nome} sendo atualizado:
+          - Data de referência: ${dataReferencia}
+          - Tempo decorrido: ${
+            (agora.getTime() - dataReferencia.getTime()) / 1000 / 60
+          } minutos
+          - Dentro do período de graça: ${dentroDoPeríodoDeGraca}
+        `);
+
+        // Se estiver dentro do período de graça de 1h, mantém como primeira avaliação
+        if (dentroDoPeríodoDeGraca) {
+          dadosAlbum.isPrimeiraAvaliacao = true;
+          console.log(
+            `Álbum ${nome} atualizado mas ainda dentro do período de graça (1h). Mantendo como NOVO.`
+          );
+        } else {
+          dadosAlbum.isPrimeiraAvaliacao = false;
+          console.log(
+            `Álbum ${nome} atualizado após período de graça (1h). Marcando como ATUALIZADO.`
+          );
+        }
+
+        dadosAlbum.data_atualizacao = new Date();
+      }
+      // Se for primeira avaliação completa, marca como tal e registra o timestamp
+      else if (isPrimeiraAvaliacaoConcluida) {
+        dadosAlbum.isPrimeiraAvaliacao = true;
+        dadosAlbum.data_completou_100 = new Date(); // NOVO: registrar quando o álbum completou 100%
+        console.log(
+          `Marcando álbum ${nome} como PRIMEIRA AVALIAÇÃO COMPLETA (isPrimeiraAvaliacao=true)`
+        );
+      }
+      // Preservar o valor existente se não for alteração
+      else if (albumExistente.isPrimeiraAvaliacao !== undefined) {
+        dadosAlbum.isPrimeiraAvaliacao = albumExistente.isPrimeiraAvaliacao;
+        // Preservar a data em que completou 100% se existir
+        if (albumExistente.data_completou_100) {
+          dadosAlbum.data_completou_100 = albumExistente.data_completou_100;
+        }
+        console.log(
+          `Preservando valor de isPrimeiraAvaliacao=${albumExistente.isPrimeiraAvaliacao} para ${nome}`
+        );
       }
 
       // Criar uma cópia do array de álbuns
@@ -261,6 +366,21 @@ export const salvarAvaliacaoAlbum = async (
     } else {
       // Para um novo álbum, a data da primeira avaliação é agora
       dadosAlbum.data_primeira_avaliacao = new Date();
+
+      // Se for a primeira avaliação completa, marcar como tal e registrar o timestamp
+      if (isPrimeiraAvaliacaoConcluida) {
+        dadosAlbum.isPrimeiraAvaliacao = true;
+        dadosAlbum.data_completou_100 = new Date(); // NOVO: registrar quando o álbum completou 100%
+        console.log(
+          `Marcando novo álbum ${nome} como PRIMEIRA AVALIAÇÃO COMPLETA (isPrimeiraAvaliacao=true)`
+        );
+      } else {
+        // Para álbuns novos mas ainda não 100%, garantir que não seja tratado como nova avaliação completa
+        dadosAlbum.isPrimeiraAvaliacao = false;
+        console.log(
+          `Álbum novo ${nome} mas ainda incompleto, definindo isPrimeiraAvaliacao=false`
+        );
+      }
 
       // Adicionar novo álbum ao array existente
       await updateDoc(userRef, {
@@ -381,6 +501,46 @@ export const obterAvaliacoesGlobais = async (
           }
         }
 
+        // Verificar explicitamente se o álbum está marcado como primeira avaliação
+        const ehPrimeiraAvaliacao = album.isPrimeiraAvaliacao === true;
+
+        // Verificar se tem a data quando completou 100%
+        const dataCompletou = album.data_completou_100
+          ? album.data_completou_100.toDate
+            ? album.data_completou_100.toDate()
+            : new Date(album.data_completou_100)
+          : null;
+
+        // Calcular há quanto tempo foi completado, se aplicável
+        let tempoDesdeCompletou = null;
+        if (dataCompletou) {
+          const agora = new Date();
+          const diferencaMs = agora.getTime() - dataCompletou.getTime();
+          tempoDesdeCompletou = Math.floor(diferencaMs / (1000 * 60)); // em minutos
+        }
+
+        // Log mais detalhado
+        console.log(`Processando álbum ${album.nome} para feed global:
+          - isPrimeiraAvaliacao: ${ehPrimeiraAvaliacao}
+          - Valor direto: ${album.isPrimeiraAvaliacao}
+          - Tipo: ${typeof album.isPrimeiraAvaliacao}
+          - Data conclusão 100%: ${
+            dataCompletou ? dataCompletou.toISOString() : "não disponível"
+          }
+          - Tempo desde conclusão: ${
+            tempoDesdeCompletou !== null
+              ? `${tempoDesdeCompletou} minutos`
+              : "N/A"
+          }
+          - Data atualização: ${
+            album.data_atualizacao
+              ? album.data_atualizacao.toDate
+                ? album.data_atualizacao.toDate().toISOString()
+                : "formato inválido"
+              : "não tem"
+          }
+        `);
+
         // Adicionar esta avaliação ao array de todas as avaliações
         if (totalFaixas > 0) {
           // Usar a foto de perfil do Firestore (que agora é sincronizada)
@@ -391,6 +551,11 @@ export const obterAvaliacoesGlobais = async (
             imagem: album.imagem,
             mediaAvaliacao,
             dataAvaliacao: album.data_avaliacao?.toDate() || new Date(),
+            // Nova flag: isPrimeiraAvaliacao - valor booleano explícito
+            isPrimeiraAvaliacao: ehPrimeiraAvaliacao,
+            dataAtualizacao: album.data_atualizacao?.toDate() || null,
+            dataCompletou100: dataCompletou,
+            media_anterior: album.media_anterior || null,
             usuario: {
               id: doc.id,
               nome: dadosUsuario.nome || "Usuário anônimo",

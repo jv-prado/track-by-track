@@ -96,8 +96,12 @@ const ListaAlbuns = ({ artistaId, onVoltar }) => {
         >
           {t("artistAlbums.backToArtists", "Voltar para artistas")}
         </button>
+      </div>
 
-        {/* Botão para alternar modo de visualização, visível apenas se houver resultados */}
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-2xl font-bold text-verde-destaque">
+          {t("artistAlbums.title", "Álbuns do Artista")}
+        </h2>
         {albuns && albuns.items && albuns.items.length > 0 && (
           <button
             onClick={alternarModoVisualizacao}
@@ -116,10 +120,6 @@ const ListaAlbuns = ({ artistaId, onVoltar }) => {
           </button>
         )}
       </div>
-
-      <h2 className="text-2xl font-bold mb-6 text-verde-destaque">
-        {t("artistAlbums.title", "Álbuns do Artista")}
-      </h2>
 
       {carregando ? (
         <div className="flex justify-center">

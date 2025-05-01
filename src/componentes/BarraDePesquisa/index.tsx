@@ -40,10 +40,18 @@ const BarraDePesquisa = ({ onSearch, activeView, termoPesquisa = "" }) => {
       </div>
       <input
         type="text"
-        placeholder={t("app.search")}
+        placeholder={
+          activeView === "feed"
+            ? t(
+                "app.selectAlbumsOrArtists",
+                "Selecione álbuns ou artistas no menu"
+              )
+            : t("app.search")
+        }
         value={termo}
         onChange={handleChange}
-        className="w-full pl-12 pr-4 py-3 bg-cinza-escuro text-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-verde-destaque transition-all placeholder-gray-400"
+        className="w-full pl-12 pr-4 py-3 bg-cinza-escuro text-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-verde-destaque transition-all placeholder-gray-400 disabled:opacity-60"
+        disabled={activeView === "feed"}
       />
     </form>
   );

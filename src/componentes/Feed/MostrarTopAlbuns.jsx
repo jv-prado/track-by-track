@@ -99,15 +99,27 @@ const MostrarTopAlbuns = ({ termoPesquisa }) => {
     if (windowWidth < 550) return 2; // 2 álbuns por linha em telas menores que 550px
     if (windowWidth < 1100) return 2; // 2 álbuns por linha em telas menores que 1100px
     if (windowWidth < 1500) return 3; // 3 álbuns por linha em telas médias
-    return 5; // 5 álbuns por linha em telas grandes
+    return 4; // 5 álbuns por linha em telas grandes
   };
 
   const gridCols = getGridCols();
 
   return (
     <div className="p-6">
-      <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold text-verde-destaque">
+      <div
+        className={`flex justify-between items-center mb-4 ${
+          !albuns || !albuns.items || albuns.items.length === 0
+            ? "md:justify-center"
+            : ""
+        }`}
+      >
+        <h1
+          className={`text-2xl font-bold text-verde-destaque ${
+            !albuns || !albuns.items || albuns.items.length === 0
+              ? "text-center w-full md:text-left"
+              : ""
+          }`}
+        >
           {t("albumSearch.title", "Pesquisar por Álbum")}
         </h1>
 
@@ -273,7 +285,7 @@ const MostrarTopAlbuns = ({ termoPesquisa }) => {
           {t("albumSearch.noAlbumsFound", "Nenhum álbum encontrado")}
         </p>
       ) : (
-        <p className="text-center text-gray-400 text-lg">
+        <p className="text-center text-gray-400 text-lg md:text-left md:mx-0 md:text-lg mx-auto max-w-xs md:max-w-none">
           {t(
             "albumSearch.typeToSearch",
             "Digite um nome de álbum na barra de pesquisa"

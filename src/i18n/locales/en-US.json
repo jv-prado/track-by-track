@@ -17,7 +17,8 @@
     "continueWith": "or continue with",
     "enteringAccount": "Signing in...",
     "profile": "Profile",
-    "changePhoto": "Change photo"
+    "changePhoto": "Change photo",
+    "selectAlbumsOrArtists": "Select albums or artists from the menu"
   },
   "splash": {
     "logoAlt": "App logo",
@@ -60,7 +61,7 @@
     "unexpectedError": "An unexpected error occurred."
   },
   "feed": {
-    "titulo": "Global Feed",
+    "titulo": "Latest reviews",
     "modoDemo": "Demo mode",
     "atualizar": "Update",
     "nenhumaAvaliacao": "No ratings found",
@@ -73,7 +74,9 @@
     "capaAlbum": "{{nome}} album cover",
     "avaliado": "Rated: {{avaliadas}}/{{total}}",
     "carregando": "Loading feed...",
-    "erroCarregamento": "Error loading feed"
+    "erroCarregamento": "Error loading feed",
+    "new": "New",
+    "updated": "Updated"
   },
   "myRatings": {
     "title": "My Ratings",

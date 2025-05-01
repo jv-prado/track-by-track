@@ -73,7 +73,7 @@ const FeedGlobal = () => {
     if (windowWidth < 550) return 2; // 2 itens por linha em telas menores que 550px
     if (windowWidth < 1100) return 2; // 2 itens por linha em telas menores que 1100px
     if (windowWidth < 1500) return 3; // 3 itens por linha em telas médias
-    return 5; // 5 itens por linha em telas grandes
+    return 4; // 5 itens por linha em telas grandes
   };
 
   const gridCols = getGridCols();
@@ -156,7 +156,19 @@ const FeedGlobal = () => {
       // Filtrar apenas avaliações com 100% de progresso
       const avaliacoesFiltradas = avaliacoesGlobaisDemo
         .filter((avaliacao) => (avaliacao.progresso?.percentual || 0) >= 100)
-        .slice(0, LIMITE_POR_PAGINA);
+        .slice(0, LIMITE_POR_PAGINA)
+        .map((avaliacao) => ({
+          ...avaliacao,
+          // Definir isPrimeiraAvaliacao com base nos dados ou usar um método consistente para demonstração
+          isPrimeiraAvaliacao:
+            avaliacao.isPrimeiraAvaliacao !== undefined
+              ? avaliacao.isPrimeiraAvaliacao
+              : avaliacao.id
+              ? parseInt(avaliacao.id.replace(/\D/g, "")[0] || "0") % 2 === 0
+              : true,
+        }));
+
+      console.log("Avaliações processadas para demo:", avaliacoesFiltradas);
 
       setAvaliacoes(avaliacoesFiltradas);
       setUsandoDadosDemo(true);
@@ -177,9 +189,20 @@ const FeedGlobal = () => {
             ...avaliacao.usuario,
             foto: validarUrlImagem(avaliacao.usuario.foto),
           },
+          // Preservar propriedades relacionadas a atualizações
+          atualizada:
+            avaliacao.atualizada ||
+            avaliacao.atualizacao ||
+            (avaliacao.dataAtualizacao ? true : false) ||
+            (avaliacao.atualizacaoTimestamp ? true : false),
         }))
         // Filtrar apenas avaliações com 100% de progresso
         .filter((avaliacao) => (avaliacao.progresso?.percentual || 0) >= 100);
+
+      console.log(
+        "Avaliações recebidas do Firebase/Demo:",
+        avaliacoesProcessadas
+      );
 
       setAvaliacoes(avaliacoesProcessadas);
       setTemMaisAvaliacoes(avaliacoesProcessadas.length >= LIMITE_POR_PAGINA);
@@ -230,7 +253,17 @@ const FeedGlobal = () => {
 
       const novasAvaliacoes = avaliacoesGlobaisDemo
         .filter((avaliacao) => (avaliacao.progresso?.percentual || 0) >= 100)
-        .slice(inicio, fim);
+        .slice(inicio, fim)
+        .map((avaliacao) => ({
+          ...avaliacao,
+          // Definir isPrimeiraAvaliacao com base nos dados ou usar um método consistente para demonstração
+          isPrimeiraAvaliacao:
+            avaliacao.isPrimeiraAvaliacao !== undefined
+              ? avaliacao.isPrimeiraAvaliacao
+              : avaliacao.id
+              ? parseInt(avaliacao.id.replace(/\D/g, "")[0] || "0") % 2 === 0
+              : true,
+        }));
 
       if (novasAvaliacoes.length > 0) {
         setAvaliacoes((prev) => [...prev, ...novasAvaliacoes]);
@@ -271,6 +304,12 @@ const FeedGlobal = () => {
             ...avaliacao.usuario,
             foto: validarUrlImagem(avaliacao.usuario.foto),
           },
+          // Preservar propriedades relacionadas a atualizações
+          atualizada:
+            avaliacao.atualizada ||
+            avaliacao.atualizacao ||
+            (avaliacao.dataAtualizacao ? true : false) ||
+            (avaliacao.atualizacaoTimestamp ? true : false),
         }))
         .filter((avaliacao) => (avaliacao.progresso?.percentual || 0) >= 100);
 
@@ -393,6 +432,60 @@ const FeedGlobal = () => {
     e.target.parentElement.appendChild(fallbackIcon);
   };
 
+  /**
+   * Função para verificar se uma avaliação é a primeira (nova) ou atualizada
+   * @param {Object} avaliacao - Objeto de avaliação
+   * @returns {boolean} Verdadeiro se a avaliação for a primeira, falso se for uma atualização
+   */
+  const ehPrimeiraAvaliacao = (avaliacao) => {
+    // Se for explicitamente marcado como primeira avaliação, retorna true
+    const resultado = avaliacao.isPrimeiraAvaliacao === true;
+
+    // Log para debug com mais informações
+    console.log(
+      `Verificando se avaliação do álbum ${avaliacao.nome} é primeira:`,
+      {
+        id: avaliacao.id,
+        isPrimeiraAvaliacao: avaliacao.isPrimeiraAvaliacao,
+        dataAtualizacao: avaliacao.dataAtualizacao,
+        dataCompletou100: avaliacao.dataCompletou100,
+        resultado,
+      }
+    );
+
+    return resultado;
+  };
+
+  /**
+   * Função para calcular quanto tempo resta no período de graça de 1 hora
+   * @param {Object} avaliacao - Objeto de avaliação
+   * @returns {Object} Objeto com informações sobre o tempo restante
+   */
+  const calcularTempoRestanteGraca = (avaliacao) => {
+    // Se não tiver a data de conclusão 100%, retorna null
+    if (!avaliacao.dataCompletou100) return null;
+
+    // Calcular tempo restante
+    const dataCompletou = new Date(avaliacao.dataCompletou100);
+    const agora = new Date();
+    const umaHoraEmMs = 60 * 60 * 1000; // 1 hora em milissegundos
+    const tempoPassadoMs = agora.getTime() - dataCompletou.getTime();
+    const tempoRestanteMs = Math.max(0, umaHoraEmMs - tempoPassadoMs);
+
+    // Se já passou o período de graça, retorna 0
+    if (tempoRestanteMs <= 0)
+      return { tempoRestanteMinutos: 0, porcentagem: 0 };
+
+    // Calcular minutos e porcentagem
+    const tempoRestanteMinutos = Math.ceil(tempoRestanteMs / (60 * 1000));
+    const porcentagem = Math.round((tempoRestanteMs / umaHoraEmMs) * 100);
+
+    return {
+      tempoRestanteMinutos,
+      porcentagem,
+    };
+  };
+
   if (carregando) {
     return <Carregamento mensagem={t("feed.carregando")} />;
   }
@@ -490,15 +583,32 @@ const FeedGlobal = () => {
               {avaliacoes.map((avaliacao, index) => (
                 <div
                   key={`${avaliacao.id}-${avaliacao.usuario.id}-${index}`}
-                  className="bg-cinza-escuro rounded-xl overflow-hidden shadow-lg transition-all duration-300 hover:scale-[1.02] hover:shadow-xl flex flex-col h-full cursor-pointer relative hover:bg-cinza-escuro/90 group p-3"
+                  className={`bg-cinza-escuro rounded-xl overflow-hidden shadow-lg transition-all duration-300 hover:scale-[1.02] hover:shadow-xl flex flex-col h-full cursor-pointer relative hover:bg-cinza-escuro/90 group ${
+                    modoVisualizacao === "grade" ? "p-3" : "p-4"
+                  }`}
                   onClick={(e) => navegarParaAlbum(avaliacao.id, e)}
                   title={t("feed.cliqueVerDetalhes")}
                   ref={
                     index === avaliacoes.length - 1 ? ultimoElementoRef : null
                   }
                 >
+                  {/* Tag Novo/Atualizado no topo do card (modo lista e grid) */}
+                  {modoVisualizacao === "grade" && (
+                    <span
+                      className={`absolute top-3 mb-0 text-xs px-4 py-1 border font-semibold bg-black/70 backdrop-blur-sm text-center select-none z-10 shadow left-0 ml-2 rounded-r-full
+                        ${
+                          ehPrimeiraAvaliacao(avaliacao)
+                            ? "bg-orange-500 border-orange-500"
+                            : "bg-purple-600 border-purple-600"
+                        }`}
+                    >
+                      {ehPrimeiraAvaliacao(avaliacao)
+                        ? t("feed.new", "Novo")
+                        : t("feed.updated", "Atualizado")}
+                    </span>
+                  )}
                   {/* Imagem do álbum */}
-                  <div className="w-full aspect-square bg-cinza-escuro rounded-lg overflow-hidden mb-3">
+                  <div className="w-full aspect-square bg-cinza-escuro rounded-lg overflow-hidden mb-3 relative">
                     {usandoDadosDemo ? (
                       <div className="w-full h-full bg-gradient-to-br from-verde-destaque/10 to-verde-destaque/30 rounded-lg flex items-center justify-center">
                         <MdMusicNote className="text-verde-destaque text-3xl md:text-4xl animate-pulse" />
@@ -539,39 +649,33 @@ const FeedGlobal = () => {
                         )}
                       </span>
                     </div>
-                    <div className="flex flex-col items-end gap-2 min-w-[70px]">
-                      <div
-                        className={`${obterCorNota(
-                          avaliacao.media || avaliacao.mediaAvaliacao
-                        )} text-cinza-escuro rounded-lg px-3 py-1 font-bold text-base flex items-center justify-center shadow-sm mb-1`}
-                      >
-                        <span className="text-cinza-escuro">
-                          {formatarMedia(
+                    <div className="flex flex-col items-end gap-2">
+                      <div className="flex flex-col justify-between items-end min-w-[80px] h-full">
+                        {modoVisualizacao !== "grade" && (
+                          <span
+                            className={`text-xs px-3 py-0.5 border font-semibold text-white text-center select-none shadow rounded-l-full
+                              ${
+                                ehPrimeiraAvaliacao(avaliacao)
+                                  ? "bg-orange-500 border-orange-500"
+                                  : "bg-purple-600 border-purple-600"
+                              }`}
+                          >
+                            {ehPrimeiraAvaliacao(avaliacao)
+                              ? t("feed.new", "Novo")
+                              : t("feed.updated", "Atualizado")}
+                          </span>
+                        )}
+                        <div
+                          className={`${obterCorNota(
                             avaliacao.media || avaliacao.mediaAvaliacao
-                          )}
-                        </span>
-                      </div>
-                      <div className="flex gap-1">
-                        <a
-                          href={
-                            usandoDadosDemo
-                              ? "https://open.spotify.com/"
-                              : `https://open.spotify.com/album/${avaliacao.id}`
-                          }
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center px-2 py-1 bg-black/30 rounded-md text-xs text-gray-300 hover:text-green-400 hover:bg-black/50 transition-colors z-20 relative"
-                          onClick={(e) => e.stopPropagation()}
+                          )} text-cinza-escuro rounded-lg px-2 py-1 font-bold text-lg flex items-center justify-center shadow-sm my-auto w-16`}
                         >
-                          <FaSpotify className="text-green-400" />
-                        </a>
-                        <button
-                          className="inline-flex items-center px-2 py-1 bg-gradient-to-r from-verde-destaque/20 to-verde-destaque/30 rounded-md text-xs text-verde-destaque hover:from-verde-destaque/30 hover:to-verde-destaque/40 shadow-sm transition-colors z-20 relative cursor-pointer"
-                          onClick={(e) => abrirModalAvaliacoes(avaliacao, e)}
-                          title={t("feed.verAvaliacoesUsuario")}
-                        >
-                          <FaRegStar className="text-verde-destaque" />
-                        </button>
+                          <span className="text-cinza-escuro">
+                            {formatarMedia(
+                              avaliacao.media || avaliacao.mediaAvaliacao
+                            )}
+                          </span>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -609,19 +713,35 @@ const FeedGlobal = () => {
               {avaliacoes.map((avaliacao, index) => (
                 <div
                   key={`${avaliacao.id}-${avaliacao.usuario.id}-${index}`}
-                  className="bg-cinza-escuro rounded-xl overflow-hidden shadow-lg transition-all duration-300 hover:scale-[1.02] hover:shadow-xl flex flex-col h-full cursor-pointer relative hover:bg-cinza-escuro/90 group"
+                  className={`bg-cinza-escuro rounded-xl overflow-hidden shadow-lg transition-all duration-300 hover:scale-[1.02] hover:shadow-xl flex flex-col h-full cursor-pointer relative hover:bg-cinza-escuro/90 group ${
+                    modoVisualizacao === "grade" ? "p-3" : "p-4"
+                  }`}
                   onClick={(e) => navegarParaAlbum(avaliacao.id, e)}
                   title={t("feed.cliqueVerDetalhes")}
                   ref={
                     index === avaliacoes.length - 1 ? ultimoElementoRef : null
                   }
                 >
-                  <div className="flex flex-col lg:flex-row h-full">
-                    {/* LADO ESQUERDO: Imagem do álbum, nome, artista, usuário e botão Spotify */}
-                    <div className="flex-grow p-3 flex flex-col min-w-0 relative">
-                      {/* Informações do usuário e nota (em telas pequenas) */}
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="flex flex-row items-center min-w-0 gap-2">
+                  {/* Tag Novo/Atualizado no topo do card (modo lista e grid) */}
+                  {modoVisualizacao === "grade" && (
+                    <span
+                      className={`absolute top-3 mb-0 text-xs px-4 py-1 border font-semibold bg-black/70 backdrop-blur-sm text-center select-none z-10 shadow left-0 ml-2 rounded-r-full
+                        ${
+                          ehPrimeiraAvaliacao(avaliacao)
+                            ? "bg-orange-500 border-orange-500"
+                            : "bg-purple-600 border-purple-600"
+                        }`}
+                    >
+                      {ehPrimeiraAvaliacao(avaliacao)
+                        ? t("feed.new", "Novo")
+                        : t("feed.updated", "Atualizado")}
+                    </span>
+                  )}
+                  {modoVisualizacao !== "grade" ? (
+                    <div className="flex flex-row gap-2 w-full justify-center items-center">
+                      {/* Coluna 1: usuário, data, imagem, nome, artista, botões */}
+                      <div className="flex flex-col min-w-0 flex-1">
+                        <div className="flex flex-row items-center min-w-0 gap-2 mb-2">
                           <div className="w-6 h-6 md:w-7 md:h-7 rounded-full overflow-hidden bg-gray-800 flex-shrink-0 shadow-sm">
                             {usandoDadosDemo ? (
                               <div className="w-full h-full flex items-center justify-center bg-verde-destaque/20 text-verde-destaque">
@@ -645,107 +765,112 @@ const FeedGlobal = () => {
                           <span className="font-medium truncate max-w-[120px] md:max-w-[180px]">
                             {avaliacao.usuario.nome}
                           </span>
-                          <span className="text-xs opacity-70 truncate max-w-[80px]">
-                            {formatarDataSegura(
-                              avaliacao.data || avaliacao.dataAvaliacao
-                            )}
-                          </span>
-                        </div>
-
-                        {/* Nota em telas pequenas/médias (visível apenas até lg) */}
-                        <div className="lg:hidden">
-                          <div
-                            className={`${obterCorNota(
-                              avaliacao.media || avaliacao.mediaAvaliacao
-                            )} text-cinza-escuro rounded-lg px-2 py-1 font-bold text-lg flex items-center justify-center shadow-sm w-13 md:w-20`}
-                          >
-                            <span className="text-cinza-escuro">
-                              {formatarMedia(
-                                avaliacao.media || avaliacao.mediaAvaliacao
-                              )}
+                          {/* Data e horário da avaliação */}
+                          {avaliacao.dataAvaliacao && (
+                            <span className="ml-2 text-xs text-gray-400 whitespace-nowrap">
+                              {(() => {
+                                const data = new Date(avaliacao.dataAvaliacao);
+                                const dia = data.toLocaleDateString("pt-BR");
+                                const hora = data.toLocaleTimeString("pt-BR", {
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                });
+                                return `${dia} ${hora}`;
+                              })()}
                             </span>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Parte média: imagem, nome e artista */}
-                      <div className="flex gap-3 min-w-0">
-                        {/* Imagem do álbum */}
-                        <div className="flex-shrink-0 w-16 h-16 md:w-20 md:h-20 bg-cinza-escuro rounded-lg overflow-hidden">
-                          {usandoDadosDemo ? (
-                            <div className="w-full h-full bg-gradient-to-br from-verde-destaque/10 to-verde-destaque/30 rounded-lg flex items-center justify-center">
-                              <MdMusicNote className="text-verde-destaque text-3xl md:text-4xl animate-pulse" />
-                            </div>
-                          ) : avaliacao.imagem ? (
-                            <img
-                              src={avaliacao.imagem}
-                              alt={t("feed.capaAlbum", {
-                                nome: avaliacao.nome,
-                              })}
-                              className="w-full h-full object-cover rounded-lg"
-                              onError={handleImageError}
-                              loading="lazy"
-                            />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center bg-cinza-escuro rounded-lg">
-                              <MdMusicNote className="text-verde-destaque text-4xl" />
-                            </div>
                           )}
                         </div>
-
-                        {/* Nome e artista */}
-                        <div className="flex-grow min-w-0">
-                          <h3 className="font-bold text-sm md:text-base line-clamp-1 text-white truncate pr-1">
-                            {avaliacao.nome}
-                          </h3>
-                          <p className="text-verde-destaque text-xs md:text-sm line-clamp-1 font-medium truncate pr-1 mb-2">
-                            {avaliacao.artista}
-                          </p>
-
-                          {/* Botões do Spotify e Ver avaliações */}
-                          <div className="flex flex-wrap gap-2">
-                            <a
-                              href={
-                                usandoDadosDemo
-                                  ? "https://open.spotify.com/"
-                                  : `https://open.spotify.com/album/${avaliacao.id}`
-                              }
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="inline-flex items-center px-2 py-1 bg-black/30 rounded-md text-xs text-gray-300 hover:text-green-400 hover:bg-black/50 transition-colors z-20 relative"
-                              onClick={(e) => e.stopPropagation()} // Evitar que o clique no botão acione a navegação
-                            >
-                              <FaSpotify className="mr-1 text-green-400" />
-                              <span className="whitespace-nowrap">
-                                {t("feed.ouvirSpotify")}
-                              </span>
-                            </a>
-
-                            <button
-                              className="inline-flex items-center px-2 py-1 bg-gradient-to-r from-verde-destaque/20 to-verde-destaque/30 rounded-md text-xs text-verde-destaque hover:from-verde-destaque/30 hover:to-verde-destaque/40 shadow-sm transition-colors z-20 relative cursor-pointer"
-                              onClick={(e) =>
-                                abrirModalAvaliacoes(avaliacao, e)
-                              }
-                              title={t("feed.verAvaliacoesUsuario")}
-                            >
-                              <FaRegStar className="mr-1 text-verde-destaque" />
-                              <span className="whitespace-nowrap">
-                                {t("feed.verAvaliacoes")}
-                              </span>
-                            </button>
+                        <div className="flex gap-3 min-w-0 mb-2">
+                          {/* Imagem do álbum */}
+                          <div className="flex-shrink-0 w-16 h-16 md:w-20 md:h-20 bg-cinza-escuro rounded-lg overflow-hidden">
+                            {usandoDadosDemo ? (
+                              <div className="w-full h-full bg-gradient-to-br from-verde-destaque/10 to-verde-destaque/30 rounded-lg flex items-center justify-center">
+                                <MdMusicNote className="text-verde-destaque text-3xl md:text-4xl animate-pulse" />
+                              </div>
+                            ) : avaliacao.imagem ? (
+                              <img
+                                src={avaliacao.imagem}
+                                alt={t("feed.capaAlbum", {
+                                  nome: avaliacao.nome,
+                                })}
+                                className="w-full h-full object-cover rounded-lg"
+                                onError={handleImageError}
+                                loading="lazy"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center bg-cinza-escuro rounded-lg">
+                                <MdMusicNote className="text-verde-destaque text-4xl" />
+                              </div>
+                            )}
+                          </div>
+                          {/* Nome e artista */}
+                          <div className="flex-grow min-w-0">
+                            <h3 className="font-bold text-sm md:text-base line-clamp-1 text-white truncate pr-1">
+                              {avaliacao.nome}
+                            </h3>
+                            <p className="text-verde-destaque text-xs md:text-sm line-clamp-1 font-medium truncate pr-1 mb-2">
+                              {avaliacao.artista}
+                            </p>
+                            {/* Botões do Spotify e Ver avaliações */}
+                            <div className="flex flex-wrap gap-2">
+                              <a
+                                href={
+                                  usandoDadosDemo
+                                    ? "https://open.spotify.com/"
+                                    : `https://open.spotify.com/album/${avaliacao.id}`
+                                }
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center px-2 py-1 bg-black/30 rounded-md text-xs text-gray-300 hover:text-green-400 hover:bg-black/50 transition-colors z-20 relative"
+                                onClick={(e) => e.stopPropagation()} // Evitar que o clique no botão acione a navegação
+                              >
+                                <FaSpotify className="mr-1 text-green-400" />
+                                <span className="whitespace-nowrap max-[500px]:hidden">
+                                  {t("feed.ouvirSpotify")}
+                                </span>
+                                <span className="whitespace-nowrap min-[501px]:hidden">
+                                  Spotify
+                                </span>
+                              </a>
+                              <button
+                                className="inline-flex items-center px-2 py-1 bg-gradient-to-r from-verde-destaque/20 to-verde-destaque/30 rounded-md text-xs text-verde-destaque hover:from-verde-destaque/30 hover:to-verde-destaque/40 shadow-sm transition-colors z-20 relative cursor-pointer"
+                                onClick={(e) =>
+                                  abrirModalAvaliacoes(avaliacao, e)
+                                }
+                                title={t("feed.verAvaliacoesUsuario")}
+                              >
+                                <FaRegStar className="mr-1 text-verde-destaque" />
+                                <span className="whitespace-nowrap max-[500px]:hidden">
+                                  {t("feed.verAvaliacoes")}
+                                </span>
+                                <span className="whitespace-nowrap min-[501px]:hidden">
+                                  Detalhes
+                                </span>
+                              </button>
+                            </div>
                           </div>
                         </div>
                       </div>
-                    </div>
-
-                    {/* LADO DIREITO: Avaliação (apenas visível em lg) */}
-                    <div className="hidden lg:flex w-32 xl:w-36 flex-shrink-0 p-3 lg:flex-col items-center justify-between lg:justify-center border-t lg:border-t-0 lg:border-l border-gray-700/50 bg-gradient-to-br from-cinza-escuro to-cinza-escuro/95">
-                      {/* Avaliação como banner */}
-                      <div className="flex lg:flex-col items-center justify-center w-full">
+                      {/* Coluna 2: tag e nota */}
+                      <div className="flex flex-col justify-between items-end min-w-[80px] h-full">
+                        {modoVisualizacao !== "grade" && (
+                          <span
+                            className={`text-xs px-3 py-0.5 border font-semibold text-white text-center select-none shadow rounded-l-full
+                              ${
+                                ehPrimeiraAvaliacao(avaliacao)
+                                  ? "bg-orange-500 border-orange-500"
+                                  : "bg-purple-600 border-purple-600"
+                              }`}
+                          >
+                            {ehPrimeiraAvaliacao(avaliacao)
+                              ? t("feed.new", "Novo")
+                              : t("feed.updated", "Atualizado")}
+                          </span>
+                        )}
                         <div
                           className={`${obterCorNota(
                             avaliacao.media || avaliacao.mediaAvaliacao
-                          )} text-cinza-escuro rounded-lg px-3 py-1.5 font-bold text-xl flex items-center justify-center shadow-sm w-20 md:w-20 lg:w-20`}
+                          )} text-cinza-escuro rounded-lg px-2 py-1 font-bold text-lg flex items-center justify-center shadow-sm my-auto w-16`}
                         >
                           <span className="text-cinza-escuro">
                             {formatarMedia(
@@ -755,7 +880,172 @@ const FeedGlobal = () => {
                         </div>
                       </div>
                     </div>
-                  </div>
+                  ) : (
+                    <div className="flex flex-col lg:flex-row h-full">
+                      {/* LADO ESQUERDO: Imagem do álbum, nome, artista, usuário e botão Spotify */}
+                      <div className="flex-grow p-3 flex flex-col min-w-0 relative">
+                        {/* Informações do usuário e nota (em telas pequenas) */}
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="flex flex-row items-center min-w-0 gap-2">
+                            <div className="w-6 h-6 md:w-7 md:h-7 rounded-full overflow-hidden bg-gray-800 flex-shrink-0 shadow-sm">
+                              {usandoDadosDemo ? (
+                                <div className="w-full h-full flex items-center justify-center bg-verde-destaque/20 text-verde-destaque">
+                                  {avaliacao.usuario.nome
+                                    .charAt(0)
+                                    .toUpperCase()}
+                                </div>
+                              ) : avaliacao.usuario.foto ? (
+                                <img
+                                  src={avaliacao.usuario.foto}
+                                  alt={t("feed.fotoUsuario", {
+                                    nome: avaliacao.usuario.nome,
+                                  })}
+                                  className="w-full h-full object-cover"
+                                  loading="lazy"
+                                />
+                              ) : (
+                                <div className="w-full h-full flex items-center justify-center bg-verde-destaque/20 text-verde-destaque">
+                                  {avaliacao.usuario.nome
+                                    .charAt(0)
+                                    .toUpperCase()}
+                                </div>
+                              )}
+                            </div>
+                            <span className="font-medium truncate max-w-[120px] md:max-w-[180px]">
+                              {avaliacao.usuario.nome}
+                            </span>
+                            {/* Data e horário da avaliação */}
+                            {avaliacao.dataAvaliacao && (
+                              <span className="ml-2 text-xs text-gray-400 whitespace-nowrap">
+                                {(() => {
+                                  const data = new Date(
+                                    avaliacao.dataAvaliacao
+                                  );
+                                  const dia = data.toLocaleDateString("pt-BR");
+                                  const hora = data.toLocaleTimeString(
+                                    "pt-BR",
+                                    {
+                                      hour: "2-digit",
+                                      minute: "2-digit",
+                                    }
+                                  );
+                                  return `${dia} ${hora}`;
+                                })()}
+                              </span>
+                            )}
+                          </div>
+
+                          {/* Nota em telas pequenas/médias (visível apenas até lg) */}
+                          <div className="lg:hidden flex flex-col items-center">
+                            <div
+                              className={`${obterCorNota(
+                                avaliacao.media || avaliacao.mediaAvaliacao
+                              )} text-cinza-escuro rounded-lg px-2 py-1 font-bold text-lg flex items-center justify-center shadow-sm w-13 md:w-20 mt-2`}
+                            >
+                              <span className="text-cinza-escuro">
+                                {formatarMedia(
+                                  avaliacao.media || avaliacao.mediaAvaliacao
+                                )}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Parte média: imagem, nome e artista */}
+                        <div className="flex gap-3 min-w-0">
+                          {/* Imagem do álbum */}
+                          <div className="flex-shrink-0 w-16 h-16 md:w-20 md:h-20 bg-cinza-escuro rounded-lg overflow-hidden">
+                            {usandoDadosDemo ? (
+                              <div className="w-full h-full bg-gradient-to-br from-verde-destaque/10 to-verde-destaque/30 rounded-lg flex items-center justify-center">
+                                <MdMusicNote className="text-verde-destaque text-3xl md:text-4xl animate-pulse" />
+                              </div>
+                            ) : avaliacao.imagem ? (
+                              <img
+                                src={avaliacao.imagem}
+                                alt={t("feed.capaAlbum", {
+                                  nome: avaliacao.nome,
+                                })}
+                                className="w-full h-full object-cover rounded-lg"
+                                onError={handleImageError}
+                                loading="lazy"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center bg-cinza-escuro rounded-lg">
+                                <MdMusicNote className="text-verde-destaque text-4xl" />
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Nome e artista */}
+                          <div className="flex-grow min-w-0">
+                            <h3 className="font-bold text-sm md:text-base line-clamp-1 text-white truncate pr-1">
+                              {avaliacao.nome}
+                            </h3>
+                            <p className="text-verde-destaque text-xs md:text-sm line-clamp-1 font-medium truncate pr-1 mb-2">
+                              {avaliacao.artista}
+                            </p>
+
+                            {/* Botões do Spotify e Ver avaliações */}
+                            <div className="flex flex-wrap gap-2">
+                              <a
+                                href={
+                                  usandoDadosDemo
+                                    ? "https://open.spotify.com/"
+                                    : `https://open.spotify.com/album/${avaliacao.id}`
+                                }
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center px-2 py-1 bg-black/30 rounded-md text-xs text-gray-300 hover:text-green-400 hover:bg-black/50 transition-colors z-20 relative"
+                                onClick={(e) => e.stopPropagation()} // Evitar que o clique no botão acione a navegação
+                              >
+                                <FaSpotify className="mr-1 text-green-400" />
+                                <span className="whitespace-nowrap max-[500px]:hidden">
+                                  {t("feed.ouvirSpotify")}
+                                </span>
+                                <span className="whitespace-nowrap min-[501px]:hidden">
+                                  Spotify
+                                </span>
+                              </a>
+
+                              <button
+                                className="inline-flex items-center px-2 py-1 bg-gradient-to-r from-verde-destaque/20 to-verde-destaque/30 rounded-md text-xs text-verde-destaque hover:from-verde-destaque/30 hover:to-verde-destaque/40 shadow-sm transition-colors z-20 relative cursor-pointer"
+                                onClick={(e) =>
+                                  abrirModalAvaliacoes(avaliacao, e)
+                                }
+                                title={t("feed.verAvaliacoesUsuario")}
+                              >
+                                <FaRegStar className="mr-1 text-verde-destaque" />
+                                <span className="whitespace-nowrap max-[500px]:hidden">
+                                  {t("feed.verAvaliacoes")}
+                                </span>
+                                <span className="whitespace-nowrap min-[501px]:hidden">
+                                  Detalhes
+                                </span>
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* LADO DIREITO: Avaliação (apenas visível em lg) */}
+                      <div className="mt-4 hidden lg:flex w-32 xl:w-36 flex-shrink-0 p-3 lg:flex-col items-end justify-center border-t lg:border-t-0 lg:border-l border-gray-700/50 bg-gradient-to-br from-cinza-escuro to-cinza-escuro/95">
+                        {/* Avaliação como banner alinhada à direita */}
+                        <div className="flex lg:flex-col items-end justify-end w-full">
+                          <div
+                            className={`${obterCorNota(
+                              avaliacao.media || avaliacao.mediaAvaliacao
+                            )} text-cinza-escuro rounded-lg px-3 py-1.5 font-bold text-xl flex items-center justify-center shadow-sm w-20 md:w-20 lg:w-20 ml-auto`}
+                          >
+                            <span className="text-cinza-escuro">
+                              {formatarMedia(
+                                avaliacao.media || avaliacao.mediaAvaliacao
+                              )}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>

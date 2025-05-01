@@ -17,7 +17,8 @@
     "continueWith": "ou continue com",
     "enteringAccount": "Entrando...",
     "profile": "Perfil",
-    "changePhoto": "Alterar foto"
+    "changePhoto": "Alterar foto",
+    "selectAlbumsOrArtists": "Selecione álbuns ou artistas no menu"
   },
   "splash": {
     "logoAlt": "Logo do aplicativo",
@@ -60,7 +61,7 @@
     "unexpectedError": "Ocorreu um erro inesperado."
   },
   "feed": {
-    "titulo": "Feed Global",
+    "titulo": "Últimas avaliações",
     "modoDemo": "Modo demonstração",
     "atualizar": "Atualizar",
     "nenhumaAvaliacao": "Nenhuma avaliação encontrada",
@@ -73,7 +74,9 @@
     "capaAlbum": "Capa de {{nome}}",
     "avaliado": "Avaliado: {{avaliadas}}/{{total}}",
     "carregando": "Carregando feed...",
-    "erroCarregamento": "Erro ao carregar o feed"
+    "erroCarregamento": "Erro ao carregar o feed",
+    "new": "Novo",
+    "updated": "Atualizado"
   },
   "myRatings": {
     "title": "Minhas Avaliações",

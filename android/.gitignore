@@ -99,33 +99,3 @@ app/src/main/assets/public
 app/src/main/assets/capacitor.config.json
 app/src/main/assets/capacitor.plugins.json
 app/src/main/res/xml/config.xml
-
-# Arquivos específicos do Android
-android/.gradle
-android/build/
-android/app/build/
-android/capacitor-cordova-android-plugins/build/
-android/app/release/
-android/local.properties
-android/app/src/main/assets/public/
-android/capacitor-cordova-android-plugins/src/main/assets/
-android/.idea/
-android/*.iml
-android/gradlew.bat
-android/.project
-android/.settings/
-
-# Outros arquivos específicos do Capacitor
-ios/App/App/public/
-ios/App/build/
-ios/App/Pods/
-ios/Pods/
-ios/App/DerivedData/
-ios/.DS_Store
-capacitor.config.json
-
-# Outros
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local

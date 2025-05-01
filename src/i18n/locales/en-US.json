@@ -212,7 +212,7 @@
     "title": "Account Deletion",
     "description": "On this page, you can request the deletion of your account and associated data from Track by Track.",
     "instructions": "To request account deletion, please send an email to the address below with the subject 'Account Deletion Request' and the email associated with your account.",
-    "emailContact": "support@trackbytrackapp.com",
+    "emailContact": "contatotrackbytrack@gmail.com",
     "dataDeleted": "Data that will be deleted:",
     "dataKept": "Data that will be retained:",
     "deleteItems": [

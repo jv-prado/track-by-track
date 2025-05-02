@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { IoSearchOutline } from "react-icons/io5";
-import { MdInfoOutline } from "react-icons/md";
 import { useTranslation } from "react-i18next";
 
 /**
@@ -34,14 +33,7 @@ const BarraDePesquisa = ({ onSearch, activeView, termoPesquisa = "" }) => {
     onSearch(termo);
   };
 
-  return activeView === "feed" ? (
-    <div className="w-full flex items-center justify-center bg-cinza-escuro/80 rounded-xl py-3 px-4 mb-2">
-      <MdInfoOutline className="text-verde-destaque text-2xl mr-3 animate-pulse-slow" />
-      <span className="text-gray-300 text-base md:text-lg text-center font-medium">
-        {t("app.suggestion", "Busque por álbuns ou artistas no menu")}
-      </span>
-    </div>
-  ) : (
+  return activeView === "feed" ? null : (
     <form onSubmit={handleSubmit} className="relative w-full flex items-center">
       <div className="absolute left-4 top-1/2 transform -translate-y-1/2 text-cinza">
         <IoSearchOutline className="text-xl text-gray-400" />

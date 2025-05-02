@@ -57,7 +57,7 @@ const Splash = () => {
 
   return (
     <div
-      className={`min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-gray-900 to-black p-4 transition-opacity duration-500 ${
+      className={`min-h-screen flex flex-col flex-col items-center justify-center bg-gradient-to-b from-gray-900 to-black p-4 transition-opacity duration-500 ${
         animationComplete ? "opacity-0" : "opacity-100"
       }`}
     >

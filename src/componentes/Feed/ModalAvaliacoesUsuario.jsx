@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { obterAvaliacoesUsuario } from "../../services/firebase";
-import { buscarFaixasPorAlbum } from "../../services/spotify";
 import { formatarData } from "../../services/avaliacoes";
 import { IoMdClose } from "react-icons/io";
 import { FaSpotify } from "react-icons/fa";
@@ -19,7 +18,6 @@ import { useTranslation } from "react-i18next";
  */
 const ModalAvaliacoesUsuario = ({ usuarioId, albumId, onClose }) => {
   const [avaliacao, setAvaliacao] = useState(null);
-  const [faixasSpotify, setFaixasSpotify] = useState(null);
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState(null);
   const [mediaCalculada, setMediaCalculada] = useState(0);
@@ -31,14 +29,10 @@ const ModalAvaliacoesUsuario = ({ usuarioId, albumId, onClose }) => {
       try {
         setCarregando(true);
 
-        // Carregar em paralelo as avaliações e as faixas do Spotify
-        const [dadosAvaliacao, dadosFaixas] = await Promise.all([
-          obterAvaliacoesUsuario(usuarioId, albumId),
-          buscarFaixasPorAlbum(albumId),
-        ]);
+        // Carregar apenas as avaliações do Firebase, sem buscar do Spotify
+        const dadosAvaliacao = await obterAvaliacoesUsuario(usuarioId, albumId);
 
         setAvaliacao(dadosAvaliacao);
-        setFaixasSpotify(dadosFaixas);
 
         // Calcular média das avaliações
         if (
@@ -69,15 +63,9 @@ const ModalAvaliacoesUsuario = ({ usuarioId, albumId, onClose }) => {
 
   // Função para obter o nome da faixa a partir do ID
   const obterNomeFaixa = (faixaId) => {
-    // Primeiro procurar no objeto de nomes que veio do Firebase
+    // Usar apenas os nomes que vieram do Firebase
     if (avaliacao?.nomesFaixas && avaliacao.nomesFaixas[faixaId]) {
       return avaliacao.nomesFaixas[faixaId];
-    }
-
-    // Se não encontrou, procurar nas faixas do Spotify
-    if (faixasSpotify?.items) {
-      const faixa = faixasSpotify.items.find((f) => f.id === faixaId);
-      if (faixa) return faixa.name;
     }
 
     // Se tudo falhar, mostrar apenas o número da faixa
@@ -151,24 +139,40 @@ const ModalAvaliacoesUsuario = ({ usuarioId, albumId, onClose }) => {
   // Preparar faixas ordenadas para exibição
   const faixasOrdenadas = [];
 
-  // Se temos as faixas do Spotify, usamos elas para definir a ordem
-  if (faixasSpotify?.items) {
-    faixasSpotify.items.forEach((faixa, index) => {
-      if (
-        avaliacao.avaliacoes &&
-        avaliacao.avaliacoes[faixa.id] !== undefined
-      ) {
-        faixasOrdenadas.push({
-          id: faixa.id,
-          numero: index + 1,
-          nome: faixa.name,
-          nota: avaliacao.avaliacoes[faixa.id] || 0,
-        });
-      }
-    });
-  } else {
-    // Fallback: usar as avaliações diretamente (menos ideal, sem ordem garantida)
-    if (avaliacao.avaliacoes) {
+  // Usar as avaliações diretamente do Firebase
+  if (avaliacao.avaliacoes) {
+    // 1. Se vier um array de faixas, use a ordem dele
+    if (
+      avaliacao.faixas &&
+      Array.isArray(avaliacao.faixas) &&
+      avaliacao.faixas.length > 0
+    ) {
+      avaliacao.faixas.forEach((faixa, index) => {
+        if (avaliacao.avaliacoes[faixa.id] !== undefined) {
+          faixasOrdenadas.push({
+            id: faixa.id,
+            numero: index + 1,
+            nome: faixa.nome,
+            nota: avaliacao.avaliacoes[faixa.id] || 0,
+          });
+        }
+      });
+    }
+    // 2. Se vier ordemFaixas, use ela
+    else if (avaliacao.ordemFaixas && avaliacao.ordemFaixas.length > 0) {
+      avaliacao.ordemFaixas.forEach((faixaId, index) => {
+        if (avaliacao.avaliacoes[faixaId] !== undefined) {
+          faixasOrdenadas.push({
+            id: faixaId,
+            numero: index + 1,
+            nome: obterNomeFaixa(faixaId),
+            nota: avaliacao.avaliacoes[faixaId] || 0,
+          });
+        }
+      });
+    }
+    // 3. Fallback: sem ordem definida, usar a ordem das chaves
+    else {
       Object.entries(avaliacao.avaliacoes).forEach(([faixaId, nota], index) => {
         faixasOrdenadas.push({
           id: faixaId,

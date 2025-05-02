@@ -27,6 +27,7 @@ import {
   getDocs,
   deleteDoc,
   writeBatch,
+  serverTimestamp,
 } from "firebase/firestore";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
 
@@ -788,6 +789,65 @@ export const excluirContaComEmailSenha = async (email, senha) => {
 
     return true;
   } catch (error) {
+    throw error;
+  }
+};
+
+/**
+ * Salva os detalhes e faixas de um álbum obtidos do Spotify no Firebase como cache
+ * @param {string} albumId - ID do álbum
+ * @param {Object} detalhes - Detalhes do álbum obtidos do Spotify
+ * @param {Object} faixas - Faixas do álbum obtidas do Spotify
+ * @returns {Promise<void>}
+ */
+export const salvarAlbumCacheSpotify = async (albumId, detalhes, faixas) => {
+  try {
+    // Verificar se o usuário está autenticado
+    const usuario = getUsuarioAtual();
+    if (!usuario) {
+      throw new Error("Usuário não autenticado");
+    }
+
+    // Referência ao documento do usuário
+    const userRef = doc(db, "usuarios", usuario.uid);
+    const userDoc = await getDoc(userRef);
+
+    if (!userDoc.exists()) {
+      throw new Error("Documento do usuário não encontrado");
+    }
+
+    // Obter lista atual de álbuns avaliados
+    const albunsAvaliados = userDoc.data().albuns_avaliados || [];
+
+    // Verificar se o álbum já existe
+    const albumExistente = albunsAvaliados.find(
+      (album) => album.id === albumId
+    );
+
+    if (albumExistente) {
+      // Se o álbum já existe, apenas atualizar os dados de cache
+      await updateDoc(userRef, {
+        albuns_avaliados: albunsAvaliados.map((album) => {
+          if (album.id === albumId) {
+            return {
+              ...album,
+              detalhes: detalhes,
+              faixas: faixas,
+              cache_atualizado: serverTimestamp(),
+            };
+          }
+          return album;
+        }),
+      });
+    } else {
+      // Se o álbum não existe, fazer nada, pois o álbum será salvo
+      // completamente apenas quando o usuário fizer uma avaliação
+      console.log(
+        "Álbum não encontrado no Firebase, será salvo quando avaliado"
+      );
+    }
+  } catch (error) {
+    console.error("Erro ao salvar cache do Spotify:", error);
     throw error;
   }
 };

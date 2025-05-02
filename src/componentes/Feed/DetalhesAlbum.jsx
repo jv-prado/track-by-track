@@ -203,116 +203,216 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
       setCarregando(true);
       setErro(null);
 
-      // Buscar em paralelo para melhorar a performance
-      const [detalhes, dadosFaixas] = await Promise.all([
-        buscarDetalhesAlbum(albumId),
-        buscarFaixasPorAlbum(albumId),
-      ]);
-
-      setDetalhesAlbum(detalhes);
-      setFaixas(dadosFaixas);
-
+      // Verificar se o usuário está logado no Firebase
       const usuarioFirebase = getUsuarioAtual();
-      if (!usuarioFirebase) {
-        // Apenas para usuários não logados, usar localStorage
-        // Obter avaliações existentes do localStorage
-        const avaliacoesExistentes = JSON.parse(
-          localStorage.getItem("avaliacoesFaixas") || "{}"
-        );
+      let detalhes = null;
+      let dadosFaixas = null;
+      let buscouDoFirebase = false;
 
-        // Inicializar avaliações para novas faixas, mantendo as existentes
-        const novasAvaliacoes = { ...avaliacoesExistentes };
-        dadosFaixas.items.forEach((faixa) => {
-          if (!novasAvaliacoes[faixa.id]) {
-            novasAvaliacoes[faixa.id] = 0;
-          }
-        });
-        setAvaliacoes(novasAvaliacoes);
+      // MODIFICAÇÃO: Primeiro tentar buscar dados do Firebase
+      if (usuarioFirebase) {
+        try {
+          // Importar módulo do Firebase
+          const firebaseModule = await import("../../services/firebase");
+          // Buscar álbuns avaliados do usuário
+          const albunsFirebase = await firebaseModule.obterAlbunsAvaliados();
+          // Procurar o álbum atual dentre os avaliados
+          const albumAtual = albunsFirebase.find(
+            (album) => album.id === albumId
+          );
 
-        // Calcular o progresso de avaliação
-        setProgressoAvaliacao(
-          calcularProgressoAvaliacao(dadosFaixas, novasAvaliacoes)
-        );
+          if (albumAtual && albumAtual.detalhes && albumAtual.faixas) {
+            // Se o álbum existe no Firebase e tem detalhes e faixas, usá-los
+            console.log("Usando dados do álbum do Firebase");
+            detalhes = albumAtual.detalhes;
+            dadosFaixas = albumAtual.faixas;
+            buscouDoFirebase = true;
 
-        // Salvar mapeamento de faixas para álbuns
-        const mapaFaixasAlbuns = JSON.parse(
-          localStorage.getItem("mapaFaixasAlbuns") || "{}"
-        );
-        dadosFaixas.items.forEach((faixa) => {
-          mapaFaixasAlbuns[faixa.id] = albumId;
-        });
-        localStorage.setItem(
-          "mapaFaixasAlbuns",
-          JSON.stringify(mapaFaixasAlbuns)
-        );
-      } else {
-        // Para usuários Firebase, carregar dados do Firebase
-        import("../../services/firebase").then(async (firebaseModule) => {
-          try {
-            const albunsFirebase = await firebaseModule.obterAlbunsAvaliados();
-            const albumAtual = albunsFirebase.find(
-              (album) => album.id === albumId
-            );
+            // Atualizar estados com dados do Firebase
+            setDetalhesAlbum(detalhes);
+            setFaixas(dadosFaixas);
 
-            if (albumAtual) {
-              // Usar avaliações do Firebase
-              setAvaliacoes(albumAtual.avaliacoes || {});
+            // Usar avaliações do Firebase
+            setAvaliacoes(albumAtual.avaliacoes || {});
 
-              // Carregar preferências de faixa favorita e pior faixa
-              if (albumAtual.preferencias) {
-                if (albumAtual.preferencias.faixaFavorita) {
-                  setFaixaFavorita(albumAtual.preferencias.faixaFavorita);
-                }
-                if (albumAtual.preferencias.piorFaixa) {
-                  setPiorFaixa(albumAtual.preferencias.piorFaixa);
-                }
+            // Carregar preferências de faixa favorita e pior faixa
+            if (albumAtual.preferencias) {
+              if (albumAtual.preferencias.faixaFavorita) {
+                setFaixaFavorita(albumAtual.preferencias.faixaFavorita);
               }
-
-              // Carregar datas de avaliação do Firebase
-              if (
-                albumAtual.data_primeira_avaliacao ||
-                albumAtual.data_avaliacao
-              ) {
-                try {
-                  const datasDoFirebase = {
-                    primeira: albumAtual.data_primeira_avaliacao
-                      ? new Date(
-                          albumAtual.data_primeira_avaliacao.seconds * 1000
-                        )
-                      : new Date(albumAtual.data_avaliacao.seconds * 1000),
-                    ultima: new Date(albumAtual.data_avaliacao.seconds * 1000),
-                    temRegistro: true,
-                  };
-                  setDatasAvaliacao(datasDoFirebase);
-                } catch (error) {
-                  // Erro ao converter datas
-                }
+              if (albumAtual.preferencias.piorFaixa) {
+                setPiorFaixa(albumAtual.preferencias.piorFaixa);
               }
-
-              // Calcular progresso
-              setProgressoAvaliacao(
-                calcularProgressoAvaliacao(
-                  dadosFaixas,
-                  albumAtual.avaliacoes || {}
-                )
-              );
-            } else {
-              // Inicializar com valores vazios se o álbum não existir no Firebase
-              const avaliacoesVazias = {};
-              dadosFaixas.items.forEach((faixa) => {
-                avaliacoesVazias[faixa.id] = 0;
-              });
-              setAvaliacoes(avaliacoesVazias);
-              setProgressoAvaliacao(
-                calcularProgressoAvaliacao(dadosFaixas, avaliacoesVazias)
-              );
             }
-          } catch (error) {
-            console.error("Erro ao carregar avaliações do Firebase:", error);
+
+            // Carregar datas de avaliação do Firebase
+            if (
+              albumAtual.data_primeira_avaliacao ||
+              albumAtual.data_avaliacao
+            ) {
+              try {
+                const datasDoFirebase = {
+                  primeira: albumAtual.data_primeira_avaliacao
+                    ? new Date(
+                        albumAtual.data_primeira_avaliacao.seconds * 1000
+                      )
+                    : new Date(albumAtual.data_avaliacao.seconds * 1000),
+                  ultima: new Date(albumAtual.data_avaliacao.seconds * 1000),
+                  temRegistro: true,
+                };
+                setDatasAvaliacao(datasDoFirebase);
+              } catch (error) {
+                // Erro ao converter datas
+              }
+            }
+
+            // Calcular progresso
+            setProgressoAvaliacao(
+              calcularProgressoAvaliacao(
+                dadosFaixas,
+                albumAtual.avaliacoes || {}
+              )
+            );
           }
-        });
+        } catch (error) {
+          console.error("Erro ao buscar dados do Firebase:", error);
+          // Em caso de erro, vai tentar buscar do Spotify abaixo
+        }
+      }
+
+      // Se não conseguiu os dados do Firebase, buscar do Spotify
+      if (!buscouDoFirebase) {
+        console.log("Buscando dados do álbum no Spotify");
+        // Buscar em paralelo para melhorar a performance
+        [detalhes, dadosFaixas] = await Promise.all([
+          buscarDetalhesAlbum(albumId),
+          buscarFaixasPorAlbum(albumId),
+        ]);
+
+        // Salvar no estado
+        setDetalhesAlbum(detalhes);
+        setFaixas(dadosFaixas);
+
+        if (usuarioFirebase) {
+          // Para usuários Firebase, carregar dados do Firebase
+          import("../../services/firebase").then(async (firebaseModule) => {
+            try {
+              const albunsFirebase =
+                await firebaseModule.obterAlbunsAvaliados();
+              const albumAtual = albunsFirebase.find(
+                (album) => album.id === albumId
+              );
+
+              if (albumAtual) {
+                // Usar avaliações do Firebase
+                setAvaliacoes(albumAtual.avaliacoes || {});
+
+                // Carregar preferências de faixa favorita e pior faixa
+                if (albumAtual.preferencias) {
+                  if (albumAtual.preferencias.faixaFavorita) {
+                    setFaixaFavorita(albumAtual.preferencias.faixaFavorita);
+                  }
+                  if (albumAtual.preferencias.piorFaixa) {
+                    setPiorFaixa(albumAtual.preferencias.piorFaixa);
+                  }
+                }
+
+                // Carregar datas de avaliação do Firebase
+                if (
+                  albumAtual.data_primeira_avaliacao ||
+                  albumAtual.data_avaliacao
+                ) {
+                  try {
+                    const datasDoFirebase = {
+                      primeira: albumAtual.data_primeira_avaliacao
+                        ? new Date(
+                            albumAtual.data_primeira_avaliacao.seconds * 1000
+                          )
+                        : new Date(albumAtual.data_avaliacao.seconds * 1000),
+                      ultima: new Date(
+                        albumAtual.data_avaliacao.seconds * 1000
+                      ),
+                      temRegistro: true,
+                    };
+                    setDatasAvaliacao(datasDoFirebase);
+                  } catch (error) {
+                    // Erro ao converter datas
+                  }
+                }
+
+                // Calcular progresso
+                setProgressoAvaliacao(
+                  calcularProgressoAvaliacao(
+                    dadosFaixas,
+                    albumAtual.avaliacoes || {}
+                  )
+                );
+              } else {
+                // Inicializar com valores vazios se o álbum não existir no Firebase
+                const avaliacoesVazias = {};
+                dadosFaixas.items.forEach((faixa) => {
+                  avaliacoesVazias[faixa.id] = 0;
+                });
+                setAvaliacoes(avaliacoesVazias);
+                setProgressoAvaliacao(
+                  calcularProgressoAvaliacao(dadosFaixas, avaliacoesVazias)
+                );
+              }
+
+              // ADIÇÃO: Salvar os dados do Spotify no Firebase para uso futuro
+              if (detalhes && dadosFaixas) {
+                try {
+                  // Se o álbum ainda não está no Firebase ou os dados do Spotify são mais recentes
+                  // Salve os detalhes e faixas para uso futuro, reduzindo chamadas ao Spotify
+                  await firebaseModule.salvarAlbumCacheSpotify(
+                    albumId,
+                    detalhes,
+                    dadosFaixas
+                  );
+                } catch (error) {
+                  console.error("Erro ao salvar cache do Spotify:", error);
+                }
+              }
+            } catch (error) {
+              console.error("Erro ao carregar avaliações do Firebase:", error);
+            }
+          });
+        } else {
+          // Apenas para usuários não logados, usar localStorage
+          // Obter avaliações existentes do localStorage
+          const avaliacoesExistentes = JSON.parse(
+            localStorage.getItem("avaliacoesFaixas") || "{}"
+          );
+
+          // Inicializar avaliações para novas faixas, mantendo as existentes
+          const novasAvaliacoes = { ...avaliacoesExistentes };
+          dadosFaixas.items.forEach((faixa) => {
+            if (!novasAvaliacoes[faixa.id]) {
+              novasAvaliacoes[faixa.id] = 0;
+            }
+          });
+          setAvaliacoes(novasAvaliacoes);
+
+          // Calcular o progresso de avaliação
+          setProgressoAvaliacao(
+            calcularProgressoAvaliacao(dadosFaixas, novasAvaliacoes)
+          );
+
+          // Salvar mapeamento de faixas para álbuns
+          const mapaFaixasAlbuns = JSON.parse(
+            localStorage.getItem("mapaFaixasAlbuns") || "{}"
+          );
+          dadosFaixas.items.forEach((faixa) => {
+            mapaFaixasAlbuns[faixa.id] = albumId;
+          });
+          localStorage.setItem(
+            "mapaFaixasAlbuns",
+            JSON.stringify(mapaFaixasAlbuns)
+          );
+        }
       }
     } catch (erro) {
+      console.error("Erro ao buscar dados:", erro);
       setErro(
         "Não foi possível carregar os detalhes do álbum. Por favor, verifique sua conexão e tente novamente."
       );

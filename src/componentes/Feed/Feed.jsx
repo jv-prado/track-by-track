@@ -4,7 +4,6 @@ import MinhasAvaliacoes from "./MinhasAvaliacoes";
 import FeedGlobal from "./FeedGlobal";
 import DetalhesAlbum from "./DetalhesAlbum";
 import Pesquisar from "./Pesquisar";
-import Descubra from "./Descubra";
 import { useEffect } from "react";
 import { useParams } from "react-router-dom";
 
@@ -30,7 +29,6 @@ export default function Feed({ activeView, termoPesquisa }) {
       {activeView === "pesquisar" && (
         <Pesquisar termoPesquisa={termoPesquisa} />
       )}
-      {activeView === "descubra" && <Descubra termoPesquisa={termoPesquisa} />}
       {activeView === "classificacoes" && <MinhasAvaliacoes />}
       {activeView === "feed" && <FeedGlobal />}
       {activeView === "album" && albumId && <DetalhesAlbum albumId={albumId} />}

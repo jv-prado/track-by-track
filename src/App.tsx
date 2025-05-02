@@ -322,12 +322,7 @@ function App() {
                   <Feed activeView="feed" termoPesquisa={termoPesquisa} />
                 }
               />
-              <Route
-                path="/descubra"
-                element={
-                  <Feed activeView="descubra" termoPesquisa={termoPesquisa} />
-                }
-              />
+
               <Route
                 path="/albuns"
                 element={

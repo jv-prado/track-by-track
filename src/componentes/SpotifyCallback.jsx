@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { trocarCodePorToken } from "../services/spotify";
+import { trocarCodePorToken, obterPerfilUsuario } from "../services/spotify";
+import { useAuth } from "../contexts/AuthContext";
 
 // ID único para esta instância do componente
 const CALLBACK_INSTANCE_ID = Date.now().toString();
@@ -12,6 +13,8 @@ const SpotifyCallback = () => {
   const location = useLocation();
   // Usar useRef para garantir que processarCallback seja executado apenas uma vez
   const processadoRef = useRef(false);
+  // Obter a função de verificação de autenticação do contexto
+  const { verificarOutrosMetodosAutenticacao } = useAuth();
 
   useEffect(() => {
     // Função para salvar estado de processamento
@@ -148,18 +151,74 @@ const SpotifyCallback = () => {
         if (sucesso) {
           console.log("Token obtido com sucesso");
 
+          // Garantir que o modo demo esteja desativado
+          localStorage.removeItem("demo_mode");
+          localStorage.removeItem("demo_token");
+          localStorage.removeItem("demo_token_expiry");
+          localStorage.removeItem("demo_usuario");
+
+          try {
+            // Obter o perfil do usuário para confirmar a autenticação
+            setStatus("Obtendo perfil do usuário...");
+            const perfilUsuario = await obterPerfilUsuario();
+            console.log(
+              "Perfil do usuário obtido:",
+              perfilUsuario.display_name
+            );
+
+            // Salvar informações básicas do perfil para uso posterior
+            const perfilCache = {
+              id: perfilUsuario.id,
+              name: perfilUsuario.display_name,
+              email: perfilUsuario.email,
+              imageUrl: perfilUsuario.images?.[0]?.url || null,
+            };
+
+            localStorage.setItem(
+              "spotify_user_profile",
+              JSON.stringify(perfilCache)
+            );
+
+            // Salvar o perfil completo no cache da API
+            localStorage.setItem(
+              "spotify_cache_/me",
+              JSON.stringify({
+                data: perfilUsuario,
+                timestamp: Date.now(),
+              })
+            );
+
+            // Definir flag para garantir que o app reconheça que foi feito login com Spotify
+            localStorage.setItem("spotify_autenticado", "true");
+          } catch (error) {
+            console.error("Erro ao obter perfil do usuário:", error);
+            // Criar um perfil mínimo para garantir que o usuário possa navegar
+            localStorage.setItem(
+              "spotify_user_profile",
+              JSON.stringify({
+                id: "spotify_user",
+                name: "Usuário Spotify",
+                type: "user",
+              })
+            );
+
+            // Definir flag para garantir que o app reconheça que foi feito login com Spotify mesmo com erro
+            localStorage.setItem("spotify_autenticado", "true");
+          }
+
           // Definir "feed" como a view ativa
           localStorage.setItem("activeView", "feed");
 
           // Definir flag para indicar que acabamos de fazer login
           sessionStorage.setItem("login_redirect", "true");
 
-          // Redirecionar para o feed
+          // Redirecionar para o feed com um refresh completo da página
           setStatus("Autenticação bem-sucedida! Redirecionando...");
 
-          // Pequeno atraso para feedback visual
+          // Usar timeout para permitir que o usuário veja a mensagem de sucesso
           setTimeout(() => {
-            navigate("/feed");
+            // Usar window.location.href para forçar um refresh completo
+            window.location.href = "/feed";
           }, 1000);
         } else {
           console.error("Não foi possível obter o token de acesso");
@@ -176,7 +235,7 @@ const SpotifyCallback = () => {
     };
 
     processarCallback();
-  }, [location, navigate]);
+  }, [location, navigate, verificarOutrosMetodosAutenticacao]);
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-gray-900 to-black p-4">

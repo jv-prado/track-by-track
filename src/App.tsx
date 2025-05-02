@@ -40,6 +40,25 @@ function App() {
     const verificarPersistenciaAuth = async () => {
       setCarregandoAuth(true);
 
+      // Verificar se o usuário está autenticado pelo Spotify
+      const spotifyAutenticado =
+        localStorage.getItem("spotify_autenticado") === "true";
+      const tokenSpotify = localStorage.getItem("spotify_access_token");
+      const refreshTokenSpotify = localStorage.getItem("spotify_refresh_token");
+
+      if (spotifyAutenticado || tokenSpotify || refreshTokenSpotify) {
+        console.log("Usuário autenticado pelo Spotify detectado");
+        setUsuarioSpotify(true);
+
+        if (location.pathname === "/" || location.pathname === "/splash") {
+          setActiveView("feed");
+          localStorage.setItem("activeView", "feed");
+          navigate("/feed", { replace: true });
+        }
+        setCarregandoAuth(false);
+        return;
+      }
+
       // Verificar se há um usuário autenticado usando o objeto auth
       const currentUser = auth.currentUser;
       if (currentUser) {

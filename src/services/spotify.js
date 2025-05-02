@@ -23,10 +23,38 @@ const getAuthHeaders = (token) => ({
  * @returns {Promise<string>} Token para autenticação
  */
 const getToken = async () => {
-  // Verificar se temos um token de usuário
+  // Primeiro verificar se há um token do Spotify válido
+  const spotifyToken = localStorage.getItem("spotify_access_token");
+  const spotifyTokenExpiry = localStorage.getItem("spotify_token_expires_at");
+
+  if (
+    spotifyToken &&
+    spotifyTokenExpiry &&
+    Date.now() < parseInt(spotifyTokenExpiry)
+  ) {
+    console.log("Usando token do Spotify");
+    return spotifyToken;
+  }
+
+  // Se não tiver token Spotify válido mas tiver refresh token, tentar renovar
+  const refreshToken = localStorage.getItem("spotify_refresh_token");
+  if (refreshToken) {
+    try {
+      console.log("Tentando renovar token do Spotify");
+      const tokenAtualizado = await atualizarToken();
+      if (tokenAtualizado) {
+        console.log("Token do Spotify renovado com sucesso");
+        return localStorage.getItem("spotify_access_token");
+      }
+    } catch (err) {
+      console.error("Erro ao atualizar token do Spotify:", err);
+    }
+  }
+
+  // Verificar se temos um token de usuário via Firebase
   const userToken = getAuthToken();
   if (userToken) {
-    console.log("Usando token de usuário autenticado");
+    console.log("Usando token de usuário autenticado via Firebase");
     return userToken;
   }
 
@@ -117,6 +145,14 @@ const mockData = {
 
 // Verifica se está em modo de demonstração
 const isDemoMode = () => {
+  // Se tiver um token ou refresh token do Spotify, não estamos em modo demo
+  const spotifyToken = localStorage.getItem("spotify_access_token");
+  const spotifyRefreshToken = localStorage.getItem("spotify_refresh_token");
+
+  if (spotifyToken || spotifyRefreshToken) {
+    return false;
+  }
+
   // Verificar explicitamente o modo demo através da flag no localStorage
   const demoMode = localStorage.getItem("demo_mode") === "true";
 
@@ -652,13 +688,41 @@ export const trocarCodePorToken = async (code) => {
 export const verificarToken = () => {
   const accessToken = localStorage.getItem("spotify_access_token");
   const expiresAt = localStorage.getItem("spotify_token_expires_at");
+  const spotifyAutenticado =
+    localStorage.getItem("spotify_autenticado") === "true";
 
+  // Se não tiver token nem timestamp de expiração, o token não é válido
   if (!accessToken || !expiresAt) {
+    console.log(
+      "Token do Spotify não encontrado ou timestamp de expiração ausente"
+    );
     return false;
   }
 
-  // Se estiver a menos de 5 minutos de expirar, consideramos expirado
-  return Date.now() < parseInt(expiresAt) - 5 * 60 * 1000;
+  // Converter o timestamp para número
+  const expiraEm = parseInt(expiresAt);
+
+  // Verificar se está expirado - considerar expirado se faltar menos de 5 minutos
+  const agora = Date.now();
+  const tempoRestante = expiraEm - agora;
+  const expiraEmMinutos = Math.floor(tempoRestante / 1000 / 60);
+
+  // Se estiver a menos de 5 minutos para expirar, considera expirado
+  const tokenValido = tempoRestante > 5 * 60 * 1000;
+
+  if (tokenValido) {
+    console.log(
+      `Token do Spotify válido, expira em aproximadamente ${expiraEmMinutos} minutos`
+    );
+  } else {
+    console.log(
+      `Token do Spotify expirado ou prestes a expirar (${
+        expiraEmMinutos < 0 ? "expirado há" : "expira em"
+      } ${Math.abs(expiraEmMinutos)} minutos)`
+    );
+  }
+
+  return tokenValido;
 };
 
 // Atualiza o token usando refresh_token
@@ -746,10 +810,18 @@ export const atualizarToken = async () => {
 
 // Faz chamadas para a API do Spotify
 export const chamadaAPI = async (endpoint, method = "GET", body = null) => {
-  // Verifica se o token está válido, se não, tenta atualizar
-  if (!verificarToken()) {
+  // Obter o token de acesso do Spotify (diretamente ou atualizando)
+  let accessToken = localStorage.getItem("spotify_access_token");
+  const tokenExpiry = localStorage.getItem("spotify_token_expires_at");
+
+  // Verificar se o token está válido ou prestes a expirar
+  const tokenExpirado =
+    !tokenExpiry || Date.now() >= parseInt(tokenExpiry) - 5 * 60 * 1000;
+
+  if (!accessToken || tokenExpirado) {
     console.log("Token expirado ou prestes a expirar, tentando atualizar...");
     const tokenAtualizado = await atualizarToken();
+
     if (!tokenAtualizado) {
       console.error(
         "Não foi possível atualizar o token. Usuário será deslogado."
@@ -760,12 +832,34 @@ export const chamadaAPI = async (endpoint, method = "GET", body = null) => {
       );
     } else {
       console.log("Token atualizado com sucesso!");
+      accessToken = localStorage.getItem("spotify_access_token");
     }
   }
 
-  const accessToken = localStorage.getItem("spotify_access_token");
   if (!accessToken) {
     throw new Error("Token de acesso não encontrado. Faça login novamente.");
+  }
+
+  // Verificar se temos dados em cache para este endpoint
+  // Apenas para endpoints específicos que são seguros para cachear (/me)
+  if (method === "GET" && endpoint === "/me") {
+    const cacheKey = `spotify_cache_${endpoint}`;
+    const cachedData = localStorage.getItem(cacheKey);
+
+    if (cachedData) {
+      try {
+        const { data, timestamp } = JSON.parse(cachedData);
+        // Cache válido por 24 horas para o perfil do usuário
+        const cacheValido = Date.now() - timestamp < 24 * 60 * 60 * 1000;
+
+        if (cacheValido) {
+          console.log(`Usando dados em cache para ${endpoint}`);
+          return data;
+        }
+      } catch (e) {
+        console.error("Erro ao ler cache:", e);
+      }
+    }
   }
 
   const options = {
@@ -781,12 +875,48 @@ export const chamadaAPI = async (endpoint, method = "GET", body = null) => {
   }
 
   try {
+    console.log(`Chamando API do Spotify: ${endpoint}`);
     const response = await fetch(
       `https://api.spotify.com/v1${endpoint}`,
       options
     );
 
     if (!response.ok) {
+      // Tratamento específico para erro 403 (Forbidden)
+      if (response.status === 403) {
+        console.warn(`Erro 403 no endpoint ${endpoint} - Permissão negada`);
+
+        // Verificar se temos cache para este endpoint
+        if (method === "GET") {
+          const cacheKey = `spotify_cache_${endpoint}`;
+          const cachedData = localStorage.getItem(cacheKey);
+
+          if (cachedData) {
+            try {
+              console.log(`Usando cache para ${endpoint} após erro 403`);
+              const { data } = JSON.parse(cachedData);
+              return data;
+            } catch (e) {
+              console.error("Erro ao ler cache após 403:", e);
+            }
+          }
+
+          // Para endpoints específicos, podemos retornar dados padrão
+          if (endpoint === "/me") {
+            console.log("Retornando perfil padrão após erro 403");
+            return {
+              display_name: "Usuário Spotify",
+              id: "spotify_user",
+              type: "user",
+            };
+          }
+        }
+
+        throw new Error(
+          `Erro 403: Permissão negada ao acessar a API do Spotify. Você precisa de privilégios adequados para acessar este recurso.`
+        );
+      }
+
       // Token expirado, tentar atualizar e tentar novamente
       if (response.status === 401) {
         console.log(
@@ -814,6 +944,7 @@ export const chamadaAPI = async (endpoint, method = "GET", body = null) => {
         if (errorData.error && errorData.error.message) {
           errorMessage += ` - ${errorData.error.message}`;
         }
+        console.error("Detalhes do erro:", errorData);
       } catch (e) {
         // Ignore erros ao tentar parse da resposta de erro
       }
@@ -821,7 +952,21 @@ export const chamadaAPI = async (endpoint, method = "GET", body = null) => {
       throw new Error(errorMessage);
     }
 
-    return response.json();
+    const data = await response.json();
+
+    // Armazenar em cache apenas endpoints GET específicos
+    if (method === "GET" && endpoint === "/me") {
+      const cacheKey = `spotify_cache_${endpoint}`;
+      localStorage.setItem(
+        cacheKey,
+        JSON.stringify({
+          data,
+          timestamp: Date.now(),
+        })
+      );
+    }
+
+    return data;
   } catch (error) {
     console.error("Erro na chamada à API:", error);
     throw error;
@@ -856,9 +1001,28 @@ export const obterAlbunsSalvos = async (limit = 20, offset = 0) => {
 
 // Verifica se está autenticado
 export const estaAutenticado = () => {
-  return (
-    verificarToken() || localStorage.getItem("spotify_refresh_token") !== null
-  );
+  // Verificar se tem token de acesso válido
+  const accessToken = localStorage.getItem("spotify_access_token");
+  const tokenExpiry = localStorage.getItem("spotify_token_expires_at");
+  const tokenValido =
+    accessToken && tokenExpiry && parseInt(tokenExpiry) > Date.now();
+
+  if (tokenValido) {
+    console.log("Token de acesso do Spotify válido encontrado");
+    return true;
+  }
+
+  // Verificar se tem refresh token que pode ser usado para renovar o token
+  const refreshToken = localStorage.getItem("spotify_refresh_token");
+  if (refreshToken) {
+    console.log(
+      "Refresh token do Spotify encontrado, usuário pode renovar autenticação"
+    );
+    return true;
+  }
+
+  console.log("Usuário não está autenticado com o Spotify");
+  return false;
 };
 
 // Faz logout
@@ -867,4 +1031,12 @@ export const logout = () => {
   localStorage.removeItem("spotify_refresh_token");
   localStorage.removeItem("spotify_token_expires_at");
   localStorage.removeItem("spotify_auth_state");
+  localStorage.removeItem("spotify_user_profile");
+  localStorage.removeItem("spotify_callback_processed");
+  sessionStorage.removeItem("spotify_code_used");
+  sessionStorage.removeItem("spotify_code_processing");
+  sessionStorage.removeItem("spotify_callback_timestamp");
+  sessionStorage.removeItem("spotify_callback_instance");
+
+  console.log("Logout do Spotify realizado com sucesso");
 };

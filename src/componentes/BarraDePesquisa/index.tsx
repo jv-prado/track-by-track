@@ -47,6 +47,8 @@ const BarraDePesquisa = ({ onSearch, activeView, termoPesquisa = "" }) => {
         <IoSearchOutline className="text-xl text-gray-400" />
       </div>
       <input
+        id="barra-pesquisa-input"
+        name="barra-pesquisa"
         type="text"
         placeholder={t("app.search")}
         value={termo}

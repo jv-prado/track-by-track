@@ -1,9 +1,8 @@
 import Logo from "./assets/Logo.svg";
-import { FaUser, FaGlobe, FaCamera, FaInstagram } from "react-icons/fa";
-import { IoStarSharp } from "react-icons/io5";
+import { FaGlobe, FaCamera, FaInstagram } from "react-icons/fa";
+import { IoStarSharp, IoSearchOutline } from "react-icons/io5";
 import { IoMdExit } from "react-icons/io";
 import "../../App.css";
-import { MdAlbum } from "react-icons/md";
 import SidebarItem from "./SideBarItem";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
@@ -260,23 +259,13 @@ export default function Sidebar({ activeView, setActiveView }) {
                   }}
                 />
                 <SidebarItem
-                  icon={MdAlbum}
-                  text={t("app.albums")}
+                  icon={IoSearchOutline}
+                  text={t("app.search")}
                   iconSize="text-2xl md:text-3xl"
-                  active={activeView === "albuns"}
+                  active={activeView === "pesquisar"}
                   onClick={() => {
-                    setActiveView("albuns");
-                    navigate("/albuns");
-                  }}
-                />
-                <SidebarItem
-                  icon={FaUser}
-                  text={t("app.artists")}
-                  iconSize="text-2xl md:text-3xl"
-                  active={activeView === "artistas"}
-                  onClick={() => {
-                    setActiveView("artistas");
-                    navigate("/artistas");
+                    setActiveView("pesquisar");
+                    navigate("/pesquisar");
                   }}
                 />
                 <SidebarItem
@@ -336,32 +325,17 @@ export default function Sidebar({ activeView, setActiveView }) {
 
           <button
             onClick={() => {
-              setActiveView("albuns");
-              navigate("/albuns");
+              setActiveView("pesquisar");
+              navigate("/pesquisar");
             }}
             className={`flex flex-col items-center justify-center pt-1 pb-1 px-2 rounded-lg ${
-              activeView === "albuns"
+              activeView === "pesquisar"
                 ? "text-verde-destaque bg-verde-destaque/10"
                 : "text-gray-400"
             }`}
           >
-            <MdAlbum className="text-xl" />
-            <span className="text-xs mt-1">{t("app.albums")}</span>
-          </button>
-
-          <button
-            onClick={() => {
-              setActiveView("artistas");
-              navigate("/artistas");
-            }}
-            className={`flex flex-col items-center justify-center pt-1 pb-1 px-2 rounded-lg ${
-              activeView === "artistas"
-                ? "text-verde-destaque bg-verde-destaque/10"
-                : "text-gray-400"
-            }`}
-          >
-            <FaUser className="text-xl" />
-            <span className="text-xs mt-1">{t("app.artists")}</span>
+            <IoSearchOutline className="text-xl" />
+            <span className="text-xs mt-1">{t("app.search")}</span>
           </button>
 
           <button

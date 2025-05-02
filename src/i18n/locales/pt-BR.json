@@ -1,10 +1,10 @@
 {
   "app": {
     "feed": "Feed",
+    "search": "Pesquisar",
     "albums": "Álbuns",
     "artists": "Artistas",
     "myRatings": "Avaliações",
-    "search": "Buscar...",
     "logout": "Sair",
     "login": "Entrar",
     "register": "Registrar",
@@ -19,7 +19,7 @@
     "profile": "Perfil",
     "changePhoto": "Alterar foto",
     "selectAlbumsOrArtists": "Selecione álbuns ou artistas no menu",
-    "suggestion": "Busque por álbuns ou artistas no menu"
+    "suggestion": "Use a pesquisa unificada para encontrar artistas e álbuns"
   },
   "splash": {
     "logoAlt": "Logo do aplicativo",
@@ -251,5 +251,8 @@
     "successTitle": "Conta excluída com sucesso",
     "successMessage": "Todas as suas informações foram removidas dos nossos servidores.",
     "clearLocalData": "Limpar meus dados locais"
+  },
+  "searchPage": {
+    "tryAnotherTerm": "Tente outro termo ou verifique se digitou corretamente"
   }
 }

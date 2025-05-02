@@ -1,10 +1,10 @@
 {
   "app": {
     "feed": "Feed",
+    "search": "Search",
     "albums": "Albums",
     "artists": "Artists",
     "myRatings": "My Ratings",
-    "search": "Search...",
     "logout": "Logout",
     "login": "Login",
     "register": "Register",
@@ -19,7 +19,7 @@
     "profile": "Profile",
     "changePhoto": "Change photo",
     "selectAlbumsOrArtists": "Select albums or artists from the menu",
-    "suggestion": "Search for albums or artists in the menu"
+    "suggestion": "Use the unified search to find artists and albums"
   },
   "splash": {
     "logoAlt": "App logo",
@@ -251,5 +251,8 @@
     "successTitle": "Account successfully deleted",
     "successMessage": "All your information has been removed from our servers.",
     "clearLocalData": "Clear my local data"
+  },
+  "searchPage": {
+    "tryAnotherTerm": "Try another term or check if you typed correctly"
   }
 }

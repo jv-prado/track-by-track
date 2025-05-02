@@ -3,6 +3,7 @@ import MostrarTopAlbuns from "./MostrarTopAlbuns";
 import MinhasAvaliacoes from "./MinhasAvaliacoes";
 import FeedGlobal from "./FeedGlobal";
 import DetalhesAlbum from "./DetalhesAlbum";
+import Pesquisar from "./Pesquisar";
 import { useEffect } from "react";
 import { useParams } from "react-router-dom";
 
@@ -24,6 +25,9 @@ export default function Feed({ activeView, termoPesquisa }) {
       )}
       {activeView === "artistas" && (
         <MostrarTopArtistas termoPesquisa={termoPesquisa} />
+      )}
+      {activeView === "pesquisar" && (
+        <Pesquisar termoPesquisa={termoPesquisa} />
       )}
       {activeView === "classificacoes" && <MinhasAvaliacoes />}
       {activeView === "feed" && <FeedGlobal />}

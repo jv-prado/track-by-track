@@ -15,9 +15,4 @@ export default defineConfig({
       allow: [".."],
     },
   },
-  build: {
-    rollupOptions: {
-      external: ["typewriter-effect"],
-    },
-  },
 });

@@ -7,7 +7,6 @@ import BandeiraEUA from "../assets/Flag_of_the_United_States.svg";
 import { FaInstagram } from "react-icons/fa";
 import { useAuth } from "../contexts/AuthContext";
 import { auth } from "../services/firebase";
-import Typewriter from "typewriter-effect";
 
 const Splash = () => {
   const navigate = useNavigate();
@@ -79,23 +78,23 @@ const Splash = () => {
           className="text-gray-300 mb-8 animate-fadeIn w-80 text-center mx-auto min-h-[56px]"
           style={{ animationDelay: "0.3s" }}
         >
-          <Typewriter
-            options={{
-              strings: [
-                isPortuguese
-                  ? "Descubra novos álbuns.<br/>Avalie faixa por faixa.<br/>Registre tudo em um só lugar."
-                  : "Discover new albums.<br/>Rate track by track.<br/>Keep everything in one place.",
-              ],
-              autoStart: true,
-              loop: false,
-              delay: 35,
-              deleteSpeed: 0,
-              pauseFor: 999999,
-            }}
-            onInit={(typewriter) => {
-              typewriter.options.html = true;
-            }}
-          />
+          {isPortuguese ? (
+            <>
+              Descubra novos álbuns.
+              <br />
+              Avalie faixa por faixa.
+              <br />
+              Registre tudo em um só lugar.
+            </>
+          ) : (
+            <>
+              Discover new albums.
+              <br />
+              Rate track by track.
+              <br />
+              Keep everything in one place.
+            </>
+          )}
         </p>
 
         <div className="mb-6 text-center" style={{ animationDelay: "0.6s" }}>

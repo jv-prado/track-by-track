@@ -63,15 +63,12 @@ const Pesquisar = ({ termoPesquisa }) => {
   // Alternar tipo de conteúdo e limpar seleção
   const alternarTipoConteudo = (tipo) => {
     if (tipo !== tipoConteudo) {
-      setFade(false);
-      setTimeout(() => {
-        setTipoConteudo(tipo);
-        setItemSelecionado(null);
-        setFade(true);
-        setOffset(0);
-        setTemMaisResultados(true);
-        setResultados(null);
-      }, 180);
+      setTipoConteudo(tipo);
+      setItemSelecionado(null);
+      setFade(true);
+      setOffset(0);
+      setTemMaisResultados(true);
+      setResultados(null);
     }
   };
 

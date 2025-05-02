@@ -398,29 +398,71 @@ const MinhasAvaliacoes = () => {
         </h2>
 
         <div className="flex items-center gap-2">
-          <button
-            onClick={alternarModoVisualizacao}
-            className="text-sm bg-verde-destaque/20 hover:bg-verde-destaque/30 text-verde-destaque px-3 py-1 rounded-full transition-colors hover:cursor-pointer flex items-center gap-2"
-            title={
-              modoVisualizacao === "grade"
-                ? t("myRatings.viewAsList")
-                : t("myRatings.viewAsGrid")
-            }
-          >
-            {modoVisualizacao === "grade" ? (
-              <BsListUl className="text-verde-destaque" />
-            ) : (
-              <BsGrid3X3GapFill className="text-verde-destaque" />
-            )}
-          </button>
-
+          {/* Botão atualizar */}
           <button
             onClick={atualizarListaAlbuns}
-            className="text-sm bg-verde-destaque/20 hover:bg-verde-destaque/30 text-verde-destaque px-3 py-1 rounded-full transition-colors hover:cursor-pointer flex items-center gap-2"
+            className="ml-2 flex items-center justify-center px-3 py-1.5 h-10 rounded-md text-sm bg-gray-800 text-white hover:bg-gray-700 transition-colors gap-2 group focus:text-verde-destaque active:text-verde-destaque"
+            aria-label={t("myRatings.update")}
+            title={t("myRatings.update")}
           >
-            {t("myRatings.update")}
-            <GrUpdate className="text-verde-destaque" />
+            <GrUpdate className="text-white group-focus:text-verde-destaque group-active:text-verde-destaque transition-colors" />
+            <span className="text-white group-focus:text-verde-destaque group-active:text-verde-destaque transition-colors">
+              {t("myRatings.update")}
+            </span>
           </button>
+          {/* Alternância de visualização: mobile = 1 botão, desktop = 2 botões on/off */}
+          <>
+            {/* Mobile: botão único */}
+            <div className="flex md:hidden">
+              <button
+                onClick={alternarModoVisualizacao}
+                className="ml-2 flex items-center justify-center px-2 py-1.5 h-10 rounded-md text-sm bg-gray-800 text-verde-destaque hover:bg-gray-700 transition-colors"
+                aria-label={
+                  modoVisualizacao === "grade"
+                    ? t("myRatings.viewAsList")
+                    : t("myRatings.viewAsGrid")
+                }
+                title={
+                  modoVisualizacao === "grade"
+                    ? t("myRatings.viewAsList")
+                    : t("myRatings.viewAsGrid")
+                }
+              >
+                {modoVisualizacao === "grade" ? (
+                  <BsListUl className="text-verde-destaque" />
+                ) : (
+                  <BsGrid3X3GapFill className="text-verde-destaque" />
+                )}
+              </button>
+            </div>
+            {/* Desktop: dois botões on/off */}
+            <div className="hidden md:flex space-x-1 bg-gray-800 rounded-lg p-1 ml-2 h-10 items-center">
+              <button
+                onClick={() => setModoVisualizacao("grade")}
+                className={`px-2 py-1.5 h-8 rounded-md text-sm flex items-center justify-center transition-colors ${
+                  modoVisualizacao === "grade"
+                    ? "bg-gray-700 text-verde-destaque"
+                    : "text-gray-300 hover:bg-gray-700"
+                }`}
+                aria-label={t("myRatings.viewAsGrid")}
+                title={t("myRatings.viewAsGrid")}
+              >
+                <BsGrid3X3GapFill />
+              </button>
+              <button
+                onClick={() => setModoVisualizacao("lista")}
+                className={`px-2 py-1.5 h-8 rounded-md text-sm flex items-center justify-center transition-colors ${
+                  modoVisualizacao === "lista"
+                    ? "bg-gray-700 text-verde-destaque"
+                    : "text-gray-300 hover:bg-gray-700"
+                }`}
+                aria-label={t("myRatings.viewAsList")}
+                title={t("myRatings.viewAsList")}
+              >
+                <BsListUl />
+              </button>
+            </div>
+          </>
         </div>
       </div>
 

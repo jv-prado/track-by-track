@@ -515,33 +515,73 @@ const FeedGlobal = () => {
         </div>
 
         <div className="flex items-center gap-2">
-          {/* Botão para alternar modo de visualização, visível apenas se houver resultados */}
-          {avaliacoes && avaliacoes.length > 0 && (
-            <button
-              onClick={alternarModoVisualizacao}
-              className="text-sm bg-verde-destaque/20 hover:bg-verde-destaque/30 text-verde-destaque px-3 py-1 rounded-full transition-colors hover:cursor-pointer flex items-center gap-2"
-              title={
-                modoVisualizacao === "grade"
-                  ? t("artistSearch.viewAsList", "Ver como lista")
-                  : t("artistSearch.viewAsGrid", "Ver como grade")
-              }
-            >
-              {modoVisualizacao === "grade" ? (
-                <BsListUl className="text-verde-destaque" />
-              ) : (
-                <BsGrid3X3GapFill className="text-verde-destaque" />
-              )}
-            </button>
-          )}
-
           {/* Botão para atualizar */}
           <button
             onClick={carregarAvaliacoes}
-            className="text-xs md:text-sm bg-verde-destaque/20 hover:bg-verde-destaque/30 text-verde-destaque px-3 py-1 rounded-full transition-colors hover:cursor-pointer flex items-center gap-2"
+            className="ml-2 flex items-center justify-center px-3 py-1.5 h-10 rounded-md text-sm bg-gray-800 text-white hover:bg-gray-700 transition-colors gap-2 group focus:text-verde-destaque active:text-verde-destaque"
+            aria-label="Atualizar feed"
+            title="Atualizar feed"
           >
-            {t("feed.atualizar")}
-            <GrUpdate className="text-verde-destaque" />
+            <GrUpdate className="text-white group-focus:text-verde-destaque group-active:text-verde-destaque transition-colors" />
+            <span className="text-white group-focus:text-verde-destaque group-active:text-verde-destaque transition-colors">
+              {t("feed.atualizar")}
+            </span>
           </button>
+          {/* Alternância de visualização: mobile = 1 botão, desktop = 2 botões on/off */}
+          {avaliacoes && avaliacoes.length > 0 && (
+            <>
+              {/* Mobile: botão único */}
+              <div className="flex md:hidden">
+                <button
+                  onClick={alternarModoVisualizacao}
+                  className="ml-2 flex items-center justify-center px-2 py-1.5 h-10 rounded-md text-sm bg-gray-800 text-verde-destaque hover:bg-gray-700 transition-colors"
+                  aria-label={
+                    modoVisualizacao === "grade"
+                      ? "Visualização em lista"
+                      : "Visualização em grade"
+                  }
+                  title={
+                    modoVisualizacao === "grade"
+                      ? "Visualização em lista"
+                      : "Visualização em grade"
+                  }
+                >
+                  {modoVisualizacao === "grade" ? (
+                    <BsListUl className="text-verde-destaque" />
+                  ) : (
+                    <BsGrid3X3GapFill className="text-verde-destaque" />
+                  )}
+                </button>
+              </div>
+              {/* Desktop: dois botões on/off */}
+              <div className="hidden md:flex space-x-1 bg-gray-800 rounded-lg p-1 ml-2 h-10 items-center">
+                <button
+                  onClick={() => setModoVisualizacao("grade")}
+                  className={`px-2 py-1.5 h-8 rounded-md text-sm flex items-center justify-center transition-colors ${
+                    modoVisualizacao === "grade"
+                      ? "bg-gray-700 text-verde-destaque"
+                      : "text-gray-300 hover:bg-gray-700"
+                  }`}
+                  aria-label="Visualização em grade"
+                  title="Visualização em grade"
+                >
+                  <BsGrid3X3GapFill />
+                </button>
+                <button
+                  onClick={() => setModoVisualizacao("lista")}
+                  className={`px-2 py-1.5 h-8 rounded-md text-sm flex items-center justify-center transition-colors ${
+                    modoVisualizacao === "lista"
+                      ? "bg-gray-700 text-verde-destaque"
+                      : "text-gray-300 hover:bg-gray-700"
+                  }`}
+                  aria-label="Visualização em lista"
+                  title="Visualização em lista"
+                >
+                  <BsListUl />
+                </button>
+              </div>
+            </>
+          )}
         </div>
       </div>
 
@@ -676,6 +716,34 @@ const FeedGlobal = () => {
                             )}
                           </span>
                         </div>
+                        {/* Botões de ação no modo grid */}
+                        {modoVisualizacao === "grade" && (
+                          <div className=" flex flex-row items-center justify-center gap-2 mt-2">
+                            <a
+                              href={
+                                usandoDadosDemo
+                                  ? "https://open.spotify.com/"
+                                  : `https://open.spotify.com/album/${avaliacao.id}`
+                              }
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center justify-center text-xs bg-black/30 rounded-md p-1 text-gray-300 hover:text-green-400 hover:bg-green-400/10 transition-colors duration-200 z-20"
+                              onClick={(e) => e.stopPropagation()}
+                              title="Ouvir no Spotify"
+                            >
+                              <FaSpotify className="text-green-400 text-lg" />
+                            </a>
+                            <button
+                              className="inline-flex items-center justify-center bg-gradient-to-r from-verde-destaque/20 to-verde-destaque/30 rounded-md text-xs text-verde-destaque hover:from-verde-destaque/30 hover:to-verde-destaque/40 shadow-sm transition-colors p-1 z-20 cursor-pointer"
+                              onClick={(e) =>
+                                abrirModalAvaliacoes(avaliacao, e)
+                              }
+                              title="Ver detalhes"
+                            >
+                              <FaRegStar className="text-verde-destaque text-lg" />
+                            </button>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -877,6 +945,34 @@ const FeedGlobal = () => {
                               avaliacao.media || avaliacao.mediaAvaliacao
                             )}
                           </span>
+                          {/* Botões de ação no modo grid */}
+                          {modoVisualizacao === "grade" && (
+                            <div className="flex flex-row items-center justify-center gap-2 mt-2">
+                              <a
+                                href={
+                                  usandoDadosDemo
+                                    ? "https://open.spotify.com/"
+                                    : `https://open.spotify.com/album/${avaliacao.id}`
+                                }
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center justify-center text-xs text-gray-300 hover:text-green-400 transition-colors z-20"
+                                onClick={(e) => e.stopPropagation()}
+                                title="Ouvir no Spotify"
+                              >
+                                <FaSpotify className="text-green-400 text-lg" />
+                              </a>
+                              <button
+                                className="inline-flex items-center justify-center text-xs text-verde-destaque transition-colors z-20 cursor-pointer"
+                                onClick={(e) =>
+                                  abrirModalAvaliacoes(avaliacao, e)
+                                }
+                                title="Ver detalhes"
+                              >
+                                <FaRegStar className="text-verde-destaque text-lg" />
+                              </button>
+                            </div>
+                          )}
                         </div>
                       </div>
                     </div>

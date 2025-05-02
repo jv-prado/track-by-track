@@ -1,24 +1,40 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { BsGrid3X3GapFill, BsListUl } from "react-icons/bs";
 import { MdMusicNote, MdReportProblem } from "react-icons/md";
 import { FaUser, FaFire } from "react-icons/fa";
 import DetalhesAlbum from "./DetalhesAlbum";
 import ListaAlbuns from "./ListaAlbuns";
+import {
+  buscarNovosLancamentos,
+  buscarSinglesRecentes,
+  buscarArtistasPorGenero,
+  buscarTopTracks,
+  buscarDetalhesAlbum,
+  buscarFaixasPorAlbum,
+} from "../../services/spotify/index";
 
 /**
  * Componente para descobrir novos álbuns, artistas e singles
  * @returns {JSX.Element} Componente Descubra
  */
-const Descubra = () => {
-  const { t } = useTranslation();
+const Descubra = ({ termoPesquisa }) => {
+  const { t, i18n } = useTranslation();
   const [tipoConteudo, setTipoConteudo] = useState("albuns"); // albuns, singles ou artistas
   const [carregando, setCarregando] = useState(true);
+  const [carregandoMais, setCarregandoMais] = useState(false);
+  const [erro, setErro] = useState(null);
   const [albunsPopulares, setAlbunsPopulares] = useState([]);
+  const [albumsComDetalhes, setAlbumsComDetalhes] = useState([]);
   const [artistasPopulares, setArtistasPopulares] = useState([]);
   const [singlesRecentes, setSinglesRecentes] = useState([]);
+  const [singlesComDetalhes, setSinglesComDetalhes] = useState([]);
+  const [topTracks, setTopTracks] = useState([]);
   const [itemSelecionado, setItemSelecionado] = useState(null);
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+  const [offset, setOffset] = useState(0);
+  const [temMaisAlbuns, setTemMaisAlbuns] = useState(true);
+  const [paisUsuario, setPaisUsuario] = useState("BR");
   const [modoVisualizacao, setModoVisualizacao] = useState(() => {
     const preferenciaUsuario = localStorage.getItem(
       "preferenciaModoVisualizacao"
@@ -26,6 +42,41 @@ const Descubra = () => {
     return preferenciaUsuario || "grade"; // 'grade' ou 'lista'
   });
   const [fade, setFade] = useState(true);
+
+  // Referência para detectar quando chegamos ao final da página
+  const observerRef = useRef(null);
+  const loaderRef = useCallback(
+    (node) => {
+      if (carregandoMais) return;
+      if (observerRef.current) observerRef.current.disconnect();
+
+      observerRef.current = new IntersectionObserver((entries) => {
+        if (
+          entries[0].isIntersecting &&
+          temMaisAlbuns &&
+          tipoConteudo === "albuns"
+        ) {
+          carregarMaisAlbuns();
+        }
+      });
+
+      if (node) observerRef.current.observe(node);
+    },
+    [carregandoMais, temMaisAlbuns, tipoConteudo]
+  );
+
+  // Determinar o país com base no navegador do usuário
+  useEffect(() => {
+    // Tentar obter país do usuário pelo navegador
+    try {
+      const linguagem = navigator.language || navigator.userLanguage || "en-US";
+      const pais = linguagem.split("-")[1] || "BR";
+      setPaisUsuario(pais);
+    } catch (error) {
+      console.warn("Não foi possível detectar o país do usuário:", error);
+      setPaisUsuario("BR"); // País padrão
+    }
+  }, []);
 
   // Atualizar largura da janela quando ela for redimensionada
   useEffect(() => {
@@ -72,115 +123,197 @@ const Descubra = () => {
     return 4; // 4 itens por linha em telas grandes
   };
 
-  // Carregar dados
+  // Função para obter detalhes de um álbum, incluindo número de faixas
+  const obterDetalhesAlbum = async (album) => {
+    try {
+      const detalhes = await buscarDetalhesAlbum(album.id);
+      return {
+        ...album,
+        total_tracks: detalhes.total_tracks || 0,
+      };
+    } catch (error) {
+      console.error(`Erro ao buscar detalhes do álbum ${album.id}:`, error);
+      return {
+        ...album,
+        total_tracks: 0,
+      };
+    }
+  };
+
+  // Função para carregar mais álbuns com rolagem infinita
+  const carregarMaisAlbuns = async () => {
+    if (carregandoMais || !temMaisAlbuns) return;
+
+    try {
+      setCarregandoMais(true);
+      const proximoOffset = offset + 20;
+      console.log(`Carregando mais álbuns a partir do offset ${proximoOffset}`);
+
+      const novosLancamentosResponse = await buscarNovosLancamentos(
+        paisUsuario,
+        20,
+        proximoOffset
+      );
+
+      if (
+        novosLancamentosResponse &&
+        novosLancamentosResponse.albums &&
+        novosLancamentosResponse.albums.items &&
+        novosLancamentosResponse.albums.items.length > 0
+      ) {
+        // Obtém detalhes de cada novo álbum
+        const detalhesPromises = novosLancamentosResponse.albums.items.map(
+          (album) => obterDetalhesAlbum(album)
+        );
+
+        const novosAlbumsDetalhados = await Promise.all(detalhesPromises);
+
+        // Filtra álbuns com mais de 5 faixas
+        const novosFiltrados = novosAlbumsDetalhados.filter(
+          (album) => album.total_tracks > 5
+        );
+
+        if (novosFiltrados.length > 0) {
+          // Atualiza o estado adicionando os novos álbuns aos existentes
+          setAlbumsComDetalhes((albunsAnteriores) => [
+            ...albunsAnteriores,
+            ...novosFiltrados,
+          ]);
+
+          setOffset(proximoOffset);
+        } else {
+          // Se não encontrou álbuns válidos neste lote, tentar próximo lote
+          if (novosLancamentosResponse.albums.items.length === 20) {
+            setOffset(proximoOffset);
+            // Tenta novamente imediatamente para buscar o próximo lote
+            setTimeout(carregarMaisAlbuns, 100);
+          } else {
+            setTemMaisAlbuns(false);
+          }
+        }
+
+        // Se recebemos menos de 20 álbuns, provavelmente chegamos ao fim
+        if (novosLancamentosResponse.albums.items.length < 20) {
+          setTemMaisAlbuns(false);
+        }
+      } else {
+        setTemMaisAlbuns(false);
+      }
+    } catch (error) {
+      console.error("Erro ao carregar mais álbuns:", error);
+    } finally {
+      setCarregandoMais(false);
+    }
+  };
+
+  // Carregar dados da API do Spotify
   useEffect(() => {
     const carregarDados = async () => {
       try {
         setCarregando(true);
+        setErro(null);
+        setOffset(0);
+        setTemMaisAlbuns(true);
 
-        // Aqui você incluiria chamadas à API para buscar os dados reais
-        // Por enquanto, vamos usar dados fictícios para demonstração
+        // Buscar novos lançamentos de álbuns
+        try {
+          const novosLancamentosResponse = await buscarNovosLancamentos(
+            paisUsuario,
+            20,
+            0
+          );
+          if (novosLancamentosResponse && novosLancamentosResponse.albums) {
+            setAlbunsPopulares(novosLancamentosResponse.albums.items);
 
-        // Simular álbuns populares
-        setAlbunsPopulares([
-          {
-            id: "album1",
-            name: "Album Popular 1",
-            artists: [{ name: "Artista 1" }],
-            images: [{ url: "https://via.placeholder.com/300" }],
-            release_date: "2023-01-01",
-          },
-          {
-            id: "album2",
-            name: "Album Popular 2",
-            artists: [{ name: "Artista 2" }],
-            images: [{ url: "https://via.placeholder.com/300" }],
-            release_date: "2023-02-15",
-          },
-          {
-            id: "album3",
-            name: "Album Popular 3",
-            artists: [{ name: "Artista 3" }],
-            images: [{ url: "https://via.placeholder.com/300" }],
-            release_date: "2023-03-10",
-          },
-          {
-            id: "album4",
-            name: "Album Popular 4",
-            artists: [{ name: "Artista 4" }],
-            images: [{ url: "https://via.placeholder.com/300" }],
-            release_date: "2023-04-20",
-          },
-        ]);
+            // Obtém detalhes de cada álbum para saber o número de faixas
+            const detalhesPromises = novosLancamentosResponse.albums.items.map(
+              (album) => obterDetalhesAlbum(album)
+            );
 
-        // Simular artistas populares
-        setArtistasPopulares([
-          {
-            id: "artista1",
-            name: "Artista Popular 1",
-            images: [{ url: "https://via.placeholder.com/300" }],
-            followers: { total: 1000000 },
-          },
-          {
-            id: "artista2",
-            name: "Artista Popular 2",
-            images: [{ url: "https://via.placeholder.com/300" }],
-            followers: { total: 850000 },
-          },
-          {
-            id: "artista3",
-            name: "Artista Popular 3",
-            images: [{ url: "https://via.placeholder.com/300" }],
-            followers: { total: 750000 },
-          },
-          {
-            id: "artista4",
-            name: "Artista Popular 4",
-            images: [{ url: "https://via.placeholder.com/300" }],
-            followers: { total: 500000 },
-          },
-        ]);
+            const albumsDetalhados = await Promise.all(detalhesPromises);
 
-        // Simular singles recentes
-        setSinglesRecentes([
-          {
-            id: "single1",
-            name: "Single Recente 1",
-            artists: [{ name: "Artista 1" }],
-            images: [{ url: "https://via.placeholder.com/300" }],
-            release_date: "2023-05-01",
-          },
-          {
-            id: "single2",
-            name: "Single Recente 2",
-            artists: [{ name: "Artista 2" }],
-            images: [{ url: "https://via.placeholder.com/300" }],
-            release_date: "2023-05-15",
-          },
-          {
-            id: "single3",
-            name: "Single Recente 3",
-            artists: [{ name: "Artista 3" }],
-            images: [{ url: "https://via.placeholder.com/300" }],
-            release_date: "2023-06-01",
-          },
-          {
-            id: "single4",
-            name: "Single Recente 4",
-            artists: [{ name: "Artista 4" }],
-            images: [{ url: "https://via.placeholder.com/300" }],
-            release_date: "2023-06-15",
-          },
-        ]);
-      } catch (erro) {
-        console.error("Erro ao carregar dados para Descubra:", erro);
-      } finally {
+            // Filtra álbuns com mais de 5 faixas
+            const albumsFiltrados = albumsDetalhados.filter(
+              (album) => album.total_tracks > 5
+            );
+
+            setAlbumsComDetalhes(albumsFiltrados);
+            setOffset(20); // Prepara o próximo offset para rolagem infinita
+          }
+        } catch (error) {
+          console.error("Erro ao buscar novos lançamentos:", error);
+        }
+
+        // Buscar singles recentes
+        try {
+          const singlesResponse = await buscarSinglesRecentes(20);
+          if (singlesResponse && singlesResponse.albums) {
+            // Filtrar apenas os itens do tipo "single"
+            const apenasOsSingles = singlesResponse.albums.items.filter(
+              (item) => item.album_type === "single"
+            );
+            setSinglesRecentes(
+              apenasOsSingles.length > 0
+                ? apenasOsSingles
+                : singlesResponse.albums.items.slice(0, 20)
+            );
+
+            // Obtém detalhes de cada single para saber o número de faixas
+            const singlesDetalhesPromises = (
+              apenasOsSingles.length > 0
+                ? apenasOsSingles
+                : singlesResponse.albums.items.slice(0, 20)
+            ).map((single) => obterDetalhesAlbum(single));
+
+            const singlesDetalhados = await Promise.all(
+              singlesDetalhesPromises
+            );
+
+            // Filtra singles com exatamente 1 faixa
+            const singlesFiltrados = singlesDetalhados.filter(
+              (single) => single.total_tracks === 1
+            );
+
+            setSinglesComDetalhes(singlesFiltrados);
+          }
+        } catch (error) {
+          console.error("Erro ao buscar singles recentes:", error);
+        }
+
+        // Buscar artistas populares baseados no gênero "pop"
+        try {
+          const artistasResponse = await buscarArtistasPorGenero("pop", 10);
+          if (artistasResponse && artistasResponse.artists) {
+            // Ordenar por popularidade
+            const artistasOrdenados = [...artistasResponse.artists.items].sort(
+              (a, b) => b.popularity - a.popularity
+            );
+            setArtistasPopulares(artistasOrdenados);
+          }
+        } catch (error) {
+          console.error("Erro ao buscar artistas populares:", error);
+        }
+
+        // Buscar faixas mais tocadas
+        try {
+          const tracksResponse = await buscarTopTracks(paisUsuario, 10);
+          if (tracksResponse && tracksResponse.tracks) {
+            setTopTracks(tracksResponse.tracks);
+          }
+        } catch (error) {
+          console.error("Erro ao buscar top tracks:", error);
+        }
+
+        setCarregando(false);
+      } catch (error) {
+        console.error("Erro ao carregar dados para Descubra:", error);
+        setErro(error.message);
         setCarregando(false);
       }
     };
 
     carregarDados();
-  }, []);
+  }, [paisUsuario]);
 
   const gridCols = getGridCols();
 
@@ -207,333 +340,348 @@ const Descubra = () => {
     );
   }
 
-  // Determinar qual lista de resultados mostrar com base no tipo de conteúdo
-  let resultadosAtuais = [];
-  if (tipoConteudo === "albuns") {
-    resultadosAtuais = albunsPopulares;
-  } else if (tipoConteudo === "singles") {
-    resultadosAtuais = singlesRecentes;
-  } else {
-    resultadosAtuais = artistasPopulares;
+  // Exibir mensagem de erro se houver algum problema
+  if (erro) {
+    return (
+      <div className="flex flex-col items-center justify-center p-4 min-h-[300px] text-center">
+        <MdReportProblem className="text-amber-500 text-4xl mb-2" />
+        <h3 className="text-gray-300 text-xl font-semibold mb-2">
+          {t("feedback.errorLoading")}
+        </h3>
+        <p className="text-gray-400 mb-4 max-w-lg">{erro}</p>
+        <button
+          onClick={() => window.location.reload()}
+          className="px-4 py-2 bg-verde-escuro hover:bg-verde-destaque transition-colors text-white rounded-md"
+        >
+          {t("feedback.reload")}
+        </button>
+      </div>
+    );
   }
 
+  // Determinar quais itens mostrar com base no tipo de conteúdo selecionado
+  const itensMostrados = () => {
+    switch (tipoConteudo) {
+      case "albuns":
+        return albumsComDetalhes;
+      case "singles":
+        return singlesComDetalhes;
+      case "artistas":
+        return artistasPopulares;
+      default:
+        return [];
+    }
+  };
+
+  const getConteudoTitulo = () => {
+    switch (tipoConteudo) {
+      case "albuns":
+        return t("app.popularAlbums");
+      case "singles":
+        return t("app.recentSingles");
+      case "artistas":
+        return t("app.popularArtists");
+      default:
+        return "";
+    }
+  };
+
+  const getMensagemVazio = () => {
+    switch (tipoConteudo) {
+      case "albuns":
+        return t("app.noAlbumsFound");
+      case "singles":
+        return t("app.noSinglesFound");
+      case "artistas":
+        return t("app.noArtistsFound");
+      default:
+        return t("app.noItemsFound");
+    }
+  };
+
+  const getIconeConteudo = () => {
+    switch (tipoConteudo) {
+      case "albuns":
+        return <MdMusicNote className="mr-2 text-primary" />;
+      case "singles":
+        return <FaFire className="mr-2 text-primary" />;
+      case "artistas":
+        return <FaUser className="mr-2 text-primary" />;
+      default:
+        return <MdMusicNote className="mr-2 text-primary" />;
+    }
+  };
+
+  const itens = itensMostrados();
+
   return (
-    <div className="p-6">
-      {/* Cabeçalho com botão de alternância de conteúdo */}
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-verde-destaque flex items-center">
-          <FaFire className="mr-2 text-orange-500" />
-          {t("discover.title", "Descubra")}
+    <div className="p-4 md:p-8 mb-safe">
+      {/* Cabeçalho com título e botões de filtro */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
+        <h1 className="text-white text-2xl font-bold mb-4 sm:mb-0">
+          {t("app.discover")}
         </h1>
 
-        <div className="flex items-center gap-2">
-          {/* Botões para alternar entre tipos de conteúdo */}
-          <div className="flex bg-cinza-escuro rounded-full p-1 mr-2">
+        <div className="flex space-x-2 items-center justify-between w-full sm:w-auto">
+          {/* Seletor de tipo de conteúdo */}
+          <div className="flex space-x-1 bg-gray-800 rounded-lg p-1">
             <button
               onClick={() => alternarTipoConteudo("albuns")}
-              className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
+              className={`px-3 py-1.5 rounded-md text-sm ${
                 tipoConteudo === "albuns"
-                  ? "bg-verde-destaque text-gray-900"
-                  : "text-gray-300 hover:text-verde-destaque"
+                  ? "bg-verde-destaque text-black font-medium"
+                  : "text-gray-300 hover:bg-gray-700"
               }`}
             >
+              <MdMusicNote className="mr-1 inline-block" />
               {t("app.albums")}
             </button>
             <button
               onClick={() => alternarTipoConteudo("singles")}
-              className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
+              className={`px-3 py-1.5 rounded-md text-sm ${
                 tipoConteudo === "singles"
-                  ? "bg-verde-destaque text-gray-900"
-                  : "text-gray-300 hover:text-verde-destaque"
+                  ? "bg-verde-destaque text-black font-medium"
+                  : "text-gray-300 hover:bg-gray-700"
               }`}
             >
-              {t("app.singles", "Singles")}
+              <FaFire className="mr-1 inline-block" />
+              {t("app.singles")}
             </button>
             <button
               onClick={() => alternarTipoConteudo("artistas")}
-              className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
+              className={`px-3 py-1.5 rounded-md text-sm ${
                 tipoConteudo === "artistas"
-                  ? "bg-verde-destaque text-gray-900"
-                  : "text-gray-300 hover:text-verde-destaque"
+                  ? "bg-verde-destaque text-black font-medium"
+                  : "text-gray-300 hover:bg-gray-700"
               }`}
             >
+              <FaUser className="mr-1 inline-block" />
               {t("app.artists")}
             </button>
           </div>
 
-          {/* Botão para alternar modo de visualização */}
-          {resultadosAtuais && resultadosAtuais.length > 0 && (
+          {/* Seletor de modo de visualização */}
+          <div className="flex space-x-1 bg-gray-800 rounded-lg p-1">
             <button
               onClick={alternarModoVisualizacao}
-              className="text-sm bg-verde-destaque/20 hover:bg-verde-destaque/30 text-verde-destaque px-3 py-1 rounded-full transition-colors hover:cursor-pointer flex items-center gap-2"
-              title={
+              className={`px-2 py-1.5 rounded-md text-sm ${
                 modoVisualizacao === "grade"
-                  ? t("artistSearch.viewAsList", "Ver como lista")
-                  : t("artistSearch.viewAsGrid", "Ver como grade")
-              }
+                  ? "bg-gray-700 text-verde-destaque"
+                  : "text-gray-300"
+              }`}
+              aria-label="Visualização em grade"
+              title="Visualização em grade"
             >
-              {modoVisualizacao === "grade" ? (
-                <BsListUl className="text-verde-destaque" />
-              ) : (
-                <BsGrid3X3GapFill className="text-verde-destaque" />
-              )}
+              <BsGrid3X3GapFill />
             </button>
-          )}
+            <button
+              onClick={alternarModoVisualizacao}
+              className={`px-2 py-1.5 rounded-md text-sm ${
+                modoVisualizacao === "lista"
+                  ? "bg-gray-700 text-verde-destaque"
+                  : "text-gray-300"
+              }`}
+              aria-label="Visualização em lista"
+              title="Visualização em lista"
+            >
+              <BsListUl />
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* Conteúdo principal */}
-      {carregando ? (
-        <div className="flex justify-center">
+      {/* Loader - exibido enquanto os dados estão sendo carregados */}
+      {carregando && (
+        <div className="flex justify-center items-center h-64">
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-verde-destaque"></div>
         </div>
-      ) : resultadosAtuais && resultadosAtuais.length > 0 ? (
+      )}
+
+      {/* Conteúdo - exibido após o carregamento */}
+      {!carregando && (
         <div
-          className={`transition-opacity duration-180 ${
+          className={`transition-opacity duration-300 ${
             fade ? "opacity-100" : "opacity-0"
           }`}
         >
-          {/* Título da seção */}
-          <h2 className="text-xl font-semibold text-white mb-4">
-            {tipoConteudo === "albuns"
-              ? t("discover.popularAlbums", "Álbuns Populares")
-              : tipoConteudo === "singles"
-              ? t("discover.recentSingles", "Singles Recentes")
-              : t("discover.popularArtists", "Artistas Populares")}
-          </h2>
+          <section className="mb-12">
+            <h2 className="text-xl md:text-2xl font-bold mb-4 flex items-center">
+              {getIconeConteudo()}
+              {getConteudoTitulo()}
+              {tipoConteudo === "albuns" && paisUsuario !== "BR" && (
+                <span className="ml-2 text-sm text-gray-400">
+                  ({paisUsuario})
+                </span>
+              )}
+            </h2>
 
-          {/* === Renderização modo GRADE === */}
-          {modoVisualizacao === "grade" ? (
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: `repeat(${gridCols}, 1fr)`,
-                gap: "1rem",
-              }}
-            >
-              {resultadosAtuais.map((item) => (
-                <div
-                  key={item.id}
-                  className="bg-cinza-escuro rounded-xl overflow-hidden shadow-lg transition-all duration-300 hover:scale-[1.02] hover:shadow-xl flex flex-col h-full cursor-pointer relative hover:bg-cinza-escuro/90 group p-3"
-                  onClick={() => setItemSelecionado(item.id)}
-                  title={
-                    tipoConteudo === "albuns" || tipoConteudo === "singles"
-                      ? t("albumCard.viewTracks", "Ver faixas")
-                      : t("artistSearch.clickToSeeAlbums", "Ver álbuns")
-                  }
-                >
-                  {/* Imagem */}
-                  <div className="aspect-square overflow-hidden rounded-lg mb-3 bg-cinza-escuro">
-                    {tipoConteudo === "albuns" || tipoConteudo === "singles" ? (
-                      // Imagem do álbum ou single
-                      item.images && item.images.length > 0 ? (
-                        <img
-                          src={item.images[0].url}
-                          alt={t("albumCard.coverAlt", {
-                            albumName: item.name,
-                          })}
-                          className="w-full h-full object-cover"
-                          loading="lazy"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <MdMusicNote className="text-verde-destaque text-4xl" />
-                        </div>
-                      )
-                    ) : // Imagem do artista
-                    item.images && item.images.length > 0 ? (
+            {tipoConteudo === "artistas" ? (
+              // Mostrar artistas
+              artistasPopulares.length > 0 ? (
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
+                  {artistasPopulares.map((artista) => (
+                    <div
+                      key={artista.id}
+                      onClick={() => setItemSelecionado(artista.id)}
+                      className="cursor-pointer bg-card hover:bg-card-hover p-3 rounded-lg transition-all"
+                    >
                       <img
-                        src={item.images[0].url}
-                        alt={t("artistSearch.photoAlt", {
-                          artistName: item.name,
-                        })}
-                        className="w-full h-full object-cover"
-                        loading="lazy"
+                        src={
+                          artista.images && artista.images[0]
+                            ? artista.images[0].url
+                            : "https://via.placeholder.com/300"
+                        }
+                        alt={artista.name}
+                        className="w-full aspect-square object-cover rounded-full mb-2"
                       />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <FaUser className="text-verde-destaque text-4xl" />
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Nome e detalhes */}
-                  <div className="flex flex-col flex-grow">
-                    <h3
-                      className="font-bold text-sm md:text-base line-clamp-1 text-white"
-                      title={item.name}
-                    >
-                      {item.name}
-                    </h3>
-
-                    {/* Informações específicas por tipo */}
-                    {tipoConteudo === "albuns" || tipoConteudo === "singles" ? (
-                      <>
-                        <p className="text-verde-destaque text-xs md:text-sm line-clamp-1 mb-2">
-                          {item.artists && item.artists.length > 0
-                            ? item.artists
-                                .map((artist) => artist.name)
-                                .join(", ")
-                            : t(
-                                "albumCard.unknownArtist",
-                                "Artista desconhecido"
-                              )}
+                      <p className="font-semibold text-sm md:text-base truncate text-center">
+                        {artista.name}
+                      </p>
+                      {artista.followers && (
+                        <p className="text-xs md:text-sm text-muted text-center">
+                          {new Intl.NumberFormat(
+                            navigator.language || "pt-BR"
+                          ).format(artista.followers.total || 0)}{" "}
+                          {t("app.followers")}
                         </p>
-                        {item.release_date && (
-                          <span className="text-gray-400 text-xs">
-                            {t("albumSearch.releaseYear", {
-                              year: new Date(item.release_date).getFullYear(),
-                            })}
-                          </span>
-                        )}
-                      </>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="bg-card p-6 rounded-lg text-center">
+                  <FaUser className="mx-auto text-3xl text-primary mb-2" />
+                  <p className="text-lg font-medium">
+                    {t("app.noArtistsFound")}
+                  </p>
+                  <p className="text-sm text-muted mt-1">
+                    {t("app.tryRefreshing")}
+                  </p>
+                </div>
+              )
+            ) : // Mostrar álbuns ou singles
+            itens.length > 0 ? (
+              <div className="space-y-8">
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
+                  {itens.map((item) => (
+                    <div
+                      key={item.id}
+                      onClick={() => setItemSelecionado(item.id)}
+                      className="cursor-pointer bg-card hover:bg-card-hover p-3 rounded-lg transition-all"
+                    >
+                      <img
+                        src={
+                          item.images && item.images[0]
+                            ? item.images[0].url
+                            : "https://via.placeholder.com/300"
+                        }
+                        alt={item.name}
+                        className="w-full aspect-square object-cover rounded mb-2"
+                      />
+                      <p className="font-semibold text-sm md:text-base truncate">
+                        {item.name}
+                      </p>
+                      <p className="text-xs md:text-sm text-muted truncate">
+                        {item.artists &&
+                          item.artists.map((artist) => artist.name).join(", ")}
+                      </p>
+                      {item.total_tracks && (
+                        <p className="text-xs text-muted mt-1">
+                          {item.total_tracks}{" "}
+                          {item.total_tracks === 1
+                            ? t("app.track")
+                            : t("app.tracks")}
+                        </p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+
+                {/* Elemento de referência para rolagem infinita - só mostrado para álbuns */}
+                {tipoConteudo === "albuns" && temMaisAlbuns && (
+                  <div
+                    ref={loaderRef}
+                    className="w-full py-4 flex justify-center"
+                  >
+                    {carregandoMais ? (
+                      <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-verde-destaque"></div>
                     ) : (
-                      <>
-                        {item.followers && (
-                          <span className="text-gray-400 text-xs mt-1">
-                            {t("artistSearch.followers", {
-                              count: item.followers.total.toLocaleString(),
-                            })}
-                          </span>
-                        )}
-                      </>
+                      <p className="text-gray-500 text-sm">
+                        {t("app.scrollForMore")}
+                      </p>
                     )}
                   </div>
+                )}
+              </div>
+            ) : (
+              <div className="bg-card p-6 rounded-lg text-center">
+                <FaFire className="mx-auto text-3xl text-primary mb-2" />
+                <p className="text-lg font-medium">{getMensagemVazio()}</p>
+                <p className="text-sm text-muted mt-1">
+                  {t("app.tryRefreshing")}
+                </p>
+              </div>
+            )}
+          </section>
 
-                  {/* Botão de ação */}
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setItemSelecionado(item.id);
-                    }}
-                    className="mt-3 px-4 py-1.5 bg-verde-destaque text-cinza-escuro text-sm font-semibold rounded-lg hover:bg-verde-claro transition-colors w-full flex items-center justify-center"
+          {/* Top Tracks - sempre visível independente do filtro */}
+          <section className="mb-12">
+            <h2 className="text-xl md:text-2xl font-bold mb-4 flex items-center">
+              <FaFire className="mr-2 text-primary" />
+              {t("app.topTracks")}
+            </h2>
+            {topTracks.length > 0 ? (
+              <div className="bg-card rounded-lg overflow-hidden">
+                {topTracks.map((track, index) => (
+                  <div
+                    key={track.id}
+                    className="flex items-center p-3 border-b border-card-hover last:border-0 hover:bg-card-hover transition-colors"
                   >
-                    {tipoConteudo === "albuns" || tipoConteudo === "singles"
-                      ? t("albumSearch.viewTracks", "Avaliar")
-                      : t("artistSearch.viewAlbums", "Ver álbuns")}
-                  </button>
-                </div>
-              ))}
-            </div>
-          ) : (
-            // === Renderização modo LISTA ===
-            <div className="grid grid-cols-1 gap-3 md:gap-4">
-              {resultadosAtuais.map((item) => (
-                <div
-                  key={item.id}
-                  className="bg-cinza-escuro rounded-xl overflow-hidden shadow-lg transition-all duration-300 hover:scale-[1.02] hover:shadow-xl flex flex-col h-full cursor-pointer relative hover:bg-cinza-escuro/90 group"
-                  onClick={() => setItemSelecionado(item.id)}
-                  title={
-                    tipoConteudo === "albuns" || tipoConteudo === "singles"
-                      ? t("albumCard.viewTracks", "Ver faixas")
-                      : t("artistSearch.clickToSeeAlbums", "Ver álbuns")
-                  }
-                >
-                  <div className="flex h-full py-3 px-4 items-center">
-                    {/* Imagem */}
-                    <div className="flex-shrink-0 w-16 h-16 md:w-20 md:h-20 bg-cinza-escuro rounded-lg overflow-hidden">
-                      {tipoConteudo === "albuns" ||
-                      tipoConteudo === "singles" ? (
-                        // Imagem do álbum ou single
-                        item.images && item.images.length > 0 ? (
-                          <img
-                            src={item.images[0].url}
-                            alt={t("albumCard.coverAlt", {
-                              albumName: item.name,
-                            })}
-                            className="w-full h-full object-cover rounded-lg"
-                            loading="lazy"
-                          />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center rounded-lg">
-                            <MdMusicNote className="text-verde-destaque text-4xl" />
-                          </div>
-                        )
-                      ) : // Imagem do artista
-                      item.images && item.images.length > 0 ? (
-                        <img
-                          src={item.images[0].url}
-                          alt={t("artistSearch.photoAlt", {
-                            artistName: item.name,
-                          })}
-                          className="w-full h-full object-cover rounded-lg"
-                          loading="lazy"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center rounded-lg">
-                          <FaUser className="text-verde-destaque text-4xl" />
-                        </div>
-                      )}
+                    <div className="flex-shrink-0 w-8 text-center text-muted font-bold">
+                      {index + 1}
                     </div>
-
-                    {/* Informações */}
-                    <div className="ml-4 flex-grow flex flex-col">
-                      <h3 className="font-bold text-md md:text-lg text-white">
-                        {item.name}
-                      </h3>
-
-                      {tipoConteudo === "albuns" ||
-                      tipoConteudo === "singles" ? (
-                        <>
-                          <p className="text-verde-destaque text-sm">
-                            {item.artists && item.artists.length > 0
-                              ? item.artists
-                                  .map((artist) => artist.name)
-                                  .join(", ")
-                              : t(
-                                  "albumCard.unknownArtist",
-                                  "Artista desconhecido"
-                                )}
-                          </p>
-                          {item.release_date && (
-                            <span className="text-gray-400 text-xs mt-1">
-                              {t("albumSearch.releaseYear", {
-                                year: new Date(item.release_date).getFullYear(),
-                              })}
-                            </span>
-                          )}
-                        </>
-                      ) : (
-                        <>
-                          {item.followers && (
-                            <span className="text-gray-400 text-xs mt-1">
-                              {t("artistSearch.followers", {
-                                count: item.followers.total.toLocaleString(),
-                              })}
-                            </span>
-                          )}
-                        </>
-                      )}
+                    <div className="flex-shrink-0 w-12 h-12 mx-2">
+                      <img
+                        src={
+                          track.album &&
+                          track.album.images &&
+                          track.album.images[0]
+                            ? track.album.images[0].url
+                            : "https://via.placeholder.com/300"
+                        }
+                        alt={track.name}
+                        className="w-full h-full object-cover rounded"
+                      />
                     </div>
-
-                    {/* Botão de ação */}
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setItemSelecionado(item.id);
-                      }}
-                      className="ml-auto px-5 py-2 bg-verde-destaque text-cinza-escuro text-sm font-semibold rounded-lg hover:bg-verde-claro transition-colors"
-                    >
-                      {tipoConteudo === "albuns" || tipoConteudo === "singles"
-                        ? t("albumSearch.viewTracks", "Avaliar")
-                        : t("artistSearch.viewAlbums", "Ver álbuns")}
-                    </button>
+                    <div className="flex-grow min-w-0">
+                      <p className="font-semibold text-sm md:text-base truncate">
+                        {track.name}
+                      </p>
+                      <p className="text-xs md:text-sm text-muted truncate">
+                        {track.artists &&
+                          track.artists.map((artist) => artist.name).join(", ")}
+                      </p>
+                    </div>
+                    <div className="flex-shrink-0 text-xs text-muted">
+                      {track.duration_ms
+                        ? `${Math.floor(track.duration_ms / 60000)}:${(
+                            "0" + Math.floor((track.duration_ms % 60000) / 1000)
+                          ).slice(-2)}`
+                        : "--:--"}
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      ) : (
-        // Mensagem quando não há resultados
-        <div className="flex flex-col items-center justify-center py-12 px-4 bg-cinza-escuro rounded-xl">
-          <MdReportProblem className="text-amber-500 text-5xl mb-4" />
-          <p className="text-gray-300 text-lg font-medium text-center">
-            {t("discover.noContent", "Nenhum conteúdo disponível no momento")}
-          </p>
-          <p className="text-gray-500 mt-1 text-center max-w-md">
-            {t("discover.tryLater", "Por favor, tente novamente mais tarde")}
-          </p>
+                ))}
+              </div>
+            ) : (
+              <div className="bg-card p-6 rounded-lg text-center">
+                <FaFire className="mx-auto text-3xl text-primary mb-2" />
+                <p className="text-lg font-medium">{t("app.noTracksFound")}</p>
+                <p className="text-sm text-muted mt-1">
+                  {t("app.tryRefreshing")}
+                </p>
+              </div>
+            )}
+          </section>
         </div>
       )}
     </div>

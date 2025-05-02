@@ -7,6 +7,7 @@ import BandeiraEUA from "../assets/Flag_of_the_United_States.svg";
 import { FaInstagram } from "react-icons/fa";
 import { useAuth } from "../contexts/AuthContext";
 import { auth } from "../services/firebase";
+import Typewriter from "typewriter-effect";
 
 const Splash = () => {
   const navigate = useNavigate();
@@ -71,24 +72,34 @@ const Splash = () => {
           />
         </div>
 
-        <h1 className="text-3xl md:text-4xl font-bold text-verde-destaque mb-6 animate-fadeIn text-center">
+        <h1 className="text-3xl md:text-4xl font-bold text-verde-destaque mb-6 text-center">
           Track by Track
         </h1>
 
         <p
-          className="text-gray-300 mb-8 animate-fadeIn w-80 text-center mx-auto"
+          className="text-gray-300 mb-8 animate-fadeIn w-80 text-center mx-auto min-h-[56px]"
           style={{ animationDelay: "0.3s" }}
         >
-          {t(
-            "splash.description",
-            "Seu app para descobrir, avaliar e registrar todos os álbuns que você ouvir."
-          )}
+          <Typewriter
+            options={{
+              strings: [
+                isPortuguese
+                  ? "Descubra novos álbuns.<br/>Avalie faixa por faixa.<br/>Registre tudo em um só lugar."
+                  : "Discover new albums.<br/>Rate track by track.<br/>Keep everything in one place.",
+              ],
+              autoStart: true,
+              loop: false,
+              delay: 35,
+              deleteSpeed: 0,
+              pauseFor: 999999,
+            }}
+            onInit={(typewriter) => {
+              typewriter.options.html = true;
+            }}
+          />
         </p>
 
-        <div
-          className="animate-fadeIn mb-6 text-center"
-          style={{ animationDelay: "0.6s" }}
-        >
+        <div className="mb-6 text-center" style={{ animationDelay: "0.6s" }}>
           <button
             onClick={handleContinue}
             className="bg-verde-destaque text-gray-900 font-bold py-3 px-8 rounded-full hover:bg-opacity-90 transition-all transform hover:scale-105 cursor-pointer"
@@ -99,7 +110,7 @@ const Splash = () => {
 
         {/* Instagram - Splash Screen */}
         <div
-          className="flex justify-center mt-5 mb-6 animate-fadeIn text-center"
+          className="flex justify-center mt-5 mb-6 text-center"
           style={{ animationDelay: "0.75s" }}
         >
           <a
@@ -120,7 +131,7 @@ const Splash = () => {
 
         {/* Seletor de idioma simplificado com bandeiras - Apenas para dispositivos móveis */}
         <div
-          className="flex justify-center items-center gap-6 mt-6 animate-fadeIn text-center"
+          className="flex justify-center items-center gap-6 mt-6 text-center"
           style={{ animationDelay: "0.9s" }}
         >
           {/* Bandeira do Brasil */}
@@ -160,7 +171,7 @@ const Splash = () => {
 
         {/* Links para Política de Privacidade e Termos de Uso */}
         <div
-          className="flex justify-center items-center gap-4 mt-8 animate-fadeIn text-center"
+          className="flex justify-center items-center gap-4 mt-8 text-center"
           style={{ animationDelay: "1s" }}
         >
           <Link

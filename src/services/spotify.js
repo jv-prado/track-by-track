@@ -184,23 +184,21 @@ export async function buscarArtista(nomeArtista) {
 /**
  * Busca álbuns pelo nome
  * @param {string} nomeAlbum - Nome do álbum a ser buscado
+ * @param {number} limit - Número máximo de álbuns a serem retornados (padrão: 20)
+ * @param {number} offset - Número de álbuns a serem ignorados (padrão: 0)
  * @returns {Promise<Object>} Dados dos álbuns encontrados
  */
-export async function buscarAlbum(nomeAlbum) {
+export async function buscarAlbum(nomeAlbum, limit = 20, offset = 0) {
   try {
-    // Se estiver em modo demo, retornar dados mockados
     if (isDemoMode()) {
       return mockData.albums;
     }
-
     const token = await getToken();
     const nomeAlbumEncodificado = encodeURIComponent(nomeAlbum);
-
     const data = await fetchWithErrorHandling(
-      `${URL_BASE}search?q=${nomeAlbumEncodificado}&type=album`,
+      `${URL_BASE}search?q=${nomeAlbumEncodificado}&type=album&limit=${limit}&offset=${offset}`,
       getAuthHeaders(token)
     );
-
     return data.albums;
   } catch (error) {
     throw new Error(`Não foi possível buscar o álbum: ${error.message}`);
@@ -296,23 +294,21 @@ export async function buscarDetalhesAlbum(albumId) {
 /**
  * Busca singles pelo nome
  * @param {string} nomeSingle - Nome do single a ser buscado
+ * @param {number} limit - Número máximo de singles a serem retornados (padrão: 20)
+ * @param {number} offset - Número de singles a serem ignorados (padrão: 0)
  * @returns {Promise<Object>} Dados dos singles encontrados
  */
-export async function buscarSingle(nomeSingle) {
+export async function buscarSingle(nomeSingle, limit = 20, offset = 0) {
   try {
-    // Se estiver em modo demo, retornar dados mockados
     if (isDemoMode()) {
-      return mockData.albums; // Usando o mesmo mock de albums por enquanto
+      return mockData.albums;
     }
-
     const token = await getToken();
     const nomeSingleEncodificado = encodeURIComponent(nomeSingle);
-
     const data = await fetchWithErrorHandling(
-      `${URL_BASE}search?q=${nomeSingleEncodificado}&type=album&include_groups=single`,
+      `${URL_BASE}search?q=${nomeSingleEncodificado}&type=album&include_groups=single&limit=${limit}&offset=${offset}`,
       getAuthHeaders(token)
     );
-
     return data.albums;
   } catch (error) {
     throw new Error(`Não foi possível buscar o single: ${error.message}`);

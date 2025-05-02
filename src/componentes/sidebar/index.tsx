@@ -258,6 +258,16 @@ export default function Sidebar({ activeView, setActiveView }) {
                     navigate("/feed");
                   }}
                 />
+                {/* <SidebarItem
+                  icon={FaCompass}
+                  text={t("app.discover")}
+                  iconSize="text-2xl md:text-3xl"
+                  active={activeView === "descubra"}
+                  onClick={() => {
+                    setActiveView("descubra");
+                    navigate("/descubra");
+                  }}
+                /> */}
                 <SidebarItem
                   icon={IoSearchOutline}
                   text={t("app.search")}
@@ -322,6 +332,23 @@ export default function Sidebar({ activeView, setActiveView }) {
             <FaGlobe className="text-xl" />
             <span className="text-xs mt-1">{t("app.feed")}</span>
           </button>
+
+          {/*
+          <button
+            onClick={() => {
+              setActiveView("descubra");
+              navigate("/descubra");
+            }}
+            className={`flex flex-col items-center justify-center pt-1 pb-1 px-2 rounded-lg ${
+              activeView === "descubra"
+                ? "text-verde-destaque bg-verde-destaque/10"
+                : "text-gray-400"
+            }`}
+          >
+            <FaCompass className="text-xl" />
+            <span className="text-xs mt-1">{t("app.discover")}</span>
+          </button>
+          */}
 
           <button
             onClick={() => {

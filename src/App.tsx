@@ -350,6 +350,12 @@ function App() {
                 }
               />
               <Route
+                path="/descubra"
+                element={
+                  <Feed activeView="descubra" termoPesquisa={termoPesquisa} />
+                }
+              />
+              <Route
                 path="/albuns"
                 element={
                   <Feed activeView="albuns" termoPesquisa={termoPesquisa} />

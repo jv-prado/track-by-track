@@ -4,7 +4,7 @@ import { buscarArtista } from "../../services/spotify";
 import { buscarSingle } from "../../services/spotify";
 import DetalhesAlbum from "./DetalhesAlbum";
 import ListaAlbuns from "./ListaAlbuns";
-import { MdMusicNote, MdReportProblem } from "react-icons/md";
+import { MdMusicNote, MdAlbum, MdReportProblem } from "react-icons/md";
 import { FaUser } from "react-icons/fa";
 import { useTranslation } from "react-i18next";
 import { BsGrid3X3GapFill, BsListUl } from "react-icons/bs";
@@ -243,7 +243,7 @@ const Pesquisar = ({ termoPesquisa }) => {
                       : "text-gray-300 hover:bg-gray-700"
                   }`}
                 >
-                  <MdMusicNote className="mr-1 inline-block" />
+                  <MdAlbum className="mr-1 inline-block" />
                   {t("app.albums")}
                 </button>
                 <span className="border-l border-gray-600 h-5 mx-1" />

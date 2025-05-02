@@ -24,30 +24,20 @@ const SpotifyCallback = () => {
   const { verificarOutrosMetodosAutenticacao } = useAuth();
 
   useEffect(() => {
-    alert("[DEBUG] SpotifyCallback useEffect montado");
     console.log("[DEBUG] SpotifyCallback useEffect montado");
     // Forçar autenticação customizada se houver perfil em cache
     const perfilCache = JSON.parse(
       localStorage.getItem("spotify_user_profile") || "{}"
     );
     if (perfilCache && perfilCache.id && perfilCache.id !== "spotify_user") {
-      alert(
-        "[DEBUG] Forçando autenticação customizada com ID do cache: " +
-          perfilCache.id
-      );
       console.log(
         "[DEBUG] Forçando autenticação customizada com ID do cache:",
         perfilCache.id
       );
       autenticarComSpotify(perfilCache.id).then((res) => {
-        alert("[DEBUG] Resultado autenticarComSpotify: " + JSON.stringify(res));
         console.log("[DEBUG] Resultado autenticarComSpotify:", res);
       });
     } else {
-      alert(
-        "[DEBUG] ID do Spotify inválido para autenticação customizada: " +
-          perfilCache.id
-      );
       console.log(
         "[DEBUG] ID do Spotify inválido para autenticação customizada:",
         perfilCache.id
@@ -229,10 +219,6 @@ const SpotifyCallback = () => {
             localStorage.setItem(
               "spotify_user_profile",
               JSON.stringify(perfilCache)
-            );
-            alert(
-              "[DEBUG] Perfil do Spotify salvo no cache com ID: " +
-                perfilUsuario.id
             );
 
             // Salvar o perfil completo no cache da API

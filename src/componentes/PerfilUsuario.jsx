@@ -8,6 +8,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import { FaCamera } from "react-icons/fa";
 import { useTranslation } from "react-i18next";
+import { getFirestore, doc, getDoc } from "firebase/firestore";
 
 export default function PerfilUsuario() {
   const { t, i18n } = useTranslation();
@@ -17,6 +18,7 @@ export default function PerfilUsuario() {
   const fileInputRef = useRef(null);
   const { usuario: usuarioFirebase, usuarioDemo, usuarioAtivo } = useAuth();
   const navigate = useNavigate();
+  const [emailSpotify, setEmailSpotify] = useState("");
 
   useEffect(() => {
     // Verificar se o usuário está logado no Firebase ou em modo Demo
@@ -25,6 +27,103 @@ export default function PerfilUsuario() {
     if (usuarioFirebase?.photoURL) {
       setFotoPerfil(usuarioFirebase.photoURL);
     }
+
+    // Buscar email do usuariosSpotify
+    async function fetchEmailSpotify() {
+      try {
+        console.log("Tentando buscar email do Spotify");
+
+        // Verificar usuário Firebase
+        if (usuarioFirebase) {
+          console.log("Usuário Firebase encontrado:", usuarioFirebase.uid);
+
+          // Verificar se é um usuário Spotify pelo UID
+          let spotifyId = null;
+
+          // Opção 1: Extrair do UID do Firebase (para tokens customizados)
+          if (usuarioFirebase.uid.startsWith("spotify_")) {
+            spotifyId = usuarioFirebase.uid.replace("spotify_", "");
+            console.log("ID Spotify extraído do UID:", spotifyId);
+          }
+
+          // Opção 2: Verificar método de autenticação alternativo
+          if (!spotifyId) {
+            const authMethod = localStorage.getItem("spotify_auth_method");
+            if (authMethod) {
+              console.log("Método de autenticação encontrado:", authMethod);
+
+              // Buscar do localStorage
+              const perfilCache = JSON.parse(
+                localStorage.getItem("spotify_user_profile") || "{}"
+              );
+
+              if (
+                perfilCache &&
+                perfilCache.id &&
+                perfilCache.id !== "spotify_user"
+              ) {
+                spotifyId = perfilCache.id;
+                console.log("ID Spotify extraído do cache:", spotifyId);
+              }
+            }
+          }
+
+          // Se encontrou um ID do Spotify, buscar o email na coleção
+          if (spotifyId) {
+            console.log(
+              "Buscando documento na coleção usuariosSpotify para ID:",
+              spotifyId
+            );
+
+            const db = getFirestore();
+            const userRef = doc(db, "usuariosSpotify", spotifyId);
+
+            try {
+              const userDoc = await getDoc(userRef);
+
+              if (userDoc.exists()) {
+                const userData = userDoc.data();
+                console.log("Documento encontrado:", userData);
+
+                // Verificar campo de email
+                const email = userData.email;
+                if (email) {
+                  console.log("Email encontrado:", email);
+                  setEmailSpotify(email);
+                } else {
+                  console.log("Email não encontrado no documento");
+                  // Fallback para o email do Firebase
+                  setEmailSpotify(usuarioFirebase.email || "");
+                }
+              } else {
+                console.log("Documento não encontrado");
+                // Fallback para o email do Firebase
+                setEmailSpotify(usuarioFirebase.email || "");
+              }
+            } catch (firestoreError) {
+              console.error("Erro ao buscar documento:", firestoreError);
+              // Fallback para o email do Firebase
+              setEmailSpotify(usuarioFirebase.email || "");
+            }
+          } else {
+            console.log(
+              "ID do Spotify não encontrado, usando email do Firebase"
+            );
+            setEmailSpotify(usuarioFirebase.email || "");
+          }
+        } else {
+          console.log("Usuário Firebase não encontrado");
+        }
+      } catch (error) {
+        console.error("Erro ao buscar email do Spotify:", error);
+        // Fallback para o email do Firebase se disponível
+        if (usuarioFirebase?.email) {
+          setEmailSpotify(usuarioFirebase.email);
+        }
+      }
+    }
+
+    fetchEmailSpotify();
   }, [usuarioFirebase]);
 
   const handleLogout = async () => {
@@ -164,9 +263,7 @@ export default function PerfilUsuario() {
               : usuarioFirebase?.displayName || t("userProfile.user")}
           </p>
           <p className="text-xs text-gray-400 truncate">
-            {usuarioDemo
-              ? t("userProfile.demoMode")
-              : usuarioFirebase?.email || ""}
+            {usuarioDemo ? t("userProfile.demoMode") : emailSpotify || ""}
           </p>
         </div>
       </div>

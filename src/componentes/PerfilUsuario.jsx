@@ -20,6 +20,11 @@ export default function PerfilUsuario() {
   const navigate = useNavigate();
   const [emailSpotify, setEmailSpotify] = useState("");
 
+  const redirectUri =
+    import.meta.env.MODE === "production"
+      ? "https://www.trackbytrackapp.com/callback"
+      : "http://localhost:5173/callback";
+
   useEffect(() => {
     // Verificar se o usuário está logado no Firebase ou em modo Demo
     setCarregando(false);

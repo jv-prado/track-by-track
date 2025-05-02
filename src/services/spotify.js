@@ -26,11 +26,25 @@ const getToken = async () => {
   // Verificar se temos um token de usuário
   const userToken = getAuthToken();
   if (userToken) {
+    console.log("Usando token de usuário autenticado");
     return userToken;
   }
 
-  // Se não temos token de usuário, usar o token de cliente
-  return await getSpotifyToken();
+  // Verificar se estamos no modo demo
+  if (isDemoMode()) {
+    console.log("Usando token de modo demo");
+    return "demo_token";
+  }
+
+  // Se não temos token de usuário nem estamos em modo demo,
+  // esperamos que o usuário faça login antes de usar funcionalidades que precisam de autenticação
+  console.log("Nenhum token de usuário disponível. É necessário fazer login.");
+
+  // Verificar se temos um token de cliente em último caso (funcionalidades públicas)
+  // Evitamos usar isso para funções que exigem autenticação do usuário
+  const clientToken = await getSpotifyToken();
+  console.log("Usando token de cliente (funcionalidades limitadas)");
+  return clientToken;
 };
 
 // Dados mockados para o modo de demonstração
@@ -103,8 +117,16 @@ const mockData = {
 
 // Verifica se está em modo de demonstração
 const isDemoMode = () => {
-  const token = getAuthToken();
-  return token && token.startsWith("demo_");
+  // Verificar explicitamente o modo demo através da flag no localStorage
+  const demoMode = localStorage.getItem("demo_mode") === "true";
+
+  // Verificar se há um token demo válido
+  const demoToken = localStorage.getItem("demo_token");
+  const demoExpiry = localStorage.getItem("demo_token_expiry");
+  const demoTokenValido =
+    demoToken && demoExpiry && parseInt(demoExpiry) > Date.now();
+
+  return demoMode || demoTokenValido;
 };
 
 /**
@@ -164,10 +186,25 @@ export async function buscarArtista(nomeArtista) {
   try {
     // Se estiver em modo demo, retornar dados mockados
     if (isDemoMode()) {
+      console.log("Usando dados mockados no modo demo");
       return mockData.artists;
     }
 
+    // Verificar se o usuário está autenticado
+    if (!estaAutenticado()) {
+      console.log("Usuário não está autenticado para buscar artistas");
+      throw new Error("É necessário fazer login para buscar artistas");
+    }
+
     const token = await getToken();
+    if (!token) {
+      console.error("Não foi possível obter um token válido");
+      throw new Error(
+        "Não foi possível autenticar. Por favor, faça login novamente."
+      );
+    }
+
+    console.log("Buscando artista com token válido");
     const nomeArtistaEncodificado = encodeURIComponent(nomeArtista);
 
     const data = await fetchWithErrorHandling(
@@ -177,6 +214,7 @@ export async function buscarArtista(nomeArtista) {
 
     return data.artists;
   } catch (error) {
+    console.error("Erro ao buscar artista:", error);
     throw new Error(`Não foi possível buscar o artista: ${error.message}`);
   }
 }
@@ -314,3 +352,519 @@ export async function buscarSingle(nomeSingle, limit = 20, offset = 0) {
     throw new Error(`Não foi possível buscar o single: ${error.message}`);
   }
 }
+
+// Configuração da autenticação Spotify
+const SPOTIFY_CLIENT_ID = "fc70ea11d5414f3ca0d81d376fe3dc76"; // Substitua pelo seu Client ID
+
+// IMPORTANTE: O REDIRECT_URI deve ser exatamente igual ao configurado no dashboard do Spotify
+// Não deve ter barra final (/) no final se não tiver no dashboard
+// Deve ser consistente em todo o aplicativo
+const REDIRECT_URI = (() => {
+  const uri = `${window.location.origin}/callback`;
+  // Logar o URI para debugging
+  console.log("Configurando REDIRECT_URI:", uri);
+  console.log(
+    "IMPORTANTE: Este URI deve ser exatamente igual ao configurado no Spotify Developer Dashboard"
+  );
+  return uri;
+})();
+
+// Escopos solicitados
+const SCOPES = [
+  "user-read-private",
+  "user-read-email",
+  "user-top-read",
+  "user-library-read",
+  "playlist-read-private",
+  "user-read-recently-played",
+];
+
+// Gera uma string aleatória para o state
+const generateRandomString = (length) => {
+  const possible =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  let text = "";
+
+  for (let i = 0; i < length; i++) {
+    text += possible.charAt(Math.floor(Math.random() * possible.length));
+  }
+  return text;
+};
+
+// Função para gerar um code verifier para PKCE
+const generateCodeVerifier = (length = 64) => {
+  const possible =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  const values = crypto.getRandomValues(new Uint8Array(length));
+  return values.reduce((acc, x) => acc + possible[x % possible.length], "");
+};
+
+// Função para calcular o code challenge a partir do code verifier
+const generateCodeChallenge = async (codeVerifier) => {
+  try {
+    // Converte a string do code verifier para um array de bytes
+    const encoder = new TextEncoder();
+    const data = encoder.encode(codeVerifier);
+
+    // Calcula o hash SHA-256 do array de bytes
+    const digest = await window.crypto.subtle.digest("SHA-256", data);
+
+    // Converte o hash para base64url (importante seguir RFC corretamente)
+    return btoa(String.fromCharCode.apply(null, new Uint8Array(digest)))
+      .replace(/\+/g, "-")
+      .replace(/\//g, "_")
+      .replace(/=+$/, "");
+  } catch (error) {
+    console.error("Erro ao gerar code challenge:", error);
+    throw error;
+  }
+};
+
+// Inicia o fluxo de autenticação com PKCE
+export const iniciarLoginSpotify = async () => {
+  try {
+    console.log("Iniciando fluxo de autenticação com Spotify PKCE");
+    console.log("Redirect URI:", REDIRECT_URI);
+    console.log("Client ID:", SPOTIFY_CLIENT_ID);
+
+    // Limpar TODOS os tokens e dados de autenticação anteriores
+    // Isso evita conflitos entre tokens de cliente e tokens de usuário
+    localStorage.removeItem("pkce_code_verifier");
+    localStorage.removeItem("spotify_auth_state");
+    localStorage.removeItem("spotify_access_token");
+    localStorage.removeItem("spotify_refresh_token");
+    localStorage.removeItem("spotify_token_expires_at");
+    // Limpar código usado anteriormente
+    sessionStorage.removeItem("spotify_code_used");
+
+    // Gerar e armazenar o code verifier
+    const codeVerifier = generateCodeVerifier(64);
+    localStorage.setItem("pkce_code_verifier", codeVerifier);
+
+    // Verificar se foi salvo corretamente
+    const storedVerifier = localStorage.getItem("pkce_code_verifier");
+    console.log(
+      "Code verifier armazenado com sucesso:",
+      storedVerifier === codeVerifier
+    );
+
+    if (storedVerifier !== codeVerifier) {
+      console.error("ERRO: Code verifier não foi armazenado corretamente");
+      return;
+    }
+
+    // Gerar code challenge a partir do code verifier
+    const codeChallenge = await generateCodeChallenge(codeVerifier);
+
+    // Gerar state aleatório
+    const state = generateRandomString(16);
+    localStorage.setItem("spotify_auth_state", state);
+
+    // Construir URL de autorização com os parâmetros necessários
+    const authUrl = new URL("https://accounts.spotify.com/authorize");
+
+    // Garantir que todos os parâmetros são adicionados corretamente
+    const params = new URLSearchParams();
+    params.append("client_id", SPOTIFY_CLIENT_ID);
+    params.append("response_type", "code");
+    params.append("redirect_uri", REDIRECT_URI);
+    params.append("state", state);
+    params.append("scope", SCOPES.join(" "));
+    params.append("code_challenge_method", "S256");
+    params.append("code_challenge", codeChallenge);
+    params.append("show_dialog", "true"); // Força a mostrar o diálogo mesmo que o usuário já tenha autorizado
+
+    authUrl.search = params.toString();
+
+    console.log("Code verifier gerado:", codeVerifier.substring(0, 10) + "...");
+    console.log(
+      "Code challenge gerado:",
+      codeChallenge.substring(0, 10) + "..."
+    );
+    console.log("URL de autorização completa:", authUrl.toString());
+
+    // Verificar o conteúdo do localStorage antes do redirecionamento
+    console.log("Conteúdo do localStorage antes do redirecionamento:");
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key.includes("spotify") || key.includes("pkce")) {
+        console.log(`${key}: ${localStorage.getItem(key).substring(0, 20)}...`);
+      }
+    }
+
+    // Redirecionar para a página de autorização do Spotify
+    window.location.href = authUrl.toString();
+  } catch (error) {
+    console.error("Erro ao iniciar fluxo de autenticação:", error);
+  }
+};
+
+// Troca o código de autorização pelo token de acesso usando PKCE
+export const trocarCodePorToken = async (code) => {
+  try {
+    console.log("Iniciando troca de código por token");
+
+    // Verificar se o código já foi usado (checar no sessionStorage)
+    const codeUsed = sessionStorage.getItem("spotify_code_used");
+    if (codeUsed === code) {
+      console.error("Este código de autorização já foi usado anteriormente");
+      return false;
+    }
+
+    // Marcar como usado imediatamente para evitar chamadas duplicadas
+    sessionStorage.setItem("spotify_code_processing", code);
+
+    // Recuperar o code verifier armazenado anteriormente
+    const codeVerifier = localStorage.getItem("pkce_code_verifier");
+
+    if (!codeVerifier) {
+      console.error("Code verifier não encontrado no localStorage");
+      return false;
+    }
+
+    // Registrar mais detalhes para debug
+    console.log("========== DETALHES DA TROCA DE TOKEN ==========");
+    console.log(
+      "Code verifier recuperado:",
+      codeVerifier.substring(0, 10) + "..."
+    );
+    console.log(
+      "Código de autorização (primeiros 10 caracteres):",
+      code.substring(0, 10) + "..."
+    );
+    console.log("Redirect URI usado:", REDIRECT_URI);
+    console.log("Client ID:", SPOTIFY_CLIENT_ID);
+    console.log("=================================================");
+
+    // Garantir que o URL seja exatamente o mesmo usado na autorização
+    // O Spotify é extremamente sensível a diferenças, até mesmo barras finais
+    const tokenUrl = "https://accounts.spotify.com/api/token";
+    const params = new URLSearchParams();
+    params.append("client_id", SPOTIFY_CLIENT_ID);
+    params.append("grant_type", "authorization_code");
+    params.append("code", code);
+    params.append("redirect_uri", REDIRECT_URI);
+    params.append("code_verifier", codeVerifier);
+
+    console.log("Parâmetros da requisição:", {
+      client_id: SPOTIFY_CLIENT_ID,
+      grant_type: "authorization_code",
+      code: code.substring(0, 10) + "...",
+      redirect_uri: REDIRECT_URI,
+      code_verifier: codeVerifier.substring(0, 10) + "...",
+    });
+
+    const payload = {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: params,
+    };
+
+    console.log(`Fazendo requisição para ${tokenUrl}`);
+    const response = await fetch(tokenUrl, payload);
+
+    if (!response.ok) {
+      console.error(
+        `Erro na resposta do endpoint de token: ${response.status}`
+      );
+
+      try {
+        const errorText = await response.text();
+        console.error(`Detalhes do erro:`, errorText);
+
+        // Tentar fazer parse do JSON mesmo se houver erro
+        try {
+          const errorData = JSON.parse(errorText);
+          console.error("Erro decodificado:", errorData);
+
+          // Verificar problemas específicos
+          if (errorData.error === "invalid_grant") {
+            console.error(
+              "O código de autorização é inválido, já foi usado ou expirou."
+            );
+
+            // Limpar o verifier para forçar uma nova autorização
+            localStorage.removeItem("pkce_code_verifier");
+            localStorage.removeItem("spotify_auth_state");
+          } else if (errorData.error === "invalid_client") {
+            console.error(
+              "Client ID inválido ou não autorizado para este redirect_uri."
+            );
+          }
+        } catch (jsonError) {
+          // Erro não é JSON válido
+          console.error("Não foi possível fazer parse do erro como JSON");
+        }
+      } catch (textError) {
+        console.error("Não foi possível obter texto do erro");
+      }
+
+      // Remover o código em processamento, pois falhou
+      sessionStorage.removeItem("spotify_code_processing");
+      return false;
+    }
+
+    const data = await response.json();
+    console.log("Resposta recebida do endpoint de token:", {
+      access_token: data.access_token ? "Present" : "Missing",
+      refresh_token: data.refresh_token ? "Present" : "Missing",
+      expires_in: data.expires_in,
+      token_type: data.token_type,
+    });
+
+    if (data.access_token) {
+      console.log("Token de acesso recebido com sucesso");
+      const expiresAt = Date.now() + data.expires_in * 1000;
+      localStorage.setItem("spotify_access_token", data.access_token);
+      localStorage.setItem("spotify_token_expires_at", expiresAt.toString());
+
+      if (data.refresh_token) {
+        localStorage.setItem("spotify_refresh_token", data.refresh_token);
+      }
+
+      // Remover a flag de processamento
+      sessionStorage.removeItem("spotify_code_processing");
+
+      // Marcar o código como usado permanentemente
+      sessionStorage.setItem("spotify_code_used", code);
+
+      // Limpeza do verifier pois não é mais necessário
+      localStorage.removeItem("pkce_code_verifier");
+
+      return true;
+    } else {
+      console.error("Token de acesso não recebido na resposta");
+      // Remover o código em processamento, pois falhou
+      sessionStorage.removeItem("spotify_code_processing");
+      return false;
+    }
+  } catch (error) {
+    console.error("Erro ao trocar código por token:", error);
+    // Remover o código em processamento em caso de erro
+    sessionStorage.removeItem("spotify_code_processing");
+    return false;
+  }
+};
+
+// Verifica se o token está válido
+export const verificarToken = () => {
+  const accessToken = localStorage.getItem("spotify_access_token");
+  const expiresAt = localStorage.getItem("spotify_token_expires_at");
+
+  if (!accessToken || !expiresAt) {
+    return false;
+  }
+
+  // Se estiver a menos de 5 minutos de expirar, consideramos expirado
+  return Date.now() < parseInt(expiresAt) - 5 * 60 * 1000;
+};
+
+// Atualiza o token usando refresh_token
+export const atualizarToken = async () => {
+  const refreshToken = localStorage.getItem("spotify_refresh_token");
+
+  if (!refreshToken) {
+    console.log("Não há refresh token disponível");
+    return false;
+  }
+
+  // Verificar se o refresh token parece ser válido
+  if (refreshToken.length < 20) {
+    console.error("Refresh token parece inválido (muito curto)");
+    logout(); // Limpar tokens inválidos
+    return false;
+  }
+
+  try {
+    console.log("Tentando atualizar token com refresh token");
+    const tokenUrl = "https://accounts.spotify.com/api/token";
+    const payload = {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: new URLSearchParams({
+        grant_type: "refresh_token",
+        refresh_token: refreshToken,
+        client_id: SPOTIFY_CLIENT_ID,
+      }),
+    };
+
+    console.log("Enviando requisição para atualizar token");
+    const response = await fetch(tokenUrl, payload);
+
+    if (!response.ok) {
+      console.error(`Erro ao atualizar token: ${response.status}`);
+
+      // Log para debug
+      try {
+        const errorText = await response.text();
+        console.error("Erro detalhado:", errorText);
+      } catch (e) {
+        // Ignora erros ao tentar ler o corpo da resposta
+      }
+
+      // Se o refresh token for inválido ou expirado, limpar os tokens
+      if (response.status === 400 || response.status === 401) {
+        console.log("Refresh token inválido ou expirado. Limpando tokens...");
+        logout();
+      }
+      return false;
+    }
+
+    const data = await response.json();
+
+    if (data.access_token) {
+      console.log("Token atualizado com sucesso");
+      const expiresAt = Date.now() + data.expires_in * 1000;
+      localStorage.setItem("spotify_access_token", data.access_token);
+
+      // Atualiza o refresh token se um novo for fornecido
+      if (data.refresh_token) {
+        console.log("Novo refresh token recebido e armazenado");
+        localStorage.setItem("spotify_refresh_token", data.refresh_token);
+      }
+
+      localStorage.setItem("spotify_token_expires_at", expiresAt.toString());
+
+      // Log para confirmar quanto tempo o token é válido
+      const expiresIn = Math.floor((expiresAt - Date.now()) / 1000 / 60); // em minutos
+      console.log(`Novo token expira em ${expiresIn} minutos`);
+
+      return true;
+    }
+
+    console.error("Resposta não contém access_token:", data);
+    return false;
+  } catch (error) {
+    console.error("Erro ao atualizar token:", error);
+    return false;
+  }
+};
+
+// Faz chamadas para a API do Spotify
+export const chamadaAPI = async (endpoint, method = "GET", body = null) => {
+  // Verifica se o token está válido, se não, tenta atualizar
+  if (!verificarToken()) {
+    console.log("Token expirado ou prestes a expirar, tentando atualizar...");
+    const tokenAtualizado = await atualizarToken();
+    if (!tokenAtualizado) {
+      console.error(
+        "Não foi possível atualizar o token. Usuário será deslogado."
+      );
+      logout();
+      throw new Error(
+        "Token expirado e não foi possível atualizá-lo. Faça login novamente."
+      );
+    } else {
+      console.log("Token atualizado com sucesso!");
+    }
+  }
+
+  const accessToken = localStorage.getItem("spotify_access_token");
+  if (!accessToken) {
+    throw new Error("Token de acesso não encontrado. Faça login novamente.");
+  }
+
+  const options = {
+    method,
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      "Content-Type": "application/json",
+    },
+  };
+
+  if (body && (method === "POST" || method === "PUT")) {
+    options.body = JSON.stringify(body);
+  }
+
+  try {
+    const response = await fetch(
+      `https://api.spotify.com/v1${endpoint}`,
+      options
+    );
+
+    if (!response.ok) {
+      // Token expirado, tentar atualizar e tentar novamente
+      if (response.status === 401) {
+        console.log(
+          "Token expirou durante a requisição, tentando atualizar novamente..."
+        );
+        const tokenAtualizado = await atualizarToken();
+        if (tokenAtualizado) {
+          console.log("Token atualizado, repetindo chamada à API");
+          return chamadaAPI(endpoint, method, body);
+        } else {
+          console.error(
+            "Não foi possível atualizar o token após erro 401. Usuário será deslogado."
+          );
+          logout();
+          throw new Error(
+            "Token expirado e não foi possível atualizá-lo. Faça login novamente."
+          );
+        }
+      }
+
+      // Outros erros da API
+      let errorMessage = `Erro na API do Spotify: ${response.status}`;
+      try {
+        const errorData = await response.json();
+        if (errorData.error && errorData.error.message) {
+          errorMessage += ` - ${errorData.error.message}`;
+        }
+      } catch (e) {
+        // Ignore erros ao tentar parse da resposta de erro
+      }
+
+      throw new Error(errorMessage);
+    }
+
+    return response.json();
+  } catch (error) {
+    console.error("Erro na chamada à API:", error);
+    throw error;
+  }
+};
+
+// Obtém o perfil do usuário
+export const obterPerfilUsuario = async () => {
+  return chamadaAPI("/me");
+};
+
+// Obtém os artistas mais ouvidos
+export const obterTopArtistas = async (
+  timeRange = "medium_term",
+  limit = 20
+) => {
+  return chamadaAPI(`/me/top/artists?time_range=${timeRange}&limit=${limit}`);
+};
+
+// Obtém as músicas mais ouvidas
+export const obterTopMusicas = async (
+  timeRange = "medium_term",
+  limit = 20
+) => {
+  return chamadaAPI(`/me/top/tracks?time_range=${timeRange}&limit=${limit}`);
+};
+
+// Obtém os álbuns salvos do usuário
+export const obterAlbunsSalvos = async (limit = 20, offset = 0) => {
+  return chamadaAPI(`/me/albums?limit=${limit}&offset=${offset}`);
+};
+
+// Verifica se está autenticado
+export const estaAutenticado = () => {
+  return (
+    verificarToken() || localStorage.getItem("spotify_refresh_token") !== null
+  );
+};
+
+// Faz logout
+export const logout = () => {
+  localStorage.removeItem("spotify_access_token");
+  localStorage.removeItem("spotify_refresh_token");
+  localStorage.removeItem("spotify_token_expires_at");
+  localStorage.removeItem("spotify_auth_state");
+};

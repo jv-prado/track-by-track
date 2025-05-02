@@ -8,6 +8,7 @@ import PerfilUsuario from "./componentes/PerfilUsuario";
 import Splash from "./componentes/Splash";
 import Login from "./componentes/AuthForms/Login";
 import Registro from "./componentes/AuthForms/Registro";
+import SpotifyCallback from "./componentes/SpotifyCallback";
 import { useAuth } from "./contexts/AuthContext";
 import {
   configurarSincronizacao,
@@ -22,6 +23,7 @@ import ExclusaoDeConta from "./componentes/ExclusaoDeConta";
 import { auth } from "./services/firebase";
 import { logInfoAutenticacao } from "./services/firebase/auth-helper";
 import { diagnosticarProblemasAutenticacao } from "./services/debug";
+import { estaAutenticado } from "./services/spotify";
 
 // Componente principal da aplicação
 function App() {
@@ -31,6 +33,7 @@ function App() {
   const navigate = useNavigate();
   const location = useLocation();
   const { usuario: usuarioFirebase, usuarioDemo } = useAuth();
+  const [usuarioSpotify, setUsuarioSpotify] = useState(estaAutenticado());
 
   // Verificar a autenticação ao iniciar o aplicativo
   useEffect(() => {
@@ -68,7 +71,7 @@ function App() {
     verificarPersistenciaAuth();
   }, [navigate, location.pathname]);
 
-  // Verificar se há um usuário demo que também deveria pular a splashscreen
+  // Verificar se há um usuário demo ou Spotify que também deveria pular a splashscreen
   useEffect(() => {
     // Verificar se tem um usuário demo ativo
     const demoToken = localStorage.getItem("demo_token");
@@ -76,8 +79,12 @@ function App() {
     const modoDemo =
       demoToken && demoExpiry && parseInt(demoExpiry) > Date.now();
 
+    // Verificar se tem um usuário Spotify ativo
+    const autenticadoSpotify = estaAutenticado();
+    setUsuarioSpotify(autenticadoSpotify);
+
     if (
-      modoDemo &&
+      (modoDemo || autenticadoSpotify) &&
       (location.pathname === "/" || location.pathname === "/splash")
     ) {
       setActiveView("feed");
@@ -136,11 +143,15 @@ function App() {
       const modoDemo =
         demoToken && demoExpiry && parseInt(demoExpiry) > Date.now();
 
-      // Se o usuário estiver na página inicial ou splash e já estiver autenticado (Firebase ou Demo),
+      // Verificar autenticação Spotify
+      const autenticadoSpotify = estaAutenticado();
+      setUsuarioSpotify(autenticadoSpotify);
+
+      // Se o usuário estiver na página inicial ou splash e já estiver autenticado (Firebase, Demo ou Spotify),
       // redirecionar para o feed
       if (
         (location.pathname === "/" || location.pathname === "/splash") &&
-        (usuarioFirebase || modoDemo)
+        (usuarioFirebase || modoDemo || autenticadoSpotify)
       ) {
         setActiveView("feed");
         localStorage.setItem("activeView", "feed");
@@ -151,11 +162,13 @@ function App() {
       // Se não estiver autenticado e estiver tentando acessar uma rota protegida, redirecionar para login
       if (
         !usuarioFirebase &&
-        !modoDemo && // Verificar autenticação Firebase ou Demo
+        !modoDemo &&
+        !autenticadoSpotify && // Verificar todos os tipos de autenticação
         location.pathname !== "/" &&
         location.pathname !== "/login" &&
         location.pathname !== "/registro" &&
         location.pathname !== "/splash" &&
+        location.pathname !== "/callback" &&
         location.pathname !== "/politica-de-privacidade" &&
         location.pathname !== "/termos-de-uso" &&
         location.pathname !== "/exclusao-de-conta"
@@ -183,7 +196,7 @@ function App() {
 
   // Configurar sincronização de avaliações
   useEffect(() => {
-    if (usuarioFirebase) {
+    if (usuarioFirebase || usuarioSpotify) {
       // Tentar carregar avaliações sincronizadas
       carregarAvaliacoesSincronizadas();
 
@@ -210,7 +223,13 @@ function App() {
       // Limpar sincronização ao desmontar
       return limparSincronizacao;
     }
-  }, [usuarioFirebase, location.pathname, activeView, navigate]);
+  }, [
+    usuarioFirebase,
+    usuarioSpotify,
+    location.pathname,
+    activeView,
+    navigate,
+  ]);
 
   // Renderizar o seletor de idioma apenas para desktop
   const renderLanguageSelector = () => {
@@ -236,11 +255,17 @@ function App() {
     );
   }
 
+  // Renderizar o componente de callback do Spotify
+  if (location.pathname === "/callback") {
+    return <SpotifyCallback />;
+  }
+
   // Renderizar splash apenas se o usuário não estiver autenticado
   if (
     (location.pathname === "/splash" || location.pathname === "/") &&
     !usuarioFirebase &&
-    !usuarioDemo
+    !usuarioDemo &&
+    !usuarioSpotify
   ) {
     return (
       <>
@@ -352,6 +377,7 @@ function App() {
               />
               <Route path="/login" element={<Login />} />
               <Route path="/registro" element={<Registro />} />
+              <Route path="/callback" element={<SpotifyCallback />} />
               <Route path="/album/:id" element={<Feed activeView="album" />} />
               <Route
                 path="/politica-de-privacidade"

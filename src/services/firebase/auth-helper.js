@@ -34,21 +34,12 @@ export const estaAutenticado = async () => {
 };
 
 /**
- * Logs informativos sobre a autenticação atual
+ * Retorna informações sobre a autenticação atual
  * Para uso em depuração
  */
 export const logInfoAutenticacao = async () => {
   const auth = getAuth();
   const usuario = auth.currentUser;
-
-  console.log("=== INFO DE AUTENTICAÇÃO ===");
-  console.log(
-    "Usuário atual:",
-    usuario ? `${usuario.email} (ID: ${usuario.uid})` : "Nenhum"
-  );
-  console.log("Auth.currentUser é null?", usuario === null);
-  console.log("Método de persistência:", "browserLocalPersistence");
-  console.log("============================");
-
+  // Logs removidos conforme solicitado
   return usuario;
 };

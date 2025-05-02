@@ -28,7 +28,6 @@ const Splash = () => {
         demoToken && demoExpiry && parseInt(demoExpiry) > Date.now();
 
       if (usuarioAtual || usuarioFirebase || usuarioDemo || modoDemo) {
-        console.log("Splash: Usuário já autenticado, redirecionando para feed");
         // Definir feed como tela ativa
         localStorage.setItem("activeView", "feed");
         // Redirecionar para o feed

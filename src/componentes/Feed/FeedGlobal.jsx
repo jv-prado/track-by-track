@@ -199,11 +199,6 @@ const FeedGlobal = () => {
         // Filtrar apenas avaliações com 100% de progresso
         .filter((avaliacao) => (avaliacao.progresso?.percentual || 0) >= 100);
 
-      console.log(
-        "Avaliações recebidas do Firebase/Demo:",
-        avaliacoesProcessadas
-      );
-
       setAvaliacoes(avaliacoesProcessadas);
       setTemMaisAvaliacoes(avaliacoesProcessadas.length >= LIMITE_POR_PAGINA);
 
@@ -220,7 +215,6 @@ const FeedGlobal = () => {
         error.code === "permission-denied" ||
         error.message.includes("permissions")
       ) {
-        console.log("Erro de permissão, usando dados de demonstração");
         // Filtrar apenas avaliações com 100% de progresso
         const avaliacoesFiltradas = avaliacoesGlobaisDemo
           .filter((avaliacao) => (avaliacao.progresso?.percentual || 0) >= 100)
@@ -440,18 +434,6 @@ const FeedGlobal = () => {
   const ehPrimeiraAvaliacao = (avaliacao) => {
     // Se for explicitamente marcado como primeira avaliação, retorna true
     const resultado = avaliacao.isPrimeiraAvaliacao === true;
-
-    // Log para debug com mais informações
-    console.log(
-      `Verificando se avaliação do álbum ${avaliacao.nome} é primeira:`,
-      {
-        id: avaliacao.id,
-        isPrimeiraAvaliacao: avaliacao.isPrimeiraAvaliacao,
-        dataAtualizacao: avaliacao.dataAtualizacao,
-        dataCompletou100: avaliacao.dataCompletou100,
-        resultado,
-      }
-    );
 
     return resultado;
   };

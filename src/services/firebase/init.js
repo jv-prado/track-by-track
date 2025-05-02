@@ -34,19 +34,13 @@ const storage = getStorage(app);
 
 // Configurar persistência para login persistente
 setPersistence(auth, browserLocalPersistence)
-  .then(() => {
-    console.log("Firebase inicializado com persistência local");
-  })
-  .catch((error) => {
-    console.error("Erro ao configurar persistência:", error);
-  });
+  .then(() => {})
+  .catch((error) => {});
 
 // Monitorar mudanças no estado de autenticação
 onAuthStateChanged(auth, (user) => {
   if (user) {
-    console.log("Firebase: Usuário autenticado:", user.email);
   } else {
-    console.log("Firebase: Usuário não autenticado");
   }
 });
 

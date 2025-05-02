@@ -230,68 +230,70 @@ const Pesquisar = ({ termoPesquisa }) => {
           <h1 className="text-2xl font-bold text-verde-destaque text-center md:text-left">
             {t("app.search")}
           </h1>
-          <div className="flex flex-row items-center justify-between w-full md:w-auto mt-4 md:mt-0">
-            {/* Filtros em linha */}
-            <div className="flex flex-row items-center space-x-1 bg-gray-800 rounded-lg p-1 max-w-xs w-fit">
-              <button
-                onClick={() => alternarTipoConteudo("albuns")}
-                className={`px-3 py-1.5 rounded-md text-sm ${
-                  tipoConteudo === "albuns"
-                    ? "bg-verde-destaque text-black font-medium"
-                    : "text-gray-300 hover:bg-gray-700"
-                }`}
-              >
-                <MdMusicNote className="mr-1 inline-block" />
-                {t("app.albums")}
-              </button>
-              <span className="border-l border-gray-600 h-5 mx-1" />
-              <button
-                onClick={() => alternarTipoConteudo("singles")}
-                className={`px-3 py-1.5 rounded-md text-sm ${
-                  tipoConteudo === "singles"
-                    ? "bg-verde-destaque text-black font-medium"
-                    : "text-gray-300 hover:bg-gray-700"
-                }`}
-              >
-                <MdMusicNote className="mr-1 inline-block" />
-                {t("app.singles", "Singles")}
-              </button>
-              <span className="border-l border-gray-600 h-5 mx-1" />
-              <button
-                onClick={() => alternarTipoConteudo("artistas")}
-                className={`px-3 py-1.5 rounded-md text-sm ${
-                  tipoConteudo === "artistas"
-                    ? "bg-verde-destaque text-black font-medium"
-                    : "text-gray-300 hover:bg-gray-700"
-                }`}
-              >
-                <FaUser className="mr-1 inline-block" />
-                {t("app.artists")}
-              </button>
-            </div>
-            {/* Botão de alternância de visualização */}
-            {/* Mobile: botão único */}
-            <div className="flex md:hidden">
-              <button
-                onClick={alternarModoVisualizacao}
-                className="ml-2 flex items-center justify-center px-2 py-1.5 h-10 rounded-md text-sm bg-gray-800 text-verde-destaque hover:bg-gray-700 transition-colors"
-                aria-label={
-                  modoVisualizacao === "grade"
-                    ? "Visualização em lista"
-                    : "Visualização em grade"
-                }
-                title={
-                  modoVisualizacao === "grade"
-                    ? "Visualização em lista"
-                    : "Visualização em grade"
-                }
-              >
-                {modoVisualizacao === "grade" ? (
-                  <BsListUl className="text-verde-destaque" />
-                ) : (
-                  <BsGrid3X3GapFill className="text-verde-destaque" />
-                )}
-              </button>
+          <div className="flex flex-col md:flex-row items-center justify-center md:justify-between w-full md:w-auto mt-4 md:mt-0 gap-3 md:gap-0">
+            {/* Linha centralizada no mobile: filtro centralizado, botão grade/lista à direita */}
+            <div className="relative w-full md:w-auto flex flex-row items-center justify-center">
+              {/* Filtros em linha */}
+              <div className="flex flex-row items-center space-x-1 bg-gray-800 rounded-lg p-1 max-w-xs w-fit mx-auto md:mx-0">
+                <button
+                  onClick={() => alternarTipoConteudo("albuns")}
+                  className={`px-3 py-1.5 rounded-md text-sm ${
+                    tipoConteudo === "albuns"
+                      ? "bg-verde-destaque text-black font-medium"
+                      : "text-gray-300 hover:bg-gray-700"
+                  }`}
+                >
+                  <MdMusicNote className="mr-1 inline-block" />
+                  {t("app.albums")}
+                </button>
+                <span className="border-l border-gray-600 h-5 mx-1" />
+                <button
+                  onClick={() => alternarTipoConteudo("singles")}
+                  className={`px-3 py-1.5 rounded-md text-sm ${
+                    tipoConteudo === "singles"
+                      ? "bg-verde-destaque text-black font-medium"
+                      : "text-gray-300 hover:bg-gray-700"
+                  }`}
+                >
+                  <MdMusicNote className="mr-1 inline-block" />
+                  {t("app.singles", "Singles")}
+                </button>
+                <span className="border-l border-gray-600 h-5 mx-1" />
+                <button
+                  onClick={() => alternarTipoConteudo("artistas")}
+                  className={`px-3 py-1.5 rounded-md text-sm ${
+                    tipoConteudo === "artistas"
+                      ? "bg-verde-destaque text-black font-medium"
+                      : "text-gray-300 hover:bg-gray-700"
+                  }`}
+                >
+                  <FaUser className="mr-1 inline-block" />
+                  {t("app.artists")}
+                </button>
+              </div>
+              {/* Botão de alternância de visualização (mobile) à direita */}
+              <div className="absolute right-0 top-1/2 -translate-y-1/2 md:static md:translate-y-0 flex md:hidden">
+                <button
+                  onClick={alternarModoVisualizacao}
+                  className="flex items-center justify-center px-2 py-1.5 h-10 rounded-md text-sm bg-gray-800 text-verde-destaque hover:bg-gray-700 transition-colors"
+                  aria-label={
+                    modoVisualizacao === "grade"
+                      ? "Visualização em lista"
+                      : "Visualização em grade"
+                  }
+                  title={
+                    modoVisualizacao === "grade"
+                      ? "Visualização em lista"
+                      : "Visualização em grade"
+                  }
+                >
+                  {modoVisualizacao === "grade" ? (
+                    <BsListUl className="text-verde-destaque" />
+                  ) : (
+                    <BsGrid3X3GapFill className="text-verde-destaque" />
+                  )}
+                </button>
+              </div>
             </div>
             {/* Desktop: dois botões on/off */}
             <div className="hidden md:flex space-x-1 bg-gray-800 rounded-lg p-1 ml-2 h-10 items-center">

@@ -35,51 +35,29 @@ function App() {
   // Verificar a autenticação ao iniciar o aplicativo
   useEffect(() => {
     const verificarPersistenciaAuth = async () => {
-      console.log("App: Verificando persistência de autenticação");
       setCarregandoAuth(true);
 
       // Verificar se há um usuário autenticado usando o objeto auth
       const currentUser = auth.currentUser;
       if (currentUser) {
-        console.log(
-          "App: Usuário autenticado via auth.currentUser:",
-          currentUser.email
-        );
-
         // Se estiver na página inicial ou splash e o usuário já estiver logado,
         // redirecionar diretamente para o feed
         if (location.pathname === "/" || location.pathname === "/splash") {
-          console.log(
-            "App: Redirecionando usuário logado diretamente para o feed"
-          );
           setActiveView("feed");
           localStorage.setItem("activeView", "feed");
           navigate("/feed", { replace: true });
         }
       } else {
-        console.log("App: Nenhum usuário autenticado via auth.currentUser");
-
         // Verificar através do helper
         const userFromHelper = await logInfoAutenticacao();
         if (userFromHelper) {
-          console.log(
-            "App: Usuário autenticado via helper:",
-            userFromHelper.email
-          );
-
           // Também redirecionar se o usuário for encontrado pelo helper
           if (location.pathname === "/" || location.pathname === "/splash") {
-            console.log(
-              "App: Redirecionando usuário logado (via helper) para o feed"
-            );
             setActiveView("feed");
             localStorage.setItem("activeView", "feed");
             navigate("/feed", { replace: true });
           }
         } else {
-          console.log(
-            "App: Nenhum usuário autenticado via helper, executando diagnóstico"
-          );
           await diagnosticarProblemasAutenticacao();
         }
       }
@@ -102,7 +80,6 @@ function App() {
       modoDemo &&
       (location.pathname === "/" || location.pathname === "/splash")
     ) {
-      console.log("App: Usuário demo detectado, redirecionando para o feed");
       setActiveView("feed");
       localStorage.setItem("activeView", "feed");
       navigate("/feed", { replace: true });
@@ -124,7 +101,6 @@ function App() {
           navigate(-1);
         } else if (location.pathname === "/feed") {
           // No feed principal, não fazer nada ou mostrar diálogo de confirmação
-          console.log("No feed principal, não navegando para trás");
           // Opcional: mostrar diálogo perguntando se deseja sair
           // CapApp.exitApp(); // Para sair do app
         }
@@ -166,9 +142,6 @@ function App() {
         (location.pathname === "/" || location.pathname === "/splash") &&
         (usuarioFirebase || modoDemo)
       ) {
-        console.log(
-          "App: Redirecionando usuário autenticado da splash para o feed"
-        );
         setActiveView("feed");
         localStorage.setItem("activeView", "feed");
         navigate("/feed", { replace: true });

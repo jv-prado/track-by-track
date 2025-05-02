@@ -24,7 +24,7 @@ i18n
       },
     },
     fallbackLng: "pt-BR",
-    debug: process.env.NODE_ENV === "development",
+    debug: false,
     interpolation: {
       escapeValue: false,
     },
@@ -39,11 +39,11 @@ i18n
   });
 
 i18n.on("initialized", () => {
-  console.log("i18n initialized with language:", i18n.language);
+  // Removido o console.log
 });
 
 i18n.on("languageChanged", (lng) => {
-  console.log("Language changed to:", lng);
+  // Removido o console.log
   document.documentElement.lang = lng;
 });
 

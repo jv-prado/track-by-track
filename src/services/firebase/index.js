@@ -51,12 +51,8 @@ const googleProvider = new GoogleAuthProvider();
 // Configurar persistência de autenticação para manter os usuários logados
 // Isso garante que o usuário continue logado mesmo após fechar o navegador
 setPersistence(auth, browserLocalPersistence)
-  .then(() => {
-    console.log("Persistência de autenticação configurada com sucesso");
-  })
-  .catch((error) => {
-    console.error("Erro ao configurar persistência de autenticação:", error);
-  });
+  .then(() => {})
+  .catch((error) => {});
 
 /**
  * Cadastra um novo usuário
@@ -97,7 +93,6 @@ export const cadastrarUsuario = async (email, senha, nome) => {
       nome: user.displayName,
     };
   } catch (error) {
-    console.error("Erro ao cadastrar usuário:", error);
     throw error;
   }
 };
@@ -146,7 +141,6 @@ export const fazerLogin = async (email, senha) => {
       dados: userDoc.exists() ? userDoc.data() : {},
     };
   } catch (error) {
-    console.error("Erro ao fazer login:", error);
     throw error;
   }
 };
@@ -311,25 +305,11 @@ export const salvarAvaliacaoAlbum = async (
         const dentroDoPeríodoDeGraca =
           agora.getTime() - dataReferencia.getTime() <= umaHoraEmMs;
 
-        console.log(`Álbum ${nome} sendo atualizado:
-          - Data de referência: ${dataReferencia}
-          - Tempo decorrido: ${
-            (agora.getTime() - dataReferencia.getTime()) / 1000 / 60
-          } minutos
-          - Dentro do período de graça: ${dentroDoPeríodoDeGraca}
-        `);
-
         // Se estiver dentro do período de graça de 1h, mantém como primeira avaliação
         if (dentroDoPeríodoDeGraca) {
           dadosAlbum.isPrimeiraAvaliacao = true;
-          console.log(
-            `Álbum ${nome} atualizado mas ainda dentro do período de graça (1h). Mantendo como NOVO.`
-          );
         } else {
           dadosAlbum.isPrimeiraAvaliacao = false;
-          console.log(
-            `Álbum ${nome} atualizado após período de graça (1h). Marcando como ATUALIZADO.`
-          );
         }
 
         dadosAlbum.data_atualizacao = new Date();
@@ -338,9 +318,6 @@ export const salvarAvaliacaoAlbum = async (
       else if (isPrimeiraAvaliacaoConcluida) {
         dadosAlbum.isPrimeiraAvaliacao = true;
         dadosAlbum.data_completou_100 = new Date(); // NOVO: registrar quando o álbum completou 100%
-        console.log(
-          `Marcando álbum ${nome} como PRIMEIRA AVALIAÇÃO COMPLETA (isPrimeiraAvaliacao=true)`
-        );
       }
       // Preservar o valor existente se não for alteração
       else if (albumExistente.isPrimeiraAvaliacao !== undefined) {
@@ -349,9 +326,6 @@ export const salvarAvaliacaoAlbum = async (
         if (albumExistente.data_completou_100) {
           dadosAlbum.data_completou_100 = albumExistente.data_completou_100;
         }
-        console.log(
-          `Preservando valor de isPrimeiraAvaliacao=${albumExistente.isPrimeiraAvaliacao} para ${nome}`
-        );
       }
 
       // Criar uma cópia do array de álbuns
@@ -371,15 +345,9 @@ export const salvarAvaliacaoAlbum = async (
       if (isPrimeiraAvaliacaoConcluida) {
         dadosAlbum.isPrimeiraAvaliacao = true;
         dadosAlbum.data_completou_100 = new Date(); // NOVO: registrar quando o álbum completou 100%
-        console.log(
-          `Marcando novo álbum ${nome} como PRIMEIRA AVALIAÇÃO COMPLETA (isPrimeiraAvaliacao=true)`
-        );
       } else {
         // Para álbuns novos mas ainda não 100%, garantir que não seja tratado como nova avaliação completa
         dadosAlbum.isPrimeiraAvaliacao = false;
-        console.log(
-          `Álbum novo ${nome} mas ainda incompleto, definindo isPrimeiraAvaliacao=false`
-        );
       }
 
       // Adicionar novo álbum ao array existente
@@ -390,7 +358,6 @@ export const salvarAvaliacaoAlbum = async (
 
     return dadosAlbum;
   } catch (error) {
-    console.error("Erro ao salvar avaliação:", error);
     throw error;
   }
 };
@@ -412,7 +379,6 @@ export const obterAlbunsAvaliados = async () => {
 
     return userDoc.data().albuns_avaliados || [];
   } catch (error) {
-    console.error("Erro ao obter álbuns avaliados:", error);
     throw error;
   }
 };
@@ -428,18 +394,11 @@ export const obterAvaliacoesGlobais = async (
   ultimaAvaliacao = null
 ) => {
   try {
-    console.log(
-      `Buscando até ${limite} avaliações globais${
-        ultimaAvaliacao ? " a partir de uma referência" : ""
-      }`
-    );
-
     // Referência para a coleção de usuários
     const usuariosRef = collection(db, "usuarios");
 
     // Buscar todos os documentos de usuários
     const snapshot = await getDocs(usuariosRef);
-    console.log(`Encontrados ${snapshot.size} usuários`);
 
     // Array para armazenar todas as avaliações
     let todasAvaliacoes = [];
@@ -448,8 +407,6 @@ export const obterAvaliacoesGlobais = async (
     snapshot.forEach((doc) => {
       const dadosUsuario = doc.data();
       const albuns = dadosUsuario.albuns_avaliados || [];
-
-      console.log(`Usuário ${doc.id} tem ${albuns.length} álbuns avaliados`);
 
       // Para cada álbum avaliado pelo usuário
       albuns.forEach((album) => {
@@ -519,28 +476,6 @@ export const obterAvaliacoesGlobais = async (
           tempoDesdeCompletou = Math.floor(diferencaMs / (1000 * 60)); // em minutos
         }
 
-        // Log mais detalhado
-        console.log(`Processando álbum ${album.nome} para feed global:
-          - isPrimeiraAvaliacao: ${ehPrimeiraAvaliacao}
-          - Valor direto: ${album.isPrimeiraAvaliacao}
-          - Tipo: ${typeof album.isPrimeiraAvaliacao}
-          - Data conclusão 100%: ${
-            dataCompletou ? dataCompletou.toISOString() : "não disponível"
-          }
-          - Tempo desde conclusão: ${
-            tempoDesdeCompletou !== null
-              ? `${tempoDesdeCompletou} minutos`
-              : "N/A"
-          }
-          - Data atualização: ${
-            album.data_atualizacao
-              ? album.data_atualizacao.toDate
-                ? album.data_atualizacao.toDate().toISOString()
-                : "formato inválido"
-              : "não tem"
-          }
-        `);
-
         // Adicionar esta avaliação ao array de todas as avaliações
         if (totalFaixas > 0) {
           // Usar a foto de perfil do Firestore (que agora é sincronizada)
@@ -577,10 +512,6 @@ export const obterAvaliacoesGlobais = async (
       });
     });
 
-    console.log(
-      `Total de ${todasAvaliacoes.length} avaliações processadas antes da filtragem`
-    );
-
     // Ordenar por data de avaliação (mais recentes primeiro)
     todasAvaliacoes.sort((a, b) => b.dataAvaliacao - a.dataAvaliacao);
 
@@ -593,29 +524,18 @@ export const obterAvaliacoesGlobais = async (
           av.usuario.id === ultimaAvaliacao.usuario.id
       );
 
-      console.log(`Última avaliação encontrada no índice ${ultimoIndice}`);
-
       // Se encontrou, filtrar para pegar apenas avaliações após este índice
       if (ultimoIndice !== -1) {
         todasAvaliacoes = todasAvaliacoes.slice(ultimoIndice + 1);
-        console.log(
-          `Restaram ${todasAvaliacoes.length} avaliações após a referência`
-        );
-      } else {
-        console.log(
-          "Avaliação de referência não encontrada, retornando todas avaliações"
-        );
       }
     }
 
     // Limitar ao número especificado
     const avaliacoesFiltradas = todasAvaliacoes.slice(0, limite);
-    console.log(`Retornando ${avaliacoesFiltradas.length} avaliações`);
 
     return avaliacoesFiltradas;
   } catch (error) {
-    console.error("Erro ao obter avaliações globais:", error);
-    return [];
+    throw error;
   }
 };
 
@@ -632,7 +552,6 @@ export const uploadFile = async (file, path) => {
     const downloadURL = await getDownloadURL(storageRef);
     return downloadURL;
   } catch (error) {
-    console.error("Erro ao fazer upload do arquivo:", error);
     throw error;
   }
 };
@@ -656,7 +575,6 @@ export const updateUserProfile = async (user, updates) => {
       });
     }
   } catch (error) {
-    console.error("Erro ao atualizar perfil:", error);
     throw error;
   }
 };
@@ -674,7 +592,6 @@ export const obterAvaliacoesUsuario = async (usuarioId, albumId) => {
     const userDoc = await getDoc(userRef);
 
     if (!userDoc.exists()) {
-      console.log(`Usuário ${usuarioId} não encontrado`);
       return null;
     }
 
@@ -683,9 +600,6 @@ export const obterAvaliacoesUsuario = async (usuarioId, albumId) => {
     const album = albuns.find((album) => album.id === albumId);
 
     if (!album) {
-      console.log(
-        `Álbum ${albumId} não encontrado para o usuário ${usuarioId}`
-      );
       return null;
     }
 
@@ -728,8 +642,7 @@ export const obterAvaliacoesUsuario = async (usuarioId, albumId) => {
       },
     };
   } catch (error) {
-    console.error("Erro ao obter avaliações do usuário:", error);
-    return null;
+    throw error;
   }
 };
 
@@ -768,7 +681,6 @@ export const loginComGoogle = async () => {
       dados: userDoc.exists() ? userDoc.data() : {},
     };
   } catch (error) {
-    console.error("Erro ao fazer login com Google:", error);
     throw error;
   }
 };
@@ -826,7 +738,6 @@ export const excluirConta = async (senha) => {
 
     return true;
   } catch (error) {
-    console.error("Erro ao excluir conta:", error);
     throw error;
   }
 };
@@ -877,7 +788,6 @@ export const excluirContaComEmailSenha = async (email, senha) => {
 
     return true;
   } catch (error) {
-    console.error("Erro ao excluir conta com email e senha:", error);
     throw error;
   }
 };

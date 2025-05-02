@@ -22,11 +22,6 @@ const Login = () => {
       // Ver se há um usuário atual diretamente do auth
       const usuarioAtual = auth.currentUser;
       if (usuarioAtual) {
-        console.log(
-          "Login: Usuário já autenticado, redirecionando para feed",
-          usuarioAtual.email
-        );
-
         // Redirecionar para o feed se já estiver autenticado
         navigate("/feed");
         return;
@@ -45,7 +40,6 @@ const Login = () => {
     setCarregando(true);
 
     try {
-      console.log("Login: Tentando login com email:", email);
       await fazerLogin(email, senha);
 
       // Definir "feed" como a view ativa no localStorage para que o App a utilize
@@ -55,14 +49,11 @@ const Login = () => {
       sessionStorage.setItem("login_redirect", "true");
 
       // Verificar se login foi bem-sucedido
-      console.log("Login: Verificando autenticação após login");
       await logInfoAutenticacao();
 
       // Redirecionar para o feed global
-      console.log("Login: Redirecionando para feed após login bem-sucedido");
       navigate("/feed");
     } catch (err) {
-      console.error("Erro no login:", err);
       setErro(t("auth.loginError"));
     } finally {
       setCarregando(false);
@@ -120,7 +111,6 @@ const Login = () => {
       // reconheçam o usuário demo, em vez de usar o navigate
       window.location.href = "/feed";
     } catch (error) {
-      console.error("Erro ao iniciar modo de demonstração:", error);
       setErro("Não foi possível iniciar o modo de demonstração.");
       setCarregandoDemo(false);
     }

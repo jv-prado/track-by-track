@@ -147,7 +147,6 @@ const Descubra = ({ termoPesquisa }) => {
     try {
       setCarregandoMais(true);
       const proximoOffset = offset + 20;
-      console.log(`Carregando mais álbuns a partir do offset ${proximoOffset}`);
 
       const novosLancamentosResponse = await buscarNovosLancamentos(
         paisUsuario,

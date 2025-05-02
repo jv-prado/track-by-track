@@ -92,7 +92,6 @@ export default function PerfilUsuario() {
 
       setFotoPerfil(imageUrl);
     } catch (error) {
-      console.error("Erro ao atualizar foto:", error);
       setErro(t("userProfile.uploadError"));
     } finally {
       setCarregando(false);

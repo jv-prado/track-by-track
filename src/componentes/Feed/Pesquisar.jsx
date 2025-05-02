@@ -224,52 +224,62 @@ const Pesquisar = ({ termoPesquisa }) => {
       {/* Novo cabeçalho responsivo */}
       <div className="mb-6">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between w-full gap-4 md:gap-0">
-          <h1 className="text-2xl font-bold text-verde-destaque text-center md:text-left">
+          {/* Título: só exibir em telas maiores */}
+          <h1 className="hidden md:block text-2xl font-bold text-verde-destaque text-center md:text-left">
             {t("app.search")}
           </h1>
-          <div className="flex flex-col md:flex-row items-center justify-center md:justify-between w-full md:w-auto mt-4 md:mt-0 gap-3 md:gap-0">
+          <div className="flex flex-col md:flex-row items-center justify-center md:justify-between w-full md:w-auto mt-4 md:mt-0 gap-1 md:gap-0">
             {/* Linha centralizada no mobile: filtro centralizado, botão grade/lista à direita */}
-            <div className="relative w-full md:w-auto flex flex-row items-center justify-center">
-              {/* Filtros em linha */}
-              <div className="flex flex-row items-center space-x-1 bg-gray-800 rounded-lg p-1 max-w-xs w-fit mx-auto md:mx-0">
-                <button
-                  onClick={() => alternarTipoConteudo("albuns")}
-                  className={`px-3 py-1.5 rounded-md text-sm ${
-                    tipoConteudo === "albuns"
-                      ? "bg-verde-destaque text-black font-medium"
-                      : "text-gray-300 hover:bg-gray-700"
-                  }`}
+            <div className="w-full md:w-auto flex flex-row items-center justify-center md:justify-center md:pr-0">
+              {/* Div dos filtros centralizados */}
+              <div className="flex-1 flex justify-center ml-10">
+                <div
+                  className="flex flex-row items-center bg-gray-800 rounded-lg p-1 justify-center"
+                  style={{
+                    width: "auto",
+                    minWidth: 0,
+                    maxWidth: 280,
+                  }}
                 >
-                  <MdAlbum className="mr-1 inline-block" />
-                  {t("app.albums")}
-                </button>
-                <span className="border-l border-gray-600 h-5 mx-1" />
-                <button
-                  onClick={() => alternarTipoConteudo("singles")}
-                  className={`px-3 py-1.5 rounded-md text-sm ${
-                    tipoConteudo === "singles"
-                      ? "bg-verde-destaque text-black font-medium"
-                      : "text-gray-300 hover:bg-gray-700"
-                  }`}
-                >
-                  <MdMusicNote className="mr-1 inline-block" />
-                  {t("app.singles", "Singles")}
-                </button>
-                <span className="border-l border-gray-600 h-5 mx-1" />
-                <button
-                  onClick={() => alternarTipoConteudo("artistas")}
-                  className={`px-3 py-1.5 rounded-md text-sm ${
-                    tipoConteudo === "artistas"
-                      ? "bg-verde-destaque text-black font-medium"
-                      : "text-gray-300 hover:bg-gray-700"
-                  }`}
-                >
-                  <FaUser className="mr-1 inline-block" />
-                  {t("app.artists")}
-                </button>
+                  <button
+                    onClick={() => alternarTipoConteudo("albuns")}
+                    className={`px-2 py-1 rounded-md text-sm ${
+                      tipoConteudo === "albuns"
+                        ? "bg-verde-destaque text-black font-medium"
+                        : "text-gray-300 hover:bg-gray-700"
+                    }`}
+                  >
+                    <MdAlbum className="mr-1 inline-block" />
+                    {t("app.albums")}
+                  </button>
+                  <span className="border-l border-gray-600 h-5 mx-0.5"></span>
+                  <button
+                    onClick={() => alternarTipoConteudo("singles")}
+                    className={`px-2 py-1 rounded-md text-sm ${
+                      tipoConteudo === "singles"
+                        ? "bg-verde-destaque text-black font-medium"
+                        : "text-gray-300 hover:bg-gray-700"
+                    }`}
+                  >
+                    <MdMusicNote className="mr-1 inline-block" />
+                    {t("app.singles", "Singles")}
+                  </button>
+                  <span className="border-l border-gray-600 h-5 mx-0.5"></span>
+                  <button
+                    onClick={() => alternarTipoConteudo("artistas")}
+                    className={`px-2 py-1 rounded-md text-sm ${
+                      tipoConteudo === "artistas"
+                        ? "bg-verde-destaque text-black font-medium"
+                        : "text-gray-300 hover:bg-gray-700"
+                    }`}
+                  >
+                    <FaUser className="mr-1 inline-block" />
+                    {t("app.artists")}
+                  </button>
+                </div>
               </div>
-              {/* Botão de alternância de visualização (mobile) à direita */}
-              <div className="absolute right-0 top-1/2 -translate-y-1/2 md:static md:translate-y-0 flex md:hidden">
+              {/* Div do botão de grade/lista: visível apenas no mobile (oculto em md e acima) */}
+              <div className="flex md:hidden ml-2">
                 <button
                   onClick={alternarModoVisualizacao}
                   className="flex items-center justify-center px-2 py-1.5 h-10 rounded-md text-sm bg-gray-800 text-verde-destaque hover:bg-gray-700 transition-colors"
@@ -372,8 +382,8 @@ const Pesquisar = ({ termoPesquisa }) => {
                           <MdMusicNote className="text-verde-destaque text-4xl" />
                         </div>
                       )
-                    ) : // Imagem do artista
-                    item.images && item.images.length > 0 ? (
+                    ) : item.images && item.images.length > 0 ? (
+                      // Imagem do artista
                       <img
                         src={item.images[0].url}
                         alt={t("artistSearch.photoAlt", {
@@ -495,8 +505,8 @@ const Pesquisar = ({ termoPesquisa }) => {
                             <MdMusicNote className="text-verde-destaque text-4xl" />
                           </div>
                         )
-                      ) : // Imagem do artista
-                      item.images && item.images.length > 0 ? (
+                      ) : item.images && item.images.length > 0 ? (
+                        // Imagem do artista
                         <img
                           src={item.images[0].url}
                           alt={t("artistSearch.photoAlt", {

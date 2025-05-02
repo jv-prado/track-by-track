@@ -651,7 +651,14 @@ const MinhasAvaliacoes = () => {
                           href={`https://open.spotify.com/album/${album.id}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center px-2 py-1 md:px-3 md:py-1.5 bg-black/30 rounded text-xs md:text-xs text-gray-300 hover:text-green-400 hover:bg-black/50 transition-colors z-20 relative flex-shrink-0"
+                          className={`inline-flex items-center bg-black/30 rounded text-xs md:text-xs text-gray-300 hover:text-green-400 hover:bg-black/50 transition-colors z-20 relative flex-shrink-0
+                            ${
+                              window.innerWidth < 1000 &&
+                              modoVisualizacao === "lista"
+                                ? "px-1.5 py-0.5 h-7 text-[11px]"
+                                : "px-2 py-1 md:px-3 md:py-1.5"
+                            }
+                          `}
                           onClick={(e) => e.stopPropagation()}
                         >
                           <span className="text-green-400 mr-1">
@@ -668,7 +675,11 @@ const MinhasAvaliacoes = () => {
                             </svg>
                           </span>
                           <span className="whitespace-nowrap">
-                            {t("feed.ouvirSpotify")}
+                            {/* Mobile + lista: só 'Spotify'. Desktop ou grade: texto completo */}
+                            {window.innerWidth < 1000 &&
+                            modoVisualizacao === "lista"
+                              ? "Spotify"
+                              : t("feed.ouvirSpotify")}
                           </span>
                         </a>
                       </div>

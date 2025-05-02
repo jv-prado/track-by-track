@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { IoSearchOutline } from "react-icons/io5";
 import { useTranslation } from "react-i18next";
 
@@ -14,6 +14,7 @@ import { useTranslation } from "react-i18next";
 const BarraDePesquisa = ({ onSearch, activeView, termoPesquisa = "" }) => {
   const [termo, setTermo] = useState(termoPesquisa);
   const { t } = useTranslation();
+  const debounceTimeout = useRef(null);
 
   // Atualizar termo quando a visualização ativa mudar
   useEffect(() => {
@@ -24,12 +25,20 @@ const BarraDePesquisa = ({ onSearch, activeView, termoPesquisa = "" }) => {
   const handleChange = (event) => {
     const novoTermo = event.target.value;
     setTermo(novoTermo);
-    onSearch(novoTermo);
+    if (debounceTimeout.current) {
+      clearTimeout(debounceTimeout.current);
+    }
+    debounceTimeout.current = setTimeout(() => {
+      onSearch(novoTermo);
+    }, 400);
   };
 
   // Função para lidar com o envio do formulário
   const handleSubmit = (event) => {
     event.preventDefault();
+    if (debounceTimeout.current) {
+      clearTimeout(debounceTimeout.current);
+    }
     onSearch(termo);
   };
 

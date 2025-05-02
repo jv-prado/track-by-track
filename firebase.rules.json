@@ -8,8 +8,20 @@
             "match": {
               "/usuarios/{userId}": {
                 "allow": {
-                  "read": "request.auth != null && request.auth.uid == userId",
-                  "write": "request.auth != null && request.auth.uid == userId"
+                  "read": "request.auth != null && (request.auth.uid == userId || request.auth.token.spotifyId != null)",
+                  "write": "request.auth != null && (request.auth.uid == userId || request.auth.uid == 'spotify_' + request.auth.token.spotifyId)"
+                }
+              },
+              "/usuariosSpotify/{spotifyId}": {
+                "allow": {
+                  "read": "request.auth != null || (request.auth != null && request.auth.token.spotifyId == spotifyId)",
+                  "write": "request.auth != null || (request.auth != null && request.auth.token.spotifyId == spotifyId)"
+                }
+              },
+              "/{document=**}": {
+                "allow": {
+                  "read": "request.auth != null",
+                  "write": "request.auth != null"
                 }
               }
             }

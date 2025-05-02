@@ -1,6 +1,11 @@
 const functions = require("firebase-functions");
 const admin = require("firebase-admin");
-const cors = require("cors")({ origin: true });
+const cors = require("cors")({
+  origin: "*",
+  methods: ["GET", "POST", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization", "Origin", "Accept"],
+  credentials: true,
+});
 
 admin.initializeApp();
 
@@ -11,6 +16,18 @@ admin.initializeApp();
  * com o Spotify, permitindo que eles acessem recursos protegidos pelo Firebase.
  */
 exports.createCustomToken = functions.https.onRequest((request, response) => {
+  response.set("Access-Control-Allow-Origin", "*");
+  response.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  response.set(
+    "Access-Control-Allow-Headers",
+    "Content-Type, Authorization, Origin, Accept"
+  );
+
+  if (request.method === "OPTIONS") {
+    response.status(204).send("");
+    return;
+  }
+
   return cors(request, response, async () => {
     try {
       console.log("[INÍCIO] Função createCustomToken chamada");
@@ -63,6 +80,41 @@ exports.createCustomToken = functions.https.onRequest((request, response) => {
             "Dados do usuário existente:",
             JSON.stringify(userRecord, null, 2)
           );
+
+          // Mesmo se usuário existe, garantir que também existe no Firestore
+          try {
+            const userRef = admin.firestore().collection("usuarios").doc(uid);
+            const doc = await userRef.get();
+
+            if (!doc.exists) {
+              console.log(
+                "Usuário existe em Auth mas não em Firestore. Criando documento..."
+              );
+              await userRef.set({
+                provider: "spotify",
+                spotifyId: spotifyUserId,
+                displayName:
+                  userRecord.displayName || `Spotify User ${spotifyUserId}`,
+                email: userRecord.email,
+                photoURL: userRecord.photoURL,
+                createdAt: admin.firestore.FieldValue.serverTimestamp(),
+                lastLogin: admin.firestore.FieldValue.serverTimestamp(),
+                sincronizado: true,
+              });
+              console.log(
+                "Documento Firestore criado para usuário existente:",
+                uid
+              );
+            } else {
+              console.log("Documento Firestore já existe para o usuário:", uid);
+            }
+          } catch (firestoreCheckError) {
+            console.error(
+              "Erro ao verificar/criar documento Firestore para usuário existente:",
+              firestoreCheckError
+            );
+            console.error("Stack trace:", firestoreCheckError.stack);
+          }
         } catch (userError) {
           console.log(
             "Erro ao buscar usuário:",
@@ -86,23 +138,54 @@ exports.createCustomToken = functions.https.onRequest((request, response) => {
 
               // Criar documento inicial no Firestore
               try {
+                const userData = {
+                  provider: "spotify",
+                  spotifyId: spotifyUserId,
+                  displayName: `Spotify User ${spotifyUserId}`,
+                  createdAt: admin.firestore.FieldValue.serverTimestamp(),
+                  lastLogin: admin.firestore.FieldValue.serverTimestamp(),
+                  sincronizado: true,
+                };
+
+                // Usar set com merge:true para não substituir dados existentes
                 await admin
                   .firestore()
                   .collection("usuarios")
                   .doc(uid)
-                  .set({
-                    provider: "spotify",
-                    spotifyId: spotifyUserId,
-                    displayName: `Spotify User ${spotifyUserId}`,
-                    createdAt: admin.firestore.FieldValue.serverTimestamp(),
-                    lastLogin: admin.firestore.FieldValue.serverTimestamp(),
-                  });
+                  .set(userData, { merge: true });
                 console.log("Documento Firestore inicial criado para:", uid);
+
+                // Também criar na coleção usuariosSpotify para completar
+                try {
+                  await admin
+                    .firestore()
+                    .collection("usuariosSpotify")
+                    .doc(spotifyUserId)
+                    .set(
+                      {
+                        ...userData,
+                        nome: `Spotify User ${spotifyUserId}`,
+                        uid: uid,
+                      },
+                      { merge: true }
+                    );
+                  console.log(
+                    "Documento usuariosSpotify criado para:",
+                    spotifyUserId
+                  );
+                } catch (spotifyCollectionError) {
+                  console.error(
+                    "Erro ao criar documento na coleção usuariosSpotify:",
+                    spotifyCollectionError
+                  );
+                }
               } catch (firestoreError) {
                 console.error(
                   "Erro ao criar documento Firestore:",
-                  firestoreError
+                  firestoreError.code || "sem código",
+                  firestoreError.message
                 );
+                console.error("Stack trace:", firestoreError.stack);
                 // Continuar mesmo com erro de Firestore
               }
             } catch (createError) {
@@ -187,6 +270,20 @@ exports.createCustomToken = functions.https.onRequest((request, response) => {
  * resolvendo problemas de compatibilidade com versões recentes do Firebase Functions.
  */
 exports.syncSpotifyUser = functions.https.onRequest((request, response) => {
+  // Adicionar headers CORS
+  response.set("Access-Control-Allow-Origin", "*");
+  response.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  response.set(
+    "Access-Control-Allow-Headers",
+    "Content-Type, Authorization, Origin, Accept"
+  );
+
+  // Handle OPTIONS preflight request
+  if (request.method === "OPTIONS") {
+    response.status(204).send("");
+    return;
+  }
+
   return cors(request, response, async () => {
     try {
       console.log("[INÍCIO] Função syncSpotifyUser chamada");
@@ -207,11 +304,9 @@ exports.syncSpotifyUser = functions.https.onRequest((request, response) => {
         console.error(
           "ID do usuário Spotify ou dados ausentes no corpo da requisição"
         );
-        return response
-          .status(400)
-          .json({
-            error: "ID do usuário Spotify e dados do usuário são obrigatórios",
-          });
+        return response.status(400).json({
+          error: "ID do usuário Spotify e dados do usuário são obrigatórios",
+        });
       }
 
       const firebaseUserId = `spotify_${spotifyUserId}`;

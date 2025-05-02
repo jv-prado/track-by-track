@@ -1,10 +1,21 @@
 import { getSpotifyToken } from "./api";
 import { getAuthToken } from "./auth";
+import {
+  getFirestore,
+  doc,
+  setDoc,
+  getDoc,
+  collection,
+} from "firebase/firestore";
+import { getApp } from "firebase/app";
 
 /**
  * URL base da API do Spotify
  */
 const URL_BASE = "https://api.spotify.com/v1/";
+
+// Obtém a instância do Firestore para uso nas funções de persistência
+const db = getFirestore(getApp());
 
 /**
  * Configuração padrão para os headers das requisições
@@ -459,19 +470,32 @@ const generateCodeChallenge = async (codeVerifier) => {
 // Inicia o fluxo de autenticação com PKCE
 export const iniciarLoginSpotify = async () => {
   try {
-    console.log("Iniciando fluxo de autenticação com Spotify PKCE");
-    console.log("Redirect URI:", REDIRECT_URI);
-    console.log("Client ID:", SPOTIFY_CLIENT_ID);
+    // DIAGNÓSTICO: Mostrar o estado atual de login antes de iniciar novo fluxo
+    console.log("[DIAGNÓSTICO] Estado do login antes de iniciar novo fluxo:");
+    console.log(
+      "- Token do Spotify existe:",
+      !!localStorage.getItem("spotify_access_token")
+    );
+    console.log(
+      "- Refresh token existe:",
+      !!localStorage.getItem("spotify_refresh_token")
+    );
+    console.log(
+      "- Token expira em:",
+      new Date(
+        parseInt(localStorage.getItem("spotify_token_expires_at") || "0")
+      ).toLocaleString()
+    );
+
+    console.log("[DEBUG] Iniciando fluxo de autenticação com Spotify PKCE");
+    console.log("[DEBUG] Escopos solicitados:", SCOPES.join(", "));
+    console.log("[DEBUG] Redirect URI:", REDIRECT_URI);
+    console.log("[DEBUG] Client ID:", SPOTIFY_CLIENT_ID);
 
     // Limpar TODOS os tokens e dados de autenticação anteriores
     // Isso evita conflitos entre tokens de cliente e tokens de usuário
-    localStorage.removeItem("pkce_code_verifier");
-    localStorage.removeItem("spotify_auth_state");
-    localStorage.removeItem("spotify_access_token");
-    localStorage.removeItem("spotify_refresh_token");
-    localStorage.removeItem("spotify_token_expires_at");
-    // Limpar código usado anteriormente
-    sessionStorage.removeItem("spotify_code_used");
+    localStorage.clear(); // Limpar todo o localStorage para garantir um login completamente novo
+    sessionStorage.clear(); // Limpar também o sessionStorage
 
     // Gerar e armazenar o code verifier
     const codeVerifier = generateCodeVerifier(64);
@@ -648,13 +672,42 @@ export const trocarCodePorToken = async (code) => {
       refresh_token: data.refresh_token ? "Present" : "Missing",
       expires_in: data.expires_in,
       token_type: data.token_type,
+      scope: data.scope,
     });
+
+    // Verificar se os escopos necessários foram concedidos
+    if (data.scope) {
+      console.log("[DEBUG] Escopos concedidos:", data.scope);
+      const escoposConcedidos = data.scope.split(" ");
+      const escoposNecessarios = ["user-read-private", "user-read-email"];
+
+      const escoposFaltando = escoposNecessarios.filter(
+        (escopo) => !escoposConcedidos.includes(escopo)
+      );
+
+      if (escoposFaltando.length > 0) {
+        console.error(
+          "[ERRO] Faltam escopos críticos:",
+          escoposFaltando.join(", ")
+        );
+        console.warn("Autenticação pode falhar em endpoints protegidos!");
+      } else {
+        console.log("[OK] Todos os escopos críticos foram concedidos");
+      }
+    } else {
+      console.warn("[AVISO] Resposta não inclui informação sobre escopos");
+    }
 
     if (data.access_token) {
       console.log("Token de acesso recebido com sucesso");
       const expiresAt = Date.now() + data.expires_in * 1000;
       localStorage.setItem("spotify_access_token", data.access_token);
       localStorage.setItem("spotify_token_expires_at", expiresAt.toString());
+
+      // Salvar escopos concedidos para referência futura
+      if (data.scope) {
+        localStorage.setItem("spotify_scopes", data.scope);
+      }
 
       if (data.refresh_token) {
         localStorage.setItem("spotify_refresh_token", data.refresh_token);
@@ -882,6 +935,50 @@ export const chamadaAPI = async (endpoint, method = "GET", body = null) => {
     );
 
     if (!response.ok) {
+      // Tratamento especial para endpoint /me com erro 403
+      if (response.status === 403 && endpoint === "/me") {
+        console.warn(
+          "[SOLUÇÃO ALTERNATIVA] Tentando método diferente para obter perfil básico do usuário devido a erro 403"
+        );
+
+        try {
+          // Tentar obter ID do usuário de um endpoint menos restritivo
+          const userPlaylistsResponse = await fetch(
+            "https://api.spotify.com/v1/me/playlists?limit=1",
+            options
+          );
+
+          if (userPlaylistsResponse.ok) {
+            const playlistsData = await userPlaylistsResponse.json();
+
+            if (playlistsData && playlistsData.href) {
+              // Extrair user ID da URL do usuário
+              const ownerUrlPattern = /users\/([^\/]+)/;
+              const match = playlistsData.href.match(ownerUrlPattern);
+
+              if (match && match[1]) {
+                const userId = match[1];
+                console.log(`[RECUPERADO] ID do usuário Spotify: ${userId}`);
+
+                // Retornar perfil básico com ID real
+                return {
+                  id: userId,
+                  display_name: `Usuário Spotify (${userId.substring(
+                    0,
+                    5
+                  )}...)`,
+                  email: null,
+                  images: [],
+                  _recuperado: true,
+                };
+              }
+            }
+          }
+        } catch (altError) {
+          console.error("[FALHA] Método alternativo também falhou:", altError);
+        }
+      }
+
       // Tratamento específico para erro 403 (Forbidden)
       if (response.status === 403) {
         console.warn(`Erro 403 no endpoint ${endpoint} - Permissão negada`);
@@ -903,12 +1000,12 @@ export const chamadaAPI = async (endpoint, method = "GET", body = null) => {
 
           // Para endpoints específicos, podemos retornar dados padrão
           if (endpoint === "/me") {
-            console.log("Retornando perfil padrão após erro 403");
-            return {
-              display_name: "Usuário Spotify",
-              id: "spotify_user",
-              type: "user",
-            };
+            console.log(
+              "[DEBUG] Erro 403 ao buscar perfil do usuário. Isso pode indicar que o token não tem os escopos necessários."
+            );
+            throw new Error(
+              "Erro 403: Permissão negada ao acessar o perfil do usuário."
+            );
           }
         }
 
@@ -1039,4 +1136,132 @@ export const logout = () => {
   sessionStorage.removeItem("spotify_callback_instance");
 
   console.log("Logout do Spotify realizado com sucesso");
+};
+
+/**
+ * Registra ou atualiza um usuário do Spotify no Firestore
+ * @param {Object} perfilUsuario - Perfil do usuário obtido da API do Spotify
+ * @returns {Promise<Object>} Objeto com dados do usuário registrado
+ */
+export const registrarUsuarioSpotify = async (perfilUsuario) => {
+  try {
+    if (!perfilUsuario || !perfilUsuario.id) {
+      throw new Error("Perfil de usuário inválido");
+    }
+
+    // Usar o ID do Spotify como ID do usuário no Firestore
+    const userId = perfilUsuario.id;
+
+    console.log("Tentando registrar/atualizar usuário Spotify:", userId);
+
+    // Dados do usuário para salvar/atualizar
+    const dadosUsuario = {
+      nome: perfilUsuario.display_name || "Usuário Spotify",
+      email: perfilUsuario.email || null,
+      foto_perfil: perfilUsuario.images?.[0]?.url || null,
+      ultima_atualizacao: new Date(),
+    };
+
+    try {
+      // Acessar explicitamente a coleção para garantir que ela exista
+      const spotifyUsersCollection = collection(db, "usuariosSpotify");
+      console.log(
+        "Coleção usuariosSpotify referenciada:",
+        spotifyUsersCollection.path
+      );
+
+      // Verificar se o usuário já existe na coleção específica para usuários Spotify
+      const userRef = doc(db, "usuariosSpotify", userId);
+      let userDoc;
+
+      try {
+        userDoc = await getDoc(userRef);
+      } catch (firestoreError) {
+        console.error("Erro ao ler documento do Firestore:", firestoreError);
+        if (firestoreError.code === "permission-denied") {
+          console.warn(
+            "Permissão negada ao tentar ler a coleção usuariosSpotify. Verifique as regras de segurança do Firestore."
+          );
+        }
+        // Retorna os dados básicos mesmo se não conseguir ler do Firestore
+        return {
+          uid: userId,
+          ...dadosUsuario,
+          dados: { albuns_avaliados: [] },
+        };
+      }
+
+      if (!userDoc.exists()) {
+        // Criar novo usuário
+        try {
+          const novoUsuario = {
+            ...dadosUsuario,
+            albuns_avaliados: [],
+            data_cadastro: new Date(),
+          };
+
+          // Usar o ID explícito do Spotify para garantir a consistência
+          await setDoc(userRef, novoUsuario);
+          console.log("Novo usuário do Spotify registrado:", userId);
+
+          return {
+            uid: userId,
+            ...dadosUsuario,
+            dados: novoUsuario,
+          };
+        } catch (writeError) {
+          console.error("Erro ao criar documento no Firestore:", writeError);
+          if (writeError.code === "permission-denied") {
+            console.warn(
+              "Permissão negada ao tentar criar documento na coleção usuariosSpotify. Verifique as regras de segurança do Firestore."
+            );
+          }
+        }
+      } else {
+        // Atualizar usuário existente
+        try {
+          const dadosAtualizados = {
+            ...userDoc.data(),
+            ...dadosUsuario,
+          };
+
+          await setDoc(userRef, dadosAtualizados, { merge: true });
+          console.log("Usuário do Spotify atualizado:", userId);
+
+          return {
+            uid: userId,
+            ...dadosUsuario,
+            dados: dadosAtualizados,
+          };
+        } catch (updateError) {
+          console.error(
+            "Erro ao atualizar documento no Firestore:",
+            updateError
+          );
+          if (updateError.code === "permission-denied") {
+            console.warn(
+              "Permissão negada ao tentar atualizar documento na coleção usuariosSpotify. Verifique as regras de segurança do Firestore."
+            );
+          }
+        }
+      }
+
+      return {
+        uid: userId,
+        ...dadosUsuario,
+        dados: userDoc.exists() ? userDoc.data() : { albuns_avaliados: [] },
+      };
+    } catch (firestoreError) {
+      console.error("Erro geral do Firestore:", firestoreError);
+      // Retorna os dados básicos mesmo se houver erro do Firestore
+      return {
+        uid: userId,
+        ...dadosUsuario,
+        dados: { albuns_avaliados: [] },
+      };
+    }
+  } catch (error) {
+    console.error("Erro ao registrar usuário do Spotify:", error);
+    throw error;
+  }
 };

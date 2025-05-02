@@ -1,6 +1,13 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { trocarCodePorToken, obterPerfilUsuario } from "../services/spotify";
+import {
+  trocarCodePorToken,
+  obterPerfilUsuario,
+  registrarUsuarioSpotify,
+  verificarToken,
+  atualizarToken,
+} from "../services/spotify";
+import { autenticarComSpotify } from "../services/firebase/auth-custom";
 import { useAuth } from "../contexts/AuthContext";
 
 // ID único para esta instância do componente
@@ -17,6 +24,36 @@ const SpotifyCallback = () => {
   const { verificarOutrosMetodosAutenticacao } = useAuth();
 
   useEffect(() => {
+    alert("[DEBUG] SpotifyCallback useEffect montado");
+    console.log("[DEBUG] SpotifyCallback useEffect montado");
+    // Forçar autenticação customizada se houver perfil em cache
+    const perfilCache = JSON.parse(
+      localStorage.getItem("spotify_user_profile") || "{}"
+    );
+    if (perfilCache && perfilCache.id && perfilCache.id !== "spotify_user") {
+      alert(
+        "[DEBUG] Forçando autenticação customizada com ID do cache: " +
+          perfilCache.id
+      );
+      console.log(
+        "[DEBUG] Forçando autenticação customizada com ID do cache:",
+        perfilCache.id
+      );
+      autenticarComSpotify(perfilCache.id).then((res) => {
+        alert("[DEBUG] Resultado autenticarComSpotify: " + JSON.stringify(res));
+        console.log("[DEBUG] Resultado autenticarComSpotify:", res);
+      });
+    } else {
+      alert(
+        "[DEBUG] ID do Spotify inválido para autenticação customizada: " +
+          perfilCache.id
+      );
+      console.log(
+        "[DEBUG] ID do Spotify inválido para autenticação customizada:",
+        perfilCache.id
+      );
+    }
+
     // Função para salvar estado de processamento
     const marcarComoProcessado = (code) => {
       // Registrar no sessionStorage
@@ -158,6 +195,21 @@ const SpotifyCallback = () => {
           localStorage.removeItem("demo_usuario");
 
           try {
+            // Verificar e renovar o token do Spotify se necessário
+            setStatus("Verificando token do Spotify...");
+            const tokenValido = await verificarToken();
+            if (!tokenValido) {
+              console.log("[DEBUG] Token expirado, renovando...");
+              setStatus("Renovando token do Spotify...");
+              const renovado = await atualizarToken();
+              if (!renovado) {
+                throw new Error("Não foi possível renovar o token do Spotify");
+              }
+              console.log("[DEBUG] Token renovado com sucesso");
+            } else {
+              console.log("[DEBUG] Token do Spotify está válido");
+            }
+
             // Obter o perfil do usuário para confirmar a autenticação
             setStatus("Obtendo perfil do usuário...");
             const perfilUsuario = await obterPerfilUsuario();
@@ -178,6 +230,10 @@ const SpotifyCallback = () => {
               "spotify_user_profile",
               JSON.stringify(perfilCache)
             );
+            alert(
+              "[DEBUG] Perfil do Spotify salvo no cache com ID: " +
+                perfilUsuario.id
+            );
 
             // Salvar o perfil completo no cache da API
             localStorage.setItem(
@@ -188,22 +244,145 @@ const SpotifyCallback = () => {
               })
             );
 
+            // Registrar ou atualizar o usuário no Firestore (coleção usuariosSpotify)
+            setStatus("Registrando usuário na coleção usuariosSpotify...");
+            try {
+              const userData = await registrarUsuarioSpotify(perfilUsuario);
+              console.log(
+                "Usuário do Spotify registrado com sucesso na coleção usuariosSpotify:",
+                userData
+              );
+            } catch (registroError) {
+              console.error(
+                "Erro ao registrar usuário do Spotify no Firestore:",
+                registroError
+              );
+              // Verificar se é um erro 403 (Permissão negada)
+              if (registroError.code === "permission-denied") {
+                console.warn(
+                  "Permissão negada ao tentar acessar o Firestore. Verifique as regras de segurança."
+                );
+                setStatus(
+                  "Aviso: Erro de permissão ao salvar dados. Continuando com login..."
+                );
+              }
+              // Não interromper o fluxo em caso de erro no registro
+            }
+
+            // NOVA ETAPA: Autenticar o usuário no Firebase usando seu ID do Spotify
+            setStatus("Autenticando no Firebase Auth...");
+            let spotifyIdParaAuth = perfilUsuario?.id;
+            // Se não houver perfilUsuario.id, tenta pegar do cache
+            if (!spotifyIdParaAuth) {
+              const perfilCache = JSON.parse(
+                localStorage.getItem("spotify_user_profile") || "{}"
+              );
+              if (perfilCache && perfilCache.id) {
+                spotifyIdParaAuth = perfilCache.id;
+                console.log(
+                  "[DEBUG] Usando ID do Spotify do cache para autenticação Firebase:",
+                  spotifyIdParaAuth
+                );
+              }
+            }
+            if (spotifyIdParaAuth) {
+              try {
+                const authResult = await autenticarComSpotify(
+                  spotifyIdParaAuth
+                );
+                if (authResult.success) {
+                  console.log(
+                    "Usuário autenticado com sucesso no Firebase Auth:",
+                    authResult.user.uid
+                  );
+                  setStatus("Autenticado com sucesso no Firebase Auth!");
+                } else {
+                  console.warn(
+                    "Autenticação no Firebase Auth falhou, continuando com autenticação padrão do Spotify"
+                  );
+                  console.error(
+                    "Erro de autenticação Firebase:",
+                    authResult.error
+                  );
+                  setStatus(
+                    "Autenticado apenas com Spotify (sem Firebase Auth)"
+                  );
+
+                  // Registrar erro específico
+                  if (
+                    authResult.error &&
+                    authResult.error.includes("Failed to fetch")
+                  ) {
+                    console.warn(
+                      "Erro de conexão com a Cloud Function. Verificando status da função..."
+                    );
+                    setErro(
+                      "Erro de conexão com o servidor. A função Cloud Function pode estar indisponível temporariamente. Você pode continuar usando o app com autenticação básica do Spotify."
+                    );
+                  }
+                }
+              } catch (firebaseAuthError) {
+                console.error(
+                  "Erro ao autenticar com Firebase:",
+                  firebaseAuthError
+                );
+
+                // Verificar se é um erro de conexão
+                if (
+                  firebaseAuthError.message &&
+                  firebaseAuthError.message.includes("Failed to fetch")
+                ) {
+                  console.warn(
+                    "Erro de conexão com a Cloud Function ao tentar autenticar"
+                  );
+                  setStatus(
+                    "Erro de conexão com o servidor de autenticação. Usando apenas Spotify."
+                  );
+                } else {
+                  // Continuar com fluxo normal mesmo se a autenticação Firebase falhar
+                  setStatus("Usando apenas autenticação do Spotify...");
+                }
+
+                // Não bloquear o fluxo por causa da falha na autenticação Firebase
+                // Apenas continuar com a autenticação do Spotify
+              }
+            } else {
+              console.error(
+                "[DEBUG] Não foi possível obter o ID do Spotify para autenticação customizada no Firebase."
+              );
+            }
+
             // Definir flag para garantir que o app reconheça que foi feito login com Spotify
             localStorage.setItem("spotify_autenticado", "true");
+
+            // Atualizar o contexto de autenticação para refletir o novo estado
+            verificarOutrosMetodosAutenticacao();
           } catch (error) {
             console.error("Erro ao obter perfil do usuário:", error);
-            // Criar um perfil mínimo para garantir que o usuário possa navegar
-            localStorage.setItem(
-              "spotify_user_profile",
-              JSON.stringify({
-                id: "spotify_user",
-                name: "Usuário Spotify",
-                type: "user",
-              })
-            );
 
-            // Definir flag para garantir que o app reconheça que foi feito login com Spotify mesmo com erro
-            localStorage.setItem("spotify_autenticado", "true");
+            // Verificar se é um erro 403 (Permissão negada)
+            if (error.message && error.message.includes("403")) {
+              setErro(
+                "Erro 403: Permissão negada no Spotify. Você precisa aprovar todas as permissões solicitadas para usar este aplicativo."
+              );
+              // Não redirecionar automaticamente para login, deixar o usuário clicar no botão
+            } else {
+              // Criar um perfil mínimo para garantir que o usuário possa navegar
+              localStorage.setItem(
+                "spotify_user_profile",
+                JSON.stringify({
+                  id: "spotify_user",
+                  name: "Usuário Spotify",
+                  type: "user",
+                })
+              );
+
+              // Definir flag para garantir que o app reconheça que foi feito login com Spotify mesmo com erro
+              localStorage.setItem("spotify_autenticado", "true");
+
+              // Redirecionar automático só para outros tipos de erro
+              setTimeout(() => navigate("/login"), 3000);
+            }
           }
 
           // Definir "feed" como a view ativa
@@ -247,9 +426,43 @@ const SpotifyCallback = () => {
         {erro ? (
           <div className="bg-red-900/30 border border-red-500 text-red-200 p-3 rounded-lg mb-4">
             {erro}
-            <p className="mt-2 text-sm">
-              Redirecionando para a página de login...
-            </p>
+            {erro.includes("403") || erro.includes("Permissão") ? (
+              <div className="mt-4">
+                <p className="text-sm mb-2">
+                  Erro de permissão no Spotify. Você precisa aprovar{" "}
+                  <strong>todas</strong> as permissões solicitadas:
+                </p>
+                <ul className="list-disc pl-5 text-sm mb-3">
+                  <li>Leia seu perfil de usuário (obrigatório)</li>
+                  <li>Leia seu e-mail (obrigatório)</li>
+                  <li>Acesse seus artistas mais tocados</li>
+                  <li>Acesse seus álbuns salvos</li>
+                  <li>Acesse suas playlists privadas</li>
+                </ul>
+                <p className="text-sm mb-3">
+                  Dica: Se você já negou permissões antes, talvez seja
+                  necessário removê-las nas configurações do Spotify. Visite:{" "}
+                  <a
+                    href="https://www.spotify.com/account/apps/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-green-400 underline"
+                  >
+                    Spotify Account Apps
+                  </a>
+                </p>
+                <button
+                  onClick={() => (window.location.href = "/login")}
+                  className="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded"
+                >
+                  Tentar novamente
+                </button>
+              </div>
+            ) : (
+              <p className="mt-2 text-sm">
+                Redirecionando para a página de login...
+              </p>
+            )}
           </div>
         ) : (
           <div className="text-center">

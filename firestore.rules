@@ -1,0 +1,26 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Regra para permitir acesso à coleção de usuários
+    match /usuarios/{userId} {
+      // Permite leitura mesmo sem autenticação
+      allow read: if true;
+      // Permite escrita de forma mais aberta durante a autenticação
+      allow write: if request.auth != null || (request.auth == null && userId.matches('spotify_.*'));
+    }
+
+    // Regras para a coleção usuariosSpotify - corrigir permissões para permitir leitura
+    match /usuariosSpotify/{spotifyId} {
+      // Permitir leitura para qualquer pessoa (mesmo não autenticada)
+      allow read: if true;
+      // Permitir escrita durante o processo de autenticação quando o cliente não está autenticado
+      allow create, update: if true; // Temporariamente mais permissivo para diagnóstico
+      allow delete: if request.auth != null && request.auth.uid == spotifyId;
+    }
+
+    // Regras para outras coleções 
+    match /{document=**} {
+      allow read, write: if request.auth != null;
+    }
+  }
+} 

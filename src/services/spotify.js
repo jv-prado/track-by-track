@@ -407,7 +407,26 @@ const SPOTIFY_CLIENT_ID = "fc70ea11d5414f3ca0d81d376fe3dc76"; // Substitua pelo 
 // Não deve ter barra final (/) no final se não tiver no dashboard
 // Deve ser consistente em todo o aplicativo
 const REDIRECT_URI = (() => {
-  const uri = `${window.location.origin}/callback`;
+  // Suporte para ambientes de preview do Vercel
+  const origin = window.location.origin;
+  let uri = `${origin}/callback`;
+
+  // Lista de domínios permitidos (produção, localhost e previews do Vercel)
+  const allowedOrigins = [
+    "https://www.trackbytrackapp.com",
+    "http://localhost:5173",
+    "http://localhost:3000",
+    // Exemplo de domínio de preview do Vercel
+    "https://track-by-track-git-testes-jvprado1s-projects.vercel.app",
+    // Adicione outros domínios de preview se necessário
+  ];
+
+  if (!allowedOrigins.includes(origin)) {
+    console.warn(
+      `ATENÇÃO: O domínio ${origin} não está cadastrado como redirect_uri no painel do Spotify. Adicione este domínio para evitar erros de login.`
+    );
+  }
+
   // Logar o URI para debugging
   console.log("Configurando REDIRECT_URI:", uri);
   console.log(

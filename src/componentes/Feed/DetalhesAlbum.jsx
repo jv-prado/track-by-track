@@ -1387,7 +1387,7 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
                                   className="w-5 h-5 rounded-full object-cover"
                                 />
                               ) : (
-                                <span className="w-5 h-5 rounded-full bg-gray-700 text-gray-200 flex items-center justify-center font-bold text-xs">
+                                <span className="w-5 h-5 rounded-full bg-gray-700 text-gray-200 flex items-center justify-center font-bold font-bold text-xs">
                                   {av.usuario.nome?.[0]?.toUpperCase() || "?"}
                                 </span>
                               )}

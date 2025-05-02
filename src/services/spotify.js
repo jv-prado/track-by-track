@@ -292,3 +292,29 @@ export async function buscarDetalhesAlbum(albumId) {
     );
   }
 }
+
+/**
+ * Busca singles pelo nome
+ * @param {string} nomeSingle - Nome do single a ser buscado
+ * @returns {Promise<Object>} Dados dos singles encontrados
+ */
+export async function buscarSingle(nomeSingle) {
+  try {
+    // Se estiver em modo demo, retornar dados mockados
+    if (isDemoMode()) {
+      return mockData.albums; // Usando o mesmo mock de albums por enquanto
+    }
+
+    const token = await getToken();
+    const nomeSingleEncodificado = encodeURIComponent(nomeSingle);
+
+    const data = await fetchWithErrorHandling(
+      `${URL_BASE}search?q=${nomeSingleEncodificado}&type=album&include_groups=single`,
+      getAuthHeaders(token)
+    );
+
+    return data.albums;
+  } catch (error) {
+    throw new Error(`Não foi possível buscar o single: ${error.message}`);
+  }
+}

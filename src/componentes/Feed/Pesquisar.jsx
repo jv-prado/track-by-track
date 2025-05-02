@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { buscarAlbum } from "../../services/spotify";
 import { buscarArtista } from "../../services/spotify";
+import { buscarSingle } from "../../services/spotify";
 import DetalhesAlbum from "./DetalhesAlbum";
 import ListaAlbuns from "./ListaAlbuns";
 import { MdMusicNote, MdReportProblem } from "react-icons/md";
@@ -15,7 +16,7 @@ import { BsGrid3X3GapFill, BsListUl } from "react-icons/bs";
  */
 const Pesquisar = ({ termoPesquisa }) => {
   const [resultados, setResultados] = useState(null);
-  const [tipoConteudo, setTipoConteudo] = useState("albuns"); // albuns ou artistas
+  const [tipoConteudo, setTipoConteudo] = useState("albuns"); // albuns, singles ou artistas
   const [carregando, setCarregando] = useState(false);
   const [itemSelecionado, setItemSelecionado] = useState(null);
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
@@ -75,6 +76,9 @@ const Pesquisar = ({ termoPesquisa }) => {
           if (tipoConteudo === "albuns") {
             const dadosAlbum = await buscarAlbum(termoPesquisa);
             setResultados(dadosAlbum);
+          } else if (tipoConteudo === "singles") {
+            const dadosSingle = await buscarSingle(termoPesquisa);
+            setResultados(dadosSingle);
           } else {
             const dadosArtista = await buscarArtista(termoPesquisa);
             setResultados(dadosArtista);
@@ -105,8 +109,11 @@ const Pesquisar = ({ termoPesquisa }) => {
 
   const gridCols = getGridCols();
 
-  // Renderizar componente de detalhes quando um álbum for selecionado
-  if (itemSelecionado && tipoConteudo === "albuns") {
+  // Renderizar componente de detalhes quando um álbum ou single for selecionado
+  if (
+    itemSelecionado &&
+    (tipoConteudo === "albuns" || tipoConteudo === "singles")
+  ) {
     return (
       <DetalhesAlbum
         albumId={itemSelecionado}
@@ -134,11 +141,11 @@ const Pesquisar = ({ termoPesquisa }) => {
         </h1>
 
         <div className="flex items-center gap-2">
-          {/* Botões para alternar entre álbuns e artistas */}
+          {/* Botões para alternar entre tipos de conteúdo */}
           <div className="flex bg-cinza-escuro rounded-full p-1 mr-2">
             <button
               onClick={() => alternarTipoConteudo("albuns")}
-              className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${
+              className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
                 tipoConteudo === "albuns"
                   ? "bg-verde-destaque text-gray-900"
                   : "text-gray-300 hover:text-verde-destaque"
@@ -147,8 +154,18 @@ const Pesquisar = ({ termoPesquisa }) => {
               {t("app.albums")}
             </button>
             <button
+              onClick={() => alternarTipoConteudo("singles")}
+              className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
+                tipoConteudo === "singles"
+                  ? "bg-verde-destaque text-gray-900"
+                  : "text-gray-300 hover:text-verde-destaque"
+              }`}
+            >
+              {t("app.singles", "Singles")}
+            </button>
+            <button
               onClick={() => alternarTipoConteudo("artistas")}
-              className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${
+              className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
                 tipoConteudo === "artistas"
                   ? "bg-verde-destaque text-gray-900"
                   : "text-gray-300 hover:text-verde-destaque"
@@ -205,15 +222,15 @@ const Pesquisar = ({ termoPesquisa }) => {
                   className="bg-cinza-escuro rounded-xl overflow-hidden shadow-lg transition-all duration-300 hover:scale-[1.02] hover:shadow-xl flex flex-col h-full cursor-pointer relative hover:bg-cinza-escuro/90 group p-3"
                   onClick={() => setItemSelecionado(item.id)}
                   title={
-                    tipoConteudo === "albuns"
+                    tipoConteudo === "albuns" || tipoConteudo === "singles"
                       ? t("albumCard.viewTracks", "Ver faixas")
                       : t("artistSearch.clickToSeeAlbums", "Ver álbuns")
                   }
                 >
                   {/* Imagem */}
                   <div className="aspect-square overflow-hidden rounded-lg mb-3 bg-cinza-escuro">
-                    {tipoConteudo === "albuns" ? (
-                      // Imagem do álbum
+                    {tipoConteudo === "albuns" || tipoConteudo === "singles" ? (
+                      // Imagem do álbum ou single
                       item.images && item.images.length > 0 ? (
                         <img
                           src={item.images[0].url}
@@ -255,7 +272,7 @@ const Pesquisar = ({ termoPesquisa }) => {
                     </h3>
 
                     {/* Informações específicas por tipo */}
-                    {tipoConteudo === "albuns" ? (
+                    {tipoConteudo === "albuns" || tipoConteudo === "singles" ? (
                       <>
                         <p className="text-verde-destaque text-xs md:text-sm line-clamp-1 mb-2">
                           {item.artists && item.artists.length > 0
@@ -296,7 +313,7 @@ const Pesquisar = ({ termoPesquisa }) => {
                     }}
                     className="mt-3 px-4 py-1.5 bg-verde-destaque text-cinza-escuro text-sm font-semibold rounded-lg hover:bg-verde-claro transition-colors w-full flex items-center justify-center"
                   >
-                    {tipoConteudo === "albuns"
+                    {tipoConteudo === "albuns" || tipoConteudo === "singles"
                       ? t("albumSearch.viewTracks", "Avaliar")
                       : t("artistSearch.viewAlbums", "Ver álbuns")}
                   </button>
@@ -312,7 +329,7 @@ const Pesquisar = ({ termoPesquisa }) => {
                   className="bg-cinza-escuro rounded-xl overflow-hidden shadow-lg transition-all duration-300 hover:scale-[1.02] hover:shadow-xl flex flex-col h-full cursor-pointer relative hover:bg-cinza-escuro/90 group"
                   onClick={() => setItemSelecionado(item.id)}
                   title={
-                    tipoConteudo === "albuns"
+                    tipoConteudo === "albuns" || tipoConteudo === "singles"
                       ? t("albumCard.viewTracks", "Ver faixas")
                       : t("artistSearch.clickToSeeAlbums", "Ver álbuns")
                   }
@@ -320,8 +337,9 @@ const Pesquisar = ({ termoPesquisa }) => {
                   <div className="flex h-full py-3 px-4 items-center">
                     {/* Imagem */}
                     <div className="flex-shrink-0 w-16 h-16 md:w-20 md:h-20 bg-cinza-escuro rounded-lg overflow-hidden">
-                      {tipoConteudo === "albuns" ? (
-                        // Imagem do álbum
+                      {tipoConteudo === "albuns" ||
+                      tipoConteudo === "singles" ? (
+                        // Imagem do álbum ou single
                         item.images && item.images.length > 0 ? (
                           <img
                             src={item.images[0].url}
@@ -359,7 +377,8 @@ const Pesquisar = ({ termoPesquisa }) => {
                         {item.name}
                       </h3>
 
-                      {tipoConteudo === "albuns" ? (
+                      {tipoConteudo === "albuns" ||
+                      tipoConteudo === "singles" ? (
                         <>
                           <p className="text-verde-destaque text-sm">
                             {item.artists && item.artists.length > 0
@@ -400,7 +419,7 @@ const Pesquisar = ({ termoPesquisa }) => {
                       }}
                       className="ml-auto px-5 py-2 bg-verde-destaque text-cinza-escuro text-sm font-semibold rounded-lg hover:bg-verde-claro transition-colors"
                     >
-                      {tipoConteudo === "albuns"
+                      {tipoConteudo === "albuns" || tipoConteudo === "singles"
                         ? t("albumSearch.viewTracks", "Avaliar")
                         : t("artistSearch.viewAlbums", "Ver álbuns")}
                     </button>
@@ -417,6 +436,8 @@ const Pesquisar = ({ termoPesquisa }) => {
           <p className="text-gray-300 text-lg font-medium text-center">
             {tipoConteudo === "albuns"
               ? t("albumSearch.noAlbumsFound", "Nenhum álbum encontrado")
+              : tipoConteudo === "singles"
+              ? t("albumSearch.noSinglesFound", "Nenhum single encontrado")
               : t("artistSearch.noArtistsFound", "Nenhum artista encontrado")}
           </p>
           <p className="text-gray-500 mt-1 text-center max-w-md">
@@ -434,9 +455,14 @@ const Pesquisar = ({ termoPesquisa }) => {
                 "albumSearch.typeToSearch",
                 "Digite um nome de álbum na barra de pesquisa"
               )
+            : tipoConteudo === "singles"
+            ? t(
+                "singleSearch.typeToSearch",
+                "Digite um nome de single na barra de pesquisa"
+              )
             : t(
-                "artistSearch.enterTerm",
-                "Digite o nome de um artista para pesquisar"
+                "artistSearch.typeToSearch",
+                "Type an artist name in the search bar"
               )}
         </p>
       )}

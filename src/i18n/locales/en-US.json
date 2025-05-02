@@ -4,6 +4,7 @@
     "search": "Search",
     "albums": "Albums",
     "artists": "Artists",
+    "singles": "Singles",
     "myRatings": "My Ratings",
     "logout": "Logout",
     "login": "Login",
@@ -183,7 +184,11 @@
     "releaseYear": "Released: {{year}}",
     "viewTracks": "Rate album",
     "noAlbumsFound": "No albums found",
+    "noSinglesFound": "No singles found",
     "typeToSearch": "Type an album name in the search bar"
+  },
+  "singleSearch": {
+    "typeToSearch": "Type a single name in the search bar"
   },
   "artistSearch": {
     "title": "Search for Artists",

@@ -4,6 +4,7 @@
     "search": "Pesquisar",
     "albums": "Álbuns",
     "artists": "Artistas",
+    "singles": "Singles",
     "myRatings": "Avaliações",
     "logout": "Sair",
     "login": "Entrar",
@@ -183,7 +184,11 @@
     "releaseYear": "Lançamento: {{year}}",
     "viewTracks": "Avaliar",
     "noAlbumsFound": "Nenhum álbum encontrado",
+    "noSinglesFound": "Nenhum single encontrado",
     "typeToSearch": "Digite um nome de álbum na barra de pesquisa"
+  },
+  "singleSearch": {
+    "typeToSearch": "Digite um nome de single na barra de pesquisa"
   },
   "artistSearch": {
     "title": "Pesquisar por Artista",

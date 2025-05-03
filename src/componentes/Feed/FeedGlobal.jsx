@@ -245,11 +245,9 @@ const FeedGlobal = () => {
             (avaliacao.dataAtualizacao ? true : false) ||
             (avaliacao.atualizacaoTimestamp ? true : false),
           temReview:
-            (typeof avaliacao.review === "string" &&
-              avaliacao.review.trim().length > 0) ||
+            typeof avaliacao.review === "string" ||
             (avaliacao.preferencias &&
-              typeof avaliacao.preferencias.review === "string" &&
-              avaliacao.preferencias.review.trim().length > 0),
+              typeof avaliacao.preferencias.review === "string"),
         }))
         .filter((avaliacao) => (avaliacao.progresso?.percentual || 0) >= 100);
 
@@ -1300,7 +1298,7 @@ const FeedGlobal = () => {
                             {c.autor}
                           </span>
                           <div className="text-xs text-gray-400">
-                            {formatarDataSegura(c.data)}
+                            {formatarDataComentario(c.data)}
                             {c.editado && (
                               <span className="ml-1">{t("feed.editado")}</span>
                             )}

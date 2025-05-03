@@ -50,60 +50,72 @@ const PerfilUsuario = () => {
 
   // Função de logout
   const handleLogout = async () => {
-    setCarregando(true);
+    try {
+      setCarregando(true);
 
-    // Se estiver em modo demo, limpar dados do demo
-    if (demoModeAtivo) {
-      localStorage.removeItem("demo_token");
-      localStorage.removeItem("demo_token_expiry");
-      localStorage.removeItem("demo_usuario");
-      localStorage.removeItem("modo_demo_ativo");
-      localStorage.removeItem("activeView");
+      // Se estiver em modo demo, limpar dados do demo
+      if (demoModeAtivo) {
+        // Limpar dados do demo
+        localStorage.removeItem("demo_token");
+        localStorage.removeItem("demo_token_expiry");
+        localStorage.removeItem("demo_usuario");
+        localStorage.removeItem("modo_demo_ativo");
+        localStorage.removeItem("activeView");
 
-      // Limpar dados de avaliações do modo demo
-      const avaliacoesFaixas = JSON.parse(
-        localStorage.getItem("avaliacoesFaixas") || "{}"
-      );
-      // Manter apenas avaliações que não foram feitas no modo demo
-      localStorage.setItem("avaliacoesFaixas", JSON.stringify({}));
-      localStorage.setItem("mapaFaixasAlbuns", JSON.stringify({}));
-      localStorage.setItem("datasAvaliacoes", JSON.stringify({}));
+        // Limpar dados de avaliações do modo demo
+        localStorage.removeItem("avaliacoesFaixas");
+        localStorage.removeItem("mapaFaixasAlbuns");
+        localStorage.removeItem("datasAvaliacoes");
+        localStorage.removeItem("preferenciasAlbuns");
 
-      setDemoModeAtivo(false);
-    }
-    // Se estiver autenticado com Spotify, fazer logout do Spotify
-    else if (usuarioSpotify) {
-      // Usar função melhorada de logout do Spotify que limpa todos os dados
-      logoutSpotify();
-      setUsuarioSpotify(null);
+        // Limpar dados de visualização
+        localStorage.removeItem("activeView");
 
-      // Verificar se algum dado do Spotify ainda permanece e limpar
-      const spotifyKeys = [];
-      for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i);
-        if (key && key.startsWith("spotify_")) {
-          spotifyKeys.push(key);
+        setDemoModeAtivo(false);
+      }
+      // Se estiver autenticado com Spotify, fazer logout do Spotify
+      else if (usuarioSpotify) {
+        // Usar função melhorada de logout do Spotify que limpa todos os dados
+        logoutSpotify();
+        setUsuarioSpotify(null);
+
+        // Verificação adicional: limpar manualmente dados do Spotify
+        const spotifyKeys = [];
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (key && (key.startsWith("spotify_") || key.includes("spotify"))) {
+            spotifyKeys.push(key);
+          }
         }
+
+        // Remover todos os itens identificados
+        spotifyKeys.forEach((key) => localStorage.removeItem(key));
+
+        // Limpar outros dados de autenticação relevantes
+        localStorage.removeItem("activeView");
+        sessionStorage.removeItem("login_redirect");
+      }
+      // Caso contrário, deslogar normalmente
+      else if (usuario) {
+        await fazerLogout();
+        await sairDaConta();
       }
 
-      // Remover todos os itens identificados com prefixo "spotify_"
-      spotifyKeys.forEach((key) => localStorage.removeItem(key));
+      // Forçar navegação para a tela de login
+      navigate("/login");
+      setCarregando(false);
+    } catch (error) {
+      console.error("Erro durante logout:", error);
 
-      // Limpar dados da sessão também
-      sessionStorage.removeItem("login_redirect");
+      // Em caso de erro, fazer uma limpeza forçada e redirecionar
+      localStorage.removeItem("activeView");
+      localStorage.removeItem("spotify_autenticado");
+      localStorage.removeItem("spotify_token_expires_at");
+      localStorage.removeItem("spotify_user_profile");
+
+      navigate("/login");
+      setCarregando(false);
     }
-    // Caso contrário, deslogar normalmente
-    else if (usuario) {
-      await fazerLogout();
-      await sairDaConta();
-    }
-
-    // Limpar dados de sessão
-    localStorage.removeItem("activeView");
-
-    // Redirecionar para a tela de login
-    navigate("/login");
-    setCarregando(false);
   };
 
   // Se estiver em modo demo, mostrar informações do usuário demo

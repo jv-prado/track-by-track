@@ -41,13 +41,56 @@ function App() {
     const verificarPersistenciaAuth = async () => {
       setCarregandoAuth(true);
 
+      // Função para realizar limpeza de dados inconsistentes
+      const limparDadosInconsistentes = () => {
+        console.log(
+          "Detectados dados inconsistentes de autenticação, limpando..."
+        );
+
+        // Limpar todos os dados do Spotify
+        const spotifyKeys = [];
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (key && (key.startsWith("spotify_") || key.includes("spotify"))) {
+            spotifyKeys.push(key);
+          }
+        }
+        spotifyKeys.forEach((key) => localStorage.removeItem(key));
+
+        // Limpar outros dados de autenticação específicos
+        localStorage.removeItem("spotify_autenticado");
+        localStorage.removeItem("spotify_access_token");
+        localStorage.removeItem("spotify_refresh_token");
+        localStorage.removeItem("spotify_token_expires_at");
+        localStorage.removeItem("spotify_user_profile");
+      };
+
       // Verificar se o usuário está autenticado pelo Spotify
       const spotifyAutenticado =
         localStorage.getItem("spotify_autenticado") === "true";
       const tokenSpotify = localStorage.getItem("spotify_access_token");
       const refreshTokenSpotify = localStorage.getItem("spotify_refresh_token");
+      const tokenExpiresAt = localStorage.getItem("spotify_token_expires_at");
 
-      if (spotifyAutenticado || tokenSpotify || refreshTokenSpotify) {
+      // Verificação dupla para garantir que o token é válido
+      const tokenExpirado =
+        tokenExpiresAt && parseInt(tokenExpiresAt) < Date.now();
+
+      // Se tiver token expirado mas outras flags de autenticação, limpar tudo
+      if (
+        (tokenExpirado && (spotifyAutenticado || refreshTokenSpotify)) ||
+        (spotifyAutenticado && !tokenSpotify && !refreshTokenSpotify)
+      ) {
+        limparDadosInconsistentes();
+        setCarregandoAuth(false);
+        return;
+      }
+
+      if (
+        spotifyAutenticado &&
+        (tokenSpotify || refreshTokenSpotify) &&
+        !tokenExpirado
+      ) {
         console.log("Usuário autenticado pelo Spotify detectado");
         setUsuarioSpotify(true);
 

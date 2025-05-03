@@ -150,7 +150,50 @@ export const fazerLogin = async (email, senha) => {
  * Realiza logout do usuário
  */
 export const fazerLogout = async () => {
-  return await signOut(auth);
+  try {
+    // Limpar todos os dados de autenticação no localStorage
+    // Primeiro, limpar todos os itens específicos do Spotify
+    const spotifyKeys = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith("spotify_")) {
+        spotifyKeys.push(key);
+      }
+    }
+
+    // Remover todos os itens Spotify
+    spotifyKeys.forEach((key) => localStorage.removeItem(key));
+
+    // Limpar dados específicos de autenticação
+    localStorage.removeItem("activeView");
+    localStorage.removeItem("spotify_autenticado");
+    localStorage.removeItem("spotify_user_profile");
+    localStorage.removeItem("spotify_access_token");
+    localStorage.removeItem("spotify_refresh_token");
+    localStorage.removeItem("spotify_token_expires_at");
+
+    // Limpar qualquer dado do usuário demo, se existir
+    localStorage.removeItem("demo_token");
+    localStorage.removeItem("demo_token_expiry");
+    localStorage.removeItem("demo_usuario");
+    localStorage.removeItem("modo_demo_ativo");
+
+    // Limpar sessão
+    sessionStorage.removeItem("login_redirect");
+    sessionStorage.removeItem("spotify_code_used");
+    sessionStorage.removeItem("spotify_code_processing");
+
+    // Executar o logout do Firebase Auth
+    await signOut(auth);
+
+    console.log(
+      "Logout completo com sucesso - todos os dados de autenticação foram removidos"
+    );
+    return true;
+  } catch (error) {
+    console.error("Erro ao fazer logout:", error);
+    throw error;
+  }
 };
 
 /**

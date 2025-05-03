@@ -76,41 +76,66 @@ export default function Sidebar({ activeView, setActiveView }) {
   }, []);
 
   const handleLogout = async () => {
-    // Se for usuário demo, limpar os dados do localStorage
-    if (usuarioDemo || modoDemoBrowser) {
-      localStorage.removeItem("demo_token");
-      localStorage.removeItem("demo_token_expiry");
-      localStorage.removeItem("demo_usuario");
-      localStorage.removeItem("modo_demo_ativo");
+    try {
+      // Se for usuário demo, limpar os dados do localStorage
+      if (usuarioDemo || modoDemoBrowser) {
+        // Limpar completamente todos os dados do usuário demo
+        localStorage.removeItem("demo_token");
+        localStorage.removeItem("demo_token_expiry");
+        localStorage.removeItem("demo_usuario");
+        localStorage.removeItem("modo_demo_ativo");
+        localStorage.removeItem("avaliacoesFaixas");
+        localStorage.removeItem("mapaFaixasAlbuns");
+        localStorage.removeItem("datasAvaliacoes");
+        localStorage.removeItem("preferenciasAlbuns");
 
-      // Definir a view ativa como "feed" para o próximo login
-      localStorage.setItem("activeView", "feed");
+        // Limpar também dados de visualização
+        localStorage.removeItem("activeView");
 
-      window.location.href = "/login";
-      return;
-    }
+        // Forçar uma limpeza completa em caso de erros
+        try {
+          window.location.href = "/login";
+        } catch (error) {
+          console.error("Erro ao redirecionar após logout de demo:", error);
+          window.location.replace("/login");
+        }
+        return;
+      }
 
-    // Se for usuário Firebase, fazer logout normal
-    if (usuarioFirebase) {
-      await fazerLogout();
+      // Se for usuário Firebase ou Spotify, fazer logout normal
+      if (usuarioFirebase) {
+        await fazerLogout();
+      }
 
-      // Verificação adicional para garantir que todos os dados do Spotify foram removidos
+      // Verificação adicional: limpar manualmente dados do Spotify
       const spotifyKeys = [];
       for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i);
-        if (key && key.startsWith("spotify_")) {
+        if (key && (key.startsWith("spotify_") || key.includes("spotify"))) {
           spotifyKeys.push(key);
         }
       }
 
-      // Remover todos os itens identificados com prefixo "spotify_"
+      // Remover todos os itens identificados
       spotifyKeys.forEach((key) => localStorage.removeItem(key));
+
+      // Limpar outros dados de autenticação relevantes
+      localStorage.removeItem("activeView");
+      sessionStorage.removeItem("login_redirect");
+
+      // Forçar navegação para login
+      navigate("/login");
+    } catch (error) {
+      console.error("Erro durante logout:", error);
+
+      // Em caso de erro, fazer uma limpeza forçada e redirecionar
+      localStorage.removeItem("activeView");
+      localStorage.removeItem("spotify_autenticado");
+      localStorage.removeItem("spotify_token_expires_at");
+      localStorage.removeItem("spotify_user_profile");
+
+      navigate("/login");
     }
-
-    // Definir a view ativa como "feed" para o próximo login
-    localStorage.setItem("activeView", "feed");
-
-    navigate("/login");
   };
 
   // Função para alternar entre idiomas

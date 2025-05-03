@@ -181,6 +181,13 @@ const Splash = () => {
           </Link>
           <span className="text-gray-600">|</span>
           <Link
+            to="/sobre"
+            className="text-gray-400 text-xs hover:text-verde-destaque transition-colors"
+          >
+            {t("about.title")}
+          </Link>
+          <span className="text-gray-600">|</span>
+          <Link
             to="/exclusao-de-conta"
             className="text-gray-400 text-xs hover:text-verde-destaque transition-colors"
           >

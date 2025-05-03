@@ -232,6 +232,26 @@
     "breach": "Failure to comply with the terms may result in account suspension or deletion.",
     "updates": "These terms may be updated periodically. We recommend that you review them regularly."
   },
+  "about": {
+    "title": "About",
+    "description": "Track by Track is a platform for music lovers who want to rate albums track by track, creating a detailed record of their musical experiences.",
+    "purpose": "Our purpose is to offer an organized way to document your impressions of albums, allowing you to compare your ratings with other users and rediscover music that has marked your life.",
+    "spotifyIntegration": "Spotify Integration",
+    "spotifyDescription": "We use the official Spotify API to fetch accurate information about albums, artists, and tracks. Our application does not store or distribute copyright-protected content from Spotify.",
+    "disclaimer": "This application is not affiliated, associated, authorized, endorsed by, or in any way officially connected with Spotify AB. The Spotify name, as well as related brands, logos, and images are registered trademarks of their respective owners.",
+    "features": "Features",
+    "featuresList": [
+      "Detailed track-by-track album rating",
+      "Highlight your favorite and least favorite songs",
+      "Comparison with other users' ratings",
+      "Complete history of your ratings",
+      "Search for albums and artists via Spotify",
+      "Offline mode for ratings without an account"
+    ],
+    "contact": "To contact us, please send an email to:",
+    "email": "contatotrackbytrack@gmail.com",
+    "developedBy": "Developed by music fans for music fans."
+  },
   "accountDeletion": {
     "title": "Account Deletion",
     "description": "On this page, you can request the deletion of your account and associated data from Track by Track.",

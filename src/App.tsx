@@ -20,6 +20,7 @@ import LanguageSelector from "./componentes/LanguageSelector";
 import PoliticaDePrivacidade from "./componentes/PoliticaDePrivacidade";
 import TermosDeUso from "./componentes/TermosDeUso";
 import ExclusaoDeConta from "./componentes/ExclusaoDeConta";
+import Sobre from "./componentes/Sobre";
 import { auth } from "./services/firebase";
 import { logInfoAutenticacao } from "./services/firebase/auth-helper";
 import { diagnosticarProblemasAutenticacao } from "./services/debug";
@@ -409,6 +410,7 @@ function App() {
                 element={<PoliticaDePrivacidade />}
               />
               <Route path="/termos-de-uso" element={<TermosDeUso />} />
+              <Route path="/sobre" element={<Sobre />} />
               <Route path="/exclusao-de-conta" element={<ExclusaoDeConta />} />
             </Routes>
           </div>

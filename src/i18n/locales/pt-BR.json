@@ -232,6 +232,26 @@
     "breach": "O descumprimento dos termos pode resultar em suspensão ou exclusão da conta.",
     "updates": "Estes termos podem ser atualizados periodicamente. Recomendamos que você os revise regularmente."
   },
+  "about": {
+    "title": "Sobre",
+    "description": "Track by Track é uma plataforma para amantes de música que desejam avaliar álbuns faixa por faixa, criando um registro detalhado de suas experiências musicais.",
+    "purpose": "Nosso propósito é oferecer uma forma organizada de documentar suas impressões sobre álbuns, permitindo que você compare suas avaliações com outros usuários e redescubra músicas que marcaram sua vida.",
+    "spotifyIntegration": "Integração com o Spotify",
+    "spotifyDescription": "Utilizamos a API oficial do Spotify para buscar informações precisas sobre álbuns, artistas e faixas. Nosso aplicativo não armazena ou distribui conteúdo protegido por direitos autorais do Spotify.",
+    "disclaimer": "Este aplicativo não é afiliado, associado, autorizado, endossado por, ou de qualquer forma oficialmente conectado com o Spotify AB. Os nomes Spotify, assim como marcas, logotipos e imagens relacionadas são marcas registradas de seus respectivos proprietários.",
+    "features": "Funcionalidades",
+    "featuresList": [
+      "Avaliação detalhada de álbuns faixa por faixa",
+      "Destaque para suas músicas favoritas e menos favoritas",
+      "Comparação com avaliações de outros usuários",
+      "Histórico completo de suas avaliações",
+      "Pesquisa de álbuns e artistas via Spotify",
+      "Modo offline para avaliações sem conta"
+    ],
+    "contact": "Para entrar em contato conosco, envie um e-mail para:",
+    "email": "contatotrackbytrack@gmail.com",
+    "developedBy": "Desenvolvido por fãs de música para fãs de música."
+  },
   "accountDeletion": {
     "title": "Exclusão de Conta",
     "description": "Nesta página, você pode solicitar a exclusão da sua conta e dados associados ao Track by Track.",

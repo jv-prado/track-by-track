@@ -123,6 +123,18 @@ const Login = () => {
             </Link>
             <span className="text-gray-600">|</span>
             <Link
+              to="/sobre"
+              className="flex-1 text-gray-400 text-xs hover:text-verde-destaque transition-colors break-words text-center max-w-[80px] sm:max-w-none"
+              style={{
+                minWidth: 0,
+                wordBreak: "break-word",
+                whiteSpace: "normal",
+              }}
+            >
+              {t("about.title")}
+            </Link>
+            <span className="text-gray-600">|</span>
+            <Link
               to="/exclusao-de-conta"
               className="flex-1 text-gray-400 text-xs hover:text-verde-destaque transition-colors break-words text-center max-w-[80px] sm:max-w-none"
               style={{

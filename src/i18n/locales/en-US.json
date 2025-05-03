@@ -205,7 +205,8 @@
     "showingRecentRatings": "Showing {{shown}} of {{total}} most recent ratings",
     "edit": "Edit",
     "readMore": "Read more...",
-    "editReviewButton": "Edit review"
+    "editReviewButton": "Edit review",
+    "notApplicable": "Not applicable"
   },
   "userProfile": {
     "loginSignUp": "Login or Sign Up",

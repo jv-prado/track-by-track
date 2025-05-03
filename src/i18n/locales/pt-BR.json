@@ -41,7 +41,8 @@
     "horasAtras": "{{count}} hora atrás",
     "horasAtras_plural": "{{count}} horas atrás",
     "diasAtras": "{{count}} dia atrás",
-    "diasAtras_plural": "{{count}} dias atrás"
+    "diasAtras_plural": "{{count}} dias atrás",
+    "verResenha": "Ver resenha"
   },
   "splash": {
     "logoAlt": "Logo do aplicativo",

@@ -1089,11 +1089,8 @@ const FeedGlobal = () => {
                                 title={t("feed.verResenha", "Ver resenha")}
                               >
                                 <MdRateReview className="mr-1 text-base" />
-                                <span className="whitespace-nowrap max-[500px]:hidden">
+                                <span className="whitespace-nowrap">
                                   {t("feed.verResenha", "Ver resenha")}
-                                </span>
-                                <span className="whitespace-nowrap min-[501px]:hidden">
-                                  {t("feed.review", "Resenha")}
                                 </span>
                               </button>
                             )}

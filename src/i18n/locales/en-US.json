@@ -41,7 +41,8 @@
     "horasAtras": "{{count}} hour ago",
     "horasAtras_plural": "{{count}} hours ago",
     "diasAtras": "{{count}} day ago",
-    "diasAtras_plural": "{{count}} days ago"
+    "diasAtras_plural": "{{count}} days ago",
+    "verResenha": "View review"
   },
   "splash": {
     "logoAlt": "App logo",
@@ -118,7 +119,8 @@
     "horasAtras": "{{count}} hour ago",
     "horasAtras_plural": "{{count}} hours ago",
     "diasAtras": "{{count}} day ago",
-    "diasAtras_plural": "{{count}} days ago"
+    "diasAtras_plural": "{{count}} days ago",
+    "verResenha": "View review"
   },
   "myRatings": {
     "title": "My Ratings",

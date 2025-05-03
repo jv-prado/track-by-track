@@ -651,5 +651,6 @@ export default function useAvaliacoes({ termoPesquisaInicial = "" } = {}) {
     progressoCarregamento,
     carregamentoProgressivo,
     setCarregamentoProgressivo,
+    setProgressoCarregamento,
   };
 }

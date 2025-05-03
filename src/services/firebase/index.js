@@ -241,6 +241,14 @@ export const salvarAvaliacaoAlbum = async (
   isPrimeiraAvaliacaoConcluida = false
 ) => {
   try {
+    // Verificações defensivas para evitar undefined em campos obrigatórios
+    if (!albumId) throw new Error("ID do álbum é obrigatório");
+    if (!avaliacoesFaixas) avaliacoesFaixas = {};
+    if (!nome) nome = "Álbum sem nome";
+    if (!artista) artista = "Artista desconhecido";
+    // imagem pode ser string vazia, mas não undefined
+    if (imagem === undefined) imagem = "";
+
     const user = getUsuarioAtual();
     if (!user) throw new Error("Usuário não autenticado");
 
@@ -322,9 +330,18 @@ export const salvarAvaliacaoAlbum = async (
       percentual: percentualAvaliado,
     };
 
-    // Adicionar preferências se fornecidas
+    // Adicionar preferências se fornecidas, garantindo que não tenha campos undefined
     if (preferencias) {
-      dadosAlbum.preferencias = preferencias;
+      // Limpar qualquer campo undefined nas preferências
+      const preferenciasLimpas = Object.entries(preferencias).reduce(
+        (acc, [key, value]) => {
+          if (value !== undefined) acc[key] = value;
+          return acc;
+        },
+        {}
+      );
+
+      dadosAlbum.preferencias = preferenciasLimpas;
     }
 
     // Salvar faixas se fornecidas para permitir mostrar nomes corretos
@@ -332,7 +349,7 @@ export const salvarAvaliacaoAlbum = async (
       // Converter faixas para um formato mais leve com apenas id e nome
       dadosAlbum.faixas = faixas.items.map((faixa) => ({
         id: faixa.id,
-        nome: faixa.name,
+        nome: faixa.name || "Faixa sem nome",
       }));
     } else if (albumExistente && albumExistente.faixas) {
       // Preservar faixas existentes se disponíveis
@@ -904,18 +921,22 @@ export const salvarAlbumCacheSpotify = async (albumId, detalhes, faixas) => {
 
     if (albumExistente) {
       // Se o álbum já existe, apenas atualizar os dados de cache
+      // Criar uma nova cópia do array e modificar a cópia
+      const novosAlbunsAvaliados = albunsAvaliados.map((album) => {
+        if (album.id === albumId) {
+          return {
+            ...album,
+            detalhes: detalhes,
+            faixas: faixas,
+            cache_atualizado: new Date(), // Usar Date em vez de serverTimestamp dentro do array
+          };
+        }
+        return album;
+      });
+
+      // Atualizar com o array modificado em uma única operação
       await updateDoc(userRef, {
-        albuns_avaliados: albunsAvaliados.map((album) => {
-          if (album.id === albumId) {
-            return {
-              ...album,
-              detalhes: detalhes,
-              faixas: faixas,
-              cache_atualizado: serverTimestamp(),
-            };
-          }
-          return album;
-        }),
+        albuns_avaliados: novosAlbunsAvaliados,
       });
     } else {
       // Se o álbum não existe, fazer nada, pois o álbum será salvo

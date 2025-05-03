@@ -832,12 +832,25 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
       // Para usuário logado, salvar diretamente no Firebase
       try {
         if (detalhesAlbum) {
+          // Checagem defensiva para evitar undefined
+          const nomeArtista =
+            Array.isArray(detalhesAlbum.artists) &&
+            detalhesAlbum.artists.length > 0 &&
+            detalhesAlbum.artists[0]?.name
+              ? detalhesAlbum.artists[0].name
+              : "Artista desconhecido";
+          const urlImagem =
+            Array.isArray(detalhesAlbum.images) &&
+            detalhesAlbum.images.length > 0 &&
+            detalhesAlbum.images[0]?.url
+              ? detalhesAlbum.images[0].url
+              : "";
           await salvarAvaliacaoAlbum(
             albumId,
             avaliacoes,
             detalhesAlbum.name,
-            detalhesAlbum.artists[0].name,
-            detalhesAlbum.images[0]?.url || "",
+            nomeArtista,
+            urlImagem,
             preferencias,
             faixas // Passar as faixas para salvar os nomes
           );
@@ -952,12 +965,25 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
       // Para usuário logado, salvar diretamente no Firebase
       try {
         if (detalhesAlbum) {
+          // Checagem defensiva para evitar undefined
+          const nomeArtista =
+            Array.isArray(detalhesAlbum.artists) &&
+            detalhesAlbum.artists.length > 0 &&
+            detalhesAlbum.artists[0]?.name
+              ? detalhesAlbum.artists[0].name
+              : "Artista desconhecido";
+          const urlImagem =
+            Array.isArray(detalhesAlbum.images) &&
+            detalhesAlbum.images.length > 0 &&
+            detalhesAlbum.images[0]?.url
+              ? detalhesAlbum.images[0].url
+              : "";
           await salvarAvaliacaoAlbum(
             albumId,
             avaliacoes,
             detalhesAlbum.name,
-            detalhesAlbum.artists[0].name,
-            detalhesAlbum.images[0]?.url || "",
+            nomeArtista,
+            urlImagem,
             preferencias,
             faixas // Passar as faixas para salvar os nomes
           );
@@ -1086,12 +1112,27 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
           };
 
           try {
+            // Checagem defensiva para garantir valores válidos
+            const nomeAlbum = detalhesAlbum?.name || "Álbum sem nome";
+            const nomeArtista =
+              Array.isArray(detalhesAlbum?.artists) &&
+              detalhesAlbum.artists.length > 0 &&
+              detalhesAlbum.artists[0]?.name
+                ? detalhesAlbum.artists[0].name
+                : "Artista desconhecido";
+            const urlImagem =
+              Array.isArray(detalhesAlbum?.images) &&
+              detalhesAlbum.images.length > 0 &&
+              detalhesAlbum.images[0]?.url
+                ? detalhesAlbum.images[0].url
+                : "";
+
             await salvarAvaliacaoAlbum(
               albumId,
               novasAvaliacoes,
-              detalhesAlbum.name,
-              detalhesAlbum.artists[0].name,
-              detalhesAlbum.images[0]?.url,
+              nomeAlbum,
+              nomeArtista,
+              urlImagem,
               preferencias,
               faixas,
               true // indicar que é uma atualização

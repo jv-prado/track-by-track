@@ -1574,13 +1574,13 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
 
       <div className="flex flex-col lg:flex-row gap-3 lg:gap-6 mb-3 lg:mb-6">
         {/* Capa do álbum */}
-        <div className="flex-shrink-0 mx-auto lg:mx-0 bg-gray-800 rounded-lg p-2">
+        <div className="flex-shrink-0 mx-auto lg:mx-0 flex items-center justify-center">
           {detalhesAlbum.images && detalhesAlbum.images.length > 0 && (
             <img
               src={detalhesAlbum.images[0].url}
               alt={`${detalhesAlbum.name}`}
-              className="w-40 h-40 sm:w-48 sm:h-48 md:w-56 md:h-56 lg:w-60 lg:h-60 object-cover rounded-xl shadow-2xl border-2 border-gray-700 transition-transform duration-300 hover:scale-105 hover:shadow-[0_8px_32px_0_rgba(0,0,0,0.45)] bg-gray-800"
-              style={{ aspectRatio: "1 / 1" }}
+              className="w-40 h-40 sm:w-48 sm:h-48 md:w-56 md:h-56 lg:w-60 lg:h-60 object-cover rounded-lg shadow-xl border-2 border-gray-700 transition-transform duration-300 hover:scale-105 hover:shadow-2xl"
+              style={{ aspectRatio: "1 / 1", background: "#18181b" }}
             />
           )}
         </div>

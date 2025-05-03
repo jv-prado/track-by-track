@@ -19,6 +19,19 @@ export default function Registro() {
     e.preventDefault();
     setErro("");
 
+    // Validação de senha forte
+    const senhaForteRegex =
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]).{6,}$/;
+    if (!senhaForteRegex.test(senha)) {
+      setErro(
+        t(
+          "auth.strongPassword",
+          "A senha deve conter pelo menos uma letra maiúscula, uma minúscula, um número e um caractere especial."
+        )
+      );
+      return;
+    }
+
     if (senha !== confirmarSenha) {
       setErro(t("auth.passwordMismatch"));
       return;

@@ -246,51 +246,28 @@
       "Highlight your favorite and least favorite songs",
       "Comparison with other users' ratings",
       "Complete history of your ratings",
-      "Search for albums and artists via Spotify",
-      "Offline mode for ratings without an account"
+      "Search for albums and artists via Spotify"
     ],
     "contact": "To contact us, please send an email to:",
     "email": "contatotrackbytrack@gmail.com",
-    "developedBy": "Developed by music fans for music fans."
+    "developedBy": "Developed by João Victor Prado"
   },
   "accountDeletion": {
-    "title": "Account Deletion",
-    "description": "On this page, you can request the deletion of your account and associated data from Track by Track.",
-    "instructions": "To request account deletion, please send an email to the address below with the subject 'Account Deletion Request' and the email associated with your account.",
-    "emailContact": "contatotrackbytrack@gmail.com",
-    "dataDeleted": "Data that will be deleted:",
-    "dataKept": "Data that will be retained:",
+    "title": "Delete Spotify Account",
+    "spotifyLoginMessage": "To delete your account, log in with Spotify below. All your data will be permanently removed.",
+    "loginWithSpotify": "Login with Spotify to delete account",
+    "deleting": "Deleting...",
+    "automaticDeletion": "Your Spotify account is being deleted automatically.",
+    "successTitle": "Account successfully deleted",
+    "successMessage": "All your information has been removed from our servers.",
+    "dataDeleted": "What will be deleted?",
     "deleteItems": [
       "Account information (name, email, profile picture)",
       "Album and track ratings and reviews",
       "Usage history and preferences",
       "Any associated personal data"
     ],
-    "keptItems": [
-      "Aggregated and anonymous data for statistical purposes",
-      "Information required for legal compliance (up to 90 days after deletion)"
-    ],
-    "timeframe": "Your request will be processed within 30 days, and you will receive an email confirmation when the deletion is complete.",
-    "demo": "Demo mode users: Your data is only stored locally on your device. To delete this data, simply clear your browser cache or uninstall the application.",
-    "autoDeleteWarning": "You can also delete your account directly from the application. This action is irreversible and all your data will be permanently deleted.",
-    "deleteAccount": "Delete my account",
-    "confirmTitle": "Confirm account deletion",
-    "confirmWarning": "This action is irreversible. All your data will be permanently deleted and cannot be recovered.",
-    "enterEmail": "Enter your email",
-    "enterPassword": "Enter your current password",
-    "confirmTypeDelete": "To confirm, type DELETE",
-    "deleting": "Deleting...",
-    "confirmDelete": "Confirm deletion",
-    "errorEmptyField": "Please fill in all fields",
-    "errorConfirmText": "The confirmation text must be 'DELETE'",
-    "errorWrongPassword": "Incorrect password",
-    "errorInvalidEmail": "Invalid email",
-    "errorUserNotFound": "User not found",
-    "errorReauth": "Please login again before trying this operation",
-    "errorGeneric": "Error deleting account. Please try again.",
-    "successTitle": "Account successfully deleted",
-    "successMessage": "All your information has been removed from our servers.",
-    "clearLocalData": "Clear my local data"
+    "timeframe": ""
   },
   "searchPage": {
     "tryAnotherTerm": "Try another term or check if you typed correctly"

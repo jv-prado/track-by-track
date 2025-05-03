@@ -343,6 +343,53 @@ const SpotifyCallback = () => {
 
             // Atualizar o contexto de autenticação para refletir o novo estado
             verificarOutrosMetodosAutenticacao();
+
+            // Verificar se há um redirecionamento personalizado após o login
+            const customRedirectUrl = localStorage.getItem(
+              "spotify_redirect_after_login"
+            );
+
+            if (customRedirectUrl) {
+              // Se houver um redirecionamento personalizado (ex: da página de exclusão de conta)
+              // Usar esse destino em vez do feed padrão
+              setStatus(
+                "Autenticação bem-sucedida! Redirecionando para destino personalizado..."
+              );
+              console.log(
+                "Usando redirecionamento personalizado:",
+                customRedirectUrl
+              );
+
+              // Limpar a URL de redirecionamento personalizada para não ser usada novamente
+              localStorage.removeItem("spotify_redirect_after_login");
+
+              // Definir flag para indicar que acabamos de fazer login
+              sessionStorage.setItem("login_redirect", "true");
+
+              // Usar timeout para permitir que o usuário veja a mensagem de sucesso
+              setTimeout(() => {
+                // Redirecionar para a URL personalizada
+                window.location.href = customRedirectUrl;
+              }, 1000);
+            } else {
+              // Comportamento padrão: redirecionar para o feed
+              // Definir "feed" como a view ativa
+              localStorage.setItem("activeView", "feed");
+
+              // Definir flag para indicar que acabamos de fazer login
+              sessionStorage.setItem("login_redirect", "true");
+
+              // Redirecionar para o feed com um refresh completo da página
+              setStatus(
+                "Autenticação bem-sucedida! Redirecionando para o feed..."
+              );
+
+              // Usar timeout para permitir que o usuário veja a mensagem de sucesso
+              setTimeout(() => {
+                // Usar window.location.href para forçar um refresh completo
+                window.location.href = "/feed";
+              }, 1000);
+            }
           } catch (error) {
             console.error("Erro ao obter perfil do usuário:", error);
 
@@ -370,21 +417,6 @@ const SpotifyCallback = () => {
               setTimeout(() => navigate("/login"), 3000);
             }
           }
-
-          // Definir "feed" como a view ativa
-          localStorage.setItem("activeView", "feed");
-
-          // Definir flag para indicar que acabamos de fazer login
-          sessionStorage.setItem("login_redirect", "true");
-
-          // Redirecionar para o feed com um refresh completo da página
-          setStatus("Autenticação bem-sucedida! Redirecionando...");
-
-          // Usar timeout para permitir que o usuário veja a mensagem de sucesso
-          setTimeout(() => {
-            // Usar window.location.href para forçar um refresh completo
-            window.location.href = "/feed";
-          }, 1000);
         } else {
           console.error("Não foi possível obter o token de acesso");
           setErro(

@@ -14,12 +14,12 @@ export default function TermosDeUso() {
   return (
     <div className="p-6 w-full flex flex-col justify-center">
       {/* Botão de voltar apenas para dispositivos móveis */}
-      <div className="md:hidden mb-4">
+      <div className="md:hidden mb-4 flex justify-center">
         <button
           onClick={handleVoltar}
-          className="flex items-center bg-cinza py-2 px-4 rounded-lg hover:bg-cinza-escuro transition-colors"
+          className="flex items-center gap-2 bg-cinza-escuro hover:bg-cinza text-white px-6 py-3 rounded-lg shadow font-semibold text-base transition-colors cursor-pointer border border-gray-700"
         >
-          <IoArrowBack className="mr-2" />
+          <IoArrowBack className="text-lg" />
           {t("albumDetails.back", "Voltar")}
         </button>
       </div>
@@ -34,12 +34,15 @@ export default function TermosDeUso() {
         <p className="text-gray-200 mb-2">{t("termsOfUse.updates")}</p>
       </div>
 
-      <button
-        onClick={() => navigate(-1)}
-        className="mt-8 mx-auto bg-cinza-escuro text-white px-6 py-2 rounded-lg shadow hover:bg-cinza transition-colors cursor-pointer"
-      >
-        {t("albumDetails.back", "Voltar")}
-      </button>
+      <div className="flex justify-center mt-8">
+        <button
+          onClick={() => navigate(-1)}
+          className="bg-cinza-escuro hover:bg-cinza text-white px-6 py-3 rounded-lg shadow font-semibold text-base transition-colors cursor-pointer border border-gray-700 flex items-center gap-2"
+        >
+          <IoArrowBack className="text-lg" />
+          {t("albumDetails.back", "Voltar")}
+        </button>
+      </div>
     </div>
   );
 }

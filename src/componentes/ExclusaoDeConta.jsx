@@ -1,6 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import { IoArrowBack } from "react-icons/io5";
 import { MdEmail, MdWarning, MdDelete } from "react-icons/md";
@@ -15,12 +15,24 @@ import {
   where,
   writeBatch,
 } from "firebase/firestore";
-import { logout as logoutSpotify } from "../services/spotify";
+import {
+  logout as logoutSpotify,
+  estaAutenticado,
+  iniciarLoginSpotify,
+} from "../services/spotify";
+import { getAuth, signInWithEmailAndPassword, deleteUser } from "firebase/auth";
 
 export default function ExclusaoDeConta() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { usuario, usuarioDemo, modoDemo, usuarioSpotify } = useAuth();
+  const location = useLocation();
+  const {
+    usuario,
+    usuarioDemo,
+    modoDemo,
+    usuarioSpotify,
+    verificarOutrosMetodosAutenticacao,
+  } = useAuth();
   const [showConfirmForm, setShowConfirmForm] = useState(false);
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
@@ -28,6 +40,118 @@ export default function ExclusaoDeConta() {
   const [erro, setErro] = useState("");
   const [carregando, setCarregando] = useState(false);
   const [sucesso, setSucesso] = useState(false);
+  const [automaticDeletion, setAutomaticDeletion] = useState(false);
+  const [verificandoLogin, setVerificandoLogin] = useState(true);
+
+  // Verificar se há parâmetros de query string que indicam que esta é uma navegação pós-callback do Spotify
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const fromCallback = params.get("from_callback") === "true";
+
+    if (fromCallback) {
+      // Remover os parâmetros de query string para evitar problemas em recargas
+      navigate(location.pathname, { replace: true });
+
+      // Se vier do callback e tivermos usuário Spotify, iniciar exclusão
+      if (usuarioSpotify && usuarioSpotify.id) {
+        setAutomaticDeletion(true);
+        processDeletion();
+      }
+    }
+
+    setVerificandoLogin(false);
+  }, [location, navigate, usuarioSpotify]);
+
+  // Função para bloquear o redirecionamento automático para o Feed após login com Spotify
+  useEffect(() => {
+    const blockFeedRedirect = () => {
+      // Verificar se temos a flag que indica que estamos lidando com exclusão
+      const fromExclusaoPagina =
+        sessionStorage.getItem("from_exclusao_page") === "true";
+
+      if (fromExclusaoPagina) {
+        // Impedir o redirecionamento automático para o feed
+        const preventRedirect = (e) => {
+          // Verifica se a navegação é para o feed
+          if (e.target.location.pathname === "/feed") {
+            e.preventDefault();
+            console.log("Redirecionamento bloqueado para processar exclusão");
+          }
+        };
+
+        // Adicionar listener para bloquear navegações
+        window.addEventListener("beforeunload", preventRedirect);
+        window.addEventListener("popstate", preventRedirect);
+
+        return () => {
+          window.removeEventListener("beforeunload", preventRedirect);
+          window.removeEventListener("popstate", preventRedirect);
+        };
+      }
+    };
+
+    const cleanup = blockFeedRedirect();
+    return cleanup;
+  }, []);
+
+  // Verificar se o usuário acabou de fazer login com Spotify nesta página
+  useEffect(() => {
+    const checkSpotifyLoginAndDelete = async () => {
+      // Verificar se acabamos de fazer login com Spotify
+      const justLoggedIn = sessionStorage.getItem("login_redirect") === "true";
+      const fromExclusaoPagina =
+        sessionStorage.getItem("from_exclusao_page") === "true";
+
+      if (
+        justLoggedIn &&
+        fromExclusaoPagina &&
+        usuarioSpotify &&
+        usuarioSpotify.id
+      ) {
+        console.log(
+          "Usuário fez login com Spotify na página de exclusão. Iniciando exclusão automática..."
+        );
+        setAutomaticDeletion(true);
+        processDeletion();
+      }
+    };
+
+    if (!verificandoLogin && usuarioSpotify) {
+      checkSpotifyLoginAndDelete();
+    }
+  }, [usuarioSpotify, verificandoLogin]);
+
+  const processDeletion = async () => {
+    try {
+      // Mostrar estado de carregamento
+      setCarregando(true);
+
+      // Executar exclusão da conta
+      await excluirContaSpotify();
+
+      // Mostrar mensagem de sucesso
+      setSucesso(true);
+
+      // Limpar flag de redirecionamento
+      sessionStorage.removeItem("login_redirect");
+      sessionStorage.removeItem("from_exclusao_page");
+
+      // Redirecionar para a tela de login após 2 segundos
+      setTimeout(() => {
+        navigate("/login");
+      }, 2000);
+    } catch (error) {
+      console.error("Erro ao excluir conta automaticamente:", error);
+      setErro(
+        t(
+          "accountDeletion.errorGeneric",
+          "Erro ao excluir a conta. Tente novamente."
+        )
+      );
+      setCarregando(false);
+      setAutomaticDeletion(false);
+    }
+  };
 
   const handleVoltar = () => {
     navigate(-1);
@@ -41,6 +165,8 @@ export default function ExclusaoDeConta() {
 
       const db = getFirestore();
       const spotifyUserId = usuarioSpotify.id;
+      console.log("Excluindo conta Spotify com ID:", spotifyUserId);
+
       const batch = writeBatch(db);
 
       // 1. Excluir documento principal na coleção usuariosSpotify
@@ -55,6 +181,8 @@ export default function ExclusaoDeConta() {
       );
       const avaliacoesSnap = await getDocs(avaliacoesQuery);
 
+      console.log(`Encontradas ${avaliacoesSnap.size} avaliações para excluir`);
+
       avaliacoesSnap.forEach((doc) => {
         batch.delete(doc.ref);
       });
@@ -67,15 +195,73 @@ export default function ExclusaoDeConta() {
       );
       const usuariosSnap = await getDocs(usuariosQuery);
 
+      console.log(
+        `Encontrados ${usuariosSnap.size} documentos de usuário vinculados`
+      );
+
       usuariosSnap.forEach((doc) => {
         batch.delete(doc.ref);
       });
 
       // Executar o batch de exclusões
       await batch.commit();
+      console.log("Exclusão de dados no Firestore concluída com sucesso");
 
-      // 4. Fazer logout do Spotify e limpar todos os dados locais
-      logoutSpotify();
+      // 4. NOVA FUNCIONALIDADE: Excluir o usuário do Firebase Authentication
+      try {
+        // Verificar se temos as credenciais salvas para autenticação
+        const credentialsKey = `spotify_auth_${spotifyUserId}`;
+        const credentialsJson = localStorage.getItem(credentialsKey);
+
+        if (credentialsJson) {
+          const credentials = JSON.parse(credentialsJson);
+          const auth = getAuth();
+
+          // Fazer login com as credenciais salvas
+          console.log(
+            "Autenticando para excluir usuário do Firebase Authentication"
+          );
+          const userCredential = await signInWithEmailAndPassword(
+            auth,
+            credentials.email,
+            credentials.password
+          );
+
+          // Excluir o usuário do Firebase Authentication
+          if (userCredential && userCredential.user) {
+            console.log(
+              "Excluindo usuário do Firebase Authentication:",
+              userCredential.user.uid
+            );
+            await deleteUser(userCredential.user);
+            console.log(
+              "Usuário excluído do Firebase Authentication com sucesso"
+            );
+          }
+        } else {
+          // Também verificar o UID armazenado
+          const firebaseUid = localStorage.getItem("spotify_firebase_uid");
+          if (firebaseUid) {
+            console.log(
+              "Não foi possível excluir o usuário do Firebase Authentication pois as credenciais não estão disponíveis"
+            );
+            console.log("UID do Firebase associado:", firebaseUid);
+          }
+        }
+      } catch (authError) {
+        console.error(
+          "Erro ao excluir usuário do Firebase Authentication:",
+          authError
+        );
+        // Continuar o fluxo mesmo se falhar a exclusão do Auth
+        console.log(
+          "Continuando com o processo de logout mesmo após erro na exclusão do Auth"
+        );
+      }
+
+      // 5. Fazer logout do Spotify e limpar todos os dados locais
+      await logoutSpotify();
+      console.log("Logout do Spotify concluído");
 
       return true;
     } catch (error) {
@@ -84,98 +270,21 @@ export default function ExclusaoDeConta() {
     }
   };
 
-  const handleDeletarConta = async (e) => {
-    e.preventDefault();
-
-    // Verificar se todos os campos estão preenchidos
-    if (
-      (!usuario && !usuarioSpotify && !email) ||
-      (!usuarioSpotify && !senha) ||
-      !confirmacao
-    ) {
-      setErro(t("accountDeletion.errorEmptyField", "Preencha todos os campos"));
-      return;
-    }
-
-    // Verificar se a confirmação está correta
-    if (confirmacao !== "DELETAR") {
-      setErro(
-        t(
-          "accountDeletion.errorConfirmText",
-          "O texto de confirmação deve ser 'DELETAR'"
-        )
-      );
-      return;
-    }
-
+  const handleLoginWithSpotify = async () => {
     try {
-      setCarregando(true);
-      setErro("");
+      // Definir flag para identificar que o login foi iniciado da página de exclusão
+      sessionStorage.setItem("from_exclusao_page", "true");
 
-      // Se o usuário é do Spotify, usar a função específica
-      if (usuarioSpotify) {
-        await excluirContaSpotify();
-      }
-      // Se o usuário estiver logado com Firebase, use a função normal
-      else if (usuario) {
-        await excluirConta(senha);
-      }
-      // Caso contrário, use a função com email e senha
-      else {
-        await excluirContaComEmailSenha(email, senha);
-      }
+      // Armazenar a URL atual para redirecionamento após callback
+      const returnUrl = `${window.location.origin}${location.pathname}?from_callback=true`;
+      localStorage.setItem("spotify_redirect_after_login", returnUrl);
 
-      // Mostrar mensagem de sucesso
-      setSucesso(true);
-
-      // Redirecionar para a tela de login após 2 segundos
-      setTimeout(() => {
-        navigate("/login");
-      }, 2000);
+      // Iniciar o fluxo de login com Spotify
+      await iniciarLoginSpotify();
     } catch (error) {
-      console.error("Erro ao excluir a conta:", error);
-
-      if (error.code === "auth/wrong-password") {
-        setErro(t("accountDeletion.errorWrongPassword", "Senha incorreta"));
-      } else if (error.code === "auth/invalid-email") {
-        setErro(t("accountDeletion.errorInvalidEmail", "Email inválido"));
-      } else if (error.code === "auth/user-not-found") {
-        setErro(
-          t("accountDeletion.errorUserNotFound", "Usuário não encontrado")
-        );
-      } else if (error.code === "auth/requires-recent-login") {
-        setErro(
-          t(
-            "accountDeletion.errorReauth",
-            "Por favor, faça login novamente antes de tentar esta operação"
-          )
-        );
-        // Redirecionar para login
-        setTimeout(() => {
-          navigate("/login");
-        }, 2000);
-      } else {
-        setErro(
-          t(
-            "accountDeletion.errorGeneric",
-            "Erro ao excluir a conta. Tente novamente."
-          )
-        );
-      }
-    } finally {
-      setCarregando(false);
+      console.error("Erro ao iniciar login com Spotify:", error);
+      setErro(t("login.errorSpotify", "Erro ao iniciar login com Spotify."));
     }
-  };
-
-  const handleDeleteLocalData = () => {
-    // Para usuários demo, apenas limpar o localStorage
-    localStorage.clear();
-    setSucesso(true);
-
-    // Redirecionar para a splash após 2 segundos
-    setTimeout(() => {
-      navigate("/splash");
-    }, 2000);
   };
 
   // Renderização condicional com base no estado de sucesso
@@ -199,193 +308,75 @@ export default function ExclusaoDeConta() {
           </p>
         </div>
         <button
-          onClick={() => navigate(-1)}
+          onClick={() => navigate("/login")}
           className="mt-8 mx-auto bg-cinza-escuro text-white px-6 py-2 rounded-lg shadow hover:bg-cinza transition-colors cursor-pointer"
         >
-          {t("albumDetails.back", "Voltar")}
+          {t("app.login", "Entrar")}
         </button>
       </div>
     );
   }
 
+  // Se estiver em processo de exclusão automática ou verificando login, mostrar mensagem de carregamento
+  if (
+    automaticDeletion ||
+    (verificandoLogin && location.search.includes("from_callback=true"))
+  ) {
+    return (
+      <div className="p-6 w-full flex flex-col justify-center">
+        <div className="bg-cinza-escuro p-6 rounded-xl w-full max-w-2xl mx-auto text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-500 mx-auto mb-4"></div>
+          <h1 className="text-xl text-white font-bold mb-2">
+            {t("accountDeletion.deleting", "Excluindo...")}
+          </h1>
+          <p className="text-gray-300">
+            {t(
+              "accountDeletion.automaticDeletion",
+              "Sua conta Spotify está sendo excluída automaticamente."
+            )}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // Página simplificada: apenas exclusão de conta do Spotify
   return (
     <div className="p-6 w-full flex flex-col justify-center">
-      {/* Botão de voltar apenas para dispositivos móveis */}
-      <div className="md:hidden mb-4">
-        <button
-          onClick={handleVoltar}
-          className="flex items-center bg-cinza py-2 px-4 rounded-lg hover:bg-cinza-escuro transition-colors"
-        >
-          <IoArrowBack className="mr-2" />
-          {t("albumDetails.back", "Voltar")}
-        </button>
-      </div>
-
       <div className="bg-cinza-escuro p-6 rounded-xl w-full max-w-2xl mx-auto">
         <h1 className="text-2xl text-white font-bold mb-4 text-center">
-          {t("accountDeletion.title")}
+          {t("accountDeletion.title", "Excluir conta Spotify")}
         </h1>
-
-        <p className="text-gray-200 mb-4">{t("accountDeletion.description")}</p>
-
-        {!usuarioDemo && !modoDemo ? (
-          <>
-            {!showConfirmForm ? (
-              <>
-                <p className="text-gray-200 mb-2">
-                  {t("accountDeletion.instructions")}
-                </p>
-
-                <div className="bg-cinza-medio p-4 rounded-lg flex items-center justify-center my-4">
-                  <MdEmail className="text-verde-destaque text-xl mr-2" />
-                  <a
-                    href={`mailto:${t("accountDeletion.emailContact")}`}
-                    className="text-verde-destaque hover:underline"
-                  >
-                    {t("accountDeletion.emailContact")}
-                  </a>
-                </div>
-
-                <div className="mt-6 border-t border-gray-700 pt-4">
-                  <div className="bg-red-900/20 border border-red-800 p-4 rounded-lg mb-6">
-                    <div className="flex items-start">
-                      <MdWarning className="text-red-500 text-xl mr-2 mt-1 flex-shrink-0" />
-                      <p className="text-red-200 text-sm">
-                        {t(
-                          "accountDeletion.autoDeleteWarning",
-                          "Você também pode excluir sua conta diretamente pelo aplicativo. Esta ação é irreversível e todos os seus dados serão permanentemente excluídos."
-                        )}
-                      </p>
-                    </div>
-                  </div>
-
-                  <button
-                    onClick={() => setShowConfirmForm(true)}
-                    className="w-full bg-red-700 hover:bg-red-600 text-white py-3 px-4 rounded-lg font-medium transition-colors"
-                  >
-                    {t("accountDeletion.deleteAccount", "Excluir minha conta")}
-                  </button>
-                </div>
-              </>
-            ) : (
-              <div className="mt-4 border-t border-gray-700 pt-4">
-                <h2 className="text-xl text-white font-semibold mb-4">
-                  {t(
-                    "accountDeletion.confirmTitle",
-                    "Confirmar exclusão de conta"
-                  )}
-                </h2>
-
-                <div className="bg-red-900/20 border border-red-800 p-4 rounded-lg mb-6">
-                  <div className="flex items-start">
-                    <MdWarning className="text-red-500 text-2xl mr-2 mt-1 flex-shrink-0" />
-                    <p className="text-red-200">
-                      {t(
-                        "accountDeletion.confirmWarning",
-                        "Esta ação é irreversível. Todos os seus dados serão permanentemente excluídos e não poderão ser recuperados."
-                      )}
-                    </p>
-                  </div>
-                </div>
-
-                {erro && (
-                  <div className="bg-red-900/30 border border-red-500 text-red-200 p-3 rounded-lg mb-4">
-                    {erro}
-                  </div>
+        <p className="text-gray-200 mb-4">
+          {t(
+            "accountDeletion.spotifyLoginMessage",
+            "Para excluir sua conta, faça login com o Spotify abaixo. Todos os seus dados serão removidos permanentemente."
+          )}
+        </p>
+        <div className="mt-6 mb-4 border-t border-gray-700 pt-4">
+          <div className="bg-green-900/20 border border-green-800 p-4 rounded-lg mb-6">
+            <div className="flex items-start">
+              <MdWarning className="text-green-500 text-xl mr-2 mt-1 flex-shrink-0" />
+              <p className="text-green-200 text-sm">
+                {t(
+                  "accountDeletion.spotifyLoginMessage",
+                  "Se sua conta foi criada com Spotify, você pode fazer login abaixo para excluí-la automaticamente."
                 )}
-
-                <form onSubmit={handleDeletarConta}>
-                  {!usuario && !usuarioSpotify && (
-                    <div className="mb-4">
-                      <label className="block text-gray-300 mb-2 text-sm">
-                        {t("accountDeletion.enterEmail", "Digite seu email")}
-                      </label>
-                      <input
-                        type="email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        className="w-full bg-cinza-medio p-3 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-red-500"
-                        required
-                      />
-                    </div>
-                  )}
-
-                  {!usuarioSpotify && (
-                    <div className="mb-4">
-                      <label className="block text-gray-300 mb-2 text-sm">
-                        {t(
-                          "accountDeletion.enterPassword",
-                          "Digite sua senha atual"
-                        )}
-                      </label>
-                      <input
-                        type="password"
-                        value={senha}
-                        onChange={(e) => setSenha(e.target.value)}
-                        className="w-full bg-cinza-medio p-3 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-red-500"
-                        required={!usuarioSpotify}
-                      />
-                    </div>
-                  )}
-
-                  <div className="mb-4">
-                    <label className="block text-gray-300 mb-2 text-sm">
-                      {t(
-                        "accountDeletion.confirmTypeDelete",
-                        "Para confirmar, digite DELETAR"
-                      )}
-                    </label>
-                    <input
-                      type="text"
-                      value={confirmacao}
-                      onChange={(e) => setConfirmacao(e.target.value)}
-                      className="w-full bg-cinza-medio p-3 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-red-500"
-                      required
-                    />
-                  </div>
-
-                  <div className="flex gap-4 mt-6">
-                    <button
-                      type="button"
-                      onClick={() => setShowConfirmForm(false)}
-                      className="flex-1 bg-cinza py-3 px-4 rounded-lg font-medium hover:bg-cinza-escuro transition-colors"
-                    >
-                      {t("albumDetails.cancel", "Cancelar")}
-                    </button>
-                    <button
-                      type="submit"
-                      disabled={carregando}
-                      className="flex-1 bg-red-700 hover:bg-red-600 text-white py-3 px-4 rounded-lg font-medium transition-colors disabled:opacity-50"
-                    >
-                      {carregando
-                        ? t("accountDeletion.deleting", "Excluindo...")
-                        : t(
-                            "accountDeletion.confirmDelete",
-                            "Confirmar exclusão"
-                          )}
-                    </button>
-                  </div>
-                </form>
-              </div>
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={handleLoginWithSpotify}
+            className="w-full bg-red-700 hover:bg-red-600 text-white py-3 px-4 rounded-lg font-medium transition-colors mb-6"
+          >
+            {t(
+              "accountDeletion.loginWithSpotify",
+              "Entrar com Spotify para excluir conta"
             )}
-          </>
-        ) : (
-          <>
-            <p className="text-gray-200 mt-4 bg-gray-800 p-3 rounded-lg">
-              {t("accountDeletion.demo")}
-            </p>
-
-            <button
-              onClick={handleDeleteLocalData}
-              className="w-full mt-6 bg-red-700 hover:bg-red-600 text-white py-3 px-4 rounded-lg font-medium transition-colors"
-            >
-              {t("accountDeletion.clearLocalData", "Limpar meus dados locais")}
-            </button>
-          </>
-        )}
-
+          </button>
+        </div>
         <h2 className="text-xl text-white font-semibold mt-6 mb-2">
-          {t("accountDeletion.dataDeleted")}
+          {t("accountDeletion.dataDeleted", "O que será excluído?")}
         </h2>
         <ul className="list-disc pl-6 mb-4 text-gray-200">
           {t("accountDeletion.deleteItems", { returnObjects: true }).map(
@@ -396,29 +387,18 @@ export default function ExclusaoDeConta() {
             )
           )}
         </ul>
-
-        <h2 className="text-xl text-white font-semibold mt-4 mb-2">
-          {t("accountDeletion.dataKept")}
-        </h2>
-        <ul className="list-disc pl-6 mb-4 text-gray-200">
-          {t("accountDeletion.keptItems", { returnObjects: true }).map(
-            (item, index) => (
-              <li key={`kept-${index}`} className="mb-1">
-                {item}
-              </li>
-            )
-          )}
-        </ul>
-
         <p className="text-gray-200 mt-6 border-t border-gray-700 pt-4">
           {t("accountDeletion.timeframe")}
         </p>
-        <button
-          onClick={() => navigate(-1)}
-          className="mt-8 mx-auto bg-cinza-escuro text-white px-6 py-2 rounded-lg shadow hover:bg-cinza transition-colors cursor-pointer"
-        >
-          {t("albumDetails.back", "Voltar")}
-        </button>
+        <div className="flex justify-center mt-8">
+          <button
+            onClick={() => navigate(-1)}
+            className="bg-cinza-escuro hover:bg-cinza text-white px-6 py-3 rounded-lg shadow font-semibold text-base transition-colors cursor-pointer border border-gray-700 flex items-center gap-2"
+          >
+            <IoArrowBack className="text-lg" />
+            {t("albumDetails.back", "Voltar")}
+          </button>
+        </div>
       </div>
     </div>
   );

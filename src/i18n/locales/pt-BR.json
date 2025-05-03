@@ -246,51 +246,28 @@
       "Destaque para suas músicas favoritas e menos favoritas",
       "Comparação com avaliações de outros usuários",
       "Histórico completo de suas avaliações",
-      "Pesquisa de álbuns e artistas via Spotify",
-      "Modo offline para avaliações sem conta"
+      "Pesquisa de álbuns e artistas via Spotify"
     ],
     "contact": "Para entrar em contato conosco, envie um e-mail para:",
     "email": "contatotrackbytrack@gmail.com",
-    "developedBy": "Desenvolvido por fãs de música para fãs de música."
+    "developedBy": "Desenvolvido por João Victor Prado"
   },
   "accountDeletion": {
-    "title": "Exclusão de Conta",
-    "description": "Nesta página, você pode solicitar a exclusão da sua conta e dados associados ao Track by Track.",
-    "instructions": "Para solicitar a exclusão da sua conta, envie um email para o endereço abaixo com o assunto 'Solicitação de Exclusão de Conta' e o email associado à sua conta.",
-    "emailContact": "contatotrackbytrack@gmail.com",
-    "dataDeleted": "Dados que serão excluídos:",
-    "dataKept": "Dados que serão mantidos:",
+    "title": "Excluir conta Spotify",
+    "spotifyLoginMessage": "Para excluir sua conta, faça login com o Spotify abaixo. Todos os seus dados serão removidos permanentemente.",
+    "loginWithSpotify": "Entrar com Spotify para excluir conta",
+    "deleting": "Excluindo...",
+    "automaticDeletion": "Sua conta Spotify está sendo excluída automaticamente.",
+    "successTitle": "Conta excluída com sucesso",
+    "successMessage": "Todas as suas informações foram removidas dos nossos servidores.",
+    "dataDeleted": "O que será excluído?",
     "deleteItems": [
       "Informações da conta (nome, email, foto de perfil)",
       "Avaliações e classificações de álbuns e faixas",
       "Histórico de uso e preferências",
       "Quaisquer dados pessoais associados"
     ],
-    "keptItems": [
-      "Dados agregados e anônimos para fins estatísticos",
-      "Informações necessárias para conformidade legal (até 90 dias após a exclusão)"
-    ],
-    "timeframe": "Sua solicitação será processada em até 30 dias, e você receberá uma confirmação por email quando a exclusão for concluída.",
-    "demo": "Usuários no modo demonstração: Seus dados são armazenados apenas localmente no seu dispositivo. Para excluir esses dados, simplesmente limpe o cache do navegador ou desinstale o aplicativo.",
-    "autoDeleteWarning": "Você também pode excluir sua conta diretamente pelo aplicativo. Esta ação é irreversível e todos os seus dados serão permanentemente excluídos.",
-    "deleteAccount": "Excluir minha conta",
-    "confirmTitle": "Confirmar exclusão de conta",
-    "confirmWarning": "Esta ação é irreversível. Todos os seus dados serão permanentemente excluídos e não poderão ser recuperados.",
-    "enterEmail": "Digite seu email",
-    "enterPassword": "Digite sua senha atual",
-    "confirmTypeDelete": "Para confirmar, digite DELETAR",
-    "deleting": "Excluindo...",
-    "confirmDelete": "Confirmar exclusão",
-    "errorEmptyField": "Preencha todos os campos",
-    "errorConfirmText": "O texto de confirmação deve ser 'DELETAR'",
-    "errorWrongPassword": "Senha incorreta",
-    "errorInvalidEmail": "Email inválido",
-    "errorUserNotFound": "Usuário não encontrado",
-    "errorReauth": "Por favor, faça login novamente antes de tentar esta operação",
-    "errorGeneric": "Erro ao excluir a conta. Tente novamente.",
-    "successTitle": "Conta excluída com sucesso",
-    "successMessage": "Todas as suas informações foram removidas dos nossos servidores.",
-    "clearLocalData": "Limpar meus dados locais"
+    "timeframe": ""
   },
   "searchPage": {
     "tryAnotherTerm": "Tente outro termo ou verifique se digitou corretamente"

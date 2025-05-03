@@ -417,10 +417,49 @@ export const iniciarLoginSpotify = async () => {
     console.log("[DEBUG] Redirect URI:", REDIRECT_URI);
     console.log("[DEBUG] Client ID:", SPOTIFY_CLIENT_ID);
 
+    // Salvar a URL de redirecionamento personalizada se existir
+    const customRedirect = localStorage.getItem("spotify_redirect_after_login");
+    const fromExclusaoPagina = sessionStorage.getItem("from_exclusao_page");
+
     // Limpar TODOS os tokens e dados de autenticação anteriores
     // Isso evita conflitos entre tokens de cliente e tokens de usuário
-    localStorage.clear(); // Limpar todo o localStorage para garantir um login completamente novo
-    sessionStorage.clear(); // Limpar também o sessionStorage
+    const keysToPreserve = [
+      "spotify_redirect_after_login",
+      "from_exclusao_page",
+    ];
+
+    // Salvar os valores que queremos preservar
+    const preservedValues = {};
+    keysToPreserve.forEach((key) => {
+      const value =
+        key === "from_exclusao_page"
+          ? sessionStorage.getItem(key)
+          : localStorage.getItem(key);
+      if (value) preservedValues[key] = value;
+    });
+
+    // Limpar storage
+    localStorage.clear();
+    sessionStorage.clear();
+
+    // Restaurar os valores preservados
+    Object.entries(preservedValues).forEach(([key, value]) => {
+      if (key === "from_exclusao_page") {
+        sessionStorage.setItem(key, value);
+      } else {
+        localStorage.setItem(key, value);
+      }
+    });
+
+    // Verificar se os valores foram preservados corretamente
+    console.log(
+      "URL de redirecionamento personalizada preservada:",
+      localStorage.getItem("spotify_redirect_after_login") === customRedirect
+    );
+    console.log(
+      "Flag de exclusão de conta preservada:",
+      sessionStorage.getItem("from_exclusao_page") === fromExclusaoPagina
+    );
 
     // Gerar e armazenar o code verifier
     const codeVerifier = generateCodeVerifier(64);

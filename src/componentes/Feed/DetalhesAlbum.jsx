@@ -426,6 +426,86 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
     buscarDados();
   }, [albumId]);
 
+  // Efeito para atualizar o título da página quando o álbum for carregado
+  useEffect(() => {
+    if (detalhesAlbum) {
+      // Atualizar o título da página com o nome do álbum e do artista
+      document.title = `${detalhesAlbum.name} - ${detalhesAlbum.artists[0].name} | Track-by-Track`;
+
+      // Atualizar URL sem navegar para outra página
+      const novaUrl = `/spotify/album/${albumId}`;
+      window.history.replaceState(
+        { albumId: albumId },
+        document.title,
+        novaUrl
+      );
+
+      // Atualizar metadados para compartilhamento em redes sociais (OpenGraph)
+      const updateMetaTag = (property, content) => {
+        let metaTag = document.querySelector(`meta[property="${property}"]`);
+        if (metaTag) {
+          metaTag.setAttribute("content", content);
+        } else {
+          metaTag = document.createElement("meta");
+          metaTag.setAttribute("property", property);
+          metaTag.setAttribute("content", content);
+          document.head.appendChild(metaTag);
+        }
+      };
+
+      // Atualizar metadados
+      updateMetaTag(
+        "og:title",
+        `${detalhesAlbum.name} - ${detalhesAlbum.artists[0].name}`
+      );
+      updateMetaTag(
+        "og:description",
+        `Ouça ${detalhesAlbum.name} de ${detalhesAlbum.artists[0].name} no Spotify`
+      );
+
+      // Atualizar imagem se disponível
+      if (detalhesAlbum.images && detalhesAlbum.images.length > 0) {
+        updateMetaTag("og:image", detalhesAlbum.images[0].url);
+      }
+
+      // Adicionar link para o Spotify
+      if (detalhesAlbum.external_urls && detalhesAlbum.external_urls.spotify) {
+        updateMetaTag("og:url", detalhesAlbum.external_urls.spotify);
+
+        // Adicionar link canônico para o Spotify
+        let linkTag = document.querySelector('link[rel="canonical"]');
+        if (linkTag) {
+          linkTag.href = detalhesAlbum.external_urls.spotify;
+        } else {
+          linkTag = document.createElement("link");
+          linkTag.rel = "canonical";
+          linkTag.href = detalhesAlbum.external_urls.spotify;
+          document.head.appendChild(linkTag);
+        }
+      }
+    }
+
+    // Ao desmontar o componente, restaurar o título original
+    return () => {
+      document.title = "Track-by-Track";
+
+      // Remover metadados ao sair
+      const metaTags = ["og:title", "og:description", "og:image", "og:url"];
+      metaTags.forEach((property) => {
+        const metaTag = document.querySelector(`meta[property="${property}"]`);
+        if (metaTag) {
+          metaTag.remove();
+        }
+      });
+
+      // Remover link canônico
+      const linkTag = document.querySelector('link[rel="canonical"]');
+      if (linkTag) {
+        linkTag.remove();
+      }
+    };
+  }, [detalhesAlbum, albumId]);
+
   // Buscar média global do álbum ao carregar
   useEffect(() => {
     async function fetchMediaGlobal() {
@@ -1406,7 +1486,7 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
           {/* Bloco de ações: Spotify, média global e Top 3 */}
           <div className="mt-2 md:mt-3 flex flex-col gap-2 w-full">
             {/* Botão Escute no Spotify sempre primeiro, sozinho em uma linha no mobile */}
-            <div className="flex w-full justify-center  lg:justify-start">
+            <div className="flex w-full justify-center lg:justify-start">
               <a
                 href={
                   detalhesAlbum.external_urls?.spotify ||
@@ -1414,9 +1494,9 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
                 }
                 target="_blank"
                 rel="noopener noreferrer"
-                className="bg-green-600 hover:bg-green-700 text-white py-1 px-2 text-xs sm:text-sm font-medium flex items-center gap-1 transition-colors shadow-md rounded-lg"
+                className="bg-green-600 hover:bg-green-500 text-white py-1.5 px-3 text-xs sm:text-sm font-medium flex items-center gap-1.5 transition-all duration-300 shadow-md hover:shadow-lg rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400"
               >
-                <FaSpotify className="text-sm sm:text-base" />
+                <FaSpotify className="text-base sm:text-lg" />
                 {t("albumDetails.listenOnSpotify")}
               </a>
             </div>

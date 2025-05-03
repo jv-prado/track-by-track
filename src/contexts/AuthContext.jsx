@@ -373,9 +373,22 @@ export function AuthProvider({ children }) {
     try {
       // Se estiver autenticado com Spotify, fazer logout do Spotify
       if (usuarioSpotify) {
+        // Usa a função melhorada de logout que limpa todos os dados
         logoutSpotify();
         setUsuarioSpotify(null);
-        localStorage.removeItem("spotify_autenticado");
+        localStorage.removeItem("activeView");
+
+        // Verificação adicional para garantir que todos os dados do Spotify foram removidos
+        const spotifyKeys = [];
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (key && key.startsWith("spotify_")) {
+            spotifyKeys.push(key);
+          }
+        }
+
+        // Remover todos os itens identificados com prefixo "spotify_"
+        spotifyKeys.forEach((key) => localStorage.removeItem(key));
 
         // Se também estiver autenticado no Firebase, deslogar de lá também
         const usuarioFirebase = getUsuarioAtual();
@@ -387,25 +400,8 @@ export function AuthProvider({ children }) {
       else if (usuario) {
         await logout();
       }
-
-      // Limpar dados de sessão
-      localStorage.removeItem("activeView");
-
-      // Garantir que todas as flags relacionadas ao Spotify sejam removidas
-      localStorage.removeItem("spotify_autenticado");
-      localStorage.removeItem("spotify_access_token");
-      localStorage.removeItem("spotify_refresh_token");
-      localStorage.removeItem("spotify_token_expires_at");
-      localStorage.removeItem("spotify_user_profile");
-      sessionStorage.removeItem("login_redirect");
-
-      // Redirecionar para a tela de login
-      navigate("/login");
-
-      return true;
     } catch (error) {
       console.error("Erro ao fazer logout:", error);
-      return false;
     }
   };
 

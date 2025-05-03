@@ -64,6 +64,12 @@ export default function Sobre() {
           </p>
         </div>
       </div>
+      <button
+        onClick={() => navigate(-1)}
+        className="mt-8 mx-auto bg-cinza-escuro text-white px-6 py-2 rounded-lg shadow hover:bg-cinza transition-colors cursor-pointer"
+      >
+        {t("albumDetails.back", "Voltar")}
+      </button>
     </div>
   );
 }

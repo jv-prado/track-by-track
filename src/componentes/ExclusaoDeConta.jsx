@@ -126,6 +126,12 @@ export default function ExclusaoDeConta() {
             )}
           </p>
         </div>
+        <button
+          onClick={() => navigate(-1)}
+          className="mt-8 mx-auto bg-cinza-escuro text-white px-6 py-2 rounded-lg shadow hover:bg-cinza transition-colors cursor-pointer"
+        >
+          {t("albumDetails.back", "Voltar")}
+        </button>
       </div>
     );
   }
@@ -333,6 +339,12 @@ export default function ExclusaoDeConta() {
         <p className="text-gray-200 mt-6 border-t border-gray-700 pt-4">
           {t("accountDeletion.timeframe")}
         </p>
+        <button
+          onClick={() => navigate(-1)}
+          className="mt-8 mx-auto bg-cinza-escuro text-white px-6 py-2 rounded-lg shadow hover:bg-cinza transition-colors cursor-pointer"
+        >
+          {t("albumDetails.back", "Voltar")}
+        </button>
       </div>
     </div>
   );

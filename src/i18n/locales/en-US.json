@@ -227,10 +227,11 @@
   },
   "termsOfUse": {
     "title": "Terms of Use",
-    "agreement": "By using this platform, you agree to respect the established rules and policies, including the responsible use of features and providing truthful information during registration.",
-    "prohibited": "It is not permitted to use the platform for illegal, offensive purposes or that violate third-party rights.",
-    "breach": "Failure to comply with the terms may result in account suspension or deletion.",
-    "updates": "These terms may be updated periodically. We recommend that you review them regularly."
+    "agreement": "By using this platform, you agree to respect the established rules and policies, including the responsible use of features and providing truthful information during registration. Track by Track uses the official Spotify API only to display public information about albums, artists, and tracks. We do not store, redistribute, or make available any protected content from Spotify.",
+    "prohibited": "It is not permitted to use the platform for illegal, offensive purposes, to circumvent Spotify restrictions, to access third-party data without consent, or to violate Spotify's Terms of Service. The use of the app must always comply with Spotify's policies.",
+    "breach": "Failure to comply with the terms may result in account suspension or deletion, as well as possible legal sanctions.",
+    "updates": "These terms may be updated periodically to ensure compliance with Spotify's policies. We recommend that you review them regularly.",
+    "disclaimer": "This application is not affiliated, associated, authorized, endorsed by, or in any way officially connected with Spotify AB. The Spotify name, as well as related brands, logos, and images are registered trademarks of their respective owners."
   },
   "about": {
     "title": "About",

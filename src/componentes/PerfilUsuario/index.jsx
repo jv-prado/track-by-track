@@ -73,13 +73,23 @@ const PerfilUsuario = () => {
     }
     // Se estiver autenticado com Spotify, fazer logout do Spotify
     else if (usuarioSpotify) {
+      // Usar função melhorada de logout do Spotify que limpa todos os dados
       logoutSpotify();
       setUsuarioSpotify(null);
-      localStorage.removeItem("spotify_autenticado");
-      localStorage.removeItem("spotify_access_token");
-      localStorage.removeItem("spotify_refresh_token");
-      localStorage.removeItem("spotify_token_expires_at");
-      localStorage.removeItem("spotify_user_profile");
+
+      // Verificar se algum dado do Spotify ainda permanece e limpar
+      const spotifyKeys = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith("spotify_")) {
+          spotifyKeys.push(key);
+        }
+      }
+
+      // Remover todos os itens identificados com prefixo "spotify_"
+      spotifyKeys.forEach((key) => localStorage.removeItem(key));
+
+      // Limpar dados da sessão também
       sessionStorage.removeItem("login_redirect");
     }
     // Caso contrário, deslogar normalmente

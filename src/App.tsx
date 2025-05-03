@@ -180,7 +180,8 @@ function App() {
         location.pathname !== "/callback" &&
         location.pathname !== "/politica-de-privacidade" &&
         location.pathname !== "/termos-de-uso" &&
-        location.pathname !== "/exclusao-de-conta"
+        location.pathname !== "/exclusao-de-conta" &&
+        location.pathname !== "/sobre"
       ) {
         // Redirecionar para splash em vez de login para mostrar a introdução do app
         navigate("/splash", { replace: true });
@@ -417,11 +418,18 @@ function App() {
         </div>
 
         {/* Perfil do usuário no canto superior direito - visível apenas em telas acima de 1000px */}
-        <div className="hidden lg:block lg:sticky lg:top-10 lg:self-start z-40">
-          <div className="mb-4 sticky top-10">
-            <PerfilUsuario />
+        {![
+          "/termos-de-uso",
+          "/politica-de-privacidade",
+          "/sobre",
+          "/exclusao-de-conta",
+        ].includes(location.pathname) && (
+          <div className="hidden lg:block lg:sticky lg:top-10 lg:self-start z-40">
+            <div className="mb-4 sticky top-10">
+              <PerfilUsuario />
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* Seletor de idioma */}

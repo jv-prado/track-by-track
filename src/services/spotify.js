@@ -1061,6 +1061,7 @@ export const estaAutenticado = () => {
 
 // Faz logout
 export const logout = () => {
+  // Remover todos os dados relacionados ao Spotify do localStorage
   localStorage.removeItem("spotify_access_token");
   localStorage.removeItem("spotify_refresh_token");
   localStorage.removeItem("spotify_token_expires_at");
@@ -1068,12 +1069,32 @@ export const logout = () => {
   localStorage.removeItem("spotify_user_profile");
   localStorage.removeItem("spotify_callback_processed");
   localStorage.removeItem("spotify_autenticado");
+  localStorage.removeItem("spotify_scopes");
+  localStorage.removeItem("spotify_firebase_uid");
+  localStorage.removeItem("spotify_auth_method");
+
+  // Remover quaisquer dados de perfil cacheados
+  const spotifyKeys = [];
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (key && key.startsWith("spotify_")) {
+      spotifyKeys.push(key);
+    }
+  }
+
+  // Remover todos os itens identificados com prefixo "spotify_"
+  spotifyKeys.forEach((key) => localStorage.removeItem(key));
+
+  // Limpar dados da sessão também
   sessionStorage.removeItem("spotify_code_used");
   sessionStorage.removeItem("spotify_code_processing");
   sessionStorage.removeItem("spotify_callback_timestamp");
   sessionStorage.removeItem("spotify_callback_instance");
+  sessionStorage.removeItem("login_redirect");
 
-  console.log("Logout do Spotify realizado com sucesso");
+  console.log(
+    "Logout do Spotify realizado com sucesso - todos os dados foram removidos"
+  );
 };
 
 /**

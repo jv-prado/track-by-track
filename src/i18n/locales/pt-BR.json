@@ -227,10 +227,11 @@
   },
   "termsOfUse": {
     "title": "Termos de Uso",
-    "agreement": "Ao utilizar esta plataforma, você concorda em respeitar as regras e políticas estabelecidas, incluindo o uso responsável das funcionalidades e o fornecimento de informações verdadeiras no cadastro.",
-    "prohibited": "Não é permitido utilizar a plataforma para fins ilícitos, ofensivos ou que violem direitos de terceiros.",
-    "breach": "O descumprimento dos termos pode resultar em suspensão ou exclusão da conta.",
-    "updates": "Estes termos podem ser atualizados periodicamente. Recomendamos que você os revise regularmente."
+    "agreement": "Ao utilizar esta plataforma, você concorda em respeitar as regras e políticas estabelecidas, incluindo o uso responsável das funcionalidades e o fornecimento de informações verdadeiras no cadastro. O Track by Track utiliza a API oficial do Spotify apenas para exibir informações públicas de álbuns, artistas e faixas. Não armazenamos, redistribuímos ou disponibilizamos conteúdo protegido do Spotify.",
+    "prohibited": "Não é permitido utilizar a plataforma para fins ilícitos, ofensivos, para burlar restrições do Spotify, acessar dados de terceiros sem consentimento ou violar os Termos de Serviço do Spotify. O uso do aplicativo deve estar sempre em conformidade com as políticas do Spotify.",
+    "breach": "O descumprimento dos termos pode resultar em suspensão ou exclusão da conta, além de possíveis sanções legais.",
+    "updates": "Estes termos podem ser atualizados periodicamente para garantir conformidade com as políticas do Spotify. Recomendamos que você os revise regularmente.",
+    "disclaimer": "Este aplicativo não é afiliado, associado, autorizado, endossado por, ou de qualquer forma oficialmente conectado com o Spotify AB. O nome Spotify, bem como marcas, logotipos e imagens relacionadas são marcas registradas de seus respectivos proprietários."
   },
   "about": {
     "title": "Sobre",

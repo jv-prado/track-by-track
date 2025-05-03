@@ -93,6 +93,18 @@ export default function Sidebar({ activeView, setActiveView }) {
     // Se for usuário Firebase, fazer logout normal
     if (usuarioFirebase) {
       await fazerLogout();
+
+      // Verificação adicional para garantir que todos os dados do Spotify foram removidos
+      const spotifyKeys = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith("spotify_")) {
+          spotifyKeys.push(key);
+        }
+      }
+
+      // Remover todos os itens identificados com prefixo "spotify_"
+      spotifyKeys.forEach((key) => localStorage.removeItem(key));
     }
 
     // Definir a view ativa como "feed" para o próximo login

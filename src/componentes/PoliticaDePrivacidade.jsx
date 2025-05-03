@@ -33,6 +33,13 @@ export default function PoliticaDePrivacidade() {
         <p className="text-gray-200 mb-2">{t("privacyPolicy.dataSharing")}</p>
         <p className="text-gray-200 mb-2">{t("privacyPolicy.support")}</p>
       </div>
+
+      <button
+        onClick={() => navigate(-1)}
+        className="mt-8 mx-auto bg-cinza-escuro text-white px-6 py-2 rounded-lg shadow hover:bg-cinza transition-colors cursor-pointer"
+      >
+        {t("albumDetails.back", "Voltar")}
+      </button>
     </div>
   );
 }

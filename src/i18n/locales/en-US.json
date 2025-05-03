@@ -172,6 +172,7 @@
     "profilePicture": "Profile picture",
     "demoUser": "Demo User",
     "user": "User",
+    "displayName": "Display Name",
     "demoMode": "Demo Mode",
     "demoPhotoError": "Demo users cannot change their profile picture",
     "invalidImageError": "Please select a valid image file",

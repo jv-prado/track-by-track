@@ -366,14 +366,88 @@ export default function ExclusaoDeConta() {
             </div>
           </div>
           <button
-            onClick={handleLoginWithSpotify}
-            className="w-full bg-red-700 hover:bg-red-600 text-white py-3 px-4 rounded-lg font-medium transition-colors mb-6"
+            disabled={true}
+            className="w-full bg-red-700/50 text-white py-3 px-4 rounded-lg font-medium transition-colors mb-6 opacity-60 cursor-not-allowed"
           >
             {t(
               "accountDeletion.loginWithSpotify",
               "Entrar com Spotify para excluir conta"
             )}
           </button>
+
+          {/* Formulário para exclusão com email e senha do Firebase */}
+          <form
+            onSubmit={async (e) => {
+              e.preventDefault();
+              setErro("");
+              setCarregando(true);
+              try {
+                await excluirContaComEmailSenha(email, senha);
+                setSucesso(true);
+                setTimeout(() => {
+                  navigate("/login");
+                }, 2000);
+              } catch (error) {
+                setErro(
+                  t(
+                    "accountDeletion.errorGeneric",
+                    "Erro ao excluir a conta. Tente novamente."
+                  )
+                );
+              } finally {
+                setCarregando(false);
+              }
+            }}
+            className="bg-cinza-escuro border border-gray-700 rounded-lg p-4 mb-4"
+          >
+            <h3 className="text-white text-base font-semibold mb-3 text-center">
+              {t(
+                "accountDeletion.deleteWithEmailTitle",
+                "Excluir conta com email e senha"
+              )}
+            </h3>
+            <div className="mb-3">
+              <label className="block text-gray-300 mb-1 text-sm">
+                {t("auth.email", "Email")}
+              </label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full bg-cinza-medio p-2 rounded text-white focus:outline-none focus:ring-2 focus:ring-verde-destaque"
+                required
+              />
+            </div>
+            <div className="mb-3">
+              <label className="block text-gray-300 mb-1 text-sm">
+                {t("auth.password", "Senha")}
+              </label>
+              <input
+                type="password"
+                value={senha}
+                onChange={(e) => setSenha(e.target.value)}
+                className="w-full bg-cinza-medio p-2 rounded text-white focus:outline-none focus:ring-2 focus:ring-verde-destaque"
+                required
+              />
+            </div>
+            <button
+              type="submit"
+              disabled={carregando}
+              className="w-full bg-red-700 hover:bg-red-600 text-white py-2 px-4 rounded-lg font-medium transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              {carregando
+                ? t("accountDeletion.deleting", "Excluindo...")
+                : t(
+                    "accountDeletion.deleteWithEmailButton",
+                    "Excluir conta com email e senha"
+                  )}
+            </button>
+            {erro && (
+              <div className="bg-red-900/30 border border-red-500 text-red-200 p-2 rounded-lg mt-3 text-sm text-center">
+                {erro}
+              </div>
+            )}
+          </form>
         </div>
         <h2 className="text-xl text-white font-semibold mt-6 mb-2">
           {t("accountDeletion.dataDeleted", "O que será excluído?")}

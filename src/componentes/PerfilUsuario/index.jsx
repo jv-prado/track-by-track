@@ -215,11 +215,13 @@ const PerfilUsuario = () => {
     <div className="bg-cinza-escuro p-4 rounded-lg shadow-md w-full flex flex-col">
       <div className="flex items-center mb-4">
         <div className="w-12 h-12 rounded-full bg-gray-700 flex items-center justify-center text-2xl font-bold text-gray-300 mr-3">
-          {usuario.nome?.charAt(0) || usuario.email?.charAt(0) || "U"}
+          {usuario.displayName?.charAt(0) || usuario.email?.charAt(0) || "U"}
         </div>
         <div>
           <h3 className="text-white font-semibold text-lg">
-            {usuario.nome || usuario.email?.split("@")[0] || t("profile.user")}
+            {usuario.displayName ||
+              usuario.email?.split("@")[0] ||
+              t("profile.user")}
           </h3>
           <p className="text-gray-400 text-sm">{usuario.email || ""}</p>
         </div>

@@ -12,7 +12,7 @@ const Splash = () => {
   const navigate = useNavigate();
   const [animationComplete, setAnimationComplete] = useState(false);
   const { t, i18n } = useTranslation();
-  const { usuario: usuarioFirebase, usuarioDemo } = useAuth();
+  const { usuario: usuarioFirebase } = useAuth();
 
   // Verificar se o usuário já está autenticado ao carregar a splash screen
   useEffect(() => {
@@ -20,13 +20,7 @@ const Splash = () => {
       // Verificar autenticação do Firebase
       const usuarioAtual = auth.currentUser;
 
-      // Verificar usuário demo
-      const demoToken = localStorage.getItem("demo_token");
-      const demoExpiry = localStorage.getItem("demo_token_expiry");
-      const modoDemo =
-        demoToken && demoExpiry && parseInt(demoExpiry) > Date.now();
-
-      if (usuarioAtual || usuarioFirebase || usuarioDemo || modoDemo) {
+      if (usuarioAtual || usuarioFirebase) {
         // Definir feed como tela ativa
         localStorage.setItem("activeView", "feed");
         // Redirecionar para o feed
@@ -38,7 +32,7 @@ const Splash = () => {
     };
 
     verificarAutenticacao();
-  }, [navigate, usuarioFirebase, usuarioDemo]);
+  }, [navigate, usuarioFirebase]);
 
   const handleContinue = () => {
     setAnimationComplete(true);

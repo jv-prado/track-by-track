@@ -33,77 +33,6 @@ const getToken = async () => {
   return await getSpotifyToken();
 };
 
-// Dados mockados para o modo de demonstração
-const mockData = {
-  artists: {
-    items: [
-      {
-        id: "demo_artist_1",
-        name: "Artista Demo 1",
-        images: [{ url: "https://via.placeholder.com/300" }],
-        popularity: 80,
-        genres: ["pop", "rock"],
-      },
-      {
-        id: "demo_artist_2",
-        name: "Artista Demo 2",
-        images: [{ url: "https://via.placeholder.com/300" }],
-        popularity: 75,
-        genres: ["hip hop", "r&b"],
-      },
-    ],
-    total: 2,
-  },
-  albums: {
-    items: [
-      {
-        id: "demo_album_1",
-        name: "Álbum Demo 1",
-        images: [{ url: "https://via.placeholder.com/300" }],
-        release_date: "2023-01-01",
-        total_tracks: 10,
-        artists: [{ name: "Artista Demo 1", id: "demo_artist_1" }],
-      },
-      {
-        id: "demo_album_2",
-        name: "Álbum Demo 2",
-        images: [{ url: "https://via.placeholder.com/300" }],
-        release_date: "2023-02-15",
-        total_tracks: 12,
-        artists: [{ name: "Artista Demo 2", id: "demo_artist_2" }],
-      },
-    ],
-    total: 2,
-  },
-  tracks: {
-    items: Array(10)
-      .fill(0)
-      .map((_, i) => ({
-        id: `demo_track_${i + 1}`,
-        name: `Faixa Demo ${i + 1}`,
-        duration_ms: 180000 + i * 20000,
-        track_number: i + 1,
-        artists: [{ name: "Artista Demo 1", id: "demo_artist_1" }],
-      })),
-  },
-  albumDetails: {
-    id: "demo_album_1",
-    name: "Álbum Demo Detalhado",
-    images: [{ url: "https://via.placeholder.com/500" }],
-    release_date: "2023-01-01",
-    total_tracks: 10,
-    artists: [{ name: "Artista Demo 1", id: "demo_artist_1" }],
-    genres: ["pop", "rock"],
-    popularity: 85,
-  },
-};
-
-// Verifica se está em modo de demonstração
-const isDemoMode = () => {
-  const token = getAuthToken();
-  return token && token.startsWith("demo_");
-};
-
 /**
  * Gerenciador de requisições com tratamento de erros e retry para limites de taxa
  * @param {string} url - URL da requisição
@@ -181,11 +110,6 @@ async function fetchWithErrorHandling(url, options, tentativas = 3) {
  */
 export async function buscarArtista(nomeArtista) {
   try {
-    // Se estiver em modo demo, retornar dados mockados
-    if (isDemoMode()) {
-      return mockData.artists;
-    }
-
     const token = await getToken();
     const nomeArtistaEncodificado = encodeURIComponent(nomeArtista);
 
@@ -208,11 +132,6 @@ export async function buscarArtista(nomeArtista) {
  */
 export async function buscarAlbum(nomeAlbum) {
   try {
-    // Se estiver em modo demo, retornar dados mockados
-    if (isDemoMode()) {
-      return mockData.albums;
-    }
-
     const token = await getToken();
     const nomeAlbumEncodificado = encodeURIComponent(nomeAlbum);
 
@@ -235,11 +154,6 @@ export async function buscarAlbum(nomeAlbum) {
  */
 export async function buscarAlbunsPorArtista(artistaId) {
   try {
-    // Se estiver em modo demo, retornar dados mockados
-    if (isDemoMode()) {
-      return mockData.albums;
-    }
-
     const token = await getToken();
 
     return await fetchWithErrorHandling(
@@ -261,11 +175,6 @@ export async function buscarAlbunsPorArtista(artistaId) {
  */
 export async function buscarFaixasPorAlbum(albumId) {
   try {
-    // Se estiver em modo demo, retornar dados mockados
-    if (isDemoMode()) {
-      return mockData.tracks;
-    }
-
     const token = await getToken();
 
     return await fetchWithErrorHandling(
@@ -287,11 +196,6 @@ export async function buscarFaixasPorAlbum(albumId) {
  */
 export async function buscarDetalhesAlbum(albumId) {
   try {
-    // Se estiver em modo demo, retornar dados mockados
-    if (isDemoMode()) {
-      return mockData.albumDetails;
-    }
-
     // Verificar se o albumId é válido
     if (!albumId || albumId.trim() === "") {
       throw new Error("ID do álbum inválido ou não fornecido");
@@ -310,7 +214,7 @@ export async function buscarDetalhesAlbum(albumId) {
 
     return resultado;
   } catch (error) {
-    console.error(`Erro ao buscar detalhes do álbum ${albumId}:`, error);
+    console.error("Erro ao buscar detalhes do álbum:", error);
     throw new Error(
       `Não foi possível buscar os detalhes do álbum: ${error.message}`
     );
@@ -325,23 +229,6 @@ export async function buscarDetalhesAlbum(albumId) {
  */
 export async function buscarPlaylistsEmDestaque(country = "BR", limit = 10) {
   try {
-    // Se estiver em modo demo, retornar dados mockados
-    if (isDemoMode()) {
-      return {
-        playlists: {
-          items: Array(limit)
-            .fill(0)
-            .map((_, i) => ({
-              id: `demo_playlist_${i + 1}`,
-              name: `Playlist em Destaque ${i + 1}`,
-              description: `Descrição da playlist ${i + 1}`,
-              images: [{ url: "https://via.placeholder.com/300" }],
-              tracks: { total: Math.floor(Math.random() * 50) + 10 },
-            })),
-        },
-      };
-    }
-
     const token = await getToken();
 
     return await fetchWithErrorHandling(
@@ -364,27 +251,6 @@ export async function buscarPlaylistsEmDestaque(country = "BR", limit = 10) {
  */
 export async function buscarNovosLancamentos(country = "BR", limit = 10) {
   try {
-    // Se estiver em modo demo, retornar dados mockados
-    if (isDemoMode()) {
-      return {
-        albums: {
-          items: Array(limit)
-            .fill(0)
-            .map((_, i) => ({
-              id: `demo_new_album_${i + 1}`,
-              name: `Novo Lançamento ${i + 1}`,
-              images: [{ url: "https://via.placeholder.com/300" }],
-              release_date: new Date(Date.now() - i * 86400000)
-                .toISOString()
-                .split("T")[0],
-              artists: [
-                { name: `Artista ${i + 1}`, id: `demo_artist_${i + 1}` },
-              ],
-            })),
-        },
-      };
-    }
-
     const token = await getToken();
 
     return await fetchWithErrorHandling(
@@ -406,28 +272,6 @@ export async function buscarNovosLancamentos(country = "BR", limit = 10) {
  */
 export async function buscarSinglesRecentes(limit = 10) {
   try {
-    // Se estiver em modo demo, retornar dados mockados
-    if (isDemoMode()) {
-      return {
-        albums: {
-          items: Array(limit)
-            .fill(0)
-            .map((_, i) => ({
-              id: `demo_single_${i + 1}`,
-              name: `Single Recente ${i + 1}`,
-              album_type: "single",
-              images: [{ url: "https://via.placeholder.com/300" }],
-              release_date: new Date(Date.now() - i * 86400000)
-                .toISOString()
-                .split("T")[0],
-              artists: [
-                { name: `Artista ${i + 1}`, id: `demo_artist_${i + 1}` },
-              ],
-            })),
-        },
-      };
-    }
-
     const token = await getToken();
 
     return await fetchWithErrorHandling(
@@ -450,21 +294,6 @@ export async function buscarSinglesRecentes(limit = 10) {
  */
 export async function buscarCategorias(country = "BR", limit = 20) {
   try {
-    // Se estiver em modo demo, retornar dados mockados
-    if (isDemoMode()) {
-      return {
-        categories: {
-          items: Array(limit)
-            .fill(0)
-            .map((_, i) => ({
-              id: `demo_category_${i + 1}`,
-              name: `Categoria ${i + 1}`,
-              icons: [{ url: "https://via.placeholder.com/300" }],
-            })),
-        },
-      };
-    }
-
     const token = await getToken();
 
     return await fetchWithErrorHandling(
@@ -485,25 +314,6 @@ export async function buscarCategorias(country = "BR", limit = 20) {
  */
 export async function buscarArtistasPorGenero(genero = "pop", limit = 10) {
   try {
-    // Se estiver em modo demo, retornar dados mockados
-    if (isDemoMode()) {
-      return {
-        artists: {
-          items: Array(limit)
-            .fill(0)
-            .map((_, i) => ({
-              id: `demo_genre_artist_${i + 1}`,
-              name: `Artista de ${genero} ${i + 1}`,
-              images: [{ url: "https://via.placeholder.com/300" }],
-              followers: { total: Math.floor(Math.random() * 1000000) },
-              popularity: 100 - i * 8,
-              genres: [genero],
-            })),
-          total: limit,
-        },
-      };
-    }
-
     const token = await getToken();
 
     try {
@@ -560,34 +370,6 @@ export async function buscarArtistasPorGenero(genero = "pop", limit = 10) {
  */
 export async function buscarTopTracks(country = "BR", limit = 10) {
   try {
-    // Se estiver em modo demo, retornar dados mockados
-    if (isDemoMode()) {
-      return {
-        tracks: Array(limit)
-          .fill(0)
-          .map((_, i) => ({
-            id: `demo_top_track_${i + 1}`,
-            name: `Faixa Top ${i + 1}`,
-            duration_ms: 180000 + i * 20000,
-            album: {
-              id: `demo_album_${(i % 5) + 1}`,
-              name: `Álbum da Faixa ${i + 1}`,
-              images: [{ url: "https://via.placeholder.com/300" }],
-              release_date: new Date(Date.now() - i * 86400000 * 7)
-                .toISOString()
-                .split("T")[0],
-            },
-            artists: [
-              {
-                name: `Artista ${(i % 5) + 1}`,
-                id: `demo_artist_${(i % 5) + 1}`,
-              },
-            ],
-            popularity: 100 - i * 5,
-          })),
-      };
-    }
-
     const token = await getToken();
 
     // Utilizando o endpoint de browse/featured-playlists para obter playlists em destaque

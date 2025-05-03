@@ -25,7 +25,6 @@ export function useAuth() {
 
 export function AuthProvider({ children }) {
   const [usuario, setUsuario] = useState(null);
-  const [usuarioDemo, setUsuarioDemo] = useState(null);
   const [usuarioSpotify, setUsuarioSpotify] = useState(null);
   const [spotifyUserData, setSpotifyUserData] = useState(null);
   const [carregando, setCarregando] = useState(true);
@@ -117,26 +116,6 @@ export function AuthProvider({ children }) {
   // Função para verificar métodos alternativos de autenticação
   const verificarOutrosMetodosAutenticacao = async () => {
     console.log("Verificando métodos alternativos de autenticação");
-
-    // Verificar modo demo
-    const demoToken = localStorage.getItem("demo_token");
-    const demoExpiry = localStorage.getItem("demo_token_expiry");
-    const modoDemo =
-      demoToken && demoExpiry && parseInt(demoExpiry) > Date.now();
-
-    if (modoDemo) {
-      try {
-        const usuarioDemo = JSON.parse(
-          localStorage.getItem("demo_usuario") || "{}"
-        );
-        setUsuarioDemo(usuarioDemo);
-      } catch (error) {
-        console.error("Erro ao carregar usuário demo:", error);
-        setUsuarioDemo(null);
-      }
-    } else {
-      setUsuarioDemo(null);
-    }
 
     // Verificar autenticação com Spotify (dados são armazenados na coleção 'usuariosSpotify')
     const refreshToken = localStorage.getItem("spotify_refresh_token");
@@ -363,7 +342,7 @@ export function AuthProvider({ children }) {
     return unsubscribe;
   }, []);
 
-  // Efeito adicional para verificar o modo demo e Spotify
+  // Efeito adicional para verificar o Spotify
   useEffect(() => {
     verificarOutrosMetodosAutenticacao();
   }, []);
@@ -392,23 +371,8 @@ export function AuthProvider({ children }) {
   // Função de logout
   const fazerLogout = async () => {
     try {
-      // Se estiver em modo demo, limpar dados do demo
-      if (usuarioDemo) {
-        localStorage.removeItem("demo_token");
-        localStorage.removeItem("demo_token_expiry");
-        localStorage.removeItem("demo_usuario");
-        localStorage.removeItem("modo_demo_ativo");
-        localStorage.removeItem("activeView");
-
-        // Limpar dados de avaliações do modo demo
-        localStorage.setItem("avaliacoesFaixas", JSON.stringify({}));
-        localStorage.setItem("mapaFaixasAlbuns", JSON.stringify({}));
-        localStorage.setItem("datasAvaliacoes", JSON.stringify({}));
-
-        setUsuarioDemo(null);
-      }
       // Se estiver autenticado com Spotify, fazer logout do Spotify
-      else if (usuarioSpotify) {
+      if (usuarioSpotify) {
         logoutSpotify();
         setUsuarioSpotify(null);
         localStorage.removeItem("spotify_autenticado");
@@ -437,12 +401,11 @@ export function AuthProvider({ children }) {
     }
   };
 
-  // Calcular se há um usuário ativo (Firebase, Spotify ou Demo)
-  const usuarioAtivo = !!usuario || !!usuarioDemo || !!usuarioSpotify;
+  // Calcular se há um usuário ativo (Firebase ou Spotify)
+  const usuarioAtivo = !!usuario || !!usuarioSpotify;
 
   const value = {
     usuario,
-    usuarioDemo,
     usuarioSpotify,
     spotifyUserData,
     usuarioAtivo,

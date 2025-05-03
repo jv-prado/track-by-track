@@ -69,14 +69,7 @@ const getToken = async () => {
     return userToken;
   }
 
-  // Verificar se estamos no modo demo
-  if (isDemoMode()) {
-    console.log("Usando token de modo demo");
-    return "demo_token";
-  }
-
-  // Se não temos token de usuário nem estamos em modo demo,
-  // esperamos que o usuário faça login antes de usar funcionalidades que precisam de autenticação
+  // Esperamos que o usuário faça login antes de usar funcionalidades que precisam de autenticação
   console.log("Nenhum token de usuário disponível. É necessário fazer login.");
 
   // Verificar se temos um token de cliente em último caso (funcionalidades públicas)
@@ -84,96 +77,6 @@ const getToken = async () => {
   const clientToken = await getSpotifyToken();
   console.log("Usando token de cliente (funcionalidades limitadas)");
   return clientToken;
-};
-
-// Dados mockados para o modo de demonstração
-const mockData = {
-  artists: {
-    items: [
-      {
-        id: "demo_artist_1",
-        name: "Artista Demo 1",
-        images: [{ url: "https://via.placeholder.com/300" }],
-        popularity: 80,
-        genres: ["pop", "rock"],
-      },
-      {
-        id: "demo_artist_2",
-        name: "Artista Demo 2",
-        images: [{ url: "https://via.placeholder.com/300" }],
-        popularity: 75,
-        genres: ["hip hop", "r&b"],
-      },
-    ],
-    total: 2,
-  },
-  albums: {
-    items: [
-      {
-        id: "demo_album_1",
-        name: "Álbum Demo 1",
-        images: [{ url: "https://via.placeholder.com/300" }],
-        release_date: "2023-01-01",
-        total_tracks: 10,
-        artists: [{ name: "Artista Demo 1", id: "demo_artist_1" }],
-      },
-      {
-        id: "demo_album_2",
-        name: "Álbum Demo 2",
-        images: [{ url: "https://via.placeholder.com/300" }],
-        release_date: "2023-02-15",
-        total_tracks: 12,
-        artists: [{ name: "Artista Demo 2", id: "demo_artist_2" }],
-      },
-    ],
-    total: 2,
-  },
-  tracks: {
-    items: Array(10)
-      .fill(0)
-      .map((_, i) => ({
-        id: `demo_track_${i + 1}`,
-        name: `Faixa Demo ${i + 1}`,
-        duration_ms: 180000 + i * 20000,
-        track_number: i + 1,
-        artists: [{ name: "Artista Demo 1", id: "demo_artist_1" }],
-      })),
-  },
-  albumDetails: {
-    id: "demo_album_1",
-    name: "Álbum Demo Detalhado",
-    images: [{ url: "https://via.placeholder.com/500" }],
-    release_date: "2023-01-01",
-    total_tracks: 10,
-    artists: [{ name: "Artista Demo 1", id: "demo_artist_1" }],
-    genres: ["pop", "rock"],
-    popularity: 85,
-    external_urls: {
-      spotify: "https://open.spotify.com/album/demo_album_1",
-    },
-  },
-};
-
-// Verifica se está em modo de demonstração
-const isDemoMode = () => {
-  // Se tiver um token ou refresh token do Spotify, não estamos em modo demo
-  const spotifyToken = localStorage.getItem("spotify_access_token");
-  const spotifyRefreshToken = localStorage.getItem("spotify_refresh_token");
-
-  if (spotifyToken || spotifyRefreshToken) {
-    return false;
-  }
-
-  // Verificar explicitamente o modo demo através da flag no localStorage
-  const demoMode = localStorage.getItem("demo_mode") === "true";
-
-  // Verificar se há um token demo válido
-  const demoToken = localStorage.getItem("demo_token");
-  const demoExpiry = localStorage.getItem("demo_token_expiry");
-  const demoTokenValido =
-    demoToken && demoExpiry && parseInt(demoExpiry) > Date.now();
-
-  return demoMode || demoTokenValido;
 };
 
 /**
@@ -231,12 +134,6 @@ async function fetchWithErrorHandling(url, options, tentativas = 3) {
  */
 export async function buscarArtista(nomeArtista) {
   try {
-    // Se estiver em modo demo, retornar dados mockados
-    if (isDemoMode()) {
-      console.log("Usando dados mockados no modo demo");
-      return mockData.artists;
-    }
-
     // Verificar se o usuário está autenticado
     if (!estaAutenticado()) {
       console.log("Usuário não está autenticado para buscar artistas");
@@ -251,152 +148,160 @@ export async function buscarArtista(nomeArtista) {
       );
     }
 
-    console.log("Buscando artista com token válido");
-    const nomeArtistaEncodificado = encodeURIComponent(nomeArtista);
+    // Codificar o nome para URL
+    const query = encodeURIComponent(nomeArtista);
+    const url = `${URL_BASE}search?q=${query}&type=artist&limit=10`;
 
-    const data = await fetchWithErrorHandling(
-      `${URL_BASE}search?q=${nomeArtistaEncodificado}&type=artist`,
-      getAuthHeaders(token)
-    );
+    const resultado = await fetchWithErrorHandling(url, getAuthHeaders(token));
 
-    return data.artists;
+    return resultado.artists;
   } catch (error) {
     console.error("Erro ao buscar artista:", error);
-    throw new Error(`Não foi possível buscar o artista: ${error.message}`);
+    throw error;
   }
 }
 
 /**
  * Busca álbuns pelo nome
  * @param {string} nomeAlbum - Nome do álbum a ser buscado
- * @param {number} limit - Número máximo de álbuns a serem retornados (padrão: 20)
- * @param {number} offset - Número de álbuns a serem ignorados (padrão: 0)
+ * @param {number} limit - Limite de resultados (padrão: 20)
+ * @param {number} offset - Offset para paginação (padrão: 0)
  * @returns {Promise<Object>} Dados dos álbuns encontrados
  */
 export async function buscarAlbum(nomeAlbum, limit = 20, offset = 0) {
   try {
-    if (isDemoMode()) {
-      return mockData.albums;
+    // Verificar se o usuário está autenticado
+    if (!estaAutenticado()) {
+      console.log("Usuário não está autenticado para buscar álbuns");
+      throw new Error("É necessário fazer login para buscar álbuns");
     }
+
     const token = await getToken();
-    const nomeAlbumEncodificado = encodeURIComponent(nomeAlbum);
-    const data = await fetchWithErrorHandling(
-      `${URL_BASE}search?q=${nomeAlbumEncodificado}&type=album&limit=${limit}&offset=${offset}`,
-      getAuthHeaders(token)
-    );
-    return data.albums;
+    const query = encodeURIComponent(nomeAlbum);
+    const url = `${URL_BASE}search?q=${query}&type=album&limit=${limit}&offset=${offset}`;
+
+    const resultado = await fetchWithErrorHandling(url, getAuthHeaders(token));
+
+    return resultado.albums;
   } catch (error) {
-    throw new Error(`Não foi possível buscar o álbum: ${error.message}`);
+    console.error("Erro ao buscar álbum:", error);
+    throw error;
   }
 }
 
 /**
- * Busca álbuns de um artista específico pelo ID
+ * Busca álbuns de um artista específico
  * @param {string} artistaId - ID do artista no Spotify
  * @returns {Promise<Object>} Dados dos álbuns do artista
  */
 export async function buscarAlbunsPorArtista(artistaId) {
   try {
-    // Se estiver em modo demo, retornar dados mockados
-    if (isDemoMode()) {
-      return mockData.albums;
+    // Verificar se o usuário está autenticado
+    if (!estaAutenticado()) {
+      console.log(
+        "Usuário não está autenticado para buscar álbuns por artista"
+      );
+      throw new Error(
+        "É necessário fazer login para buscar álbuns por artista"
+      );
     }
 
     const token = await getToken();
+    const url = `${URL_BASE}artists/${artistaId}/albums?include_groups=album,single&limit=50`;
 
-    return await fetchWithErrorHandling(
-      `${URL_BASE}artists/${artistaId}/albums?include_groups=album&limit=20`,
-      getAuthHeaders(token)
-    );
+    const resultado = await fetchWithErrorHandling(url, getAuthHeaders(token));
+
+    return resultado;
   } catch (error) {
-    throw new Error(
-      `Não foi possível buscar os álbuns do artista: ${error.message}`
-    );
+    console.error("Erro ao buscar álbuns por artista:", error);
+    throw error;
   }
 }
 
 /**
- * Busca faixas de um álbum específico pelo ID
+ * Busca faixas de um álbum específico
  * @param {string} albumId - ID do álbum no Spotify
  * @returns {Promise<Object>} Dados das faixas do álbum
  */
 export async function buscarFaixasPorAlbum(albumId) {
   try {
-    // Se estiver em modo demo, retornar dados mockados
-    if (isDemoMode()) {
-      return mockData.tracks;
+    // Verificar se o usuário está autenticado
+    if (!estaAutenticado()) {
+      console.log("Usuário não está autenticado para buscar faixas por álbum");
+      throw new Error("É necessário fazer login para buscar faixas por álbum");
     }
 
     const token = await getToken();
+    const url = `${URL_BASE}albums/${albumId}/tracks?limit=50`;
 
-    return await fetchWithErrorHandling(
-      `${URL_BASE}albums/${albumId}/tracks`,
-      getAuthHeaders(token)
-    );
+    const resultado = await fetchWithErrorHandling(url, getAuthHeaders(token));
+
+    return resultado;
   } catch (error) {
-    throw new Error(
-      `Não foi possível buscar as faixas do álbum: ${error.message}`
-    );
+    console.error("Erro ao buscar faixas por álbum:", error);
+    throw error;
   }
 }
 
 /**
- * Busca detalhes de um álbum específico pelo ID com gerenciamento de taxa de requisições
+ * Busca detalhes completos de um álbum
  * @param {string} albumId - ID do álbum no Spotify
  * @returns {Promise<Object>} Dados detalhados do álbum
  */
 export async function buscarDetalhesAlbum(albumId) {
   try {
-    // Se estiver em modo demo, retornar dados mockados
-    if (isDemoMode()) {
-      return mockData.albumDetails;
-    }
-
-    // Verificar se o albumId é válido
-    if (!albumId || albumId.trim() === "") {
-      throw new Error("ID do álbum inválido ou não fornecido");
+    // Verificar se o usuário está autenticado
+    if (!estaAutenticado()) {
+      console.log("Usuário não está autenticado para buscar detalhes do álbum");
+      throw new Error("É necessário fazer login para buscar detalhes do álbum");
     }
 
     const token = await getToken();
+    const url = `${URL_BASE}albums/${albumId}`;
 
-    const resultado = await fetchWithErrorHandling(
-      `${URL_BASE}albums/${albumId}`,
-      getAuthHeaders(token)
-    );
-
-    if (!resultado || !resultado.id) {
-      throw new Error(`Álbum não encontrado: ${albumId}`);
-    }
+    const resultado = await fetchWithErrorHandling(url, getAuthHeaders(token));
 
     return resultado;
   } catch (error) {
-    throw new Error(
-      `Não foi possível buscar os detalhes do álbum: ${error.message}`
-    );
+    console.error("Erro ao buscar detalhes do álbum:", error);
+    throw error;
   }
 }
 
 /**
  * Busca singles pelo nome
  * @param {string} nomeSingle - Nome do single a ser buscado
- * @param {number} limit - Número máximo de singles a serem retornados (padrão: 20)
- * @param {number} offset - Número de singles a serem ignorados (padrão: 0)
+ * @param {number} limit - Limite de resultados (padrão: 20)
+ * @param {number} offset - Offset para paginação (padrão: 0)
  * @returns {Promise<Object>} Dados dos singles encontrados
  */
 export async function buscarSingle(nomeSingle, limit = 20, offset = 0) {
   try {
-    if (isDemoMode()) {
-      return mockData.albums;
+    // Verificar se o usuário está autenticado
+    if (!estaAutenticado()) {
+      console.log("Usuário não está autenticado para buscar singles");
+      throw new Error("É necessário fazer login para buscar singles");
     }
+
     const token = await getToken();
-    const nomeSingleEncodificado = encodeURIComponent(nomeSingle);
-    const data = await fetchWithErrorHandling(
-      `${URL_BASE}search?q=${nomeSingleEncodificado}&type=album&include_groups=single&limit=${limit}&offset=${offset}`,
-      getAuthHeaders(token)
-    );
-    return data.albums;
+
+    // Adicionar "single:" à consulta para filtrar apenas singles
+    const query = encodeURIComponent(`${nomeSingle}`);
+    const url = `${URL_BASE}search?q=${query}&type=album&limit=${limit}&offset=${offset}`;
+
+    const resultado = await fetchWithErrorHandling(url, getAuthHeaders(token));
+
+    // Filtrar apenas itens que são singles (album_type = 'single')
+    if (resultado.albums && resultado.albums.items) {
+      resultado.albums.items = resultado.albums.items.filter(
+        (item) => item.album_type === "single"
+      );
+    }
+
+    return resultado.albums;
   } catch (error) {
-    throw new Error(`Não foi possível buscar o single: ${error.message}`);
+    console.error("Erro ao buscar single:", error);
+    throw error;
   }
 }
 

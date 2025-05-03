@@ -16,7 +16,7 @@ export default function PerfilUsuario() {
   const [fotoPerfil, setFotoPerfil] = useState(null);
   const [erro, setErro] = useState("");
   const fileInputRef = useRef(null);
-  const { usuario: usuarioFirebase, usuarioDemo, usuarioAtivo } = useAuth();
+  const { usuario: usuarioFirebase, usuarioAtivo } = useAuth();
   const navigate = useNavigate();
   const [emailSpotify, setEmailSpotify] = useState("");
 
@@ -26,7 +26,7 @@ export default function PerfilUsuario() {
       : "http://localhost:5173/callback";
 
   useEffect(() => {
-    // Verificar se o usuário está logado no Firebase ou em modo Demo
+    // Verificar se o usuário está logado no Firebase
     setCarregando(false);
 
     if (usuarioFirebase?.photoURL) {
@@ -132,19 +132,6 @@ export default function PerfilUsuario() {
   }, [usuarioFirebase]);
 
   const handleLogout = async () => {
-    // Se for usuário demo, limpar os dados do localStorage
-    if (usuarioDemo) {
-      localStorage.removeItem("demo_token");
-      localStorage.removeItem("demo_token_expiry");
-      localStorage.removeItem("demo_usuario");
-
-      // Definir a view ativa como "feed" para o próximo login
-      localStorage.setItem("activeView", "feed");
-
-      window.location.href = "/login";
-      return;
-    }
-
     // Se for usuário Firebase, fazer logout normal
     if (usuarioFirebase) {
       await fazerLogout();
@@ -158,10 +145,6 @@ export default function PerfilUsuario() {
   };
 
   const handleTrocarFoto = () => {
-    if (usuarioDemo) {
-      setErro(t("userProfile.demoPhotoError"));
-      return;
-    }
     fileInputRef.current?.click();
   };
 
@@ -234,42 +217,31 @@ export default function PerfilUsuario() {
                 alt={t("userProfile.profilePicture")}
                 className="w-full h-full object-cover"
               />
-            ) : usuarioDemo ? (
-              "D"
             ) : (
               usuarioFirebase?.displayName?.charAt(0).toUpperCase() || "U"
             )}
           </div>
-          {!usuarioDemo && (
-            <>
-              <button
-                onClick={handleTrocarFoto}
-                className="absolute inset-0 w-full h-full rounded-full bg-black/50 flex items-center justify-center opacity-70 md:opacity-0 md:hover:opacity-70 active:opacity-70 transition-opacity"
-                aria-label={t("userProfile.changePhoto") || "Trocar foto"}
-              >
-                <FaCamera className="text-white text-sm" />
-              </button>
-              <input
-                type="file"
-                ref={fileInputRef}
-                onChange={handleFileChange}
-                accept="image/*"
-                className="hidden"
-              />
-            </>
-          )}
+          <button
+            onClick={handleTrocarFoto}
+            className="absolute inset-0 w-full h-full rounded-full bg-black/50 flex items-center justify-center opacity-70 md:opacity-0 md:hover:opacity-70 active:opacity-70 transition-opacity"
+            aria-label={t("userProfile.changePhoto") || "Trocar foto"}
+          >
+            <FaCamera className="text-white text-sm" />
+          </button>
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleFileChange}
+            accept="image/*"
+            className="hidden"
+          />
         </div>
 
         <div className="flex-1 overflow-hidden">
           <p className="font-bold text-sm truncate">
-            {usuarioDemo
-              ? usuarioDemo.nome ||
-                (i18n.language.startsWith("en") ? "Demo User" : "Usuário Demo")
-              : usuarioFirebase?.displayName || t("userProfile.user")}
+            {usuarioFirebase?.displayName || t("userProfile.user")}
           </p>
-          <p className="text-xs text-gray-400 truncate">
-            {usuarioDemo ? t("userProfile.demoMode") : emailSpotify || ""}
-          </p>
+          <p className="text-xs text-gray-400 truncate">{emailSpotify || ""}</p>
         </div>
       </div>
 
@@ -285,9 +257,7 @@ export default function PerfilUsuario() {
               clipRule="evenodd"
             />
           </svg>
-          {usuarioDemo
-            ? t("userProfile.dataSavedLocally")
-            : t("userProfile.ratingsSavedToAccount")}
+          {t("userProfile.ratingsSavedToAccount")}
         </div>
 
         {/* Botão de logout */}

@@ -43,27 +43,6 @@ export const registrarDataAvaliacao = (faixaId, avaliacao) => {
       // Atualizar apenas a data da última avaliação
       datasAvaliacoes[albumId].ultima = agora.toISOString();
     }
-
-    // Verificar se estamos em modo de demonstração
-    const demoToken = localStorage.getItem("demo_token");
-    const demoExpiry = localStorage.getItem("demo_token_expiry");
-    const modoDemo =
-      demoToken && demoExpiry && parseInt(demoExpiry) > Date.now();
-
-    // Sincronizar com localStorage se estiver em modo demo
-    if (modoDemo) {
-      // Atualizar localStorage com os dados atualizados
-      localStorage.setItem(
-        "datasAvaliacoes",
-        JSON.stringify(memoriaAvaliacoes.datasAvaliacoes)
-      );
-
-      // Sinalizar que o modo de demonstração está ativo
-      localStorage.setItem("modo_demo_ativo", "true");
-
-      // Forçar a sincronização das avaliações
-      salvarDadosLocalStorage();
-    }
   } catch (erro) {
     console.warn("Erro ao registrar data de avaliação:", erro);
   }
@@ -469,37 +448,19 @@ const calcularMediaEmMemoria = (albumId) => {
 
 /**
  * Obtém as avaliações das faixas
- * @returns {Object} Objeto com as avaliações
+ * @returns {Object} Avaliações das faixas
  */
 export const getAvaliacoesFaixas = () => {
   return memoriaAvaliacoes.avaliacoesFaixas;
 };
 
 /**
- * Configura uma verificação periódica para manter os dados sincronizados
- * entre localStorage e memória no modo de demonstração
+ * Configuração para manter os dados sincronizados
  */
 export const configurarSincronizacaoAutomatica = () => {
   // Executar a sincronização inicial
   carregarDadosLocalStorage();
-
-  // Configurar um intervalo para verificar regularmente
-  const intervalo = setInterval(() => {
-    const demoToken = localStorage.getItem("demo_token");
-    const demoExpiry = localStorage.getItem("demo_token_expiry");
-    const modoDemo =
-      demoToken && demoExpiry && parseInt(demoExpiry) > Date.now();
-
-    if (modoDemo) {
-      carregarDadosLocalStorage(); // Carregar do localStorage para a memória
-      salvarDadosLocalStorage(); // Salvar da memória para o localStorage
-    } else {
-      // Se não estiver mais em modo demo, limpar o intervalo
-      clearInterval(intervalo);
-    }
-  }, 5000); // Verificar a cada 5 segundos
-
-  return intervalo;
+  return null;
 };
 
 /**
@@ -507,134 +468,19 @@ export const configurarSincronizacaoAutomatica = () => {
  * Esta função deve ser chamada no início da aplicação
  */
 export const carregarDadosLocalStorage = () => {
-  try {
-    // Verificar se estamos em modo de demonstração
-    const demoToken = localStorage.getItem("demo_token");
-    const demoExpiry = localStorage.getItem("demo_token_expiry");
-    const modoDemo =
-      demoToken && demoExpiry && parseInt(demoExpiry) > Date.now();
-
-    if (!modoDemo) {
-      return;
-    }
-
-    // Inicializar estruturas vazias por padrão para evitar objetos nulos
-    memoriaAvaliacoes.avaliacoesFaixas = {};
-    memoriaAvaliacoes.mapaFaixasAlbuns = {};
-    memoriaAvaliacoes.datasAvaliacoes = {};
-    memoriaAvaliacoes.preferenciasAlbuns = {};
-
-    // Carregar avaliações das faixas
-    const avaliacoesString = localStorage.getItem("avaliacoesFaixas");
-    if (avaliacoesString) {
-      try {
-        const dados = JSON.parse(avaliacoesString);
-        if (dados && typeof dados === "object") {
-          memoriaAvaliacoes.avaliacoesFaixas = dados;
-        }
-      } catch (e) {
-        console.error("Erro ao analisar avaliacoesFaixas:", e);
-        localStorage.setItem("avaliacoesFaixas", JSON.stringify({}));
-      }
-    } else {
-      localStorage.setItem("avaliacoesFaixas", JSON.stringify({}));
-    }
-
-    // Carregar mapa de faixas para álbuns
-    const mapaString = localStorage.getItem("mapaFaixasAlbuns");
-    if (mapaString) {
-      try {
-        const dados = JSON.parse(mapaString);
-        if (dados && typeof dados === "object") {
-          memoriaAvaliacoes.mapaFaixasAlbuns = dados;
-        }
-      } catch (e) {
-        console.error("Erro ao analisar mapaFaixasAlbuns:", e);
-        localStorage.setItem("mapaFaixasAlbuns", JSON.stringify({}));
-      }
-    } else {
-      localStorage.setItem("mapaFaixasAlbuns", JSON.stringify({}));
-    }
-
-    // Carregar datas de avaliações
-    const datasString = localStorage.getItem("datasAvaliacoes");
-    if (datasString) {
-      try {
-        const dados = JSON.parse(datasString);
-        if (dados && typeof dados === "object") {
-          memoriaAvaliacoes.datasAvaliacoes = dados;
-        }
-      } catch (e) {
-        console.error("Erro ao analisar datasAvaliacoes:", e);
-        localStorage.setItem("datasAvaliacoes", JSON.stringify({}));
-      }
-    } else {
-      localStorage.setItem("datasAvaliacoes", JSON.stringify({}));
-    }
-
-    // Carregar preferências de álbuns
-    const prefsString = localStorage.getItem("preferenciasAlbuns");
-    if (prefsString) {
-      try {
-        const dados = JSON.parse(prefsString);
-        if (dados && typeof dados === "object") {
-          memoriaAvaliacoes.preferenciasAlbuns = dados;
-        }
-      } catch (e) {
-        console.error("Erro ao analisar preferenciasAlbuns:", e);
-        localStorage.setItem("preferenciasAlbuns", JSON.stringify({}));
-      }
-    } else {
-      localStorage.setItem("preferenciasAlbuns", JSON.stringify({}));
-    }
-  } catch (erro) {
-    console.error("Erro ao carregar dados do localStorage:", erro);
-    // Inicializar com objetos vazios em caso de erro
-    memoriaAvaliacoes.avaliacoesFaixas = {};
-    memoriaAvaliacoes.mapaFaixasAlbuns = {};
-    memoriaAvaliacoes.datasAvaliacoes = {};
-    memoriaAvaliacoes.preferenciasAlbuns = {};
-  }
+  // Inicializar estruturas vazias por padrão para evitar objetos nulos
+  memoriaAvaliacoes.avaliacoesFaixas = {};
+  memoriaAvaliacoes.mapaFaixasAlbuns = {};
+  memoriaAvaliacoes.datasAvaliacoes = {};
+  memoriaAvaliacoes.preferenciasAlbuns = {};
 };
 
 /**
  * Salva dados da memória para o localStorage
- * Esta função deve ser chamada após cada alteração nos dados
+ * Esta função é mantida por compatibilidade
  */
 export const salvarDadosLocalStorage = () => {
-  try {
-    // Verificar se estamos em modo de demonstração
-    const demoToken = localStorage.getItem("demo_token");
-    if (!demoToken) {
-      return; // Não salvar no localStorage se não estiver em modo de demonstração
-    }
-
-    // Salvar avaliações das faixas
-    localStorage.setItem(
-      "avaliacoesFaixas",
-      JSON.stringify(memoriaAvaliacoes.avaliacoesFaixas)
-    );
-
-    // Salvar mapa de faixas para álbuns
-    localStorage.setItem(
-      "mapaFaixasAlbuns",
-      JSON.stringify(memoriaAvaliacoes.mapaFaixasAlbuns)
-    );
-
-    // Salvar datas de avaliações
-    localStorage.setItem(
-      "datasAvaliacoes",
-      JSON.stringify(memoriaAvaliacoes.datasAvaliacoes)
-    );
-
-    // Salvar preferências de álbuns
-    localStorage.setItem(
-      "preferenciasAlbuns",
-      JSON.stringify(memoriaAvaliacoes.preferenciasAlbuns)
-    );
-  } catch (erro) {
-    console.error("Erro ao salvar dados no localStorage:", erro);
-  }
+  // Não faz nada, já que não estamos mais usando o modo demo
 };
 
 /**
@@ -643,7 +489,6 @@ export const salvarDadosLocalStorage = () => {
  */
 export const setAvaliacoesFaixas = (avaliacoes) => {
   memoriaAvaliacoes.avaliacoesFaixas = avaliacoes;
-  salvarDadosLocalStorage(); // Salvar no localStorage após alteração
 };
 
 /**
@@ -660,26 +505,13 @@ export const getMapaFaixasAlbuns = () => {
  */
 export const setMapaFaixasAlbuns = (mapa) => {
   memoriaAvaliacoes.mapaFaixasAlbuns = mapa;
-  salvarDadosLocalStorage(); // Salvar no localStorage após alteração
 };
 
 /**
  * Recarrega as avaliações de álbuns e faixas
- * Esta função deve ser chamada quando precisamos garantir
- * que temos os dados mais atualizados (por exemplo, após uma avaliação)
  * @returns {Object} Objeto com avaliacoesFaixas e mapaFaixasAlbuns atualizados
  */
 export const recarregarAvaliacoes = () => {
-  // Verificar se estamos em modo de demonstração
-  const demoToken = localStorage.getItem("demo_token");
-  const demoExpiry = localStorage.getItem("demo_token_expiry");
-  const modoDemo = demoToken && demoExpiry && parseInt(demoExpiry) > Date.now();
-
-  if (modoDemo) {
-    // Recarregar dados do localStorage
-    carregarDadosLocalStorage();
-  }
-
   // Retornar os dados atualizados
   return {
     avaliacoesFaixas: memoriaAvaliacoes.avaliacoesFaixas,

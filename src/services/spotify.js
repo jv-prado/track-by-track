@@ -1,5 +1,6 @@
 import { getSpotifyToken } from "./api";
 import { getAuthToken } from "./auth";
+import { getUsuarioAtual } from "./firebase";
 import {
   getFirestore,
   doc,
@@ -67,6 +68,26 @@ const getToken = async () => {
   if (userToken) {
     console.log("Usando token de usuário autenticado via Firebase");
     return userToken;
+  }
+
+  // Verificar se há um usuário logado via Firebase (email/senha)
+  const usuarioFirebase = getUsuarioAtual();
+  if (usuarioFirebase && !usuarioFirebase.uid.startsWith("spotify_")) {
+    console.log("Usuário Firebase detectado, gerando token cliente para busca");
+
+    // Se não temos token do Spotify, mas temos usuário Firebase,
+    // vamos obter um token de cliente para permitir as buscas
+    const clientToken = await getSpotifyToken();
+    if (clientToken) {
+      // Salvar o token com validade de 1 hora
+      localStorage.setItem("spotify_access_token", clientToken);
+      localStorage.setItem(
+        "spotify_token_expires_at",
+        String(Date.now() + 3600 * 1000)
+      );
+      console.log("Token de cliente obtido e armazenado para usuário Firebase");
+      return clientToken;
+    }
   }
 
   // Esperamos que o usuário faça login antes de usar funcionalidades que precisam de autenticação
@@ -1063,6 +1084,36 @@ export const obterAlbunsSalvos = async (limit = 20, offset = 0) => {
 
 // Verifica se está autenticado
 export const estaAutenticado = () => {
+  // Verificar primeiro se há um usuário Firebase logado (por email/senha)
+  const usuarioFirebase = getUsuarioAtual();
+  if (usuarioFirebase && !usuarioFirebase.uid.startsWith("spotify_")) {
+    console.log("Usuário autenticado via Firebase (email/senha)");
+
+    // Se não há token do Spotify, mas temos usuário Firebase,
+    // vamos obter um token de cliente que funciona para as buscas básicas
+    if (!localStorage.getItem("spotify_access_token")) {
+      // Iniciar processo de obtenção de token de cliente de forma assíncrona
+      // mas não vamos esperar aqui para não bloquear a interface
+      getSpotifyToken()
+        .then((token) => {
+          if (token) {
+            // Salvar o token com validade de 1 hora (em millisegundos)
+            localStorage.setItem("spotify_access_token", token);
+            localStorage.setItem(
+              "spotify_token_expires_at",
+              String(Date.now() + 3600 * 1000)
+            );
+            console.log(
+              "Token de cliente do Spotify obtido para usuário Firebase"
+            );
+          }
+        })
+        .catch((err) => console.error("Erro ao obter token de cliente:", err));
+    }
+
+    return true;
+  }
+
   // Verificar se tem token de acesso válido
   const accessToken = localStorage.getItem("spotify_access_token");
   const tokenExpiry = localStorage.getItem("spotify_token_expires_at");

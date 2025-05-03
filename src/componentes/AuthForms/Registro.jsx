@@ -3,6 +3,7 @@ import { cadastrarUsuario } from "../../services/firebase";
 import { useNavigate, Link } from "react-router-dom";
 import Logo from "../sidebar/assets/Logo.svg";
 import { useTranslation } from "react-i18next";
+import { auth } from "../../services/firebase";
 
 export default function Registro() {
   const [nome, setNome] = useState("");
@@ -47,6 +48,11 @@ export default function Registro() {
     try {
       await cadastrarUsuario(email, senha, nome);
 
+      // Garantir que o displayName seja atualizado corretamente
+      if (auth.currentUser) {
+        await auth.currentUser.reload();
+      }
+
       // Definir "feed" como a view ativa no localStorage para que o App a utilize
       localStorage.setItem("activeView", "feed");
 
@@ -55,6 +61,9 @@ export default function Registro() {
 
       // Redirecionar para o feed após o registro
       navigate("/feed");
+      setTimeout(() => {
+        window.location.reload();
+      }, 100);
     } catch (error) {
       console.error("Erro no cadastro:", error);
       if (error.code === "auth/email-already-in-use") {

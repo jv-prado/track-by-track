@@ -956,7 +956,20 @@ const FeedGlobal = () => {
                     </div>
                   </div>
                   {/* Detalhe centralizado com usuário na base do card */}
-                  <div className="flex items-center justify-center mt-4 mb-1">
+                  <div
+                    className="flex items-center justify-center mt-4 mb-1 cursor-pointer hover:bg-gray-800/50 rounded-full px-2 py-1"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (!usandoDadosDemo && avaliacao.usuario.id) {
+                        navigate(`/perfil/${avaliacao.usuario.id}`);
+                      }
+                    }}
+                    title={
+                      !usandoDadosDemo
+                        ? t("feed.verPerfilUsuario", "Ver perfil do usuário")
+                        : null
+                    }
+                  >
                     <div className="w-8 h-8 rounded-full overflow-hidden bg-gray-800 flex items-center justify-center shadow-sm">
                       {usandoDadosDemo ? (
                         <div className="w-full h-full flex items-center justify-center bg-verde-destaque/20 text-verde-destaque">
@@ -1017,29 +1030,47 @@ const FeedGlobal = () => {
                     {/* Coluna 1: usuário, data, imagem, nome, artista, botões */}
                     <div className="flex flex-col min-w-0 flex-1">
                       <div className="flex flex-row items-center min-w-0 gap-2 mb-2">
-                        <div className="w-6 h-6 md:w-7 md:h-7 rounded-full overflow-hidden bg-gray-800 flex-shrink-0 shadow-sm">
-                          {usandoDadosDemo ? (
-                            <div className="w-full h-full flex items-center justify-center bg-verde-destaque/20 text-verde-destaque">
-                              {avaliacao.usuario.nome.charAt(0).toUpperCase()}
-                            </div>
-                          ) : avaliacao.usuario.foto ? (
-                            <img
-                              src={avaliacao.usuario.foto}
-                              alt={t("feed.fotoUsuario", {
-                                nome: avaliacao.usuario.nome,
-                              })}
-                              className="w-full h-full object-cover"
-                              loading="lazy"
-                            />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center bg-verde-destaque/20 text-verde-destaque">
-                              {avaliacao.usuario.nome.charAt(0).toUpperCase()}
-                            </div>
-                          )}
+                        <div
+                          className="flex items-center gap-2 cursor-pointer hover:bg-gray-800/50 rounded-full px-2 py-1"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (!usandoDadosDemo && avaliacao.usuario.id) {
+                              navigate(`/perfil/${avaliacao.usuario.id}`);
+                            }
+                          }}
+                          title={
+                            !usandoDadosDemo
+                              ? t(
+                                  "feed.verPerfilUsuario",
+                                  "Ver perfil do usuário"
+                                )
+                              : null
+                          }
+                        >
+                          <div className="w-6 h-6 md:w-7 md:h-7 rounded-full overflow-hidden bg-gray-800 flex-shrink-0 shadow-sm">
+                            {usandoDadosDemo ? (
+                              <div className="w-full h-full flex items-center justify-center bg-verde-destaque/20 text-verde-destaque">
+                                {avaliacao.usuario.nome.charAt(0).toUpperCase()}
+                              </div>
+                            ) : avaliacao.usuario.foto ? (
+                              <img
+                                src={avaliacao.usuario.foto}
+                                alt={t("feed.fotoUsuario", {
+                                  nome: avaliacao.usuario.nome,
+                                })}
+                                className="w-full h-full object-cover"
+                                loading="lazy"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center bg-verde-destaque/20 text-verde-destaque">
+                                {avaliacao.usuario.nome.charAt(0).toUpperCase()}
+                              </div>
+                            )}
+                          </div>
+                          <span className="font-medium truncate max-w-[120px] md:max-w-[180px]">
+                            {avaliacao.usuario.nome}
+                          </span>
                         </div>
-                        <span className="font-medium truncate max-w-[120px] md:max-w-[180px]">
-                          {avaliacao.usuario.nome}
-                        </span>
                         {/* Data e horário da avaliação */}
                         <span className="text-xs text-gray-400">
                           {formatarDataSegura(

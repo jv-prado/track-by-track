@@ -5,6 +5,7 @@ import BarraDePesquisa from "./componentes/BarraDePesquisa";
 import Feed from "./componentes/Feed/Feed";
 import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import PerfilUsuario from "./componentes/PerfilUsuario";
+import PerfilPublico from "./componentes/PerfilPublico";
 import Splash from "./componentes/Splash";
 import Login from "./componentes/AuthForms/Login";
 import Registro from "./componentes/AuthForms/Registro";
@@ -449,6 +450,7 @@ function App() {
               <Route path="/registro" element={<Registro />} />
               <Route path="/callback" element={<SpotifyCallback />} />
               <Route path="/album/:id" element={<Feed activeView="album" />} />
+              <Route path="/perfil/:usuarioId" element={<PerfilPublico />} />
               <Route
                 path="/politica-de-privacidade"
                 element={<PoliticaDePrivacidade />}

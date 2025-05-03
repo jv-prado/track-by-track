@@ -556,7 +556,7 @@ const FeedGlobal = () => {
         return;
       }
 
-      if (!novoComentario.trim()) {
+      if (!novoComentario) {
         console.log("Comentário vazio, não será enviado");
         return;
       }
@@ -565,7 +565,7 @@ const FeedGlobal = () => {
         albumId: avaliacaoSelecionada.albumId,
         usuarioId: avaliacaoSelecionada.usuarioId,
         autor: usuarioFirebase?.displayName || "Anônimo",
-        texto: novoComentario.trim(),
+        texto: novoComentario,
         autorId: usuarioFirebase?.uid || null,
         autorFoto: usuarioFirebase?.photoURL || null,
       });
@@ -574,7 +574,7 @@ const FeedGlobal = () => {
         albumId: avaliacaoSelecionada.albumId,
         usuarioId: avaliacaoSelecionada.usuarioId,
         autor: usuarioFirebase?.displayName || "Anônimo",
-        texto: novoComentario.trim(),
+        texto: novoComentario,
         autorId: usuarioFirebase?.uid || null,
         autorFoto: usuarioFirebase?.photoURL || null,
       });
@@ -1255,7 +1255,7 @@ const FeedGlobal = () => {
               <button
                 onClick={enviarComentario}
                 className="bg-indigo-700 hover:bg-indigo-600 text-white py-1 px-4 rounded-lg transition-colors cursor-pointer"
-                disabled={!novoComentario.trim()}
+                disabled={novoComentario.length === 0}
               >
                 {t("feed.comentar")}
               </button>

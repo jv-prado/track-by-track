@@ -321,6 +321,7 @@ const REDIRECT_URI = (() => {
     "https://www.trackbytrackapp.com",
     "http://localhost:5173",
     "http://localhost:3000",
+    "https://track-by-track-git-testes-jvprado1s-projects.vercel.app",
     // Exemplo de domínio de preview do Vercel
     "https://track-by-track-git-testes-jvprado1s-projects.vercel.app",
     // Adicione outros domínios de preview se necessário

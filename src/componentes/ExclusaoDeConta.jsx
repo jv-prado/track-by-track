@@ -5,11 +5,22 @@ import { useAuth } from "../contexts/AuthContext";
 import { IoArrowBack } from "react-icons/io5";
 import { MdEmail, MdWarning, MdDelete } from "react-icons/md";
 import { excluirConta, excluirContaComEmailSenha } from "../services/firebase";
+import {
+  getFirestore,
+  doc,
+  deleteDoc,
+  collection,
+  getDocs,
+  query,
+  where,
+  writeBatch,
+} from "firebase/firestore";
+import { logout as logoutSpotify } from "../services/spotify";
 
 export default function ExclusaoDeConta() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { usuario, usuarioDemo, modoDemo } = useAuth();
+  const { usuario, usuarioDemo, modoDemo, usuarioSpotify } = useAuth();
   const [showConfirmForm, setShowConfirmForm] = useState(false);
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
@@ -22,11 +33,66 @@ export default function ExclusaoDeConta() {
     navigate(-1);
   };
 
+  const excluirContaSpotify = async () => {
+    try {
+      if (!usuarioSpotify || !usuarioSpotify.id) {
+        throw new Error("ID do usuário Spotify não encontrado");
+      }
+
+      const db = getFirestore();
+      const spotifyUserId = usuarioSpotify.id;
+      const batch = writeBatch(db);
+
+      // 1. Excluir documento principal na coleção usuariosSpotify
+      const userDocRef = doc(db, "usuariosSpotify", spotifyUserId);
+      batch.delete(userDocRef);
+
+      // 2. Procurar e excluir todas as avaliações do usuário na coleção de avaliações
+      const avaliacoesRef = collection(db, "avaliacoes");
+      const avaliacoesQuery = query(
+        avaliacoesRef,
+        where("usuario_id", "==", spotifyUserId)
+      );
+      const avaliacoesSnap = await getDocs(avaliacoesQuery);
+
+      avaliacoesSnap.forEach((doc) => {
+        batch.delete(doc.ref);
+      });
+
+      // 3. Verificar se há entrada na coleção usuarios vinculada ao mesmo usuário Spotify
+      const usuariosRef = collection(db, "usuarios");
+      const usuariosQuery = query(
+        usuariosRef,
+        where("spotifyId", "==", spotifyUserId)
+      );
+      const usuariosSnap = await getDocs(usuariosQuery);
+
+      usuariosSnap.forEach((doc) => {
+        batch.delete(doc.ref);
+      });
+
+      // Executar o batch de exclusões
+      await batch.commit();
+
+      // 4. Fazer logout do Spotify e limpar todos os dados locais
+      logoutSpotify();
+
+      return true;
+    } catch (error) {
+      console.error("Erro ao excluir conta do Spotify:", error);
+      throw error;
+    }
+  };
+
   const handleDeletarConta = async (e) => {
     e.preventDefault();
 
     // Verificar se todos os campos estão preenchidos
-    if ((!usuario && !email) || !senha || !confirmacao) {
+    if (
+      (!usuario && !usuarioSpotify && !email) ||
+      (!usuarioSpotify && !senha) ||
+      !confirmacao
+    ) {
       setErro(t("accountDeletion.errorEmptyField", "Preencha todos os campos"));
       return;
     }
@@ -46,10 +112,16 @@ export default function ExclusaoDeConta() {
       setCarregando(true);
       setErro("");
 
-      // Se o usuário estiver logado, use a função normal; caso contrário, use a nova função com email e senha
-      if (usuario) {
+      // Se o usuário é do Spotify, usar a função específica
+      if (usuarioSpotify) {
+        await excluirContaSpotify();
+      }
+      // Se o usuário estiver logado com Firebase, use a função normal
+      else if (usuario) {
         await excluirConta(senha);
-      } else {
+      }
+      // Caso contrário, use a função com email e senha
+      else {
         await excluirContaComEmailSenha(email, senha);
       }
 
@@ -223,7 +295,7 @@ export default function ExclusaoDeConta() {
                 )}
 
                 <form onSubmit={handleDeletarConta}>
-                  {!usuario && (
+                  {!usuario && !usuarioSpotify && (
                     <div className="mb-4">
                       <label className="block text-gray-300 mb-2 text-sm">
                         {t("accountDeletion.enterEmail", "Digite seu email")}
@@ -238,21 +310,23 @@ export default function ExclusaoDeConta() {
                     </div>
                   )}
 
-                  <div className="mb-4">
-                    <label className="block text-gray-300 mb-2 text-sm">
-                      {t(
-                        "accountDeletion.enterPassword",
-                        "Digite sua senha atual"
-                      )}
-                    </label>
-                    <input
-                      type="password"
-                      value={senha}
-                      onChange={(e) => setSenha(e.target.value)}
-                      className="w-full bg-cinza-medio p-3 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-red-500"
-                      required
-                    />
-                  </div>
+                  {!usuarioSpotify && (
+                    <div className="mb-4">
+                      <label className="block text-gray-300 mb-2 text-sm">
+                        {t(
+                          "accountDeletion.enterPassword",
+                          "Digite sua senha atual"
+                        )}
+                      </label>
+                      <input
+                        type="password"
+                        value={senha}
+                        onChange={(e) => setSenha(e.target.value)}
+                        className="w-full bg-cinza-medio p-3 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-red-500"
+                        required={!usuarioSpotify}
+                      />
+                    </div>
+                  )}
 
                   <div className="mb-4">
                     <label className="block text-gray-300 mb-2 text-sm">

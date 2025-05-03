@@ -494,8 +494,11 @@ export const obterAvaliacoesGlobais = async (
             media_anterior: album.media_anterior || null,
             usuario: {
               id: doc.id,
-              nome: dadosUsuario.nome || "Usuário anônimo",
-              foto: dadosUsuario.foto_perfil || null,
+              nome:
+                dadosUsuario.nome ||
+                dadosUsuario.displayName ||
+                "Usuário anônimo",
+              foto: dadosUsuario.foto_perfil || dadosUsuario.photoURL || null,
             },
             // Adicionar progresso da avaliação
             progresso: {
@@ -638,8 +641,11 @@ export const obterAvaliacoesUsuario = async (usuarioId, albumId) => {
       nomesFaixas,
       usuario: {
         id: usuarioId,
-        nome: userDoc.data().nome || "Usuário anônimo",
-        foto: userDoc.data().foto_perfil || null,
+        nome:
+          userDoc.data().nome ||
+          userDoc.data().displayName ||
+          "Usuário anônimo",
+        foto: userDoc.data().foto_perfil || userDoc.data().photoURL || null,
       },
     };
   } catch (error) {

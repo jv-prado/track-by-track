@@ -220,10 +220,10 @@
   },
   "privacyPolicy": {
     "title": "Política de Privacidade",
-    "intro": "Sua privacidade é importante para nós. Coletamos e utilizamos alguns dados pessoais de acordo com a legislação vigente, principalmente para garantir a melhor experiência possível na plataforma.",
-    "dataUsage": "Ao criar uma conta, você concorda com a coleta e uso das informações fornecidas, como nome, e-mail e preferências musicais, para fins de autenticação, personalização e segurança.",
-    "dataSharing": "Seus dados não serão compartilhados com terceiros sem seu consentimento, exceto quando exigido por lei.",
-    "support": "Para mais informações ou dúvidas, entre em contato com nosso suporte."
+    "intro": "Sua privacidade é importante para nós. Ao utilizar o Track by Track, alguns dados pessoais são coletados em conformidade com a legislação vigente, principalmente para garantir a melhor experiência possível na plataforma.",
+    "dataUsage": "Ao conectar sua conta do Spotify, coletamos informações como nome, e-mail, foto de perfil e preferências musicais, sempre mediante seu consentimento. Esses dados são usados exclusivamente para autenticação, personalização da experiência e funcionalidades do aplicativo, como exibir seu perfil, calcular médias de avaliações e mostrar seu histórico.",
+    "dataSharing": "Seus dados não são compartilhados com terceiros, exceto quando exigido por lei ou para integração com o próprio Spotify via API. Não utilizamos seus dados para fins de marketing.",
+    "support": "Você pode desconectar sua conta do Spotify e solicitar a exclusão de seus dados a qualquer momento pelo próprio aplicativo ou entrando em contato com nosso suporte. Para mais informações, consulte a seção 'Exclusão de Conta' ou envie um email para contatotrackbytrack@gmail.com."
   },
   "termsOfUse": {
     "title": "Termos de Uso",
@@ -273,5 +273,11 @@
   },
   "searchPage": {
     "tryAnotherTerm": "Tente outro termo ou verifique se digitou corretamente"
+  },
+  "login": {
+    "connectingSpotify": "Conectando ao Spotify...",
+    "loginWithSpotify": "Entrar com Spotify",
+    "loginWithSpotifyDesc": "Faça login com sua conta do Spotify para acessar recursos personalizados",
+    "errorSpotify": "Erro ao iniciar login com Spotify."
   }
 }

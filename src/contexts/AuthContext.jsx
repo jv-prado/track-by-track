@@ -391,6 +391,14 @@ export function AuthProvider({ children }) {
       // Limpar dados de sessão
       localStorage.removeItem("activeView");
 
+      // Garantir que todas as flags relacionadas ao Spotify sejam removidas
+      localStorage.removeItem("spotify_autenticado");
+      localStorage.removeItem("spotify_access_token");
+      localStorage.removeItem("spotify_refresh_token");
+      localStorage.removeItem("spotify_token_expires_at");
+      localStorage.removeItem("spotify_user_profile");
+      sessionStorage.removeItem("login_redirect");
+
       // Redirecionar para a tela de login
       navigate("/login");
 

@@ -220,10 +220,10 @@
   },
   "privacyPolicy": {
     "title": "Privacy Policy",
-    "intro": "Your privacy is important to us. We collect and use some personal data in accordance with current legislation, mainly to ensure the best possible experience on the platform.",
-    "dataUsage": "By creating an account, you agree to the collection and use of the information provided, such as name, email, and musical preferences, for authentication, personalization, and security purposes.",
-    "dataSharing": "Your data will not be shared with third parties without your consent, except when required by law.",
-    "support": "For more information or questions, please contact our support."
+    "intro": "Your privacy is important to us. By using Track by Track, some personal data is collected in accordance with current legislation, mainly to ensure the best possible experience on the platform.",
+    "dataUsage": "When you connect your Spotify account, we collect information such as your name, email, profile picture, and musical preferences, always with your consent. This data is used exclusively for authentication, personalizing your experience, and app features such as displaying your profile, calculating rating averages, and showing your history.",
+    "dataSharing": "Your data is not shared with third parties, except when required by law or for integration with Spotify itself via API. We do not use your data for marketing purposes.",
+    "support": "You can disconnect your Spotify account and request deletion of your data at any time through the app or by contacting our support. For more information, see the 'Account Deletion' section or email contatotrackbytrack@gmail.com."
   },
   "termsOfUse": {
     "title": "Terms of Use",
@@ -273,5 +273,11 @@
   },
   "searchPage": {
     "tryAnotherTerm": "Try another term or check if you typed correctly"
+  },
+  "login": {
+    "connectingSpotify": "Connecting to Spotify...",
+    "loginWithSpotify": "Login with Spotify",
+    "loginWithSpotifyDesc": "Login with your Spotify account to access personalized features",
+    "errorSpotify": "Error starting login with Spotify."
   }
 }

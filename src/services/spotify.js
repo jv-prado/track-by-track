@@ -1029,13 +1029,26 @@ export const estaAutenticado = () => {
     accessToken && tokenExpiry && parseInt(tokenExpiry) > Date.now();
 
   if (tokenValido) {
+    // Verificar se também tem a flag de autenticação
+    const autenticadoFlag =
+      localStorage.getItem("spotify_autenticado") === "true";
+    if (!autenticadoFlag) {
+      console.log(
+        "Token válido mas sem flag de autenticação, considerando não autenticado"
+      );
+      return false;
+    }
+
     console.log("Token de acesso do Spotify válido encontrado");
     return true;
   }
 
   // Verificar se tem refresh token que pode ser usado para renovar o token
   const refreshToken = localStorage.getItem("spotify_refresh_token");
-  if (refreshToken) {
+  const autenticadoFlag =
+    localStorage.getItem("spotify_autenticado") === "true";
+
+  if (refreshToken && autenticadoFlag) {
     console.log(
       "Refresh token do Spotify encontrado, usuário pode renovar autenticação"
     );
@@ -1054,6 +1067,7 @@ export const logout = () => {
   localStorage.removeItem("spotify_auth_state");
   localStorage.removeItem("spotify_user_profile");
   localStorage.removeItem("spotify_callback_processed");
+  localStorage.removeItem("spotify_autenticado");
   sessionStorage.removeItem("spotify_code_used");
   sessionStorage.removeItem("spotify_code_processing");
   sessionStorage.removeItem("spotify_callback_timestamp");

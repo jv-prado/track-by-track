@@ -92,18 +92,14 @@ function App() {
 
   // Verificar se há um usuário demo ou Spotify que também deveria pular a splashscreen
   useEffect(() => {
-    // Verificar se tem um usuário demo ativo
-    const demoToken = localStorage.getItem("demo_token");
-    const demoExpiry = localStorage.getItem("demo_token_expiry");
-    const modoDemo =
-      demoToken && demoExpiry && parseInt(demoExpiry) > Date.now();
-
     // Verificar se tem um usuário Spotify ativo
     const autenticadoSpotify = estaAutenticado();
     setUsuarioSpotify(autenticadoSpotify);
 
+    // Remover lógica de redirecionamento automático para o feed em caso de demo_token
+    // O modo demo só pode ser ativado por ação do usuário
     if (
-      (modoDemo || autenticadoSpotify) &&
+      autenticadoSpotify &&
       (location.pathname === "/" || location.pathname === "/splash")
     ) {
       setActiveView("feed");
@@ -156,21 +152,15 @@ function App() {
   // Verifica o estado de autenticação ao iniciar
   useEffect(() => {
     const verificarAutenticacao = () => {
-      // Redirecionar para login se não estiver autenticado e tentando acessar uma rota protegida
-      const demoToken = localStorage.getItem("demo_token");
-      const demoExpiry = localStorage.getItem("demo_token_expiry");
-      const modoDemo =
-        demoToken && demoExpiry && parseInt(demoExpiry) > Date.now();
-
       // Verificar autenticação Spotify
       const autenticadoSpotify = estaAutenticado();
       setUsuarioSpotify(autenticadoSpotify);
 
-      // Se o usuário estiver na página inicial ou splash e já estiver autenticado (Firebase, Demo ou Spotify),
+      // Se o usuário estiver na página inicial ou splash e já estiver autenticado (Firebase ou Spotify),
       // redirecionar para o feed
       if (
         (location.pathname === "/" || location.pathname === "/splash") &&
-        (usuarioFirebase || modoDemo || autenticadoSpotify)
+        (usuarioFirebase || autenticadoSpotify)
       ) {
         setActiveView("feed");
         localStorage.setItem("activeView", "feed");
@@ -178,11 +168,10 @@ function App() {
         return;
       }
 
-      // Se não estiver autenticado e estiver tentando acessar uma rota protegida, redirecionar para login
+      // Se não estiver autenticado e estiver tentando acessar uma rota protegida, redirecionar para splash
       if (
         !usuarioFirebase &&
-        !modoDemo &&
-        !autenticadoSpotify && // Verificar todos os tipos de autenticação
+        !autenticadoSpotify &&
         location.pathname !== "/" &&
         location.pathname !== "/login" &&
         location.pathname !== "/registro" &&
@@ -192,7 +181,8 @@ function App() {
         location.pathname !== "/termos-de-uso" &&
         location.pathname !== "/exclusao-de-conta"
       ) {
-        navigate("/login");
+        // Redirecionar para splash em vez de login para mostrar a introdução do app
+        navigate("/splash", { replace: true });
       }
     };
 
@@ -277,6 +267,22 @@ function App() {
   // Renderizar o componente de callback do Spotify
   if (location.pathname === "/callback") {
     return <SpotifyCallback />;
+  }
+
+  // Verificar explicitamente se o usuário está tentando acessar o /feed sem autenticação
+  if (
+    location.pathname === "/feed" &&
+    !usuarioFirebase &&
+    !usuarioDemo &&
+    !usuarioSpotify
+  ) {
+    // Redirecionar para splash se não estiver autenticado
+    navigate("/splash", { replace: true });
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-gray-900 to-black">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-500"></div>
+      </div>
+    );
   }
 
   // Renderizar splash apenas se o usuário não estiver autenticado

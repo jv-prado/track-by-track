@@ -253,7 +253,7 @@
     "developedBy": "Desenvolvido por João Victor Prado"
   },
   "accountDeletion": {
-    "title": "Excluir conta Spotify",
+    "title": "Excluir Conta",
     "spotifyLoginMessage": "Para excluir sua conta, faça login com o Spotify abaixo. Todos os seus dados serão removidos permanentemente.",
     "loginWithSpotify": "Entrar com Spotify para excluir conta",
     "deleting": "Excluindo...",

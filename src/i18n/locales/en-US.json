@@ -253,7 +253,7 @@
     "developedBy": "Developed by João Victor Prado"
   },
   "accountDeletion": {
-    "title": "Delete Spotify Account",
+    "title": "Delete Account",
     "spotifyLoginMessage": "To delete your account, log in with Spotify below. All your data will be permanently removed.",
     "loginWithSpotify": "Login with Spotify to delete account",
     "deleting": "Deleting...",

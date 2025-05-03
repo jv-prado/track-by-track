@@ -71,8 +71,8 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
   const [faixas, setFaixas] = useState(null);
   const [carregando, setCarregando] = useState(true);
   const [avaliacoes, setAvaliacoes] = useState({});
-  const [faixaFavorita, setFaixaFavorita] = useState(null);
-  const [piorFaixa, setPiorFaixa] = useState(null);
+  const [faixaFavorita, setFaixaFavorita] = useState();
+  const [piorFaixa, setPiorFaixa] = useState();
   const [progressoAvaliacao, setProgressoAvaliacao] = useState({
     avaliadas: 0,
     total: 0,
@@ -169,15 +169,15 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
             localStorage.getItem(`preferencias_${albumId}`) || "{}"
           );
 
-          if (prefsFaixas.favorita) {
+          if (prefsFaixas.favorita !== undefined) {
             setFaixaFavorita(prefsFaixas.favorita);
-          } else if (prefsFaixas.faixaFavorita) {
+          } else if (prefsFaixas.faixaFavorita !== undefined) {
             setFaixaFavorita(prefsFaixas.faixaFavorita);
           }
 
-          if (prefsFaixas.pior) {
+          if (prefsFaixas.pior !== undefined) {
             setPiorFaixa(prefsFaixas.pior);
-          } else if (prefsFaixas.piorFaixa) {
+          } else if (prefsFaixas.piorFaixa !== undefined) {
             setPiorFaixa(prefsFaixas.piorFaixa);
           }
         } catch (e) {
@@ -242,10 +242,10 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
 
             // Carregar preferências de faixa favorita e pior faixa
             if (albumAtual.preferencias) {
-              if (albumAtual.preferencias.faixaFavorita) {
+              if (albumAtual.preferencias.faixaFavorita !== undefined) {
                 setFaixaFavorita(albumAtual.preferencias.faixaFavorita);
               }
-              if (albumAtual.preferencias.piorFaixa) {
+              if (albumAtual.preferencias.piorFaixa !== undefined) {
                 setPiorFaixa(albumAtual.preferencias.piorFaixa);
               }
             }
@@ -314,10 +314,10 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
 
                 // Carregar preferências de faixa favorita e pior faixa
                 if (albumAtual.preferencias) {
-                  if (albumAtual.preferencias.faixaFavorita) {
+                  if (albumAtual.preferencias.faixaFavorita !== undefined) {
                     setFaixaFavorita(albumAtual.preferencias.faixaFavorita);
                   }
-                  if (albumAtual.preferencias.piorFaixa) {
+                  if (albumAtual.preferencias.piorFaixa !== undefined) {
                     setPiorFaixa(albumAtual.preferencias.piorFaixa);
                   }
                 }
@@ -1882,21 +1882,36 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
             </h4>
             <select
               className="w-full bg-gray-700 text-white py-1 px-2 rounded text-xs focus:outline-none focus:ring-1 focus:ring-red-500 text-ellipsis"
-              value={faixaFavorita || ""}
-              onChange={(e) =>
-                marcarFaixaFavorita(
-                  e.target.value === "" ? null : e.target.value
-                )
+              value={
+                faixaFavorita === null ? "nao_aplica" : faixaFavorita || ""
               }
+              onChange={(e) => {
+                if (e.target.value === "nao_aplica") {
+                  marcarFaixaFavorita(null);
+                } else {
+                  marcarFaixaFavorita(
+                    e.target.value === "" ? undefined : e.target.value
+                  );
+                }
+              }}
             >
-              <option value="">{t("albumDetails.selectTrack")}</option>
+              <option value="" disabled>
+                {t("albumDetails.selectTrack", "Selecione a música...")}
+              </option>
               {faixas.items.map((faixa) => (
-                <option key={`fav-${faixa.id}`} value={faixa.id}>
+                <option
+                  key={`fav-${faixa.id}`}
+                  value={faixa.id}
+                  disabled={faixa.id === piorFaixa}
+                >
                   {faixa.name.length > 30
                     ? faixa.name.substring(0, 28) + "..."
                     : faixa.name}
                 </option>
               ))}
+              <option value="nao_aplica">
+                {t("albumDetails.notApplicable", "Não se aplica")}
+              </option>
             </select>
           </div>
 
@@ -1907,19 +1922,34 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
             </h4>
             <select
               className="w-full bg-gray-700 text-white py-1 px-2 rounded text-xs focus:outline-none focus:ring-1 focus:ring-yellow-500 text-ellipsis"
-              value={piorFaixa || ""}
-              onChange={(e) =>
-                marcarPiorFaixa(e.target.value === "" ? null : e.target.value)
-              }
+              value={piorFaixa === null ? "nao_aplica" : piorFaixa || ""}
+              onChange={(e) => {
+                if (e.target.value === "nao_aplica") {
+                  marcarPiorFaixa(null);
+                } else {
+                  marcarPiorFaixa(
+                    e.target.value === "" ? undefined : e.target.value
+                  );
+                }
+              }}
             >
-              <option value="">{t("albumDetails.selectTrack")}</option>
+              <option value="" disabled>
+                {t("albumDetails.selectTrack", "Selecione a música...")}
+              </option>
               {faixas.items.map((faixa) => (
-                <option key={`worst-${faixa.id}`} value={faixa.id}>
+                <option
+                  key={`worst-${faixa.id}`}
+                  value={faixa.id}
+                  disabled={faixa.id === faixaFavorita}
+                >
                   {faixa.name.length > 30
                     ? faixa.name.substring(0, 28) + "..."
                     : faixa.name}
                 </option>
               ))}
+              <option value="nao_aplica">
+                {t("albumDetails.notApplicable", "Não se aplica")}
+              </option>
             </select>
           </div>
 
@@ -2090,19 +2120,34 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
           </h4>
           <select
             className="w-full bg-gray-700 text-white py-1 px-2 rounded text-xs focus:outline-none focus:ring-1 focus:ring-red-500 text-ellipsis"
-            value={faixaFavorita || ""}
-            onChange={(e) =>
-              marcarFaixaFavorita(e.target.value === "" ? null : e.target.value)
-            }
+            value={faixaFavorita === null ? "nao_aplica" : faixaFavorita || ""}
+            onChange={(e) => {
+              if (e.target.value === "nao_aplica") {
+                marcarFaixaFavorita(null);
+              } else {
+                marcarFaixaFavorita(
+                  e.target.value === "" ? undefined : e.target.value
+                );
+              }
+            }}
           >
-            <option value="">{t("albumDetails.selectTrack")}</option>
+            <option value="" disabled>
+              {t("albumDetails.selectTrack", "Selecione a música...")}
+            </option>
             {faixas.items.map((faixa) => (
-              <option key={`fav-${faixa.id}`} value={faixa.id}>
+              <option
+                key={`fav-${faixa.id}`}
+                value={faixa.id}
+                disabled={faixa.id === piorFaixa}
+              >
                 {faixa.name.length > 30
                   ? faixa.name.substring(0, 28) + "..."
                   : faixa.name}
               </option>
             ))}
+            <option value="nao_aplica">
+              {t("albumDetails.notApplicable", "Não se aplica")}
+            </option>
           </select>
         </div>
 
@@ -2113,19 +2158,34 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
           </h4>
           <select
             className="w-full bg-gray-700 text-white py-1 px-2 rounded text-xs focus:outline-none focus:ring-1 focus:ring-yellow-500 text-ellipsis"
-            value={piorFaixa || ""}
-            onChange={(e) =>
-              marcarPiorFaixa(e.target.value === "" ? null : e.target.value)
-            }
+            value={piorFaixa === null ? "nao_aplica" : piorFaixa || ""}
+            onChange={(e) => {
+              if (e.target.value === "nao_aplica") {
+                marcarPiorFaixa(null);
+              } else {
+                marcarPiorFaixa(
+                  e.target.value === "" ? undefined : e.target.value
+                );
+              }
+            }}
           >
-            <option value="">{t("albumDetails.selectTrack")}</option>
+            <option value="" disabled>
+              {t("albumDetails.selectTrack", "Selecione a música...")}
+            </option>
             {faixas.items.map((faixa) => (
-              <option key={`worst-${faixa.id}`} value={faixa.id}>
+              <option
+                key={`worst-${faixa.id}`}
+                value={faixa.id}
+                disabled={faixa.id === faixaFavorita}
+              >
                 {faixa.name.length > 30
                   ? faixa.name.substring(0, 28) + "..."
                   : faixa.name}
               </option>
             ))}
+            <option value="nao_aplica">
+              {t("albumDetails.notApplicable", "Não se aplica")}
+            </option>
           </select>
         </div>
 

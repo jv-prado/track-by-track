@@ -736,7 +736,8 @@ const FeedGlobal = () => {
                     </span>
                   )}
                   {/* Imagem do álbum */}
-                  <div className="w-full aspect-square bg-cinza-escuro rounded-lg overflow-hidden mb-3 relative">
+                  <div className="relative w-full"></div>
+                  <div className="w-full aspect-square bg-cinza-escuro rounded-lg overflow-hidden  relative">
                     {avaliacao.imagem ? (
                       <img
                         src={avaliacao.imagem}
@@ -750,30 +751,24 @@ const FeedGlobal = () => {
                         <MdMusicNote className="text-verde-destaque text-4xl" />
                       </div>
                     )}
+                    <div
+                      className={`${obterCorNota(
+                        avaliacao.media || avaliacao.mediaAvaliacao
+                      )} text-cinza-escuro rounded-lg px-2 py-1 font-bold text-lg flex items-center justify-center shadow-sm my-auto absolute bottom-0.5 right-0.5 shadow-lg`}
+                    >
+                      <span className="text-cinza-escuro w-full text-center">
+                        {formatarMedia(
+                          avaliacao.media || avaliacao.mediaAvaliacao
+                        )}
+                      </span>
+                    </div>
                   </div>
+
                   {/* Nome do álbum, artista e data - apenas no modo grid */}
                   <div className="flex flex-col items-center mb-2">
                     {/* Botões de ação: resenha, avaliações, spotify e nota final */}
                     <div className="flex justify-end w-full items-center">
                       {/* Mostra a nota do usuário no álbum, absoluta sobre a imagem apenas no modo grid */}
-                      <div className="relative w-full">
-                        <div
-                          className={
-                            `${obterCorNota(
-                              avaliacao.media || avaliacao.mediaAvaliacao
-                            )} text-cinza-escuro rounded-lg px-2 py-1 font-bold text-lg flex items-center justify-center shadow-sm my-auto ` +
-                            (modoVisualizacao === "grade"
-                              ? "absolute top-[-55px] right-2 w-12 md:w-16 sm:w-12 xs:w-10 min-w-[2rem] max-w-[3rem] text-sm md:text-lg"
-                              : "w-12 md:w-16 sm:w-12 xs:w-10 min-w-[2rem] max-w-[3rem] text-sm md:text-lg")
-                          }
-                        >
-                          <span className="text-cinza-escuro w-full text-center">
-                            {formatarMedia(
-                              avaliacao.media || avaliacao.mediaAvaliacao
-                            )}
-                          </span>
-                        </div>
-                      </div>
                     </div>
 
                     <h3

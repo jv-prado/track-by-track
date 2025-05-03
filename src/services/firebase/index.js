@@ -28,6 +28,10 @@ import {
   deleteDoc,
   writeBatch,
   serverTimestamp,
+  addDoc,
+  query,
+  where,
+  Timestamp,
 } from "firebase/firestore";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
 
@@ -263,6 +267,28 @@ export const salvarAvaliacaoAlbum = async (
       avaliacoes: avaliacoesFaixas,
       data_avaliacao: new Date(),
     };
+
+    // Preservar review e data_review do álbum anterior, se existirem e não vierem nas preferências
+    if (albumExistente) {
+      // Se review está vindo nas preferências, priorize ela
+      if (preferencias && typeof preferencias.review === "string") {
+        dadosAlbum.review = preferencias.review;
+        dadosAlbum.data_review =
+          preferencias.data_review || albumExistente.data_review || null;
+      } else {
+        // Senão, preserve a review antiga
+        if (albumExistente.review) {
+          dadosAlbum.review = albumExistente.review;
+        }
+        if (albumExistente.data_review) {
+          dadosAlbum.data_review = albumExistente.data_review;
+        }
+      }
+    } else if (preferencias && typeof preferencias.review === "string") {
+      // Se for novo álbum e review está nas preferências, salve
+      dadosAlbum.review = preferencias.review;
+      dadosAlbum.data_review = preferencias.data_review || null;
+    }
 
     // Calcular a média de avaliações para este álbum
     let soma = 0;
@@ -554,6 +580,9 @@ export const obterAvaliacoesGlobais = async (
             piorFaixa: piorFaixa,
             // Adicionar o objeto preferencias completo para ter acesso aos IDs e nomes
             preferencias: album.preferencias || {},
+            // ADICIONAR CAMPOS DE REVIEW DIRETAMENTE
+            review: album.review || null,
+            data_review: album.data_review || null,
           });
         }
       });
@@ -897,6 +926,93 @@ export const salvarAlbumCacheSpotify = async (albumId, detalhes, faixas) => {
     }
   } catch (error) {
     console.error("Erro ao salvar cache do Spotify:", error);
+    throw error;
+  }
+};
+
+/**
+ * Adiciona um comentário a uma resenha de álbum
+ * @param {Object} param0
+ * @param {string} param0.albumId - ID do álbum
+ * @param {string} param0.usuarioId - ID do usuário dono da review
+ * @param {string} param0.autor - Nome do autor do comentário
+ * @param {string} param0.texto - Texto do comentário
+ * @param {string} param0.autorId - ID do autor do comentário (usuário logado)
+ * @param {string} param0.autorFoto - URL da foto do usuário comentando
+ * @returns {Promise<void>}
+ */
+export const adicionarComentarioResenha = async ({
+  albumId,
+  usuarioId,
+  autor,
+  texto,
+  autorId,
+  autorFoto,
+}) => {
+  try {
+    await addDoc(collection(db, "comentarios_resenha"), {
+      albumId,
+      usuarioId,
+      autor,
+      texto,
+      autorId,
+      autorFoto,
+      data: Timestamp.now(),
+    });
+  } catch (error) {
+    throw error;
+  }
+};
+
+/**
+ * Busca todos os comentários de uma resenha de álbum
+ * @param {string} albumId - ID do álbum
+ * @param {string} usuarioId - ID do usuário dono da review
+ * @returns {Promise<Array>} Array de comentários
+ */
+export const buscarComentariosResenha = async (albumId, usuarioId) => {
+  try {
+    const q = query(
+      collection(db, "comentarios_resenha"),
+      where("albumId", "==", albumId),
+      where("usuarioId", "==", usuarioId)
+    );
+    const snap = await getDocs(q);
+    return snap.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+  } catch (error) {
+    throw error;
+  }
+};
+
+/**
+ * Edita um comentário existente
+ * @param {string} comentarioId - ID do comentário a ser editado
+ * @param {string} novoTexto - Novo texto do comentário
+ * @returns {Promise<void>}
+ */
+export const editarComentarioResenha = async (comentarioId, novoTexto) => {
+  try {
+    const comentarioRef = doc(db, "comentarios_resenha", comentarioId);
+    await updateDoc(comentarioRef, {
+      texto: novoTexto,
+      editado: true,
+      dataEdicao: Timestamp.now(),
+    });
+  } catch (error) {
+    throw error;
+  }
+};
+
+/**
+ * Exclui um comentário
+ * @param {string} comentarioId - ID do comentário a ser excluído
+ * @returns {Promise<void>}
+ */
+export const excluirComentarioResenha = async (comentarioId) => {
+  try {
+    const comentarioRef = doc(db, "comentarios_resenha", comentarioId);
+    await deleteDoc(comentarioRef);
+  } catch (error) {
     throw error;
   }
 };

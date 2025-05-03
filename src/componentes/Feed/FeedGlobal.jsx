@@ -14,6 +14,20 @@ import { GrUpdate } from "react-icons/gr";
 import ModalAvaliacoesUsuario from "./ModalAvaliacoesUsuario";
 import { useTranslation } from "react-i18next";
 import { BsGrid3X3GapFill, BsListUl } from "react-icons/bs";
+import {
+  MdRateReview,
+  MdDelete,
+  MdEdit,
+  MdSave,
+  MdCancel,
+} from "react-icons/md";
+import {
+  adicionarComentarioResenha,
+  buscarComentariosResenha,
+  editarComentarioResenha,
+  excluirComentarioResenha,
+} from "../../services/firebase";
+import i18n from "../../i18n";
 
 /**
  * Componente que exibe as últimas avaliações feitas por todos os usuários
@@ -30,6 +44,8 @@ const FeedGlobal = () => {
   const navigate = useNavigate();
   const [modalAberto, setModalAberto] = useState(false);
   const [avaliacaoSelecionada, setAvaliacaoSelecionada] = useState(null);
+  const [modalReviewAberto, setModalReviewAberto] = useState(false);
+  const [reviewSelecionada, setReviewSelecionada] = useState("");
   const [pagina, setPagina] = useState(1);
   const [temMaisAvaliacoes, setTemMaisAvaliacoes] = useState(true);
   const observerRef = useRef(null);
@@ -42,6 +58,10 @@ const FeedGlobal = () => {
     return preferenciaUsuario || "grade"; // 'grade' ou 'lista'
   });
   const [fade, setFade] = useState(true);
+  const [comentarios, setComentarios] = useState([]);
+  const [novoComentario, setNovoComentario] = useState("");
+  const [comentarioEditando, setComentarioEditando] = useState(null);
+  const [textoEdicao, setTextoEdicao] = useState("");
 
   // Padronização da função de alternância de modo de visualização
   const alternarModoVisualizacao = () => {
@@ -113,6 +133,25 @@ const FeedGlobal = () => {
     setAvaliacaoSelecionada(null);
   };
 
+  // Função para abrir modal com a resenha
+  const abrirModalReview = (avaliacao, e) => {
+    e.stopPropagation();
+    setReviewSelecionada(
+      avaliacao.review || avaliacao.preferencias?.review || ""
+    );
+    setAvaliacaoSelecionada({
+      albumId: avaliacao.id,
+      usuarioId: avaliacao.usuario.id,
+    });
+    setModalReviewAberto(true);
+  };
+
+  // Função para fechar o modal de resenha
+  const fecharModalReview = () => {
+    setModalReviewAberto(false);
+    setReviewSelecionada("");
+  };
+
   // Observer para detectar quando o usuário chegou ao final da lista
   const ultimoElementoRef = useCallback(
     (node) => {
@@ -157,16 +196,27 @@ const FeedGlobal = () => {
       const avaliacoesFiltradas = avaliacoesGlobaisDemo
         .filter((avaliacao) => (avaliacao.progresso?.percentual || 0) >= 100)
         .slice(0, LIMITE_POR_PAGINA)
-        .map((avaliacao) => ({
-          ...avaliacao,
-          // Definir isPrimeiraAvaliacao com base nos dados ou usar um método consistente para demonstração
-          isPrimeiraAvaliacao:
-            avaliacao.isPrimeiraAvaliacao !== undefined
-              ? avaliacao.isPrimeiraAvaliacao
-              : avaliacao.id
-              ? parseInt(avaliacao.id.replace(/\D/g, "")[0] || "0") % 2 === 0
-              : true,
-        }));
+        .map((avaliacao) => {
+          // Adicionar review de demonstração em 1/3 dos casos
+          const addReview = avaliacao.id
+            ? parseInt(avaliacao.id.replace(/\D/g, "")[0] || "0") % 3 === 0
+            : false;
+          return {
+            ...avaliacao,
+            isPrimeiraAvaliacao:
+              avaliacao.isPrimeiraAvaliacao !== undefined
+                ? avaliacao.isPrimeiraAvaliacao
+                : avaliacao.id
+                ? parseInt(avaliacao.id.replace(/\D/g, "")[0] || "0") % 2 === 0
+                : true,
+            preferencias: addReview
+              ? {
+                  review: `Esta é uma resenha de demonstração para o álbum ${avaliacao.nome} de ${avaliacao.artista}. Uma análise detalhada seria exibida aqui quando o usuário escrever uma review.`,
+                }
+              : {},
+            temReview: addReview,
+          };
+        });
 
       console.log("Avaliações processadas para demo:", avaliacoesFiltradas);
 
@@ -189,14 +239,18 @@ const FeedGlobal = () => {
             ...avaliacao.usuario,
             foto: validarUrlImagem(avaliacao.usuario.foto),
           },
-          // Preservar propriedades relacionadas a atualizações
           atualizada:
             avaliacao.atualizada ||
             avaliacao.atualizacao ||
             (avaliacao.dataAtualizacao ? true : false) ||
             (avaliacao.atualizacaoTimestamp ? true : false),
+          temReview:
+            (typeof avaliacao.review === "string" &&
+              avaliacao.review.trim().length > 0) ||
+            (avaliacao.preferencias &&
+              typeof avaliacao.preferencias.review === "string" &&
+              avaliacao.preferencias.review.trim().length > 0),
         }))
-        // Filtrar apenas avaliações com 100% de progresso
         .filter((avaliacao) => (avaliacao.progresso?.percentual || 0) >= 100);
 
       setAvaliacoes(avaliacoesProcessadas);
@@ -468,6 +522,159 @@ const FeedGlobal = () => {
     };
   };
 
+  // Função de carregar comentários com console.logs
+  useEffect(() => {
+    const carregarComentarios = async () => {
+      if (modalReviewAberto && avaliacaoSelecionada) {
+        try {
+          console.log("Carregando comentários para:", avaliacaoSelecionada);
+          setComentarios([]);
+          const lista = await buscarComentariosResenha(
+            avaliacaoSelecionada.albumId,
+            avaliacaoSelecionada.usuarioId
+          );
+          // Ordenar por data crescente
+          lista.sort((a, b) => (a.data?.seconds || 0) - (b.data?.seconds || 0));
+          console.log("Comentários carregados:", lista);
+          setComentarios(lista);
+        } catch (e) {
+          console.error("Erro ao carregar comentários:", e);
+          setComentarios([]);
+        }
+      }
+    };
+    carregarComentarios();
+    // eslint-disable-next-line
+  }, [modalReviewAberto, avaliacaoSelecionada]);
+
+  // Função de enviar comentário atualizada para incluir mais dados do usuário
+  const enviarComentario = async () => {
+    try {
+      console.log("Tentando enviar comentário");
+
+      if (!avaliacaoSelecionada) {
+        console.error("Erro: avaliacaoSelecionada é null ou undefined");
+        alert("Erro ao salvar comentário: dados da avaliação não encontrados");
+        return;
+      }
+
+      if (!novoComentario.trim()) {
+        console.log("Comentário vazio, não será enviado");
+        return;
+      }
+
+      console.log("Dados de comentário:", {
+        albumId: avaliacaoSelecionada.albumId,
+        usuarioId: avaliacaoSelecionada.usuarioId,
+        autor: usuarioFirebase?.displayName || "Anônimo",
+        texto: novoComentario.trim(),
+        autorId: usuarioFirebase?.uid || null,
+        autorFoto: usuarioFirebase?.photoURL || null,
+      });
+
+      await adicionarComentarioResenha({
+        albumId: avaliacaoSelecionada.albumId,
+        usuarioId: avaliacaoSelecionada.usuarioId,
+        autor: usuarioFirebase?.displayName || "Anônimo",
+        texto: novoComentario.trim(),
+        autorId: usuarioFirebase?.uid || null,
+        autorFoto: usuarioFirebase?.photoURL || null,
+      });
+
+      console.log("Comentário enviado com sucesso!");
+      setNovoComentario("");
+
+      // Recarregar comentários após enviar
+      const lista = await buscarComentariosResenha(
+        avaliacaoSelecionada.albumId,
+        avaliacaoSelecionada.usuarioId
+      );
+      lista.sort((a, b) => (a.data?.seconds || 0) - (b.data?.seconds || 0));
+      setComentarios(lista);
+    } catch (e) {
+      console.error("Erro ao enviar comentário:", e);
+      alert("Erro ao salvar comentário. Tente novamente.");
+    }
+  };
+
+  // Funções para editar e excluir comentários
+  const iniciarEdicaoComentario = (comentario) => {
+    setComentarioEditando(comentario.id);
+    setTextoEdicao(comentario.texto);
+  };
+
+  const cancelarEdicaoComentario = () => {
+    setComentarioEditando(null);
+    setTextoEdicao("");
+  };
+
+  const salvarEdicaoComentario = async (comentarioId) => {
+    try {
+      if (!textoEdicao.trim()) return;
+
+      await editarComentarioResenha(comentarioId, textoEdicao.trim());
+
+      // Atualizar a lista de comentários
+      const lista = await buscarComentariosResenha(
+        avaliacaoSelecionada.albumId,
+        avaliacaoSelecionada.usuarioId
+      );
+      lista.sort((a, b) => (a.data?.seconds || 0) - (b.data?.seconds || 0));
+      setComentarios(lista);
+
+      // Resetar estado de edição
+      setComentarioEditando(null);
+      setTextoEdicao("");
+    } catch (e) {
+      console.error("Erro ao editar comentário:", e);
+      alert("Erro ao editar comentário. Tente novamente.");
+    }
+  };
+
+  const excluirComentario = async (comentarioId) => {
+    try {
+      if (confirm("Tem certeza que deseja excluir este comentário?")) {
+        await excluirComentarioResenha(comentarioId);
+
+        // Atualizar a lista removendo o comentário excluído
+        setComentarios(comentarios.filter((c) => c.id !== comentarioId));
+      }
+    } catch (e) {
+      console.error("Erro ao excluir comentário:", e);
+      alert("Erro ao excluir comentário. Tente novamente.");
+    }
+  };
+
+  const formatarDataComentario = (timestamp) => {
+    if (!timestamp) return "";
+    let data;
+    if (timestamp instanceof Date) {
+      data = timestamp;
+    } else if (timestamp.seconds) {
+      data = new Date(timestamp.seconds * 1000);
+    } else {
+      data = new Date(timestamp);
+    }
+    if (isNaN(data)) return "";
+    const agora = new Date();
+    const diffMs = agora - data;
+    const diffSegs = Math.floor(diffMs / 1000);
+    const diffMins = Math.floor(diffSegs / 60);
+    const diffHoras = Math.floor(diffMins / 60);
+    const diffDias = Math.floor(diffHoras / 24);
+    if (diffSegs < 60) return t("feed.agora");
+    if (diffMins < 60) return t("feed.minutosAtras", { count: diffMins });
+    if (diffHoras < 24) return t("feed.horasAtras", { count: diffHoras });
+    if (diffDias < 7) return t("feed.diasAtras", { count: diffDias });
+    return data.toLocaleDateString(i18n.language || "pt-BR", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
   if (carregando) {
     return <Carregamento mensagem={t("feed.carregando")} />;
   }
@@ -700,7 +907,37 @@ const FeedGlobal = () => {
                         </div>
                         {/* Botões de ação no modo grid */}
                         {modoVisualizacao === "grade" && (
-                          <div className=" flex flex-row items-center justify-center gap-2 mt-2">
+                          <div className="flex flex-row items-center justify-center gap-2 mt-2">
+                            {avaliacao.temReview && (
+                              <button
+                                className="inline-flex items-center justify-center bg-indigo-700 hover:bg-indigo-600 text-white rounded-md text-xs px-2 py-1 transition-colors shadow-sm z-20 cursor-pointer"
+                                onClick={(e) => abrirModalReview(avaliacao, e)}
+                                title={t("feed.verResenha", "Ver resenha")}
+                              >
+                                <MdRateReview className="text-base" />
+                              </button>
+                            )}
+                            <button
+                              style={{
+                                backgroundColor: "#5d1f89",
+                                color: "#fff",
+                              }}
+                              onMouseOver={(e) =>
+                                (e.currentTarget.style.backgroundColor =
+                                  "#7C3AED")
+                              }
+                              onMouseOut={(e) =>
+                                (e.currentTarget.style.backgroundColor =
+                                  "#5d1f89")
+                              }
+                              className="inline-flex items-center justify-center rounded-md text-xs px-2 py-1 transition-colors shadow-sm z-20 cursor-pointer"
+                              onClick={(e) =>
+                                abrirModalAvaliacoes(avaliacao, e)
+                              }
+                              title={t("feed.faixaPorFaixa", "Faixa por faixa")}
+                            >
+                              <FaRegStar className="text-base text-white" />
+                            </button>
                             <a
                               href={
                                 usandoDadosDemo
@@ -709,21 +946,12 @@ const FeedGlobal = () => {
                               }
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="inline-flex items-center justify-center text-xs bg-black/30 rounded-md p-1 text-gray-300 hover:text-green-400 hover:bg-green-400/10 transition-colors duration-200 z-20"
+                              className="inline-flex items-center justify-center bg-green-600 hover:bg-green-500 text-white rounded-md text-xs px-2 py-1 transition-colors shadow-sm z-20"
                               onClick={(e) => e.stopPropagation()}
                               title="Ouvir no Spotify"
                             >
-                              <FaSpotify className="text-green-400 text-lg" />
+                              <FaSpotify className="text-base text-white" />
                             </a>
-                            <button
-                              className="inline-flex items-center justify-center bg-gradient-to-r from-verde-destaque/20 to-verde-destaque/30 rounded-md text-xs text-verde-destaque hover:from-verde-destaque/30 hover:to-verde-destaque/40 shadow-sm transition-colors p-1 z-20 cursor-pointer"
-                              onClick={(e) =>
-                                abrirModalAvaliacoes(avaliacao, e)
-                              }
-                              title="Ver detalhes"
-                            >
-                              <FaRegStar className="text-verde-destaque text-lg" />
-                            </button>
                           </div>
                         )}
                       </div>
@@ -787,343 +1015,165 @@ const FeedGlobal = () => {
                         : t("feed.updated", "Atualizado")}
                     </span>
                   )}
-                  {modoVisualizacao !== "grade" ? (
-                    <div className="flex flex-row gap-2 w-full justify-center items-center">
-                      {/* Coluna 1: usuário, data, imagem, nome, artista, botões */}
-                      <div className="flex flex-col min-w-0 flex-1">
-                        <div className="flex flex-row items-center min-w-0 gap-2 mb-2">
-                          <div className="w-6 h-6 md:w-7 md:h-7 rounded-full overflow-hidden bg-gray-800 flex-shrink-0 shadow-sm">
-                            {usandoDadosDemo ? (
-                              <div className="w-full h-full flex items-center justify-center bg-verde-destaque/20 text-verde-destaque">
-                                {avaliacao.usuario.nome.charAt(0).toUpperCase()}
-                              </div>
-                            ) : avaliacao.usuario.foto ? (
-                              <img
-                                src={avaliacao.usuario.foto}
-                                alt={t("feed.fotoUsuario", {
-                                  nome: avaliacao.usuario.nome,
-                                })}
-                                className="w-full h-full object-cover"
-                                loading="lazy"
-                              />
-                            ) : (
-                              <div className="w-full h-full flex items-center justify-center bg-verde-destaque/20 text-verde-destaque">
-                                {avaliacao.usuario.nome.charAt(0).toUpperCase()}
-                              </div>
-                            )}
-                          </div>
-                          <span className="font-medium truncate max-w-[120px] md:max-w-[180px]">
-                            {avaliacao.usuario.nome}
-                          </span>
-                          {/* Data e horário da avaliação */}
-                          {avaliacao.dataAvaliacao && (
-                            <span className="ml-2 text-xs text-gray-400 whitespace-nowrap">
-                              {(() => {
-                                const data = new Date(avaliacao.dataAvaliacao);
-                                const dia = data.toLocaleDateString("pt-BR");
-                                const hora = data.toLocaleTimeString("pt-BR", {
-                                  hour: "2-digit",
-                                  minute: "2-digit",
-                                });
-                                return `${dia} ${hora}`;
-                              })()}
-                            </span>
-                          )}
-                        </div>
-                        <div className="flex gap-3 min-w-0 mb-2">
-                          {/* Imagem do álbum */}
-                          <div className="flex-shrink-0 w-16 h-16 md:w-20 md:h-20 bg-cinza-escuro rounded-lg overflow-hidden">
-                            {usandoDadosDemo ? (
-                              <div className="w-full h-full bg-gradient-to-br from-verde-destaque/10 to-verde-destaque/30 rounded-lg flex items-center justify-center">
-                                <MdMusicNote className="text-verde-destaque text-3xl md:text-4xl animate-pulse" />
-                              </div>
-                            ) : avaliacao.imagem ? (
-                              <img
-                                src={avaliacao.imagem}
-                                alt={t("feed.capaAlbum", {
-                                  nome: avaliacao.nome,
-                                })}
-                                className="w-full h-full object-cover rounded-lg"
-                                onError={handleImageError}
-                                loading="lazy"
-                              />
-                            ) : (
-                              <div className="w-full h-full flex items-center justify-center bg-cinza-escuro rounded-lg">
-                                <MdMusicNote className="text-verde-destaque text-4xl" />
-                              </div>
-                            )}
-                          </div>
-                          {/* Nome e artista */}
-                          <div className="flex-grow min-w-0">
-                            <h3 className="font-bold text-sm md:text-base line-clamp-1 text-white truncate pr-1">
-                              {avaliacao.nome}
-                            </h3>
-                            <p className="text-verde-destaque text-xs md:text-sm line-clamp-1 font-medium truncate pr-1 mb-2">
-                              {avaliacao.artista}
-                            </p>
-                            {/* Botões do Spotify e Ver avaliações */}
-                            <div className="flex flex-wrap gap-2">
-                              <a
-                                href={
-                                  usandoDadosDemo
-                                    ? "https://open.spotify.com/"
-                                    : `https://open.spotify.com/album/${avaliacao.id}`
-                                }
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="inline-flex items-center px-2 py-1 bg-black/30 rounded-md text-xs text-gray-300 hover:text-green-400 hover:bg-black/50 transition-colors z-20 relative"
-                                onClick={(e) => e.stopPropagation()} // Evitar que o clique no botão acione a navegação
-                              >
-                                <FaSpotify className="mr-1 text-green-400" />
-                                <span className="whitespace-nowrap max-[500px]:hidden">
-                                  {t("feed.ouvirSpotify")}
-                                </span>
-                                <span className="whitespace-nowrap min-[501px]:hidden">
-                                  Spotify
-                                </span>
-                              </a>
-                              <button
-                                className="inline-flex items-center px-2 py-1 bg-gradient-to-r from-verde-destaque/20 to-verde-destaque/30 rounded-md text-xs text-verde-destaque hover:from-verde-destaque/30 hover:to-verde-destaque/40 shadow-sm transition-colors z-20 relative cursor-pointer"
-                                onClick={(e) =>
-                                  abrirModalAvaliacoes(avaliacao, e)
-                                }
-                                title={t("feed.verAvaliacoesUsuario")}
-                              >
-                                <FaRegStar className="mr-1 text-verde-destaque" />
-                                <span className="whitespace-nowrap max-[500px]:hidden">
-                                  {t("feed.verAvaliacoes")}
-                                </span>
-                                <span className="whitespace-nowrap min-[501px]:hidden">
-                                  {t("feed.details")}
-                                </span>
-                              </button>
+                  <div className="flex flex-row gap-2 w-full justify-center items-center">
+                    {/* Coluna 1: usuário, data, imagem, nome, artista, botões */}
+                    <div className="flex flex-col min-w-0 flex-1">
+                      <div className="flex flex-row items-center min-w-0 gap-2 mb-2">
+                        <div className="w-6 h-6 md:w-7 md:h-7 rounded-full overflow-hidden bg-gray-800 flex-shrink-0 shadow-sm">
+                          {usandoDadosDemo ? (
+                            <div className="w-full h-full flex items-center justify-center bg-verde-destaque/20 text-verde-destaque">
+                              {avaliacao.usuario.nome.charAt(0).toUpperCase()}
                             </div>
-                          </div>
-                        </div>
-                      </div>
-                      {/* Coluna 2: tag e nota */}
-                      <div className="flex flex-col justify-between items-end min-w-[80px] h-full">
-                        {modoVisualizacao !== "grade" && (
-                          <span
-                            className={`text-xs px-3 py-0.5 border font-semibold text-white text-center select-none shadow rounded-l-full
-                              ${
-                                ehPrimeiraAvaliacao(avaliacao)
-                                  ? "bg-orange-500 border-orange-500"
-                                  : "bg-purple-600 border-purple-600"
-                              }`}
-                          >
-                            {ehPrimeiraAvaliacao(avaliacao)
-                              ? t("feed.new", "Novo")
-                              : t("feed.updated", "Atualizado")}
-                          </span>
-                        )}
-                        <div
-                          className={`${obterCorNota(
-                            avaliacao.media || avaliacao.mediaAvaliacao
-                          )} text-cinza-escuro rounded-lg px-2 py-1 font-bold text-lg flex items-center justify-center shadow-sm my-auto w-16`}
-                        >
-                          <span className="text-cinza-escuro">
-                            {formatarMedia(
-                              avaliacao.media || avaliacao.mediaAvaliacao
-                            )}
-                          </span>
-                          {/* Botões de ação no modo grid */}
-                          {modoVisualizacao === "grade" && (
-                            <div className="flex flex-row items-center justify-center gap-2 mt-2">
-                              <a
-                                href={
-                                  usandoDadosDemo
-                                    ? "https://open.spotify.com/"
-                                    : `https://open.spotify.com/album/${avaliacao.id}`
-                                }
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="inline-flex items-center justify-center text-xs text-gray-300 hover:text-green-400 transition-colors z-20"
-                                onClick={(e) => e.stopPropagation()}
-                                title="Ouvir no Spotify"
-                              >
-                                <FaSpotify className="text-green-400 text-lg" />
-                              </a>
-                              <button
-                                className="inline-flex items-center justify-center text-xs text-verde-destaque transition-colors z-20 cursor-pointer"
-                                onClick={(e) =>
-                                  abrirModalAvaliacoes(avaliacao, e)
-                                }
-                                title="Ver detalhes"
-                              >
-                                <FaRegStar className="text-verde-destaque text-lg" />
-                              </button>
+                          ) : avaliacao.usuario.foto ? (
+                            <img
+                              src={avaliacao.usuario.foto}
+                              alt={t("feed.fotoUsuario", {
+                                nome: avaliacao.usuario.nome,
+                              })}
+                              className="w-full h-full object-cover"
+                              loading="lazy"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center bg-verde-destaque/20 text-verde-destaque">
+                              {avaliacao.usuario.nome.charAt(0).toUpperCase()}
                             </div>
                           )}
                         </div>
+                        <span className="font-medium truncate max-w-[120px] md:max-w-[180px]">
+                          {avaliacao.usuario.nome}
+                        </span>
+                        {/* Data e horário da avaliação */}
+                        <span className="text-xs text-gray-400">
+                          {formatarDataSegura(
+                            avaliacao.data || avaliacao.dataAvaliacao
+                          )}
+                        </span>
                       </div>
-                    </div>
-                  ) : (
-                    <div className="flex flex-col lg:flex-row h-full">
-                      {/* LADO ESQUERDO: Imagem do álbum, nome, artista, usuário e botão Spotify */}
-                      <div className="flex-grow p-3 flex flex-col min-w-0 relative">
-                        {/* Informações do usuário e nota (em telas pequenas) */}
-                        <div className="flex items-center justify-between mb-3">
-                          <div className="flex flex-row items-center min-w-0 gap-2">
-                            <div className="w-6 h-6 md:w-7 md:h-7 rounded-full overflow-hidden bg-gray-800 flex-shrink-0 shadow-sm">
-                              {usandoDadosDemo ? (
-                                <div className="w-full h-full flex items-center justify-center bg-verde-destaque/20 text-verde-destaque">
-                                  {avaliacao.usuario.nome
-                                    .charAt(0)
-                                    .toUpperCase()}
-                                </div>
-                              ) : avaliacao.usuario.foto ? (
-                                <img
-                                  src={avaliacao.usuario.foto}
-                                  alt={t("feed.fotoUsuario", {
-                                    nome: avaliacao.usuario.nome,
-                                  })}
-                                  className="w-full h-full object-cover"
-                                  loading="lazy"
-                                />
-                              ) : (
-                                <div className="w-full h-full flex items-center justify-center bg-verde-destaque/20 text-verde-destaque">
-                                  {avaliacao.usuario.nome
-                                    .charAt(0)
-                                    .toUpperCase()}
-                                </div>
-                              )}
+                      <div className="flex gap-3 min-w-0 mb-2">
+                        {/* Imagem do álbum */}
+                        <div className="flex-shrink-0 w-16 h-16 md:w-20 md:h-20 bg-cinza-escuro rounded-lg overflow-hidden">
+                          {usandoDadosDemo ? (
+                            <div className="w-full h-full bg-gradient-to-br from-verde-destaque/10 to-verde-destaque/30 rounded-lg flex items-center justify-center">
+                              <MdMusicNote className="text-verde-destaque text-3xl md:text-4xl animate-pulse" />
                             </div>
-                            <span className="font-medium truncate max-w-[120px] md:max-w-[180px]">
-                              {avaliacao.usuario.nome}
-                            </span>
-                            {/* Data e horário da avaliação */}
-                            {avaliacao.dataAvaliacao && (
-                              <span className="ml-2 text-xs text-gray-400 whitespace-nowrap">
-                                {(() => {
-                                  const data = new Date(
-                                    avaliacao.dataAvaliacao
-                                  );
-                                  const dia = data.toLocaleDateString("pt-BR");
-                                  const hora = data.toLocaleTimeString(
-                                    "pt-BR",
-                                    {
-                                      hour: "2-digit",
-                                      minute: "2-digit",
-                                    }
-                                  );
-                                  return `${dia} ${hora}`;
-                                })()}
-                              </span>
+                          ) : avaliacao.imagem ? (
+                            <img
+                              src={avaliacao.imagem}
+                              alt={t("feed.capaAlbum", {
+                                nome: avaliacao.nome,
+                              })}
+                              className="w-full h-full object-cover rounded-lg"
+                              onError={handleImageError}
+                              loading="lazy"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center bg-cinza-escuro rounded-lg">
+                              <MdMusicNote className="text-verde-destaque text-4xl" />
+                            </div>
+                          )}
+                        </div>
+                        {/* Nome e artista */}
+                        <div className="flex-grow min-w-0">
+                          <h3 className="font-bold text-sm md:text-base line-clamp-1 text-white truncate pr-1">
+                            {avaliacao.nome}
+                          </h3>
+                          <p className="text-verde-destaque text-xs md:text-sm line-clamp-1 font-medium truncate pr-1 mb-2">
+                            {avaliacao.artista}
+                          </p>
+                          {/* Botões de ação: resenha, avaliações, spotify */}
+                          <div className="flex flex-wrap gap-2">
+                            {avaliacao.temReview && (
+                              <button
+                                className="inline-flex items-center bg-indigo-700 hover:bg-indigo-600 text-white rounded-md text-xs px-2 py-1 transition-colors shadow-sm z-20 cursor-pointer"
+                                onClick={(e) => abrirModalReview(avaliacao, e)}
+                                title={t("feed.verResenha", "Ver resenha")}
+                              >
+                                <MdRateReview className="mr-1 text-base" />
+                                <span className="whitespace-nowrap max-[500px]:hidden">
+                                  {t("feed.verResenha", "Ver resenha")}
+                                </span>
+                                <span className="whitespace-nowrap min-[501px]:hidden">
+                                  {t("feed.review", "Resenha")}
+                                </span>
+                              </button>
                             )}
-                          </div>
-
-                          {/* Nota em telas pequenas/médias (visível apenas até lg) */}
-                          <div className="lg:hidden flex flex-col items-center">
-                            <div
-                              className={`${obterCorNota(
-                                avaliacao.media || avaliacao.mediaAvaliacao
-                              )} text-cinza-escuro rounded-lg px-2 py-1 font-bold text-lg flex items-center justify-center shadow-sm w-13 md:w-20 mt-2`}
+                            <button
+                              style={{
+                                backgroundColor: "#5d1f89",
+                                color: "#fff",
+                              }}
+                              onMouseOver={(e) =>
+                                (e.currentTarget.style.backgroundColor =
+                                  "#7C3AED")
+                              }
+                              onMouseOut={(e) =>
+                                (e.currentTarget.style.backgroundColor =
+                                  "#5d1f89")
+                              }
+                              className="inline-flex items-center rounded-md text-xs px-2 py-1 transition-colors shadow-sm z-20 cursor-pointer"
+                              onClick={(e) =>
+                                abrirModalAvaliacoes(avaliacao, e)
+                              }
+                              title={t("feed.faixaPorFaixa", "Faixa por faixa")}
                             >
-                              <span className="text-cinza-escuro">
-                                {formatarMedia(
-                                  avaliacao.media || avaliacao.mediaAvaliacao
-                                )}
+                              <FaRegStar className="mr-1 text-base text-white" />
+                              <span className="whitespace-nowrap max-[500px]:hidden">
+                                {t("feed.faixaPorFaixa", "Faixa por faixa")}
                               </span>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Parte média: imagem, nome e artista */}
-                        <div className="flex gap-3 min-w-0">
-                          {/* Imagem do álbum */}
-                          <div className="flex-shrink-0 w-16 h-16 md:w-20 md:h-20 bg-cinza-escuro rounded-lg overflow-hidden">
-                            {usandoDadosDemo ? (
-                              <div className="w-full h-full bg-gradient-to-br from-verde-destaque/10 to-verde-destaque/30 rounded-lg flex items-center justify-center">
-                                <MdMusicNote className="text-verde-destaque text-3xl md:text-4xl animate-pulse" />
-                              </div>
-                            ) : avaliacao.imagem ? (
-                              <img
-                                src={avaliacao.imagem}
-                                alt={t("feed.capaAlbum", {
-                                  nome: avaliacao.nome,
-                                })}
-                                className="w-full h-full object-cover rounded-lg"
-                                onError={handleImageError}
-                                loading="lazy"
-                              />
-                            ) : (
-                              <div className="w-full h-full flex items-center justify-center bg-cinza-escuro rounded-lg">
-                                <MdMusicNote className="text-verde-destaque text-4xl" />
-                              </div>
-                            )}
-                          </div>
-
-                          {/* Nome e artista */}
-                          <div className="flex-grow min-w-0">
-                            <h3 className="font-bold text-sm md:text-base line-clamp-1 text-white truncate pr-1">
-                              {avaliacao.nome}
-                            </h3>
-                            <p className="text-verde-destaque text-xs md:text-sm line-clamp-1 font-medium truncate pr-1 mb-2">
-                              {avaliacao.artista}
-                            </p>
-
-                            {/* Botões do Spotify e Ver avaliações */}
-                            <div className="flex flex-wrap gap-2">
-                              <a
-                                href={
-                                  usandoDadosDemo
-                                    ? "https://open.spotify.com/"
-                                    : `https://open.spotify.com/album/${avaliacao.id}`
-                                }
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="inline-flex items-center px-2 py-1 bg-black/30 rounded-md text-xs text-gray-300 hover:text-green-400 hover:bg-black/50 transition-colors z-20 relative"
-                                onClick={(e) => e.stopPropagation()} // Evitar que o clique no botão acione a navegação
-                              >
-                                <FaSpotify className="mr-1 text-green-400" />
-                                <span className="whitespace-nowrap max-[500px]:hidden">
-                                  {t("feed.ouvirSpotify")}
-                                </span>
-                                <span className="whitespace-nowrap min-[501px]:hidden">
-                                  Spotify
-                                </span>
-                              </a>
-
-                              <button
-                                className="inline-flex items-center px-2 py-1 bg-gradient-to-r from-verde-destaque/20 to-verde-destaque/30 rounded-md text-xs text-verde-destaque hover:from-verde-destaque/30 hover:to-verde-destaque/40 shadow-sm transition-colors z-20 relative cursor-pointer"
-                                onClick={(e) =>
-                                  abrirModalAvaliacoes(avaliacao, e)
-                                }
-                                title={t("feed.verAvaliacoesUsuario")}
-                              >
-                                <FaRegStar className="mr-1 text-verde-destaque" />
-                                <span className="whitespace-nowrap max-[500px]:hidden">
-                                  {t("feed.verAvaliacoes")}
-                                </span>
-                                <span className="whitespace-nowrap min-[501px]:hidden">
-                                  {t("feed.details")}
-                                </span>
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* LADO DIREITO: Avaliação (apenas visível em lg) */}
-                      <div className="mt-4 hidden lg:flex w-32 xl:w-36 flex-shrink-0 p-3 lg:flex-col items-end justify-center border-t lg:border-t-0 lg:border-l border-gray-700/50 bg-gradient-to-br from-cinza-escuro to-cinza-escuro/95">
-                        {/* Avaliação como banner alinhada à direita */}
-                        <div className="flex lg:flex-col items-end justify-end w-full">
-                          <div
-                            className={`${obterCorNota(
-                              avaliacao.media || avaliacao.mediaAvaliacao
-                            )} text-cinza-escuro rounded-lg px-3 py-1.5 font-bold text-xl flex items-center justify-center shadow-sm w-20 md:w-20 lg:w-20 ml-auto`}
-                          >
-                            <span className="text-cinza-escuro">
-                              {formatarMedia(
-                                avaliacao.media || avaliacao.mediaAvaliacao
-                              )}
-                            </span>
+                              <span className="whitespace-nowrap min-[501px]:hidden">
+                                {t("feed.trackByTrack", "Track by Track")}
+                              </span>
+                            </button>
+                            <a
+                              href={
+                                usandoDadosDemo
+                                  ? "https://open.spotify.com/"
+                                  : `https://open.spotify.com/album/${avaliacao.id}`
+                              }
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center bg-green-600 hover:bg-green-500 text-white rounded-md text-xs px-2 py-1 transition-colors shadow-sm z-20 relative"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <FaSpotify className="mr-1 text-base text-white" />
+                              <span className="whitespace-nowrap max-[500px]:hidden">
+                                {t("feed.ouvirSpotify")}
+                              </span>
+                              <span className="whitespace-nowrap min-[501px]:hidden">
+                                Spotify
+                              </span>
+                            </a>
                           </div>
                         </div>
                       </div>
                     </div>
-                  )}
+                    {/* Coluna 2: tag e nota */}
+                    <div className="flex flex-col justify-between items-end min-w-[80px] h-full">
+                      <span
+                        className={`text-xs px-3 py-0.5 border font-semibold text-white text-center select-none shadow rounded-l-full
+                          ${
+                            ehPrimeiraAvaliacao(avaliacao)
+                              ? "bg-orange-500 border-orange-500"
+                              : "bg-purple-600 border-purple-600"
+                          }`}
+                      >
+                        {ehPrimeiraAvaliacao(avaliacao)
+                          ? t("feed.new", "Novo")
+                          : t("feed.updated", "Atualizado")}
+                      </span>
+                      <div
+                        className={`${obterCorNota(
+                          avaliacao.media || avaliacao.mediaAvaliacao
+                        )} text-cinza-escuro rounded-lg px-2 py-1 font-bold text-lg flex items-center justify-center shadow-sm my-auto w-16`}
+                      >
+                        <span className="text-cinza-escuro">
+                          {formatarMedia(
+                            avaliacao.media || avaliacao.mediaAvaliacao
+                          )}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               ))}
             </div>
@@ -1148,6 +1198,183 @@ const FeedGlobal = () => {
           albumId={avaliacaoSelecionada.albumId}
           onClose={fecharModal}
         />
+      )}
+
+      {/* Modal de resenha */}
+      {modalReviewAberto && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[2000] px-2 md:px-4">
+          <div className="bg-cinza-escuro rounded-xl p-5 max-w-2xl w-full overflow-x-hidden">
+            <h3 className="text-lg font-bold text-indigo-400 flex items-center gap-2 mb-3">
+              <MdRateReview />
+              {t("albumDetails.albumReview")}
+            </h3>
+            <div className="bg-gray-800 text-white p-4 rounded-lg mb-4 max-h-96 overflow-y-auto overflow-x-hidden">
+              {/* Autor da review e data */}
+              {(() => {
+                const avaliacao = avaliacoes.find(
+                  (a) =>
+                    a.id === avaliacaoSelecionada?.albumId &&
+                    a.usuario.id === avaliacaoSelecionada?.usuarioId
+                );
+                if (!avaliacao) return null;
+                return (
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="w-8 h-8 rounded-full overflow-hidden bg-gray-800 flex items-center justify-center">
+                      {avaliacao.usuario.foto ? (
+                        <img
+                          src={avaliacao.usuario.foto}
+                          alt={`Foto de ${avaliacao.usuario.nome}`}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center bg-indigo-700 text-white">
+                          {avaliacao.usuario.nome.charAt(0).toUpperCase()}
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="font-semibold text-verde-destaque text-base">
+                        {avaliacao.usuario.nome}
+                      </span>
+                      <span className="text-xs text-gray-400">
+                        {formatarDataSegura(
+                          avaliacao.data || avaliacao.dataAvaliacao
+                        )}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })()}
+              <p className="text-gray-300 whitespace-pre-wrap">
+                {reviewSelecionada}
+              </p>
+            </div>
+            {/* Campo para novo comentário */}
+            <div className="mb-3">
+              <textarea
+                className="w-full h-20 bg-gray-900 text-white p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 mb-2"
+                placeholder={t("feed.escrevaComentario")}
+                value={novoComentario}
+                onChange={(e) => setNovoComentario(e.target.value)}
+              />
+              <button
+                onClick={enviarComentario}
+                className="bg-indigo-700 hover:bg-indigo-600 text-white py-1 px-4 rounded-lg transition-colors cursor-pointer"
+                disabled={!novoComentario.trim()}
+              >
+                {t("feed.comentar")}
+              </button>
+            </div>
+            {/* Lista de comentários */}
+            <div className="mb-4">
+              <h4 className="text-sm font-bold text-gray-300 mb-2">
+                {t("feed.comentarios")}
+              </h4>
+              {comentarios.length === 0 ? (
+                <p className="text-gray-400 text-xs">
+                  {t("feed.nenhumComentario")}
+                </p>
+              ) : (
+                <ul className="space-y-2 max-h-60 overflow-y-auto overflow-x-hidden pr-1">
+                  {comentarios.map((c) => (
+                    <li
+                      key={c.id}
+                      className="bg-gray-900 rounded p-3 text-sm text-gray-200"
+                    >
+                      <div className="flex items-center gap-2 mb-2">
+                        {/* Foto do usuário */}
+                        <div className="w-8 h-8 rounded-full overflow-hidden bg-gray-800 flex-shrink-0">
+                          {c.autorFoto ? (
+                            <img
+                              src={c.autorFoto}
+                              alt={`Foto de ${c.autor}`}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center bg-indigo-700 text-white">
+                              {c.autor?.charAt(0)?.toUpperCase() || "?"}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Nome e data */}
+                        <div>
+                          <span className="font-semibold text-verde-destaque">
+                            {c.autor}
+                          </span>
+                          <div className="text-xs text-gray-400">
+                            {formatarDataSegura(c.data)}
+                            {c.editado && (
+                              <span className="ml-1">{t("feed.editado")}</span>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Botões de edição/exclusão */}
+                        {usuarioFirebase?.uid === c.autorId && (
+                          <div className="ml-auto flex gap-1">
+                            <button
+                              onClick={() => iniciarEdicaoComentario(c)}
+                              className="text-gray-400 hover:text-white p-1 rounded"
+                              title={t("feed.editarComentario")}
+                            >
+                              <MdEdit size={16} />
+                            </button>
+                            <button
+                              onClick={() => excluirComentario(c.id)}
+                              className="text-red-400 hover:text-red-300 p-1 rounded"
+                              title={t("feed.excluirComentario")}
+                            >
+                              <MdDelete size={16} />
+                            </button>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Conteúdo do comentário */}
+                      {comentarioEditando === c.id ? (
+                        <div>
+                          <textarea
+                            className="w-full bg-gray-800 text-white p-2 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500 text-sm mb-2"
+                            value={textoEdicao}
+                            onChange={(e) => setTextoEdicao(e.target.value)}
+                            rows={3}
+                          />
+                          <div className="flex justify-end gap-2">
+                            <button
+                              onClick={cancelarEdicaoComentario}
+                              className="text-gray-400 hover:text-white flex items-center gap-1 text-xs"
+                            >
+                              <MdCancel size={14} /> {t("feed.cancelar")}
+                            </button>
+                            <button
+                              onClick={() => salvarEdicaoComentario(c.id)}
+                              className="bg-indigo-700 hover:bg-indigo-600 text-white px-2 py-1 rounded flex items-center gap-1 text-xs"
+                            >
+                              <MdSave size={14} /> {t("feed.salvar")}
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="whitespace-pre-line break-words">
+                          {c.texto}
+                        </div>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+            <div className="flex justify-end">
+              <button
+                onClick={fecharModalReview}
+                className="bg-gray-700 py-2 px-4 rounded-lg hover:bg-gray-600 transition-colors cursor-pointer"
+              >
+                {t("albumDetails.close")}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

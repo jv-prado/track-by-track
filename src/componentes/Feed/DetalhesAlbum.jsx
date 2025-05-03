@@ -4,7 +4,7 @@ import {
   buscarDetalhesAlbum,
 } from "../../services/spotify";
 import Estrelas from "../Avaliacao/Estrelas";
-import { MdReportProblem } from "react-icons/md";
+import { MdReportProblem, MdRateReview } from "react-icons/md";
 import { IoMdHeart, IoMdHeartDislike } from "react-icons/io";
 import { FaTrash, FaUndo, FaSpotify } from "react-icons/fa";
 import { GiPodium } from "react-icons/gi";
@@ -94,6 +94,11 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
   const [mostrarPopoverMedia, setMostrarPopoverMedia] = useState(false);
   const popoverMediaRef = useRef();
   const [avaliacoesUsuariosAlbum, setAvaliacoesUsuariosAlbum] = useState([]);
+
+  // Estados para a funcionalidade de review
+  const [mostrarModalReview, setMostrarModalReview] = useState(false);
+  const [review, setReview] = useState("");
+  const [salvandoReview, setSalvandoReview] = useState(false);
 
   // Verificação defensiva para garantir que progressoAvaliacao seja sempre válido
   useEffect(() => {
@@ -1049,197 +1054,170 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
 
   // Função para resetar avaliações do álbum
   const resetarAvaliacoesAlbum = async () => {
-    if (!faixas || !faixas.items) return;
+    try {
+      // Se estiver mostrando modal de confirmação, é hora de executar
+      if (mostrarConfirmacao === "resetar") {
+        setMostrarConfirmacao(null);
 
-    // Confirmar a ação se necessário
-    if (mostrarConfirmacao !== "resetar") {
-      setMostrarConfirmacao("resetar");
-      return;
-    }
+        // Resetar avaliações locais primeiro (para feedback imediato)
+        const novasAvaliacoes = {};
+        setAvaliacoes(novasAvaliacoes);
 
-    // Verificar se o usuário está logado no Firebase
-    const usuarioFirebase = getUsuarioAtual();
+        // Limpar faixa favorita e pior faixa
+        setFaixaFavorita(null);
+        setPiorFaixa(null);
 
-    // Criar novas avaliações zerando apenas as faixas deste álbum
-    const novasAvaliacoes = { ...avaliacoes };
-    faixas.items.forEach((faixa) => {
-      novasAvaliacoes[faixa.id] = 0;
-    });
+        // Atualizar progresso
+        setProgressoAvaliacao({
+          avaliadas: 0,
+          total: faixas?.items?.length || 0,
+          percentual: 0,
+        });
 
-    // Atualizar estado local
-    setAvaliacoes(novasAvaliacoes);
+        // Se o usuário estiver logado no Firebase, sincronizar com o servidor
+        if (getUsuarioAtual()) {
+          // Preparar para salvar no Firebase
+          const preferencias = {
+            faixaFavorita: null,
+            piorFaixa: null,
+            // Sempre preservar a review existente, mesmo se for string vazia
+            review: typeof review === "string" ? review : "",
+            data_review: review ? new Date() : null,
+          };
 
-    // Resetar faixa favorita e pior
-    setFaixaFavorita(null);
-    setPiorFaixa(null);
+          try {
+            await salvarAvaliacaoAlbum(
+              albumId,
+              novasAvaliacoes,
+              detalhesAlbum.name,
+              detalhesAlbum.artists[0].name,
+              detalhesAlbum.images[0]?.url,
+              preferencias,
+              faixas,
+              true // indicar que é uma atualização
+            );
+          } catch (erroFirebase) {
+            console.error(
+              "Erro ao resetar avaliações no Firebase:",
+              erroFirebase
+            );
+          }
+        } else {
+          // Usuário em modo anônimo/demo, salvar no localStorage
+          setAvaliacoesFaixas(novasAvaliacoes);
 
-    if (usuarioFirebase) {
-      // Usuário logado no Firebase - resetar diretamente no Firebase
-      try {
-        if (detalhesAlbum) {
-          await salvarAvaliacaoAlbum(
-            albumId,
-            novasAvaliacoes,
-            detalhesAlbum.name,
-            detalhesAlbum.artists[0].name,
-            detalhesAlbum.images[0]?.url || "",
-            null,
-            faixas // Passar as faixas para salvar os nomes
-          );
+          // Resetar preferências de faixas
+          try {
+            localStorage.setItem(
+              `preferencias_${albumId}`,
+              JSON.stringify({
+                favorita: null,
+                pior: null,
+                // Sempre preservar a review existente, mesmo se for string vazia
+                review: typeof review === "string" ? review : "",
+                data_review: review ? new Date().toISOString() : null,
+              })
+            );
+          } catch (e) {
+            // Ignorar erro ao salvar preferências
+          }
+
+          // Registrar a data da última avaliação
+          registrarDataAvaliacao(albumId, "ultima");
         }
-      } catch (error) {
-        // Erro ao resetar avaliações
+
+        // Atualizar datas de avaliação para UI
+        const datasAtualizadas = obterDatasAvaliacao(albumId);
+        setDatasAvaliacao(datasAtualizadas);
+
+        // Notificar outros componentes sobre a alteração nas avaliações
+        notificarAvaliacoesAlteradas();
+      } else {
+        // Se ainda não estiver mostrando confirmação, exibir modal
+        setMostrarConfirmacao("resetar");
       }
-    } else {
-      // Apenas para usuário não logado, usar localStorage
-      localStorage.removeItem(`preferencias_${albumId}`);
-
-      // Obter avaliações existentes
-      const avaliacoesExistentes = JSON.parse(
-        localStorage.getItem("avaliacoesFaixas") || "{}"
-      );
-
-      // Atualizar avaliações existentes
-      const novasAvaliacoesStorage = { ...avaliacoesExistentes };
-      faixas.items.forEach((faixa) => {
-        if (novasAvaliacoesStorage[faixa.id]) {
-          novasAvaliacoesStorage[faixa.id] = 0;
-        }
-      });
-
-      // Salvar no localStorage
-      localStorage.setItem(
-        "avaliacoesFaixas",
-        JSON.stringify(novasAvaliacoesStorage)
-      );
-
-      // Notificar que as avaliações foram alteradas para acionar a sincronização
-      notificarAvaliacoesAlteradas();
+    } catch (erro) {
+      console.error("Erro ao resetar avaliações:", erro);
     }
-
-    // Recalcular progresso
-    setProgressoAvaliacao(calcularProgressoAvaliacao(faixas, novasAvaliacoes));
-
-    // Esconder confirmação
-    setMostrarConfirmacao(null);
   };
 
   // Função para remover o álbum das minhas avaliações
   const removerAlbum = async () => {
-    if (!faixas || !faixas.items) return;
+    try {
+      // Se estiver mostrando modal de confirmação, é hora de executar
+      if (mostrarConfirmacao === "remover") {
+        setMostrarConfirmacao(null);
 
-    // Confirmar a ação se necessário
-    if (mostrarConfirmacao !== "remover") {
-      setMostrarConfirmacao("remover");
-      return;
-    }
+        // Se o usuário estiver logado no Firebase, remover do servidor
+        const usuario = getUsuarioAtual();
+        if (usuario) {
+          try {
+            const userRef = doc(db, "usuarios", usuario.uid);
+            const userDoc = await getDoc(userRef);
 
-    // Verificar se o usuário está logado no Firebase
-    const usuarioFirebase = getUsuarioAtual();
+            if (userDoc.exists()) {
+              // Procurar o álbum pelo ID
+              const albumsAvaliados = userDoc.data().albuns_avaliados || [];
+              const albumParaRemover = albumsAvaliados.find(
+                (album) => album.id === albumId
+              );
 
-    // Verificar se estamos no modo demonstração
-    const demoToken = localStorage.getItem("demo_token");
-    const demoExpiry = localStorage.getItem("demo_token_expiry");
-    const modoDemo =
-      demoToken && demoExpiry && parseInt(demoExpiry) > Date.now();
-
-    // Atualizar estados locais
-    setAvaliacoes({});
-    setFaixaFavorita(null);
-    setPiorFaixa(null);
-    setProgressoAvaliacao({
-      avaliadas: 0,
-      total: faixas.items.length,
-      percentual: 0,
-    });
-
-    if (usuarioFirebase && !modoDemo) {
-      try {
-        // Remover diretamente do Firestore (banco de dados)
-        if (detalhesAlbum) {
-          const userRef = doc(db, "usuarios", usuarioFirebase.uid);
-          const userDoc = await getDoc(userRef);
-
-          if (userDoc.exists()) {
-            // Encontrar o álbum nos álbuns avaliados
-            const albumsAvaliados = userDoc.data().albuns_avaliados || [];
-            const albumExistente = albumsAvaliados.find(
-              (album) => album.id === albumId
-            );
-
-            if (albumExistente) {
-              // Remover o álbum da lista
-              await updateDoc(userRef, {
-                albuns_avaliados: arrayRemove(albumExistente),
-              });
+              if (albumParaRemover) {
+                // Remover usando arrayRemove
+                await updateDoc(userRef, {
+                  albuns_avaliados: arrayRemove(albumParaRemover),
+                });
+              }
             }
+          } catch (erroFirebase) {
+            console.error("Erro ao remover álbum do Firebase:", erroFirebase);
           }
+        } else {
+          // Usuário em modo anônimo/demo
+          // Remover do localStorage
+
+          // 1. Remover preferências do álbum
+          localStorage.removeItem(`preferencias_${albumId}`);
+
+          // 2. Remover faixas do álbum do objeto de avaliações
+          const avaliacoesExistentes = getAvaliacoesFaixas();
+
+          if (faixas && faixas.items) {
+            const novasAvaliacoes = { ...avaliacoesExistentes };
+
+            // Remover cada faixa do álbum
+            faixas.items.forEach((faixa) => {
+              delete novasAvaliacoes[faixa.id];
+            });
+
+            // Salvar no localStorage
+            setAvaliacoesFaixas(novasAvaliacoes);
+          }
+
+          // 3. Remover do mapa de faixas-álbuns
+          const mapaExistente = getMapaFaixasAlbuns();
+          const novoMapa = { ...mapaExistente };
+
+          // Remover a associação de cada faixa com este álbum
+          if (faixas && faixas.items) {
+            faixas.items.forEach((faixa) => {
+              delete novoMapa[faixa.id];
+            });
+          }
+
+          // Salvar mapa atualizado
+          setMapaFaixasAlbuns(novoMapa);
         }
-      } catch (error) {
-        // Erro ao remover álbum
+
+        // Voltar para a tela anterior após remover
+        onVoltar();
+      } else {
+        // Se ainda não estiver mostrando confirmação, exibir modal
+        setMostrarConfirmacao("remover");
       }
-    } else {
-      // Modo demo ou sem autenticação - usar localStorage
-      try {
-        // Remover preferências
-        localStorage.removeItem(`preferencias_${albumId}`);
-
-        // Remover datas de avaliação do localStorage
-        const datasAvaliacoes = JSON.parse(
-          localStorage.getItem("datasAvaliacoes") || "{}"
-        );
-        if (datasAvaliacoes[albumId]) {
-          delete datasAvaliacoes[albumId];
-          localStorage.setItem(
-            "datasAvaliacoes",
-            JSON.stringify(datasAvaliacoes)
-          );
-        }
-
-        // Obter avaliações e mapeamento de faixas
-        const avaliacoesExistentes = JSON.parse(
-          localStorage.getItem("avaliacoesFaixas") || "{}"
-        );
-        const mapaFaixasAlbuns = JSON.parse(
-          localStorage.getItem("mapaFaixasAlbuns") || "{}"
-        );
-
-        // Remover avaliações das faixas deste álbum
-        const novoMapaFaixas = { ...mapaFaixasAlbuns };
-        const novasAvaliacoesStorage = { ...avaliacoesExistentes };
-
-        faixas.items.forEach((faixa) => {
-          // Remover da avaliação
-          if (novasAvaliacoesStorage[faixa.id]) {
-            delete novasAvaliacoesStorage[faixa.id];
-          }
-
-          // Remover do mapeamento
-          if (novoMapaFaixas[faixa.id]) {
-            delete novoMapaFaixas[faixa.id];
-          }
-        });
-
-        // Salvar no localStorage
-        localStorage.setItem(
-          "avaliacoesFaixas",
-          JSON.stringify(novasAvaliacoesStorage)
-        );
-        localStorage.setItem(
-          "mapaFaixasAlbuns",
-          JSON.stringify(novoMapaFaixas)
-        );
-      } catch (error) {
-        // Erro ao remover álbum do localStorage
-      }
+    } catch (erro) {
+      console.error("Erro ao remover álbum:", erro);
     }
-
-    // Notificar que as avaliações foram alteradas para acionar a sincronização
-    notificarAvaliacoesAlteradas();
-
-    // Esconder confirmação e voltar à lista de álbuns
-    setMostrarConfirmacao(null);
-    onVoltar();
   };
 
   // Função para cancelar a ação de confirmação
@@ -1346,6 +1324,99 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
     };
   }, [mostrarPopover, mostrarPopoverMedia]);
 
+  // Função para salvar a review do álbum
+  const salvarReview = async () => {
+    try {
+      setSalvandoReview(true);
+
+      const usuario = getUsuarioAtual();
+      if (!usuario) {
+        throw new Error("Usuário não autenticado");
+      }
+
+      const userRef = doc(db, "usuarios", usuario.uid);
+      const userDoc = await getDoc(userRef);
+
+      if (!userDoc.exists()) {
+        throw new Error("Documento do usuário não encontrado");
+      }
+
+      // Verificar se o álbum já existe na lista do usuário
+      const albumsAvaliados = userDoc.data().albuns_avaliados || [];
+      const indexAlbumExistente = albumsAvaliados.findIndex(
+        (album) => album.id === albumId
+      );
+
+      if (indexAlbumExistente >= 0) {
+        // Álbum já existe, atualizar a review
+        const novosAlbunsAvaliados = [...albumsAvaliados];
+        novosAlbunsAvaliados[indexAlbumExistente] = {
+          ...novosAlbunsAvaliados[indexAlbumExistente],
+          review: review.trim(),
+          data_review: new Date(),
+        };
+
+        await updateDoc(userRef, {
+          albuns_avaliados: novosAlbunsAvaliados,
+        });
+      } else {
+        // Se o álbum não existir ainda, criar um objeto básico com a review
+        const dadosAlbum = {
+          id: albumId,
+          nome: detalhesAlbum.name,
+          artista: detalhesAlbum.artists.map((a) => a.name).join(", "),
+          imagem: detalhesAlbum.images[0]?.url || "",
+          avaliacoes: {},
+          review: review.trim(),
+          data_review: new Date(),
+          data_avaliacao: new Date(),
+        };
+
+        await updateDoc(userRef, {
+          albuns_avaliados: [...albumsAvaliados, dadosAlbum],
+        });
+      }
+
+      setMostrarModalReview(false);
+      // Mostrar alguma notificação de sucesso se necessário
+    } catch (error) {
+      console.error("Erro ao salvar review:", error);
+      // Mostrar mensagem de erro se necessário
+    } finally {
+      setSalvandoReview(false);
+    }
+  };
+
+  // Carregar review existente ao carregar o componente
+  useEffect(() => {
+    const carregarReview = async () => {
+      try {
+        const usuario = getUsuarioAtual();
+        if (!usuario) return;
+
+        const userRef = doc(db, "usuarios", usuario.uid);
+        const userDoc = await getDoc(userRef);
+
+        if (!userDoc.exists()) return;
+
+        const albumsAvaliados = userDoc.data().albuns_avaliados || [];
+        const albumExistente = albumsAvaliados.find(
+          (album) => album.id === albumId
+        );
+
+        if (albumExistente && albumExistente.review) {
+          setReview(albumExistente.review);
+        }
+      } catch (error) {
+        console.error("Erro ao carregar review:", error);
+      }
+    };
+
+    if (albumId) {
+      carregarReview();
+    }
+  }, [albumId]);
+
   // Exibir indicador de carregamento
   if (carregando) {
     return <Carregamento />;
@@ -1382,6 +1453,9 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
     return "text-verde-destaque";
   };
 
+  // Verifica se já existe uma review existente
+  const temReviewExistente = Boolean(review);
+
   return (
     <div className="p-1 sm:p-2 md:p-4 max-w-full overflow-hidden">
       <div className="flex justify-between items-center mb-2 md:mb-4">
@@ -1414,7 +1488,51 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
         </div>
       </div>
 
-      {/* Modal de confirmação */}
+      {/* Modal de Review */}
+      {mostrarModalReview && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[2000] px-4">
+          <div className="bg-cinza-escuro rounded-xl p-5 max-w-md w-full">
+            <h3 className="text-lg font-bold text-indigo-400 mb-3 flex items-center gap-2">
+              <MdRateReview />
+              {t("albumDetails.albumReview", "Album Review")}
+            </h3>
+
+            <textarea
+              className="w-full h-40 bg-gray-800 text-white p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 mb-4"
+              placeholder={t(
+                "albumDetails.writeReview",
+                "Write your review about this album..."
+              )}
+              value={review}
+              onChange={(e) => setReview(e.target.value)}
+              disabled={salvandoReview}
+            />
+
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setMostrarModalReview(false)}
+                className="bg-gray-700 py-2 px-4 rounded-lg hover:bg-gray-600 transition-colors cursor-pointer"
+                disabled={salvandoReview}
+              >
+                {t("albumDetails.cancel")}
+              </button>
+              <button
+                onClick={salvarReview}
+                className="bg-indigo-700 hover:bg-indigo-600 text-white py-2 px-4 rounded-lg transition-colors cursor-pointer"
+                disabled={salvandoReview}
+              >
+                {salvandoReview
+                  ? t("albumDetails.saving", "Salvando...")
+                  : temReviewExistente
+                  ? t("albumDetails.updateReview", "Atualizar Review")
+                  : t("albumDetails.saveReview", "Salvar Review")}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de confirmação existente */}
       {mostrarConfirmacao && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[2000] px-4">
           <div className="bg-cinza-escuro rounded-xl p-5 max-w-md w-full">
@@ -1472,6 +1590,7 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
           <h2 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold text-verde-destaque mb-0.5 text-center lg:text-left truncate">
             {detalhesAlbum.name}
           </h2>
+
           <p className="text-base sm:text-lg md:text-xl mb-0.5 text-center  lg:text-left truncate">
             {detalhesAlbum.artists.map((a) => a.name).join(", ")}
           </p>
@@ -1483,10 +1602,26 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
             })}
           </p>
 
-          {/* Bloco de ações: Spotify, média global e Top 3 */}
+          {/* Bloco de ações: Review + Spotify, média global e Top 3 */}
           <div className="mt-2 md:mt-3 flex flex-col gap-2 w-full">
-            {/* Botão Escute no Spotify sempre primeiro, sozinho em uma linha no mobile */}
-            <div className="flex w-full justify-center lg:justify-start">
+            {/* Linha de botões Review + Spotify */}
+            <div className="flex w-full justify-center lg:justify-start gap-2">
+              <button
+                onClick={() => setMostrarModalReview(true)}
+                className="bg-indigo-700 hover:bg-indigo-600 text-white py-1 px-2 rounded-lg transition-colors text-xs sm:text-sm flex items-center gap-1 cursor-pointer"
+                title={
+                  temReviewExistente
+                    ? t("albumDetails.editReviewButton")
+                    : t("albumDetails.writeReviewButton")
+                }
+              >
+                <MdRateReview className="text-xs" />
+                <span className="sm:inline">
+                  {temReviewExistente
+                    ? t("albumDetails.editReviewButton")
+                    : t("albumDetails.writeReviewButton")}
+                </span>
+              </button>
               <a
                 href={
                   detalhesAlbum.external_urls?.spotify ||

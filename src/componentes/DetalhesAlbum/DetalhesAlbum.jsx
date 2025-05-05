@@ -17,13 +17,14 @@ import { formatarData, recarregarAvaliacoes } from "../../services/avaliacoes";
 import { useTranslation } from "react-i18next";
 
 // Componentes modularizados
-import BotoesAcao from "./componentes/BotoesAcao";
-import BotaoVoltar from "./componentes/BotaoVoltar";
+import BotoesAcao from "../UI/Botoes/BotoesAcao";
+import BotaoVoltar from "../UI/Botoes/BotaoVoltar";
 import CabecalhoAlbum from "./componentes/CabecalhoAlbum";
 import ListaFaixas from "./componentes/ListaFaixas";
 import BarraProgresso from "./componentes/BarraProgresso";
 import NotaAlbum from "./componentes/NotaAlbum";
-import BotoesReviewSpotify from "./componentes/BotoesReviewSpotify";
+import BotaoReview from "../UI/Botoes/BotaoReview";
+import BotaoSpotify from "../UI/Botoes/BotaoSpotify";
 
 /**
  * Componente para exibir detalhes de um álbum e suas faixas
@@ -378,17 +379,21 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
       {/* Bloco principal: cabeçalho, nota, progresso e cards lado a lado em desktop */}
       <div className="flex flex-col lg:flex-row gap-3 lg:gap-6 mb-3 lg:mb-6">
         {/* Esquerda: Cabeçalho, nota, progresso - sempre juntos */}
-        <div className="flex flex-col ">
+        <div className="flex flex-col w-full md:mr-10">
           <CabecalhoAlbum
             detalhesAlbum={detalhesAlbum}
             faixas={faixas}
             calcularDuracaoTotal={calcularDuracaoTotal}
           >
-            <BotoesReviewSpotify
-              temReviewExistente={temReviewExistente}
-              onAbrirReview={() => setMostrarModalReview(true)}
-              detalhesAlbum={detalhesAlbum}
-            />
+            <div className="flex gap-2  justify-center md:justify-start mt-2">
+              <BotaoReview
+                temReviewExistente={temReviewExistente}
+                onAbrirReview={() => setMostrarModalReview(true)}
+                detalhesAlbum={detalhesAlbum}
+              />
+              <BotaoSpotify detalhesAlbum={detalhesAlbum} />
+            </div>
+
             <NotaAlbum
               nota={calcularNotaAlbum()}
               percentualProgresso={progressoAvaliacao?.percentual || 0}

@@ -2,7 +2,7 @@ import MostrarTopArtistas from "./MostrarTopArtistas";
 import MostrarTopAlbuns from "./MostrarTopAlbuns";
 import MinhasAvaliacoes from "./MinhasAvaliacoes";
 import FeedGlobal from "./FeedGlobal";
-import DetalhesAlbum from "./DetalhesAlbum";
+import DetalhesAlbum from "../DetalhesAlbum/DetalhesAlbum";
 import Pesquisar from "./Pesquisar";
 import { useEffect } from "react";
 import { useParams } from "react-router-dom";

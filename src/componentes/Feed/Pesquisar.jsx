@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { buscarAlbum } from "../../services/spotify";
 import { buscarArtista } from "../../services/spotify";
 import { buscarSingle } from "../../services/spotify";
-import DetalhesAlbum from "./DetalhesAlbum";
+import DetalhesAlbum from "../DetalhesAlbum/DetalhesAlbum";
 import ListaAlbuns from "./ListaAlbuns";
 import { MdMusicNote, MdAlbum, MdReportProblem } from "react-icons/md";
 import { FaUser } from "react-icons/fa";

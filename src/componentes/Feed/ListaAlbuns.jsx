@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { buscarAlbunsPorArtista } from "../../services/spotify";
-import DetalhesAlbum from "./DetalhesAlbum";
+import DetalhesAlbum from "../DetalhesAlbum/DetalhesAlbum";
 import { useTranslation } from "react-i18next";
 import { BsGrid3X3GapFill, BsListUl } from "react-icons/bs";
 

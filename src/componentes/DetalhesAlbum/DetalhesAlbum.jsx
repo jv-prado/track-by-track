@@ -31,6 +31,13 @@ import {
 import { doc, getDoc, updateDoc, arrayRemove } from "firebase/firestore";
 import { db } from "../../services/firebase";
 import { useTranslation } from "react-i18next";
+import {
+  formatarDuracao,
+  calcularDuracaoTotal,
+  calcularMediaAvaliacoes,
+  obterCorNota,
+} from "./utils";
+import useDetalhesAlbum from "./hooks/useDetalhesAlbum";
 
 /**
  * Componente para exibir detalhes de um álbum e suas faixas
@@ -47,6 +54,25 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
 
   // Usar albumId da prop se disponível, caso contrário usar da URL
   const albumId = albumIdProp || albumIdParam;
+
+  // Usar o hook para obter os dados do álbum
+  const {
+    detalhesAlbum,
+    faixas,
+    carregando,
+    erro,
+    tentarNovamente,
+    avaliacoes,
+    faixaFavorita,
+    piorFaixa,
+    progressoAvaliacao,
+    datasAvaliacao,
+    setAvaliacoes,
+    setFaixaFavorita,
+    setPiorFaixa,
+    setProgressoAvaliacao,
+    setDatasAvaliacao,
+  } = useDetalhesAlbum(albumId);
 
   // Função de voltar personalizada ou padrão
   const onVoltar = () => {
@@ -67,24 +93,6 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
     }, 100);
   };
 
-  const [detalhesAlbum, setDetalhesAlbum] = useState(null);
-  const [faixas, setFaixas] = useState(null);
-  const [carregando, setCarregando] = useState(true);
-  const [avaliacoes, setAvaliacoes] = useState({});
-  const [faixaFavorita, setFaixaFavorita] = useState();
-  const [piorFaixa, setPiorFaixa] = useState();
-  const [progressoAvaliacao, setProgressoAvaliacao] = useState({
-    avaliadas: 0,
-    total: 0,
-    percentual: 0,
-  });
-  const [erro, setErro] = useState(null);
-  const [mostrarConfirmacao, setMostrarConfirmacao] = useState(null);
-  const [datasAvaliacao, setDatasAvaliacao] = useState({
-    primeira: null,
-    ultima: null,
-    temRegistro: false,
-  });
   const [mediaGlobal, setMediaGlobal] = useState(null);
   const [faixasFavoritasGlobais, setFaixasFavoritasGlobais] = useState([]);
   const [faixasPioresGlobais, setFaixasPioresGlobais] = useState([]);
@@ -99,6 +107,9 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
   const [mostrarModalReview, setMostrarModalReview] = useState(false);
   const [review, setReview] = useState("");
   const [salvandoReview, setSalvandoReview] = useState(false);
+
+  // Estado para controlar modais de confirmação
+  const [mostrarConfirmacao, setMostrarConfirmacao] = useState(null);
 
   // Verificação defensiva para garantir que progressoAvaliacao seja sempre válido
   useEffect(() => {
@@ -191,244 +202,6 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
     } catch (erro) {
       // Erro ao carregar avaliações
     }
-  }, [albumId]);
-
-  // Função para tentar carregar os dados novamente
-  const tentarNovamente = () => {
-    setErro(null);
-    setCarregando(true);
-    buscarDados();
-  };
-
-  // Buscar detalhes do álbum e suas faixas
-  const buscarDados = async () => {
-    if (!albumId) return;
-
-    try {
-      setCarregando(true);
-      setErro(null);
-
-      // Verificar se o usuário está logado no Firebase
-      const usuarioFirebase = getUsuarioAtual();
-      let detalhes = null;
-      let dadosFaixas = null;
-      let buscouDoFirebase = false;
-
-      // MODIFICAÇÃO: Primeiro tentar buscar dados do Firebase
-      if (usuarioFirebase) {
-        try {
-          // Importar módulo do Firebase
-          const firebaseModule = await import("../../services/firebase");
-          // Buscar álbuns avaliados do usuário
-          const albunsFirebase = await firebaseModule.obterAlbunsAvaliados();
-          // Procurar o álbum atual dentre os avaliados
-          const albumAtual = albunsFirebase.find(
-            (album) => album.id === albumId
-          );
-
-          if (albumAtual && albumAtual.detalhes && albumAtual.faixas) {
-            // Se o álbum existe no Firebase e tem detalhes e faixas, usá-los
-            console.log("Usando dados do álbum do Firebase");
-            detalhes = albumAtual.detalhes;
-            dadosFaixas = albumAtual.faixas;
-            buscouDoFirebase = true;
-
-            // Atualizar estados com dados do Firebase
-            setDetalhesAlbum(detalhes);
-            setFaixas(dadosFaixas);
-
-            // Usar avaliações do Firebase
-            setAvaliacoes(albumAtual.avaliacoes || {});
-
-            // Carregar preferências de faixa favorita e pior faixa
-            if (albumAtual.preferencias) {
-              if (albumAtual.preferencias.faixaFavorita !== undefined) {
-                setFaixaFavorita(albumAtual.preferencias.faixaFavorita);
-              }
-              if (albumAtual.preferencias.piorFaixa !== undefined) {
-                setPiorFaixa(albumAtual.preferencias.piorFaixa);
-              }
-            }
-
-            // Carregar datas de avaliação do Firebase
-            if (
-              albumAtual.data_primeira_avaliacao ||
-              albumAtual.data_avaliacao
-            ) {
-              try {
-                const datasDoFirebase = {
-                  primeira: albumAtual.data_primeira_avaliacao
-                    ? new Date(
-                        albumAtual.data_primeira_avaliacao.seconds * 1000
-                      )
-                    : new Date(albumAtual.data_avaliacao.seconds * 1000),
-                  ultima: new Date(albumAtual.data_avaliacao.seconds * 1000),
-                  temRegistro: true,
-                };
-                setDatasAvaliacao(datasDoFirebase);
-              } catch (error) {
-                // Erro ao converter datas
-              }
-            }
-
-            // Calcular progresso
-            setProgressoAvaliacao(
-              calcularProgressoAvaliacao(
-                dadosFaixas,
-                albumAtual.avaliacoes || {}
-              )
-            );
-          }
-        } catch (error) {
-          console.error("Erro ao buscar dados do Firebase:", error);
-          // Em caso de erro, vai tentar buscar do Spotify abaixo
-        }
-      }
-
-      // Se não conseguiu os dados do Firebase, buscar do Spotify
-      if (!buscouDoFirebase) {
-        console.log("Buscando dados do álbum no Spotify");
-        // Buscar em paralelo para melhorar a performance
-        [detalhes, dadosFaixas] = await Promise.all([
-          buscarDetalhesAlbum(albumId),
-          buscarFaixasPorAlbum(albumId),
-        ]);
-
-        // Salvar no estado
-        setDetalhesAlbum(detalhes);
-        setFaixas(dadosFaixas);
-
-        if (usuarioFirebase) {
-          // Para usuários Firebase, carregar dados do Firebase
-          import("../../services/firebase").then(async (firebaseModule) => {
-            try {
-              const albunsFirebase =
-                await firebaseModule.obterAlbunsAvaliados();
-              const albumAtual = albunsFirebase.find(
-                (album) => album.id === albumId
-              );
-
-              if (albumAtual) {
-                // Usar avaliações do Firebase
-                setAvaliacoes(albumAtual.avaliacoes || {});
-
-                // Carregar preferências de faixa favorita e pior faixa
-                if (albumAtual.preferencias) {
-                  if (albumAtual.preferencias.faixaFavorita !== undefined) {
-                    setFaixaFavorita(albumAtual.preferencias.faixaFavorita);
-                  }
-                  if (albumAtual.preferencias.piorFaixa !== undefined) {
-                    setPiorFaixa(albumAtual.preferencias.piorFaixa);
-                  }
-                }
-
-                // Carregar datas de avaliação do Firebase
-                if (
-                  albumAtual.data_primeira_avaliacao ||
-                  albumAtual.data_avaliacao
-                ) {
-                  try {
-                    const datasDoFirebase = {
-                      primeira: albumAtual.data_primeira_avaliacao
-                        ? new Date(
-                            albumAtual.data_primeira_avaliacao.seconds * 1000
-                          )
-                        : new Date(albumAtual.data_avaliacao.seconds * 1000),
-                      ultima: new Date(
-                        albumAtual.data_avaliacao.seconds * 1000
-                      ),
-                      temRegistro: true,
-                    };
-                    setDatasAvaliacao(datasDoFirebase);
-                  } catch (error) {
-                    // Erro ao converter datas
-                  }
-                }
-
-                // Calcular progresso
-                setProgressoAvaliacao(
-                  calcularProgressoAvaliacao(
-                    dadosFaixas,
-                    albumAtual.avaliacoes || {}
-                  )
-                );
-              } else {
-                // Inicializar com valores vazios se o álbum não existir no Firebase
-                const avaliacoesVazias = {};
-                dadosFaixas.items.forEach((faixa) => {
-                  avaliacoesVazias[faixa.id] = 0;
-                });
-                setAvaliacoes(avaliacoesVazias);
-                setProgressoAvaliacao(
-                  calcularProgressoAvaliacao(dadosFaixas, avaliacoesVazias)
-                );
-              }
-
-              // ADIÇÃO: Salvar os dados do Spotify no Firebase para uso futuro
-              if (detalhes && dadosFaixas) {
-                try {
-                  // Se o álbum ainda não está no Firebase ou os dados do Spotify são mais recentes
-                  // Salve os detalhes e faixas para uso futuro, reduzindo chamadas ao Spotify
-                  await firebaseModule.salvarAlbumCacheSpotify(
-                    albumId,
-                    detalhes,
-                    dadosFaixas
-                  );
-                } catch (error) {
-                  console.error("Erro ao salvar cache do Spotify:", error);
-                }
-              }
-            } catch (error) {
-              console.error("Erro ao carregar avaliações do Firebase:", error);
-            }
-          });
-        } else {
-          // Apenas para usuários não logados, usar localStorage
-          // Obter avaliações existentes do localStorage
-          const avaliacoesExistentes = JSON.parse(
-            localStorage.getItem("avaliacoesFaixas") || "{}"
-          );
-
-          // Inicializar avaliações para novas faixas, mantendo as existentes
-          const novasAvaliacoes = { ...avaliacoesExistentes };
-          dadosFaixas.items.forEach((faixa) => {
-            if (!novasAvaliacoes[faixa.id]) {
-              novasAvaliacoes[faixa.id] = 0;
-            }
-          });
-          setAvaliacoes(novasAvaliacoes);
-
-          // Calcular o progresso de avaliação
-          setProgressoAvaliacao(
-            calcularProgressoAvaliacao(dadosFaixas, novasAvaliacoes)
-          );
-
-          // Salvar mapeamento de faixas para álbuns
-          const mapaFaixasAlbuns = JSON.parse(
-            localStorage.getItem("mapaFaixasAlbuns") || "{}"
-          );
-          dadosFaixas.items.forEach((faixa) => {
-            mapaFaixasAlbuns[faixa.id] = albumId;
-          });
-          localStorage.setItem(
-            "mapaFaixasAlbuns",
-            JSON.stringify(mapaFaixasAlbuns)
-          );
-        }
-      }
-    } catch (erro) {
-      console.error("Erro ao buscar dados:", erro);
-      setErro(
-        "Não foi possível carregar os detalhes do álbum. Por favor, verifique sua conexão e tente novamente."
-      );
-    } finally {
-      setCarregando(false);
-    }
-  };
-
-  // Iniciar busca de dados quando o componente carregar
-  useEffect(() => {
-    buscarDados();
   }, [albumId]);
 
   // Efeito para atualizar o título da página quando o álbum for carregado
@@ -605,29 +378,6 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
     fetchMediaGlobal();
   }, [faixas, albumId]);
 
-  // Função para formatar duração em minutos:segundos
-  const formatarDuracao = (ms) => {
-    const minutos = Math.floor(ms / 60000);
-    const segundos = Math.floor((ms % 60000) / 1000);
-    return `${minutos}:${segundos < 10 ? "0" : ""}${segundos}`;
-  };
-
-  // Função para calcular duração total do álbum
-  const calcularDuracaoTotal = () => {
-    if (!faixas || !faixas.items || faixas.items.length === 0) {
-      return "0:00";
-    }
-
-    const totalMs = faixas.items.reduce((total, faixa) => {
-      return total + faixa.duration_ms;
-    }, 0);
-
-    const minutos = Math.floor(totalMs / 60000);
-    const segundos = Math.floor((totalMs % 60000) / 1000);
-
-    return `${minutos}:${segundos < 10 ? "0" : ""}${segundos}`;
-  };
-
   // Função para avaliar uma faixa
   const avaliarFaixa = async (faixaId, nota) => {
     if (!faixas) return;
@@ -640,7 +390,7 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
     const estaCompleto = progressoAtual.percentual === 100;
 
     // Guardar a média anterior para comparar depois (antes de qualquer alteração)
-    const mediaAnterior = calcularMediaAvaliacoes();
+    const mediaAnterior = calcularMediaAvaliacoes(faixas, avaliacoes);
 
     // Atualiza as avaliações localmente
     let novasAvaliacoes = { ...avaliacoes };
@@ -659,7 +409,7 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
     setProgressoAvaliacao(novoProgresso);
 
     // Calcular nova média após a avaliação
-    const novaMedia = calcularMediaAvaliacoes();
+    const novaMedia = calcularMediaAvaliacoes(faixas, novasAvaliacoes);
 
     // Log para debug
     console.log(
@@ -1060,22 +810,6 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
     setTimeout(() => {
       setDatasAvaliacao(obterDatasAvaliacao(albumId));
     }, 100);
-  };
-
-  // Função para calcular média de avaliações do álbum
-  const calcularMediaAvaliacoes = () => {
-    if (!faixas || !faixas.items || faixas.items.length === 0) {
-      return 0;
-    }
-
-    const soma = faixas.items.reduce((total, faixa) => {
-      return total + (avaliacoes[faixa.id] || 0);
-    }, 0);
-
-    // Convertendo para escala de 0 a 10
-    const mediaEm5 = soma / faixas.items.length;
-    // Usar parseFloat para garantir que retornamos um número, não uma string
-    return parseFloat((mediaEm5 * 2).toFixed(1));
   };
 
   // Função para resetar avaliações do álbum
@@ -1486,14 +1220,6 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
     );
   }
 
-  // Função para determinar a cor da nota baseada no valor (igual ao FeedGlobal)
-  const obterCorNota = (nota) => {
-    const notaNum = parseFloat(nota);
-    if (notaNum < 4) return "text-red-500";
-    if (notaNum < 7) return "text-yellow-500";
-    return "text-verde-destaque";
-  };
-
   // Verifica se já existe uma review existente
   const temReviewExistente = Boolean(review);
 
@@ -1863,7 +1589,7 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
               <div className="flex flex-col items-center">
                 <span
                   className={(() => {
-                    const nota = calcularMediaAvaliacoes();
+                    const nota = calcularMediaAvaliacoes(faixas, avaliacoes);
                     if (progressoAvaliacao?.percentual < 100)
                       return "text-2xl sm:text-3xl font-extrabold font-extrabold text-gray-400";
                     if (nota < 4)
@@ -1873,9 +1599,9 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
                     return "text-2xl sm:text-3xl font-extrabold text-verde-destaque";
                   })()}
                 >
-                  {Number.isInteger(calcularMediaAvaliacoes())
-                    ? calcularMediaAvaliacoes()
-                    : calcularMediaAvaliacoes().toFixed(1)}
+                  {Number.isInteger(calcularMediaAvaliacoes(faixas, avaliacoes))
+                    ? calcularMediaAvaliacoes(faixas, avaliacoes)
+                    : calcularMediaAvaliacoes(faixas, avaliacoes).toFixed(1)}
                   <span className="text-base sm:text-xl text-gray-400 font-normal ml-1">
                     /10
                   </span>

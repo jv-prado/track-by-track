@@ -1,6 +1,6 @@
 import { MdReportProblem } from "react-icons/md";
 import React, { useEffect, useState } from "react";
-import DetalhesAlbum from "./DetalhesAlbum";
+import DetalhesAlbum from "../DetalhesAlbum/DetalhesAlbum";
 import FiltroAvaliacoes from "./Filtros/FiltroAvaliacoes";
 import CardAlbumAvaliado from "./Cards/CardAlbumAvaliado";
 import useAvaliacoes from "../../hooks/useAvaliacoes";

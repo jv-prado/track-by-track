@@ -9,7 +9,7 @@ const BotaoReview = ({ temReviewExistente, onAbrirReview, detalhesAlbum }) => (
     type="button"
   >
     <MdRateReview className="inline text-base" />
-    {temReviewExistente ? "Editar Review" : "Review"}
+    {temReviewExistente ? "Editar Review" : "Escrever Review"}
   </button>
 );
 

@@ -162,8 +162,8 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
   // Efeito para atualizar o título da página quando o álbum for carregado
   useEffect(() => {
     if (detalhesAlbum) {
-      // Atualizar o título da página com o nome do álbum e do artista
-      document.title = `${detalhesAlbum.name} - ${detalhesAlbum.artists[0].name} | Track-by-Track`;
+      // Padronizar o título da página
+      document.title = "Track by Track";
 
       // Atualizar URL sem navegar para outra página
       const novaUrl = `/spotify/album/${albumId}`;
@@ -187,10 +187,7 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
       };
 
       // Atualizar metadados
-      updateMetaTag(
-        "og:title",
-        `${detalhesAlbum.name} - ${detalhesAlbum.artists[0].name}`
-      );
+      updateMetaTag("og:title", "Track by Track");
       updateMetaTag(
         "og:description",
         `Ouça ${detalhesAlbum.name} de ${detalhesAlbum.artists[0].name} no Spotify`
@@ -220,7 +217,7 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
 
     // Ao desmontar o componente, restaurar o título original
     return () => {
-      document.title = "Track-by-Track";
+      document.title = "Track by Track";
 
       // Remover metadados ao sair
       const metaTags = ["og:title", "og:description", "og:image", "og:url"];

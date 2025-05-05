@@ -177,7 +177,6 @@
     "rating": "Rating",
     "track": "Track",
     "loadError": "Could not load album details",
-    "listenOnSpotify": "Listen on Spotify",
     "ratingProgress": "Rating progress",
     "favoriteTrack": "Favorite Track",
     "worstTrack": "Worst Track",
@@ -319,5 +318,15 @@
     "loginWithSpotify": "Login with Spotify",
     "loginWithSpotifyDesc": "Login with your Spotify account to access personalized features",
     "errorSpotify": "Error starting login with Spotify."
+  },
+  "review": {
+    "editTitle": "Edit review",
+    "addTitle": "Add review",
+    "editButton": "Edit Review",
+    "writeButton": "Write Review"
+  },
+  "spotify": {
+    "openTitle": "Open on Spotify",
+    "listenButton": "Listen on Spotify"
   }
 }

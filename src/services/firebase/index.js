@@ -228,6 +228,7 @@ export const observarAutenticacao = (callback) => {
  * @param {Array} faixas - Array com as faixas do álbum (opcional)
  * @param {boolean} isAtualizado - Indica se é uma atualização de avaliação já concluída (opcional)
  * @param {boolean} isPrimeiraAvaliacaoConcluida - Indica se é a primeira vez que o álbum atinge 100% (opcional)
+ * @param {string} mediaInformada - Média informada pelo frontend para uso em vez de recalcular (opcional)
  */
 export const salvarAvaliacaoAlbum = async (
   albumId,
@@ -238,7 +239,8 @@ export const salvarAvaliacaoAlbum = async (
   preferencias = null,
   faixas = null,
   isAtualizado = false,
-  isPrimeiraAvaliacaoConcluida = false
+  isPrimeiraAvaliacaoConcluida = false,
+  mediaInformada = null
 ) => {
   try {
     // Verificações defensivas para evitar undefined em campos obrigatórios
@@ -298,29 +300,47 @@ export const salvarAvaliacaoAlbum = async (
       dadosAlbum.data_review = preferencias.data_review || null;
     }
 
-    // Calcular a média de avaliações para este álbum
+    // Calcular a média e progresso
     let soma = 0;
     let faixasAvaliadas = 0;
     let totalFaixas = 0;
+    let mediaAvaliacao;
 
     if (faixas && Array.isArray(faixas.items)) {
       totalFaixas = faixas.items.length;
 
-      // Contar apenas faixas com avaliação > 0
-      faixas.items.forEach((faixa) => {
-        const avaliacao = avaliacoesFaixas[faixa.id] || 0;
-        if (avaliacao > 0) {
-          soma += avaliacao;
-          faixasAvaliadas++;
-        }
-      });
+      // Se a média for informada pelo frontend, usar essa média diretamente
+      if (mediaInformada !== null && !isNaN(mediaInformada)) {
+        mediaAvaliacao = parseFloat(mediaInformada);
+
+        // Ainda precisamos contar quantas faixas têm avaliação para o progresso
+        faixas.items.forEach((faixa) => {
+          if (avaliacoesFaixas[faixa.id] && avaliacoesFaixas[faixa.id] > 0) {
+            faixasAvaliadas++;
+          }
+        });
+      } else {
+        // Método antigo: calcular a média apenas com faixas avaliadas > 0
+        faixas.items.forEach((faixa) => {
+          const avaliacao = avaliacoesFaixas[faixa.id] || 0;
+          if (avaliacao > 0) {
+            soma += avaliacao;
+            faixasAvaliadas++;
+          }
+        });
+
+        // Calcular média na escala 0-10
+        const mediaEscala5 = faixasAvaliadas > 0 ? soma / faixasAvaliadas : 0;
+        mediaAvaliacao = mediaEscala5 * 2; // Convertendo para escala 0-10
+      }
+    } else {
+      // Se não tiver faixas, usar a média informada ou 0
+      mediaAvaliacao = mediaInformada !== null ? parseFloat(mediaInformada) : 0;
     }
 
-    // Calcular média e percentual
+    // Calcular percentual avaliado
     const percentualAvaliado =
       totalFaixas > 0 ? Math.round((faixasAvaliadas / totalFaixas) * 100) : 0;
-    const mediaEscala5 = faixasAvaliadas > 0 ? soma / faixasAvaliadas : 0;
-    const mediaAvaliacao = mediaEscala5 * 2; // Convertendo para escala 0-10
 
     // Salvar a média calculada e progresso no objeto
     dadosAlbum.mediaAvaliacao = mediaAvaliacao;
@@ -497,7 +517,21 @@ export const obterAvaliacoesGlobais = async (
 
       // Para cada álbum avaliado pelo usuário
       albuns.forEach((album) => {
-        // Calcular a média das avaliações deste álbum
+        // IMPORTANTE: Usar o progresso armazenado diretamente do banco de dados
+        // em vez de recalculá-lo
+        const progressoDoAlbum = album.progresso || {
+          avaliadas: 0,
+          total: 0,
+          percentual: 0,
+        };
+
+        // Log para depuração
+        console.log(
+          `[Firebase] Álbum ${album.nome || album.id} - Progresso armazenado:`,
+          progressoDoAlbum
+        );
+
+        // Calcular a média das avaliações deste álbum (mantemos este cálculo)
         let soma = 0;
         const avaliacoes = album.avaliacoes || {};
         const totalFaixas = Object.keys(avaliacoes).length;
@@ -513,15 +547,23 @@ export const obterAvaliacoesGlobais = async (
         const mediaEscala5 = soma / totalFaixas;
         const mediaAvaliacao = mediaEscala5 * 2;
 
-        // Calcular progresso de avaliação
-        const totalFaixasAlbum = Object.keys(avaliacoes).length;
-        const faixasAvaliadas = Object.values(avaliacoes).filter(
-          (nota) => nota > 0
-        ).length;
-        const percentual =
-          totalFaixasAlbum > 0
-            ? Math.round((faixasAvaliadas / totalFaixasAlbum) * 100)
-            : 0;
+        // Verificar explicitamente se o álbum está marcado como primeira avaliação
+        const ehPrimeiraAvaliacao = album.isPrimeiraAvaliacao === true;
+
+        // Verificar se tem a data quando completou 100%
+        const dataCompletou = album.data_completou_100
+          ? album.data_completou_100.toDate
+            ? album.data_completou_100.toDate()
+            : new Date(album.data_completou_100)
+          : null;
+
+        // Calcular há quanto tempo foi completado, se aplicável
+        let tempoDesdeCompletou = null;
+        if (dataCompletou) {
+          const agora = new Date();
+          const diferencaMs = agora.getTime() - dataCompletou.getTime();
+          tempoDesdeCompletou = Math.floor(diferencaMs / (1000 * 60)); // em minutos
+        }
 
         // Obter nomes das faixas favorita e pior (se disponíveis)
         let faixaFavorita = null;
@@ -543,24 +585,6 @@ export const obterAvaliacoesGlobais = async (
             piorFaixa =
               album.preferencias.piorFaixaNome || album.preferencias.piorFaixa;
           }
-        }
-
-        // Verificar explicitamente se o álbum está marcado como primeira avaliação
-        const ehPrimeiraAvaliacao = album.isPrimeiraAvaliacao === true;
-
-        // Verificar se tem a data quando completou 100%
-        const dataCompletou = album.data_completou_100
-          ? album.data_completou_100.toDate
-            ? album.data_completou_100.toDate()
-            : new Date(album.data_completou_100)
-          : null;
-
-        // Calcular há quanto tempo foi completado, se aplicável
-        let tempoDesdeCompletou = null;
-        if (dataCompletou) {
-          const agora = new Date();
-          const diferencaMs = agora.getTime() - dataCompletou.getTime();
-          tempoDesdeCompletou = Math.floor(diferencaMs / (1000 * 60)); // em minutos
         }
 
         // Adicionar esta avaliação ao array de todas as avaliações
@@ -586,12 +610,8 @@ export const obterAvaliacoesGlobais = async (
                 "Usuário anônimo",
               foto: dadosUsuario.foto_perfil || dadosUsuario.photoURL || null,
             },
-            // Adicionar progresso da avaliação
-            progresso: {
-              avaliadas: faixasAvaliadas,
-              total: totalFaixasAlbum,
-              percentual: percentual,
-            },
+            // Usar o progresso armazenado no banco em vez de recalcular
+            progresso: progressoDoAlbum,
             // Adicionar faixas favorita e pior (valores simplificados para compatibilidade)
             faixaFavorita: faixaFavorita,
             piorFaixa: piorFaixa,

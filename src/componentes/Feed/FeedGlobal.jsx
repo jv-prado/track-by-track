@@ -173,6 +173,36 @@ const FeedGlobal = () => {
     carregarAvaliacoes();
   }, []);
 
+  // Função que verifica rigorosamente se um álbum está 100% avaliado
+  const verificarProgresso100 = (avaliacao) => {
+    // Se não existe o objeto de progresso, não está completo
+    if (!avaliacao.progresso) {
+      console.log(`Álbum ${avaliacao.nome} não tem objeto progresso`);
+      return false;
+    }
+
+    // Obter o valor percentual convertendo para número para garantir comparação correta
+    const percentual = Number(avaliacao.progresso.percentual);
+
+    // Logging detalhado para depuração
+    console.log(`Álbum: ${avaliacao.nome || "sem nome"}`);
+    console.log(`  ID: ${avaliacao.id}`);
+    console.log(`  Progresso objeto completo:`, avaliacao.progresso);
+    console.log(
+      `  Progresso.percentual (tipo: ${typeof avaliacao.progresso
+        .percentual}): ${avaliacao.progresso.percentual}`
+    );
+    console.log(
+      `  Convertido para Number: ${percentual} (${typeof percentual})`
+    );
+
+    // Verificar se é exatamente 100 (comparação estrita)
+    const ehCem = percentual === 100;
+    console.log(`  É exatamente 100%: ${ehCem}`);
+
+    return ehCem;
+  };
+
   // Função para carregar as avaliações iniciais
   const carregarAvaliacoes = async () => {
     setCarregando(true);
@@ -182,27 +212,65 @@ const FeedGlobal = () => {
 
     try {
       const avaliacoesGlobais = await obterAvaliacoesGlobais(LIMITE_POR_PAGINA);
-      // Validar e processar as imagens antes de definir o estado
-      const avaliacoesProcessadas = avaliacoesGlobais
-        .map((avaliacao) => ({
-          ...avaliacao,
-          imagem: validarUrlImagem(avaliacao.imagem),
-          usuario: {
-            ...avaliacao.usuario,
-            foto: validarUrlImagem(avaliacao.usuario.foto),
-          },
-          atualizada:
-            avaliacao.atualizada ||
-            avaliacao.atualizacao ||
-            (avaliacao.dataAtualizacao ? true : false) ||
-            (avaliacao.atualizacaoTimestamp ? true : false),
-          temReview:
-            typeof avaliacao.review === "string" ||
-            (avaliacao.preferencias &&
-              typeof avaliacao.preferencias.review === "string"),
-        }))
-        .filter((avaliacao) => (avaliacao.progresso?.percentual || 0) >= 100);
 
+      // Examinar cada avaliação antes do processamento
+      console.log("====== AVALIAÇÕES ORIGINAIS DO SERVIDOR ======");
+      avaliacoesGlobais.forEach((av, idx) => {
+        console.log(`Avaliação #${idx + 1}: ${av.nome}, ID: ${av.id}`);
+        console.log(`  Usuário: ${av.usuario.nome}, ID: ${av.usuario.id}`);
+        console.log(`  Progresso:`, av.progresso);
+        console.log(`  Progresso.percentual: ${av.progresso?.percentual}`);
+        if (av.progresso?.percentual !== 100) {
+          console.log(
+            `  ⚠️ ATENÇÃO: Percentual diferente de 100: ${av.progresso?.percentual}`
+          );
+        }
+      });
+
+      // Validar e processar as imagens antes de definir o estado
+      // Mantenha todo o processamento, mas mude apenas a filtragem para garantir 100%
+      let avaliacoesProcessadas = avaliacoesGlobais.map((avaliacao) => ({
+        ...avaliacao,
+        imagem: validarUrlImagem(avaliacao.imagem),
+        usuario: {
+          ...avaliacao.usuario,
+          foto: validarUrlImagem(avaliacao.usuario.foto),
+        },
+        atualizada:
+          avaliacao.atualizada ||
+          avaliacao.atualizacao ||
+          (avaliacao.dataAtualizacao ? true : false) ||
+          (avaliacao.atualizacaoTimestamp ? true : false),
+        temReview:
+          typeof avaliacao.review === "string" ||
+          (avaliacao.preferencias &&
+            typeof avaliacao.preferencias.review === "string"),
+        // Não alteramos o progresso aqui, apenas passamos adiante
+      }));
+
+      // Agora aplicamos o filtro estrito para exatamente 100%
+      console.log(
+        `Antes da filtragem: ${avaliacoesProcessadas.length} avaliações`
+      );
+
+      // Filtra apenas avaliações com 100% de progresso
+      avaliacoesProcessadas = avaliacoesProcessadas.filter((avaliacao) => {
+        // Conversão para garantir comparação numérica
+        const percentual = Number(avaliacao.progresso?.percentual);
+        const ehCem = percentual === 100;
+
+        console.log(
+          `Filtragem - ${avaliacao.nome}: percentual=${percentual}, é 100%=${ehCem}`
+        );
+
+        return ehCem;
+      });
+
+      console.log(
+        `Após filtragem: ${avaliacoesProcessadas.length} avaliações com exatamente 100% de progresso`
+      );
+
+      // Atualiza o estado com as avaliações filtradas
       setAvaliacoes(avaliacoesProcessadas);
       setTemMaisAvaliacoes(avaliacoesProcessadas.length >= LIMITE_POR_PAGINA);
 
@@ -213,7 +281,6 @@ const FeedGlobal = () => {
       }
     } catch (error) {
       console.error("Erro ao carregar feed global:", error);
-
       setErro(error.message || "Erro ao carregar as avaliações globais");
     } finally {
       setCarregando(false);
@@ -231,13 +298,6 @@ const FeedGlobal = () => {
       // Usar a última avaliação carregada como ponto de partida para a próxima consulta
       const ultimaAvaliacao = ultimaAvaliacaoRef.current;
 
-      console.log(
-        "Buscando a partir da avaliação:",
-        ultimaAvaliacao?.id,
-        "usuário:",
-        ultimaAvaliacao?.usuario?.id
-      );
-
       // Esta função precisará ser modificada no Firebase para suportar paginação
       const novasAvaliacoes = await obterAvaliacoesGlobais(
         LIMITE_POR_PAGINA,
@@ -246,30 +306,60 @@ const FeedGlobal = () => {
 
       console.log(`Encontradas ${novasAvaliacoes.length} novas avaliações`);
 
-      // Processar as novas avaliações
-      const avaliacoesProcessadas = novasAvaliacoes
-        .map((avaliacao) => ({
-          ...avaliacao,
-          imagem: validarUrlImagem(avaliacao.imagem),
-          usuario: {
-            ...avaliacao.usuario,
-            foto: validarUrlImagem(avaliacao.usuario.foto),
-          },
-          // Preservar propriedades relacionadas a atualizações
-          atualizada:
-            avaliacao.atualizada ||
-            avaliacao.atualizacao ||
-            (avaliacao.dataAtualizacao ? true : false) ||
-            (avaliacao.atualizacaoTimestamp ? true : false),
-          temReview:
-            typeof avaliacao.review === "string" ||
-            (avaliacao.preferencias &&
-              typeof avaliacao.preferencias.review === "string"),
-        }))
-        .filter((avaliacao) => (avaliacao.progresso?.percentual || 0) >= 100);
+      // Examinar cada avaliação antes do processamento
+      console.log("====== NOVAS AVALIAÇÕES DO SERVIDOR ======");
+      novasAvaliacoes.forEach((av, idx) => {
+        console.log(`Nova Avaliação #${idx + 1}: ${av.nome}, ID: ${av.id}`);
+        console.log(`  Usuário: ${av.usuario.nome}, ID: ${av.usuario.id}`);
+        console.log(`  Progresso:`, av.progresso);
+        console.log(`  Progresso.percentual: ${av.progresso?.percentual}`);
+        if (av.progresso?.percentual !== 100) {
+          console.log(
+            `  ⚠️ ATENÇÃO: Percentual diferente de 100: ${av.progresso?.percentual}`
+          );
+        }
+      });
+
+      // Processar as novas avaliações com a mesma lógica anterior
+      let avaliacoesProcessadas = novasAvaliacoes.map((avaliacao) => ({
+        ...avaliacao,
+        imagem: validarUrlImagem(avaliacao.imagem),
+        usuario: {
+          ...avaliacao.usuario,
+          foto: validarUrlImagem(avaliacao.usuario.foto),
+        },
+        // Preservar propriedades relacionadas a atualizações
+        atualizada:
+          avaliacao.atualizada ||
+          avaliacao.atualizacao ||
+          (avaliacao.dataAtualizacao ? true : false) ||
+          (avaliacao.atualizacaoTimestamp ? true : false),
+        temReview:
+          typeof avaliacao.review === "string" ||
+          (avaliacao.preferencias &&
+            typeof avaliacao.preferencias.review === "string"),
+      }));
+
+      // Aplicar o filtro estrito para 100%
+      console.log(
+        `Antes da filtragem: ${avaliacoesProcessadas.length} novas avaliações`
+      );
+
+      // Filtra apenas avaliações com 100% de progresso
+      avaliacoesProcessadas = avaliacoesProcessadas.filter((avaliacao) => {
+        // Conversão para garantir comparação numérica
+        const percentual = Number(avaliacao.progresso?.percentual);
+        const ehCem = percentual === 100;
+
+        console.log(
+          `Filtragem de novas - ${avaliacao.nome}: percentual=${percentual}, é 100%=${ehCem}`
+        );
+
+        return ehCem;
+      });
 
       console.log(
-        `${avaliacoesProcessadas.length} avaliações processadas com progresso 100%`
+        `Após filtragem: ${avaliacoesProcessadas.length} novas avaliações com exatamente 100% de progresso`
       );
 
       // Adicionar as novas avaliações ao array existente
@@ -301,8 +391,6 @@ const FeedGlobal = () => {
       }
 
       // Verificar se ainda há mais avaliações para carregar
-      // Mesmo se vier menos que o limite, continuamos tentando carregar mais
-      // a menos que não tenha vindo nenhuma avaliação
       setTemMaisAvaliacoes(avaliacoesProcessadas.length > 0);
     } catch (error) {
       console.error("Erro ao carregar mais avaliações:", error);
@@ -593,6 +681,22 @@ const FeedGlobal = () => {
     );
   }
 
+  // Para garantir que nenhuma avaliação com progresso diferente de 100% seja exibida
+  // Aplicamos uma última filtragem antes da renderização
+  const avaliacoesParaRenderizar = avaliacoes.filter((av) => {
+    const percentual = Number(av.progresso?.percentual);
+    return percentual === 100;
+  });
+
+  // Aviso se algo passou pelo filtro incorretamente
+  if (avaliacoes.length !== avaliacoesParaRenderizar.length) {
+    console.warn(
+      `⚠️ AVISO: ${
+        avaliacoes.length - avaliacoesParaRenderizar.length
+      } avaliações com progresso diferente de 100% foram removidas antes da renderização`
+    );
+  }
+
   return (
     <div className="p-4 md:p-6">
       <div className="flex justify-between items-center mb-6">
@@ -616,7 +720,7 @@ const FeedGlobal = () => {
             </span>
           </button>
           {/* Alternância de visualização: mobile = 1 botão, desktop = 2 botões on/off */}
-          {avaliacoes && avaliacoes.length > 0 && (
+          {avaliacoesParaRenderizar && avaliacoesParaRenderizar.length > 0 && (
             <>
               {/* Mobile: botão único */}
               <div className="flex md:hidden">
@@ -673,7 +777,7 @@ const FeedGlobal = () => {
         </div>
       </div>
 
-      {avaliacoes.length === 0 ? (
+      {avaliacoesParaRenderizar.length === 0 ? (
         <div className="text-center py-12 bg-cinza-escuro rounded-xl">
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -708,7 +812,7 @@ const FeedGlobal = () => {
                 gap: "1rem",
               }}
             >
-              {avaliacoes.map((avaliacao, index) => (
+              {avaliacoesParaRenderizar.map((avaliacao, index) => (
                 <div
                   key={`${avaliacao.id}-${avaliacao.usuario.id}-${index}`}
                   className={`bg-cinza-escuro rounded-xl overflow-hidden shadow-lg transition-all duration-300 hover:scale-[1.02] hover:shadow-xl flex flex-col h-full cursor-pointer relative hover:bg-cinza-escuro/90 group ${
@@ -717,7 +821,9 @@ const FeedGlobal = () => {
                   onClick={(e) => navegarParaAlbum(avaliacao.id, e)}
                   title={t("feed.cliqueVerDetalhes")}
                   ref={
-                    index === avaliacoes.length - 1 ? ultimoElementoRef : null
+                    index === avaliacoesParaRenderizar.length - 1
+                      ? ultimoElementoRef
+                      : null
                   }
                 >
                   {/* Tag Novo/Atualizado no topo do card (modo lista e grid) */}
@@ -872,7 +978,7 @@ const FeedGlobal = () => {
             </div>
           ) : (
             <div className="grid grid-cols-1 gap-4 md:gap-5">
-              {avaliacoes.map((avaliacao, index) => (
+              {avaliacoesParaRenderizar.map((avaliacao, index) => (
                 <div
                   key={`${avaliacao.id}-${avaliacao.usuario.id}-${index}`}
                   className={`bg-cinza-escuro rounded-xl overflow-hidden shadow-lg transition-all duration-300 hover:scale-[1.02] hover:shadow-xl flex flex-col h-full cursor-pointer relative hover:bg-cinza-escuro/90 group ${
@@ -881,7 +987,9 @@ const FeedGlobal = () => {
                   onClick={(e) => navegarParaAlbum(avaliacao.id, e)}
                   title={t("feed.cliqueVerDetalhes")}
                   ref={
-                    index === avaliacoes.length - 1 ? ultimoElementoRef : null
+                    index === avaliacoesParaRenderizar.length - 1
+                      ? ultimoElementoRef
+                      : null
                   }
                 >
                   {/* Tag Novo/Atualizado no topo do card (modo lista e grid) */}
@@ -1095,7 +1203,7 @@ const FeedGlobal = () => {
             <div className="bg-gray-800 text-white p-4 rounded-lg mb-4 max-h-96 overflow-y-auto overflow-x-hidden">
               {/* Autor da review e data */}
               {(() => {
-                const avaliacao = avaliacoes.find(
+                const avaliacao = avaliacoesParaRenderizar.find(
                   (a) =>
                     a.id === avaliacaoSelecionada?.albumId &&
                     a.usuario.id === avaliacaoSelecionada?.usuarioId

@@ -176,7 +176,6 @@
     "rating": "Nota",
     "track": "Faixa",
     "loadError": "Não foi possível carregar os detalhes do álbum",
-    "listenOnSpotify": "Ouvir no Spotify",
     "ratingProgress": "Progresso da avaliação",
     "favoriteTrack": "Música Favorita",
     "worstTrack": "Pior Música",
@@ -316,5 +315,15 @@
     "loginWithSpotify": "Entrar com Spotify",
     "loginWithSpotifyDesc": "Faça login com sua conta do Spotify para acessar recursos personalizados",
     "errorSpotify": "Erro ao iniciar login com Spotify."
+  },
+  "review": {
+    "editTitle": "Editar review",
+    "addTitle": "Adicionar review",
+    "editButton": "Editar Review",
+    "writeButton": "Escrever Review"
+  },
+  "spotify": {
+    "openTitle": "Abrir no Spotify",
+    "listenButton": "Ouvir no Spotify"
   }
 }

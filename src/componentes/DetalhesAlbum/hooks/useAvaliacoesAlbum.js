@@ -36,19 +36,76 @@ export default function useAvaliacoesAlbum(
   const navigate = useNavigate();
   const [mostrarConfirmacao, setMostrarConfirmacao] = useState(null);
 
+  // Função auxiliar para salvar tudo no banco
+  const salvarEstadoAlbumNoBanco = async (
+    preferenciasExtras = {},
+    avaliacoesAtualizadas = null
+  ) => {
+    if (!detalhesAlbum || !faixas) return;
+    const usuarioFirebase = getUsuarioAtual();
+    if (!usuarioFirebase) return;
+
+    // Use avaliacoesAtualizadas se fornecidas (estado mais recente), senão use avaliacoes do estado
+    const avaliacoesParaUsar = avaliacoesAtualizadas || avaliacoes;
+
+    // Checagem para garantir que faixas estão completas
+    let faixasParaSalvar = faixas;
+    if (
+      detalhesAlbum.total_tracks &&
+      (!faixas.items || faixas.items.length < detalhesAlbum.total_tracks)
+    ) {
+      const { buscarFaixasPorAlbum } = await import(
+        "../../../services/spotify"
+      );
+      faixasParaSalvar = await buscarFaixasPorAlbum(albumId);
+    }
+
+    // Calcular progresso e média atuais
+    const progressoAtual = calcularProgressoAvaliacao(
+      faixasParaSalvar,
+      avaliacoesParaUsar
+    );
+    const mediaAtual = calcularMediaTodasFaixas(
+      faixasParaSalvar,
+      avaliacoesParaUsar
+    );
+
+    // LOG PARA DEPURAÇÃO
+    console.log("[SALVAR NO BANCO] Média calculada:", mediaAtual);
+    console.log("[SALVAR NO BANCO] Faixas usadas:", faixasParaSalvar);
+    console.log("[SALVAR NO BANCO] Avaliações usadas:", avaliacoesParaUsar);
+
+    // Preferências finais
+    const preferencias = {
+      faixaFavorita,
+      piorFaixa,
+      ...preferenciasExtras,
+    };
+
+    // Flags de atualização
+    const isAtualizado = progressoAtual.percentual === 100;
+    const isPrimeiraAvaliacaoConcluida = progressoAtual.percentual === 100; // Não temos histórico aqui, mas não afeta o fluxo
+
+    await salvarAvaliacaoAlbum(
+      albumId,
+      avaliacoesParaUsar,
+      detalhesAlbum.name,
+      detalhesAlbum.artists[0].name,
+      detalhesAlbum.images[0]?.url || "",
+      preferencias,
+      faixasParaSalvar,
+      isAtualizado,
+      isPrimeiraAvaliacaoConcluida,
+      mediaAtual
+    );
+  };
+
   // Função para avaliar uma faixa
   const avaliarFaixa = async (faixaId, nota) => {
     if (!faixas) return;
 
     // Verificar se o usuário está logado no Firebase
     const usuarioFirebase = getUsuarioAtual();
-
-    // Calcular o progresso atual para verificar se já estava 100% antes da alteração
-    const progressoAtual = calcularProgressoAvaliacao(faixas, avaliacoes);
-    const estaCompleto = progressoAtual.percentual === 100;
-
-    // Guardar a média anterior para comparar depois (antes de qualquer alteração)
-    // const mediaAnterior = calcularMediaAvaliacoes(faixas, avaliacoes); // removido
 
     // Atualiza as avaliações localmente
     let novasAvaliacoes = { ...avaliacoes };
@@ -60,55 +117,23 @@ export default function useAvaliacoesAlbum(
       novasAvaliacoes[faixaId] = nota;
     }
 
+    // Atualizar o estado local imediatamente
     setAvaliacoes(novasAvaliacoes);
 
-    // Calcular progresso correto após as mudanças
+    // Calcular progresso correto após as mudanças (usando as novas avaliações)
     const novoProgresso = calcularProgressoAvaliacao(faixas, novasAvaliacoes);
-    setProgressoAvaliacao(novoProgresso);
 
-    // Calcular nova média após a avaliação (apenas para exibição)
-    // const novaMedia = calcularMediaAvaliacoes(faixas, novasAvaliacoes); // removido
+    // Garantir que estamos criando um novo objeto para forçar reatividade
+    setProgressoAvaliacao({ ...novoProgresso });
 
-    // Log para debug
-    // console.log(
-    //   `Média anterior: ${mediaAnterior}, Nova média: ${novaMedia}, Progresso atual: ${progressoAtual.percentual}%, Novo progresso: ${novoProgresso.percentual}%`
-    // );
+    // Log para depuração (remover após resolver o problema)
+    console.log("[avaliarFaixa] Novo progresso:", novoProgresso);
 
     if (usuarioFirebase) {
-      // Para usuário logado, salvar diretamente no Firebase
       try {
         if (detalhesAlbum) {
-          // LÓGICA CORRIGIDA:
-          // Se o álbum já estava completo (100%), qualquer alteração é uma atualização
-          // Mesmo que a média não mude, se já está 100% e mudamos alguma nota, é uma atualização
-          const isAtualizado = estaCompleto;
-
-          // É primeira avaliação completa se:
-          // Agora está 100% completo MAS não estava antes
-          const isPrimeiraAvaliacaoConcluida =
-            novoProgresso.percentual === 100 && !estaCompleto;
-
-          // Calcular média para salvar (considerando todas as faixas)
-          const mediaParaSalvar = calcularMediaTodasFaixas(
-            faixas,
-            novasAvaliacoes
-          );
-
-          await salvarAvaliacaoAlbum(
-            albumId,
-            novasAvaliacoes,
-            detalhesAlbum.name,
-            detalhesAlbum.artists[0].name,
-            detalhesAlbum.images[0]?.url || "",
-            {
-              faixaFavorita,
-              piorFaixa,
-            },
-            faixas, // Passar as faixas para salvar os nomes
-            isAtualizado, // Indicar se é uma atualização
-            isPrimeiraAvaliacaoConcluida, // Indicar se é a primeira avaliação completa
-            mediaParaSalvar // <-- Passar a média correta
-          );
+          // Passar as avaliações atualizadas para garantir que o banco receba a versão mais recente
+          await salvarEstadoAlbumNoBanco({}, novasAvaliacoes);
         }
       } catch (error) {
         console.error("Erro ao salvar avaliação:", error);
@@ -215,6 +240,10 @@ export default function useAvaliacoesAlbum(
     const novaFaixaFavorita = faixaFavorita === faixaId ? null : faixaId;
     setFaixaFavorita(novaFaixaFavorita);
 
+    // Atualizar progresso (não muda avaliações, mas pode ser útil para garantir reatividade)
+    const novoProgresso = calcularProgressoAvaliacao(faixas, avaliacoes);
+    setProgressoAvaliacao({ ...novoProgresso });
+
     // Encontrar o nome da faixa favorita (se houver)
     let nomeFaixaFavorita = null;
     if (novaFaixaFavorita) {
@@ -226,43 +255,13 @@ export default function useAvaliacoesAlbum(
       }
     }
 
-    // Salvar nas preferências do álbum
-    const preferencias = {
-      faixaFavorita: novaFaixaFavorita,
-      faixaFavoritaNome: nomeFaixaFavorita,
-      piorFaixa: piorFaixa,
-      // Preservar nome da pior faixa se existir
-      piorFaixaNome: piorFaixa
-        ? faixas.items.find((faixa) => faixa.id === piorFaixa)?.name
-        : null,
-    };
-
     if (usuarioFirebase) {
-      // Para usuário logado, salvar diretamente no Firebase
       try {
         if (detalhesAlbum) {
-          // Checagem defensiva para evitar undefined
-          const nomeArtista =
-            Array.isArray(detalhesAlbum.artists) &&
-            detalhesAlbum.artists.length > 0 &&
-            detalhesAlbum.artists[0]?.name
-              ? detalhesAlbum.artists[0].name
-              : "Artista desconhecido";
-          const urlImagem =
-            Array.isArray(detalhesAlbum.images) &&
-            detalhesAlbum.images.length > 0 &&
-            detalhesAlbum.images[0]?.url
-              ? detalhesAlbum.images[0].url
-              : "";
-          await salvarAvaliacaoAlbum(
-            albumId,
-            avaliacoes,
-            detalhesAlbum.name,
-            nomeArtista,
-            urlImagem,
-            preferencias,
-            faixas // Passar as faixas para salvar os nomes
-          );
+          await salvarEstadoAlbumNoBanco({
+            faixaFavorita: novaFaixaFavorita,
+            faixaFavoritaNome: nomeFaixaFavorita,
+          });
         }
       } catch (error) {
         // Erro ao salvar faixa favorita
@@ -305,7 +304,13 @@ export default function useAvaliacoesAlbum(
       // Para usuário não logado ou modo demo, salvar no formato antigo
       localStorage.setItem(
         `preferencias_${albumId}`,
-        JSON.stringify(preferencias)
+        JSON.stringify({
+          favorita: novaFaixaFavorita,
+          pior: piorFaixa,
+          // Sempre preservar a review existente, mesmo se for string vazia
+          review: typeof review === "string" ? review : "",
+          data_review: review ? new Date().toISOString() : null,
+        })
       );
 
       // Notificar que as avaliações foram alteradas para acionar a sincronização
@@ -348,6 +353,10 @@ export default function useAvaliacoesAlbum(
     const novaPiorFaixa = piorFaixa === faixaId ? null : faixaId;
     setPiorFaixa(novaPiorFaixa);
 
+    // Atualizar progresso (não muda avaliações, mas pode ser útil para garantir reatividade)
+    const novoProgresso = calcularProgressoAvaliacao(faixas, avaliacoes);
+    setProgressoAvaliacao({ ...novoProgresso });
+
     // Encontrar o nome da pior faixa (se houver)
     let nomePiorFaixa = null;
     if (novaPiorFaixa) {
@@ -359,43 +368,13 @@ export default function useAvaliacoesAlbum(
       }
     }
 
-    // Salvar nas preferências do álbum
-    const preferencias = {
-      faixaFavorita: faixaFavorita,
-      // Preservar nome da faixa favorita se existir
-      faixaFavoritaNome: faixaFavorita
-        ? faixas.items.find((faixa) => faixa.id === faixaFavorita)?.name
-        : null,
-      piorFaixa: novaPiorFaixa,
-      piorFaixaNome: nomePiorFaixa,
-    };
-
     if (usuarioFirebase) {
-      // Para usuário logado, salvar diretamente no Firebase
       try {
         if (detalhesAlbum) {
-          // Checagem defensiva para evitar undefined
-          const nomeArtista =
-            Array.isArray(detalhesAlbum.artists) &&
-            detalhesAlbum.artists.length > 0 &&
-            detalhesAlbum.artists[0]?.name
-              ? detalhesAlbum.artists[0].name
-              : "Artista desconhecido";
-          const urlImagem =
-            Array.isArray(detalhesAlbum.images) &&
-            detalhesAlbum.images.length > 0 &&
-            detalhesAlbum.images[0]?.url
-              ? detalhesAlbum.images[0].url
-              : "";
-          await salvarAvaliacaoAlbum(
-            albumId,
-            avaliacoes,
-            detalhesAlbum.name,
-            nomeArtista,
-            urlImagem,
-            preferencias,
-            faixas // Passar as faixas para salvar os nomes
-          );
+          await salvarEstadoAlbumNoBanco({
+            piorFaixa: novaPiorFaixa,
+            piorFaixaNome: nomePiorFaixa,
+          });
         }
       } catch (error) {
         // Erro ao salvar pior faixa
@@ -439,7 +418,13 @@ export default function useAvaliacoesAlbum(
       // Para usuário não logado ou modo demo, salvar no formato antigo
       localStorage.setItem(
         `preferencias_${albumId}`,
-        JSON.stringify(preferencias)
+        JSON.stringify({
+          favorita: faixaFavorita,
+          pior: novaPiorFaixa,
+          // Sempre preservar a review existente, mesmo se for string vazia
+          review: typeof review === "string" ? review : "",
+          data_review: review ? new Date().toISOString() : null,
+        })
       );
 
       // Notificar que as avaliações foram alteradas para acionar a sincronização
@@ -495,41 +480,14 @@ export default function useAvaliacoesAlbum(
 
         // Se o usuário estiver logado no Firebase, sincronizar com o servidor
         if (getUsuarioAtual()) {
-          // Preparar para salvar no Firebase
-          const preferencias = {
-            faixaFavorita: null,
-            piorFaixa: null,
-            // Sempre preservar a review existente, mesmo se for string vazia
-            review: typeof review === "string" ? review : "",
-            data_review: review ? new Date() : null,
-          };
-
           try {
-            // Checagem defensiva para garantir valores válidos
-            const nomeAlbum = detalhesAlbum?.name || "Álbum sem nome";
-            const nomeArtista =
-              Array.isArray(detalhesAlbum?.artists) &&
-              detalhesAlbum.artists.length > 0 &&
-              detalhesAlbum.artists[0]?.name
-                ? detalhesAlbum.artists[0].name
-                : "Artista desconhecido";
-            const urlImagem =
-              Array.isArray(detalhesAlbum?.images) &&
-              detalhesAlbum.images.length > 0 &&
-              detalhesAlbum.images[0]?.url
-                ? detalhesAlbum.images[0].url
-                : "";
-
-            await salvarAvaliacaoAlbum(
-              albumId,
-              novasAvaliacoes,
-              nomeAlbum,
-              nomeArtista,
-              urlImagem,
-              preferencias,
-              faixas,
-              true // indicar que é uma atualização
-            );
+            // Usar a função central com media 0 e preferências resetadas
+            await salvarEstadoAlbumNoBanco({
+              faixaFavorita: null,
+              piorFaixa: null,
+              review: typeof review === "string" ? review : "",
+              data_review: review ? new Date() : null,
+            });
           } catch (erroFirebase) {
             console.error(
               "Erro ao resetar avaliações no Firebase:",

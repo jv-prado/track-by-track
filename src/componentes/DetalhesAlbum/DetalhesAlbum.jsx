@@ -6,6 +6,7 @@ import ModaisAlbum from "./componentes/ModaisAlbum";
 import BlocoCardsAlbum from "./componentes/BlocoCardsAlbum";
 import ListaFaixas from "./componentes/ListaFaixas";
 import Overlay from "./componentes/Overlay";
+import Carregamento from "../Feedback/Carregamento";
 
 const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
   const {
@@ -59,11 +60,7 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
   } = useDetalhesAlbumPage(albumIdProp, onVoltarProp);
 
   if (carregando) {
-    return (
-      <div className="p-8">
-        <span>{t("loading")}</span>
-      </div>
-    );
+    return <Carregamento />;
   }
 
   if (erro) {

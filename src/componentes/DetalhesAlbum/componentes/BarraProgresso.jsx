@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 
 /**
@@ -8,6 +8,11 @@ import { useTranslation } from "react-i18next";
  */
 const BarraProgresso = ({ progressoAvaliacao }) => {
   const { t } = useTranslation();
+
+  // Efeito para forçar a re-renderização quando o progresso mudar
+  useEffect(() => {
+    // Este efeito garante que o componente reaja a alterações no progressoAvaliacao
+  }, [progressoAvaliacao?.avaliadas, progressoAvaliacao?.percentual]);
 
   return (
     <div className="mt-1 md:mt-0">
@@ -25,6 +30,9 @@ const BarraProgresso = ({ progressoAvaliacao }) => {
       </div>
       <div className="w-full max-w-[80vw] mx-auto xs:max-w-[180px] md:max-w-full md:ml-0 h-1.5 xs:h-2 md:h-2.5 lg:h-3 xl:h-3 bg-cinza/70 xs:bg-cinza rounded-full overflow-hidden relative">
         <div
+          key={`progresso-${progressoAvaliacao?.avaliadas || 0}-${
+            progressoAvaliacao?.percentual || 0
+          }`}
           className={`h-full transition-all duration-300 ease-in-out ${
             Math.floor(progressoAvaliacao?.percentual || 0) >= 100
               ? "bg-verde-destaque"

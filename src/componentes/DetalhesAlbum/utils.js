@@ -39,3 +39,51 @@ export function obterCorNota(nota) {
   if (notaNum < 7) return "text-yellow-500";
   return "text-verde-destaque";
 }
+
+// Função para atualizar ou criar uma meta tag no head
+export function updateMetaTag(property, content) {
+  let metaTag = document.querySelector(`meta[property="${property}"]`);
+  if (metaTag) {
+    metaTag.setAttribute("content", content);
+  } else {
+    metaTag = document.createElement("meta");
+    metaTag.setAttribute("property", property);
+    metaTag.setAttribute("content", content);
+    document.head.appendChild(metaTag);
+  }
+}
+
+// Função para remover metatags OpenGraph e link canônico
+export function removerMetadadosOpenGraph() {
+  const metaTags = ["og:title", "og:description", "og:image", "og:url"];
+  metaTags.forEach((property) => {
+    const metaTag = document.querySelector(`meta[property="${property}"]`);
+    if (metaTag) {
+      metaTag.remove();
+    }
+  });
+  // Remover link canônico
+  const linkTag = document.querySelector('link[rel="canonical"]');
+  if (linkTag) {
+    linkTag.remove();
+  }
+}
+
+// Função utilitária para fechar popovers ao clicar fora
+export function handleClickOutside(
+  event,
+  popoverRef,
+  setMostrarPopover,
+  popoverMediaRef,
+  setMostrarPopoverMedia
+) {
+  if (popoverRef.current && !popoverRef.current.contains(event.target)) {
+    setMostrarPopover(false);
+  }
+  if (
+    popoverMediaRef.current &&
+    !popoverMediaRef.current.contains(event.target)
+  ) {
+    setMostrarPopoverMedia(false);
+  }
+}

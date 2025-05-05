@@ -665,28 +665,6 @@ export default function useAvaliacoesAlbum(
     setMostrarConfirmacao(null);
   };
 
-  // Função auxiliar para calcular média das avaliações
-  const calcularMediaAvaliacoes = (dadosFaixas, avaliacoesFaixas) => {
-    if (!dadosFaixas || !dadosFaixas.items || !dadosFaixas.items.length) {
-      return 0;
-    }
-
-    const faixasComNota = dadosFaixas.items.filter(
-      (faixa) => avaliacoesFaixas[faixa.id] && avaliacoesFaixas[faixa.id] > 0
-    );
-
-    if (!faixasComNota.length) {
-      return 0;
-    }
-
-    const somaNotas = faixasComNota.reduce((acc, faixa) => {
-      return acc + avaliacoesFaixas[faixa.id];
-    }, 0);
-
-    // Multiplica por 2 para converter de escala 0-5 para 0-10
-    return (somaNotas / faixasComNota.length) * 2;
-  };
-
   // Verificar se existe review
   const temReviewExistente = Boolean(review);
 
@@ -700,6 +678,5 @@ export default function useAvaliacoesAlbum(
     mostrarConfirmacao,
     setMostrarConfirmacao,
     temReviewExistente,
-    calcularMediaAvaliacoes,
   };
 }

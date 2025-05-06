@@ -220,7 +220,16 @@
     "uploadError": "Error updating profile picture. Please try again.",
     "dataSavedLocally": "Data saved locally",
     "ratingsSavedToAccount": "Ratings saved to account",
-    "logout": "Logout"
+    "logout": "Logout",
+    "editName": "Edit display name",
+    "firstName": "First name",
+    "lastName": "Last name",
+    "nameRequired": "First and last name are required",
+    "nameTooShort": "First and last name must have at least 2 letters",
+    "updateNameError": "Error updating name",
+    "saving": "Saving...",
+    "save": "Save",
+    "cancel": "Cancel"
   },
   "userRatings": {
     "title": "Ratings",

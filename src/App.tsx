@@ -4,7 +4,7 @@ import Sidebar from "./componentes/sidebar/";
 import BarraDePesquisa from "./componentes/BarraDePesquisa";
 import Feed from "./componentes/Feed/Feed";
 import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
-import PerfilUsuario from "./componentes/PerfilUsuario";
+import PerfilUsuario from "./componentes/PerfilUsuario/";
 import PerfilPublico from "./componentes/PerfilPublico";
 import Splash from "./componentes/Splash";
 import Login from "./componentes/AuthForms/Login";

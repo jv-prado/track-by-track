@@ -1,668 +1,213 @@
-import React, { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import { useTranslation } from "react-i18next";
+import { useState, useEffect, useRef } from "react";
 import { useAuth } from "../../contexts/AuthContext";
-import { sairDaConta } from "../../services/firebase";
 import {
-  estaAutenticado,
-  obterPerfilUsuario,
-  logout as logoutSpotify,
-} from "../../services/spotify";
-import defaultUserImage from "../../assets/default-user.png";
-import { obterAvaliacoesGlobais } from "../../services/firebase/index";
-import Carregamento from "../Feedback/Carregamento";
-import ErroCarregamento from "../Feedback/ErroCarregamento";
-import { formatarData } from "../../services/avaliacoes";
-import { MdMusicNote, MdArrowBack } from "react-icons/md";
-import { FaSpotify } from "react-icons/fa";
-import { FaRegStar } from "react-icons/fa";
-import { MdRateReview } from "react-icons/md";
-import ModalAvaliacoesUsuario from "../Feed/ModalAvaliacoesUsuario";
+  fazerLogout,
+  updateUserProfile,
+  uploadFile,
+} from "../../services/firebase/index";
+import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
+import { getFirestore, doc, getDoc, updateDoc } from "firebase/firestore";
+import InfoUsuario from "./InfoUsuario";
+import StatusContaUsuario from "./StatusContaUsuario";
 
-const PerfilUsuario = () => {
-  const { usuario, fazerLogout } = useAuth();
-  const [usuarioSpotify, setUsuarioSpotify] = useState(null);
-  const [demoModeAtivo, setDemoModeAtivo] = useState(false);
-  const [carregando, setCarregando] = useState(false);
+export default function PerfilUsuario() {
+  const { t, i18n } = useTranslation();
+  const [carregando, setCarregando] = useState(true);
+  const [fotoPerfil, setFotoPerfil] = useState(null);
+  const [erro, setErro] = useState("");
+  const fileInputRef = useRef(null);
+  const { usuario: usuarioFirebase, usuarioAtivo } = useAuth();
   const navigate = useNavigate();
-  const { t } = useTranslation();
-  const { usuarioId } = useParams();
-  const [avaliacoes, setAvaliacoes] = useState([]);
-  const [dadosUsuario, setDadosUsuario] = useState(null);
-  const [erro, setErro] = useState(null);
-  const [modalAberto, setModalAberto] = useState(false);
-  const [avaliacaoSelecionada, setAvaliacaoSelecionada] = useState(null);
-  const [modalReviewAberto, setModalReviewAberto] = useState(false);
-  const [reviewSelecionada, setReviewSelecionada] = useState("");
+  const [emailSpotify, setEmailSpotify] = useState("");
+  const [editandoNome, setEditandoNome] = useState(false);
+  const [novoNome, setNovoNome] = useState("");
+  const [novoSobrenome, setNovoSobrenome] = useState("");
+  const [erroNome, setErroNome] = useState("");
+  const [salvandoNome, setSalvandoNome] = useState(false);
 
-  // Verificar se está no modo demo ao montar o componente
   useEffect(() => {
-    const verificarModoDemo = () => {
-      const demoToken = localStorage.getItem("demo_token");
-      const demoExpiry = localStorage.getItem("demo_token_expiry");
-      const modoDemo =
-        demoToken && demoExpiry && parseInt(demoExpiry) > Date.now();
-
-      setDemoModeAtivo(modoDemo);
-
-      // Verificar se está autenticado com Spotify e buscar perfil se necessário
-      const autenticadoSpotify = estaAutenticado();
-      if (autenticadoSpotify && !usuarioSpotify) {
-        carregarPerfilSpotify();
-      }
-    };
-
-    verificarModoDemo();
-  }, []);
-
-  // Carregar dados do perfil do Spotify
-  const carregarPerfilSpotify = async () => {
-    try {
-      const perfil = await obterPerfilUsuario();
-      setUsuarioSpotify(perfil);
-    } catch (error) {
-      console.error("Erro ao carregar perfil do Spotify:", error);
+    setCarregando(false);
+    if (usuarioFirebase?.photoURL) {
+      setFotoPerfil(usuarioFirebase.photoURL);
     }
-  };
-
-  // Buscar as avaliações do usuário especificado
-  useEffect(() => {
-    const carregarAvaliacoes = async () => {
-      setCarregando(true);
-      setErro(null);
-
+    async function fetchEmailSpotify() {
       try {
-        // Buscar todas as avaliações e filtrar pelo usuário específico
-        const todasAvaliacoes = await obterAvaliacoesGlobais(100);
-        const avaliacoesDoUsuario = todasAvaliacoes.filter(
-          (avaliacao) => avaliacao.usuario.id === usuarioId
-        );
-
-        // Verificar se encontrou avaliações para o usuário
-        if (avaliacoesDoUsuario.length === 0) {
-          setErro(
-            t(
-              "perfilUsuario.nenhumaAvaliacao",
-              "Este usuário ainda não possui avaliações"
-            )
-          );
-          setCarregando(false);
-          return;
-        }
-
-        // Obter informações do usuário da primeira avaliação
-        const usuario = avaliacoesDoUsuario[0].usuario;
-        setDadosUsuario(usuario);
-
-        // Processar avaliações
-        const avaliacoesProcessadas = avaliacoesDoUsuario
-          .map((avaliacao) => ({
-            ...avaliacao,
-            imagem: validarUrlImagem(avaliacao.imagem),
-            usuario: {
-              ...avaliacao.usuario,
-              foto: validarUrlImagem(avaliacao.usuario.foto),
-            },
-            atualizada:
-              avaliacao.atualizada ||
-              avaliacao.atualizacao ||
-              (avaliacao.dataAtualizacao ? true : false) ||
-              (avaliacao.atualizacaoTimestamp ? true : false),
-            temReview:
-              typeof avaliacao.review === "string" ||
-              (avaliacao.preferencias &&
-                typeof avaliacao.preferencias.review === "string"),
-          }))
-          .filter((avaliacao) => (avaliacao.progresso?.percentual || 0) >= 100);
-
-        setAvaliacoes(avaliacoesProcessadas);
-      } catch (error) {
-        console.error("Erro ao carregar avaliações do usuário:", error);
-        setErro(error.message || "Erro ao carregar as avaliações do usuário");
-      } finally {
-        setCarregando(false);
-      }
-    };
-
-    if (usuarioId) {
-      carregarAvaliacoes();
-    } else {
-      setErro("ID de usuário não especificado");
-      setCarregando(false);
-    }
-  }, [usuarioId, t]);
-
-  // Função para validar URLs de imagem
-  const validarUrlImagem = (url) => {
-    if (!url) return null;
-    try {
-      new URL(url);
-      return url;
-    } catch {
-      return null;
-    }
-  };
-
-  // Função para determinar a cor da nota baseada no valor
-  const obterCorNota = (nota) => {
-    // Converter para número para garantir a comparação correta
-    const notaNum = parseFloat(nota);
-
-    if (notaNum < 4) return "bg-red-500"; // Nota baixa: vermelho
-    if (notaNum < 7) return "bg-yellow-500"; // Nota média: amarelo
-    return "bg-verde-destaque"; // Nota alta: verde
-  };
-
-  // Formatação da média para exibição
-  const formatarMedia = (media) => {
-    // Garantir que é um número válido
-    if (isNaN(media) || media === null || media === undefined) {
-      return "0";
-    }
-
-    // Limitar a valores entre 0 e 10
-    const mediaLimitada = Math.max(0, Math.min(10, media));
-
-    // Exibir números inteiros sem casa decimal
-    return Number.isInteger(mediaLimitada)
-      ? mediaLimitada.toString()
-      : mediaLimitada.toFixed(1);
-  };
-
-  // Função para formatar data com segurança
-  const formatarDataSegura = (data) => {
-    if (!data) return "Data não disponível";
-
-    try {
-      // Para dados demo que já contêm um objeto Date
-      if (data instanceof Date) {
-        return formatarData(data);
-      }
-
-      // Para dados do Firebase que contêm timestamp com segundos
-      if (data.segundos) {
-        return formatarData(new Date(data.segundos * 1000));
-      }
-
-      // Fallback para qualquer outro formato
-      return "Data não disponível";
-    } catch (erro) {
-      console.warn("Erro ao formatar data:", erro);
-      return "Data não disponível";
-    }
-  };
-
-  // Função para navegar para a página de detalhes do álbum
-  const navegarParaAlbum = (albumId, event) => {
-    // Verificar se o clique veio de um elemento clicável (como um botão ou link)
-    if (
-      event.target.tagName === "A" ||
-      event.target.tagName === "BUTTON" ||
-      event.target.closest("a") ||
-      event.target.closest("button")
-    ) {
-      return; // Não fazer nada se o clique foi em um elemento clicável
-    }
-
-    // Navegar para a página de detalhes do álbum usando a rota dedicada
-    navigate(`/album/${albumId}`);
-  };
-
-  // Função para abrir o modal de avaliações
-  const abrirModalAvaliacoes = (avaliacao, e) => {
-    e.stopPropagation(); // Evitar propagação do clique
-    setAvaliacaoSelecionada({
-      albumId: avaliacao.id,
-      usuarioId: avaliacao.usuario.id,
-    });
-    setModalAberto(true);
-  };
-
-  // Função para fechar o modal
-  const fecharModal = () => {
-    setModalAberto(false);
-    setAvaliacaoSelecionada(null);
-  };
-
-  // Função para abrir modal com a resenha
-  const abrirModalReview = (avaliacao, e) => {
-    e.stopPropagation();
-    setReviewSelecionada(
-      avaliacao.review || avaliacao.preferencias?.review || ""
-    );
-    setAvaliacaoSelecionada({
-      albumId: avaliacao.id,
-      usuarioId: avaliacao.usuario.id,
-    });
-    setModalReviewAberto(true);
-  };
-
-  // Função para fechar o modal de resenha
-  const fecharModalReview = () => {
-    setModalReviewAberto(false);
-    setReviewSelecionada("");
-  };
-
-  // Função para lidar com erro de carregamento de imagem
-  const handleImageError = (e) => {
-    e.target.style.display = "none";
-    e.target.parentElement.classList.add(
-      "flex",
-      "items-center",
-      "justify-center",
-      "bg-cinza-escuro"
-    );
-    const fallbackIcon = document.createElement("div");
-    fallbackIcon.className = "text-verde-destaque text-4xl";
-    fallbackIcon.innerHTML = "<MdMusicNote />";
-    e.target.parentElement.appendChild(fallbackIcon);
-  };
-
-  // Função de logout
-  const handleLogout = async () => {
-    try {
-      setCarregando(true);
-
-      // Se estiver em modo demo, limpar dados do demo
-      if (demoModeAtivo) {
-        // Limpar dados do demo
-        localStorage.removeItem("demo_token");
-        localStorage.removeItem("demo_token_expiry");
-        localStorage.removeItem("demo_usuario");
-        localStorage.removeItem("modo_demo_ativo");
-        localStorage.removeItem("activeView");
-
-        // Limpar dados de avaliações do modo demo
-        localStorage.removeItem("avaliacoesFaixas");
-        localStorage.removeItem("mapaFaixasAlbuns");
-        localStorage.removeItem("datasAvaliacoes");
-        localStorage.removeItem("preferenciasAlbuns");
-
-        // Limpar dados de visualização
-        localStorage.removeItem("activeView");
-
-        setDemoModeAtivo(false);
-      }
-      // Se estiver autenticado com Spotify, fazer logout do Spotify
-      else if (usuarioSpotify) {
-        // Usar função melhorada de logout do Spotify que limpa todos os dados
-        logoutSpotify();
-        setUsuarioSpotify(null);
-
-        // Verificação adicional: limpar manualmente dados do Spotify
-        const spotifyKeys = [];
-        for (let i = 0; i < localStorage.length; i++) {
-          const key = localStorage.key(i);
-          if (key && (key.startsWith("spotify_") || key.includes("spotify"))) {
-            spotifyKeys.push(key);
+        if (usuarioFirebase) {
+          let spotifyId = null;
+          if (usuarioFirebase.uid.startsWith("spotify_")) {
+            spotifyId = usuarioFirebase.uid.replace("spotify_", "");
+          }
+          if (!spotifyId) {
+            const authMethod = localStorage.getItem("spotify_auth_method");
+            if (authMethod) {
+              const perfilCache = JSON.parse(
+                localStorage.getItem("spotify_user_profile") || "{}"
+              );
+              if (
+                perfilCache &&
+                perfilCache.id &&
+                perfilCache.id !== "spotify_user"
+              ) {
+                spotifyId = perfilCache.id;
+              }
+            }
+          }
+          if (spotifyId) {
+            const db = getFirestore();
+            const userRef = doc(db, "usuariosSpotify", spotifyId);
+            try {
+              const userDoc = await getDoc(userRef);
+              if (userDoc.exists()) {
+                const userData = userDoc.data();
+                const email = userData.email;
+                if (email) {
+                  setEmailSpotify(email);
+                } else {
+                  setEmailSpotify(usuarioFirebase.email || "");
+                }
+              } else {
+                setEmailSpotify(usuarioFirebase.email || "");
+              }
+            } catch (firestoreError) {
+              setEmailSpotify(usuarioFirebase.email || "");
+            }
+          } else {
+            setEmailSpotify(usuarioFirebase.email || "");
           }
         }
-
-        // Remover todos os itens identificados
-        spotifyKeys.forEach((key) => localStorage.removeItem(key));
-
-        // Limpar outros dados de autenticação relevantes
-        localStorage.removeItem("activeView");
-        sessionStorage.removeItem("login_redirect");
+      } catch (error) {
+        if (usuarioFirebase?.email) {
+          setEmailSpotify(usuarioFirebase.email);
+        }
       }
-      // Caso contrário, deslogar normalmente
-      else if (usuario) {
-        await fazerLogout();
-        await sairDaConta();
-      }
+    }
+    fetchEmailSpotify();
+  }, [usuarioFirebase]);
 
-      // Forçar navegação para a tela de login
-      navigate("/login");
-      setCarregando(false);
+  const handleLogout = async () => {
+    if (usuarioFirebase) {
+      await fazerLogout();
+    }
+    localStorage.setItem("activeView", "feed");
+    navigate("/login");
+  };
+
+  const handleTrocarFoto = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      setErro(t("userProfile.invalidImageError"));
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setErro(t("userProfile.fileSizeError"));
+      return;
+    }
+    try {
+      setCarregando(true);
+      setErro("");
+      const filePath = `profile_pictures/${usuarioFirebase.uid}/${file.name}`;
+      const imageUrl = await uploadFile(file, filePath);
+      await updateUserProfile(usuarioFirebase, {
+        photoURL: imageUrl,
+      });
+      setFotoPerfil(imageUrl);
     } catch (error) {
-      console.error("Erro durante logout:", error);
-
-      // Em caso de erro, fazer uma limpeza forçada e redirecionar
-      localStorage.removeItem("activeView");
-      localStorage.removeItem("spotify_autenticado");
-      localStorage.removeItem("spotify_token_expires_at");
-      localStorage.removeItem("spotify_user_profile");
-
-      navigate("/login");
+      setErro(t("userProfile.uploadError"));
+    } finally {
       setCarregando(false);
     }
   };
 
-  // Se estiver em modo demo, mostrar informações do usuário demo
-  if (demoModeAtivo) {
-    const usuarioDemo = JSON.parse(
-      localStorage.getItem("demo_usuario") || "{}"
-    );
-
-    return (
-      <div className="bg-cinza-escuro p-4 rounded-lg shadow-md w-full flex flex-col">
-        <div className="flex items-center mb-4">
-          <div className="w-12 h-12 rounded-full bg-gray-700 flex items-center justify-center text-2xl font-bold text-gray-300 mr-3">
-            {usuarioDemo.nome?.charAt(0) || "D"}
-          </div>
-          <div>
-            <h3 className="text-white font-semibold text-lg">
-              {usuarioDemo.nome || t("profile.demoUser")}
-            </h3>
-            <p className="text-gray-400 text-sm">
-              {t("demoMode.demoModeActive")}
-            </p>
-          </div>
-        </div>
-
-        <div className="mt-auto">
-          <button
-            onClick={handleLogout}
-            disabled={carregando}
-            className="w-full bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded-lg transition-colors"
-          >
-            {carregando ? t("profile.exitingAccount") : t("profile.exit")}
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  // Se estiver autenticado com Spotify, mostrar perfil do Spotify
-  if (usuarioSpotify) {
-    return (
-      <div className="bg-cinza-escuro p-4 rounded-lg shadow-md w-full flex flex-col">
-        <div className="flex items-center mb-4">
-          <div className="w-12 h-12 rounded-full overflow-hidden mr-3">
-            <img
-              src={
-                usuarioSpotify.images && usuarioSpotify.images.length > 0
-                  ? usuarioSpotify.images[0].url
-                  : defaultUserImage
-              }
-              alt={usuarioSpotify.display_name || "Usuário Spotify"}
-              className="w-full h-full object-cover"
-            />
-          </div>
-          <div>
-            <h3 className="text-white font-semibold text-lg">
-              {usuarioSpotify.display_name || "Usuário Spotify"}
-            </h3>
-            <p className="text-green-500 text-sm">Via Spotify</p>
-          </div>
-        </div>
-
-        <div className="mt-auto">
-          <button
-            onClick={handleLogout}
-            disabled={carregando}
-            className="w-full bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded-lg transition-colors"
-          >
-            {carregando ? t("profile.exitingAccount") : t("profile.exit")}
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  // Se não houver usuário, não renderizar nada ou mostrar opção de login
-  if (!usuario) {
-    return (
-      <div className="bg-cinza-escuro p-4 rounded-lg shadow-md w-full flex flex-col">
-        <div className="flex items-center justify-center mb-4">
-          <p className="text-gray-400">{t("profile.notLoggedIn")}</p>
-        </div>
-
-        <div className="mt-auto">
-          <button
-            onClick={() => navigate("/login")}
-            className="w-full bg-verde-destaque hover:bg-verde-destaque/90 text-black py-2 px-4 rounded-lg transition-colors"
-          >
-            {t("profile.login")}
-          </button>
-        </div>
-      </div>
-    );
-  }
+  const handleSalvarNome = async (e) => {
+    e.preventDefault();
+    setErroNome("");
+    console.log("[handleSalvarNome] Iniciando atualização de nome");
+    console.log("Novo nome:", novoNome, "Novo sobrenome:", novoSobrenome);
+    if (!novoNome.trim() || !novoSobrenome.trim()) {
+      setErroNome(
+        t("userProfile.nameRequired") || "Nome e sobrenome obrigatórios"
+      );
+      console.log("[handleSalvarNome] Nome ou sobrenome vazio");
+      return;
+    }
+    if (novoNome.length < 2 || novoSobrenome.length < 2) {
+      setErroNome(
+        t("userProfile.nameTooShort") ||
+          "Nome e sobrenome devem ter pelo menos 2 letras"
+      );
+      console.log("[handleSalvarNome] Nome ou sobrenome muito curto");
+      return;
+    }
+    setSalvandoNome(true);
+    try {
+      console.log("[handleSalvarNome] usuarioFirebase:", usuarioFirebase);
+      const db = getFirestore();
+      const userRef = doc(db, "usuarios", usuarioFirebase.uid);
+      await updateDoc(userRef, {
+        nome: `${novoNome.trim()} ${novoSobrenome.trim()}`,
+      });
+      console.log(
+        "[handleSalvarNome] Nome atualizado com sucesso no Firestore"
+      );
+      setEditandoNome(false);
+      setErroNome("");
+    } catch (error) {
+      console.error("[handleSalvarNome] Erro ao atualizar nome:", error);
+      setErroNome(t("userProfile.updateNameError") || "Erro ao atualizar nome");
+    } finally {
+      setSalvandoNome(false);
+      console.log("[handleSalvarNome] Fim do processo de atualização de nome");
+    }
+  };
 
   if (carregando) {
     return (
-      <Carregamento
-        mensagem={t(
-          "perfilUsuario.carregando",
-          "Carregando perfil do usuário..."
-        )}
-      />
+      <div className="animate-pulse bg-cinza-escuro h-10 w-full rounded-xl"></div>
     );
   }
 
-  if (erro) {
+  if (!usuarioAtivo) {
     return (
-      <div className="p-4">
-        <button
-          onClick={() => navigate(-1)}
-          className="flex items-center text-verde-destaque mb-4 hover:underline"
-        >
-          <MdArrowBack className="mr-1" /> {t("perfilUsuario.voltar", "Voltar")}
-        </button>
-        <ErroCarregamento
-          mensagem={erro}
-          titulo={t(
-            "perfilUsuario.erroCarregamento",
-            "Erro ao carregar perfil"
-          )}
-        />
-      </div>
+      <a
+        href="/login"
+        className="bg-verde-claro text-cinza-escuro py-2 px-4 rounded-full font-medium hover:bg-opacity-90 transition-all transform hover:scale-105 flex items-center justify-center cursor-pointer shadow-lg"
+      >
+        <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z" />
+        </svg>
+        {t("userProfile.loginSignUp")}
+      </a>
     );
   }
 
   return (
-    <div className="p-4 md:p-6">
-      {/* Botão voltar */}
-      <button
-        onClick={() => navigate(-1)}
-        className="flex items-center text-verde-destaque mb-4 hover:underline"
-      >
-        <MdArrowBack className="mr-1" /> {t("perfilUsuario.voltar", "Voltar")}
-      </button>
-
-      {/* Cabeçalho do perfil */}
-      <div className="bg-cinza-escuro rounded-xl p-4 mb-6 flex items-center">
-        <div className="w-16 h-16 md:w-20 md:h-20 rounded-full overflow-hidden bg-gray-800 flex items-center justify-center shadow-sm mr-4">
-          {dadosUsuario?.foto ? (
-            <img
-              src={dadosUsuario.foto}
-              alt={t("perfilUsuario.fotoUsuario", { nome: dadosUsuario.nome })}
-              className="w-full h-full object-cover"
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center bg-verde-destaque/20 text-verde-destaque text-3xl font-bold">
-              {dadosUsuario?.nome.charAt(0).toUpperCase()}
-            </div>
-          )}
-        </div>
-        <div>
-          <h1 className="text-xl md:text-2xl font-bold text-white">
-            {dadosUsuario?.nome}
-          </h1>
-          <p className="text-gray-400 text-sm">
-            {t("perfilUsuario.avaliacoes", "{{count}} avaliações", {
-              count: avaliacoes.length,
-            })}
-          </p>
-        </div>
-      </div>
-
-      {/* Lista de avaliações */}
-      <div>
-        <h2 className="text-lg md:text-xl font-bold text-verde-destaque mb-4">
-          {t("perfilUsuario.albumsAvaliados", "Álbuns avaliados")}
-        </h2>
-
-        {avaliacoes.length === 0 ? (
-          <div className="text-center py-12 bg-cinza-escuro rounded-xl">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-16 w-16 mx-auto text-gray-500 mb-4"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={1.5}
-                d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"
-              />
-            </svg>
-            <p className="text-gray-300 text-lg font-medium">
-              {t(
-                "perfilUsuario.nenhumaAvaliacao",
-                "Este usuário ainda não possui avaliações"
-              )}
-            </p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 gap-4">
-            {avaliacoes.map((avaliacao, index) => (
-              <div
-                key={`${avaliacao.id}-${index}`}
-                className="bg-cinza-escuro rounded-xl overflow-hidden shadow-lg transition-all duration-300 hover:scale-[1.01] hover:shadow-xl flex flex-col h-full cursor-pointer relative hover:bg-cinza-escuro/90 group p-4"
-                onClick={(e) => navegarParaAlbum(avaliacao.id, e)}
-                title={t("feed.cliqueVerDetalhes")}
-              >
-                <div className="flex gap-3 items-center">
-                  {/* Imagem do álbum */}
-                  <div className="flex-shrink-0 w-16 h-16 md:w-20 md:h-20 bg-cinza-escuro rounded-lg overflow-hidden">
-                    {avaliacao.imagem ? (
-                      <img
-                        src={avaliacao.imagem}
-                        alt={t("feed.capaAlbum", { nome: avaliacao.nome })}
-                        className="w-full h-full object-cover rounded-lg"
-                        onError={handleImageError}
-                        loading="lazy"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center bg-cinza-escuro rounded-lg">
-                        <MdMusicNote className="text-verde-destaque text-4xl" />
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Nome, artista e data */}
-                  <div className="flex-grow min-w-0">
-                    <h3 className="font-bold text-sm md:text-base line-clamp-1 text-white truncate pr-1">
-                      {avaliacao.nome}
-                    </h3>
-                    <p className="text-verde-destaque text-xs md:text-sm line-clamp-1 font-medium truncate pr-1 mb-2">
-                      {avaliacao.artista}
-                    </p>
-                    <span className="text-xs text-gray-400">
-                      {formatarDataSegura(
-                        avaliacao.data || avaliacao.dataAvaliacao
-                      )}
-                    </span>
-
-                    {/* Botões de ação */}
-                    <div className="flex flex-wrap gap-2 mt-2">
-                      {avaliacao.temReview && (
-                        <button
-                          className="inline-flex items-center bg-indigo-700 hover:bg-indigo-600 text-white rounded-md text-xs px-2 py-1 transition-colors shadow-sm z-20 cursor-pointer"
-                          onClick={(e) => abrirModalReview(avaliacao, e)}
-                          title={t("feed.verResenha", "Ver resenha")}
-                        >
-                          <MdRateReview className="mr-1 text-base" />
-                          <span className="whitespace-nowrap">
-                            {t("feed.verResenha", "Ver resenha")}
-                          </span>
-                        </button>
-                      )}
-                      <button
-                        style={{
-                          backgroundColor: "#5d1f89",
-                          color: "#fff",
-                        }}
-                        onMouseOver={(e) =>
-                          (e.currentTarget.style.backgroundColor = "#7C3AED")
-                        }
-                        onMouseOut={(e) =>
-                          (e.currentTarget.style.backgroundColor = "#5d1f89")
-                        }
-                        className="inline-flex items-center rounded-md text-xs px-2 py-1 transition-colors shadow-sm z-20 cursor-pointer"
-                        onClick={(e) => abrirModalAvaliacoes(avaliacao, e)}
-                        title={t("feed.faixaPorFaixa", "Faixa por faixa")}
-                      >
-                        <FaRegStar className="mr-1 text-base text-white" />
-                        <span className="whitespace-nowrap">
-                          {t("feed.faixaPorFaixa", "Faixa por faixa")}
-                        </span>
-                      </button>
-                      <a
-                        href={`https://open.spotify.com/album/${avaliacao.id}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center bg-green-600 hover:bg-green-500 text-white rounded-md text-xs px-2 py-1 transition-colors shadow-sm z-20"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <FaSpotify className="mr-1 text-base text-white" />
-                        <span className="whitespace-nowrap">
-                          {t("feed.ouvirSpotify", "Ouvir no Spotify")}
-                        </span>
-                      </a>
-                    </div>
-                  </div>
-
-                  {/* Nota média */}
-                  <div className="flex flex-col items-end min-w-[80px]">
-                    <div
-                      className={`${obterCorNota(
-                        avaliacao.media || avaliacao.mediaAvaliacao
-                      )} text-cinza-escuro rounded-lg px-2 py-1 font-bold text-lg flex items-center justify-center shadow-sm my-auto w-16`}
-                    >
-                      <span className="text-cinza-escuro">
-                        {formatarMedia(
-                          avaliacao.media || avaliacao.mediaAvaliacao
-                        )}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* Modal de avaliações do usuário */}
-      {modalAberto && avaliacaoSelecionada && (
-        <ModalAvaliacoesUsuario
-          usuarioId={avaliacaoSelecionada.usuarioId}
-          albumId={avaliacaoSelecionada.albumId}
-          onClose={fecharModal}
-        />
-      )}
-
-      {/* Modal de resenha */}
-      {modalReviewAberto && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[2000] px-2 md:px-4">
-          <div className="bg-cinza-escuro rounded-xl p-5 max-w-2xl w-full">
-            <h3 className="text-lg font-bold text-indigo-400 flex items-center gap-2 mb-3">
-              <MdRateReview />
-              {t("albumDetails.albumReview")}
-            </h3>
-            <div className="bg-gray-800 text-white p-4 rounded-lg mb-4 max-h-96 overflow-y-auto">
-              <p className="text-gray-300 whitespace-pre-wrap">
-                {reviewSelecionada}
-              </p>
-            </div>
-            <div className="flex justify-end">
-              <button
-                onClick={fecharModalReview}
-                className="bg-gray-700 py-2 px-4 rounded-lg hover:bg-gray-600 transition-colors cursor-pointer"
-              >
-                {t("albumDetails.close")}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+    <div className="bg-cinza-escuro rounded-xl flex flex-col  md:w-50 p-3">
+      <InfoUsuario
+        fotoPerfil={fotoPerfil}
+        onTrocarFoto={handleTrocarFoto}
+        fileInputRef={fileInputRef}
+        handleFileChange={handleFileChange}
+        usuarioFirebase={usuarioFirebase}
+        t={t}
+        editandoNome={editandoNome}
+        setEditandoNome={setEditandoNome}
+        novoNome={novoNome}
+        setNovoNome={setNovoNome}
+        novoSobrenome={novoSobrenome}
+        setNovoSobrenome={setNovoSobrenome}
+        erroNome={erroNome}
+        salvandoNome={salvandoNome}
+        handleSalvarNome={handleSalvarNome}
+        emailSpotify={emailSpotify}
+      />
+      {erro && <div className="mt-2 text-xs text-red-500">{erro}</div>}
+      <StatusContaUsuario t={t} handleLogout={handleLogout} />
     </div>
   );
-};
-
-export default PerfilUsuario;
+}

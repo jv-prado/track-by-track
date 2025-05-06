@@ -217,7 +217,16 @@
     "uploadError": "Erro ao atualizar a foto de perfil. Tente novamente.",
     "dataSavedLocally": "Dados salvos localmente",
     "ratingsSavedToAccount": "Avaliações salvas na conta",
-    "logout": "Sair"
+    "logout": "Sair",
+    "editName": "Editar nome de exibição",
+    "firstName": "Nome",
+    "lastName": "Sobrenome",
+    "nameRequired": "Nome e sobrenome obrigatórios",
+    "nameTooShort": "Nome e sobrenome devem ter pelo menos 2 letras",
+    "updateNameError": "Erro ao atualizar nome",
+    "saving": "Salvando...",
+    "save": "Salvar",
+    "cancel": "Cancelar"
   },
   "userRatings": {
     "title": "Avaliações",

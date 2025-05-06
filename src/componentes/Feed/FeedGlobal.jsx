@@ -860,7 +860,7 @@ const FeedGlobal = () => {
                     <div
                       className={`${obterCorNota(
                         avaliacao.media || avaliacao.mediaAvaliacao
-                      )} text-cinza-escuro rounded-lg px-2 py-1 font-bold text-lg flex items-center justify-center shadow-sm my-auto absolute bottom-0.5 right-0.5 shadow-lg`}
+                      )} text-cinza-escuro rounded-lg px-2 py-1 font-bold text-lg flex items-center min-w-11 justify-center shadow-sm my-auto absolute bottom-0.5 right-0.5 shadow-lg`}
                     >
                       <span className="text-cinza-escuro w-full text-center">
                         {formatarMedia(

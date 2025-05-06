@@ -403,11 +403,11 @@ function App() {
           </div>
           {/* Conteúdo do feed sem barra de rolagem, com espaço para a bottom nav em telas abaixo de 1000px */}
           <div
-            className="overflow-auto mt-4 mb-safe pb-16 lg:pb-0"
+            className="overflow-auto  "
             style={{
               scrollbarWidth: "thin",
               scrollbarColor: " #81fe88 #2C2C2C",
-              height: "calc(var(--app-height) - 80px)",
+              height: "100dvh",
               paddingBottom: "calc(var(--safe-area-inset-bottom) + 60px)",
             }}
           >

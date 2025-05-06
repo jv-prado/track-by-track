@@ -38,12 +38,7 @@ const HeaderAlbumCompleto = ({
         nota={calcularMediaAvaliacoes(faixas, avaliacoes)}
         percentualProgresso={progressoAvaliacao?.percentual || 0}
       />
-      <BarraProgresso
-        progressoAvaliacao={progressoCopy}
-        key={`barra-${progressoCopy.avaliadas || 0}-${
-          progressoCopy.percentual || 0
-        }`}
-      />
+      <BarraProgresso progressoAvaliacao={progressoCopy} />
     </CabecalhoAlbum>
   );
 };

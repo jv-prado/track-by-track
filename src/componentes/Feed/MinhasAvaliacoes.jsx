@@ -14,6 +14,8 @@ import { useTranslation } from "react-i18next";
 import { GrUpdate } from "react-icons/gr";
 import { BsGrid3X3GapFill, BsListUl } from "react-icons/bs";
 import { MdMusicNote } from "react-icons/md";
+
+/**
 /**
  * Componente de barra de progresso para carregamento
  * @param {Object} props - Propriedades do componente
@@ -330,6 +332,18 @@ const MinhasAvaliacoes = () => {
     }
   };
 
+  // Ordenar os álbuns do mais recente para o mais antigo
+  const albunsOrdenados = [...albunsExibidos].sort((a, b) => {
+    // Tente usar dataAvaliacao, se não existir use ultimaAtualizacao, se não existir use 0
+    const dataA = a.dataAvaliacao
+      ? new Date(a.dataAvaliacao).getTime()
+      : a.ultimaAtualizacao || 0;
+    const dataB = b.dataAvaliacao
+      ? new Date(b.dataAvaliacao).getTime()
+      : b.ultimaAtualizacao || 0;
+    return dataA - dataB; // Corrigido: Mais recente primeiro
+  });
+
   // Exibir indicador de carregamento enquanto verificamos a autenticação
   if (carregandoTela) {
     return <Carregamento />;
@@ -505,7 +519,7 @@ const MinhasAvaliacoes = () => {
                 gap: "1rem",
               }}
             >
-              {albunsExibidos.map((album) => (
+              {albunsOrdenados.map((album) => (
                 <CardAlbumAvaliado
                   key={album.id}
                   album={album}
@@ -515,7 +529,7 @@ const MinhasAvaliacoes = () => {
             </div>
           ) : (
             <div className="grid grid-cols-1 gap-3 md:gap-4">
-              {albunsExibidos.map((album) => (
+              {albunsOrdenados.map((album) => (
                 <div
                   key={album.id}
                   className="bg-cinza-escuro rounded-xl overflow-hidden shadow-lg transition-all duration-300 hover:scale-[1.02] hover:shadow-xl flex flex-col h-full cursor-pointer relative hover:bg-cinza-escuro/90 group"

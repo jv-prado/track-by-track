@@ -526,10 +526,6 @@ export const obterAvaliacoesGlobais = async (
         };
 
         // Log para depuração
-        console.log(
-          `[Firebase] Álbum ${album.nome || album.id} - Progresso armazenado:`,
-          progressoDoAlbum
-        );
 
         // Calcular a média das avaliações deste álbum (mantemos este cálculo)
         let soma = 0;

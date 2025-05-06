@@ -1,6 +1,6 @@
 import { useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import useDetalhesAlbum from "./useDetalhesAlbum";
 import useAvaliacoesAlbum from "./useAvaliacoesAlbum";
 import useReviewAlbum from "./useReviewAlbum";
@@ -19,6 +19,7 @@ import {
   formatarDuracao,
   calcularMediaAvaliacoes,
 } from "../utils";
+import { obterAlbunsAvaliados } from "../../../services/firebase";
 
 export default function useDetalhesAlbumPage(albumIdProp, onVoltarProp) {
   const { t } = useTranslation();
@@ -47,6 +48,33 @@ export default function useDetalhesAlbumPage(albumIdProp, onVoltarProp) {
     detalhesAlbumHook.setDatasAvaliacao,
     reviewAlbumHook.review
   );
+
+  // Buscar mediaAvaliacao do banco explicitamente
+  const [mediaAvaliacaoBanco, setMediaAvaliacaoBanco] = useState(undefined);
+  useEffect(() => {
+    async function fetchMediaAvaliacao() {
+      try {
+        const albuns = await obterAlbunsAvaliados();
+        const albumBanco = albuns.find((a) => a.id === albumId);
+        if (albumBanco && albumBanco.mediaAvaliacao !== undefined) {
+          setMediaAvaliacaoBanco(albumBanco.mediaAvaliacao);
+        } else {
+          setMediaAvaliacaoBanco(undefined);
+        }
+      } catch (e) {
+        setMediaAvaliacaoBanco(undefined);
+      }
+    }
+    if (albumId) fetchMediaAvaliacao();
+  }, [albumId]);
+
+  // Adicionar mediaAvaliacao ao objeto detalhesAlbum retornado
+  const detalhesAlbumComMedia = detalhesAlbumHook.detalhesAlbum
+    ? {
+        ...detalhesAlbumHook.detalhesAlbum,
+        mediaAvaliacao: mediaAvaliacaoBanco,
+      }
+    : { mediaAvaliacao: mediaAvaliacaoBanco };
 
   // Função de voltar personalizada ou padrão
   const onVoltar = () => {
@@ -136,6 +164,7 @@ export default function useDetalhesAlbumPage(albumIdProp, onVoltarProp) {
     albumId,
     onVoltar,
     ...detalhesAlbumHook,
+    detalhesAlbum: detalhesAlbumComMedia,
     ...reviewAlbumHook,
     ...mediaGlobalHook,
     ...avaliacoesAlbumHook,

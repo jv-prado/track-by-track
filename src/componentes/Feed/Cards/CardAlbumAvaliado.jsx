@@ -1,5 +1,7 @@
 import { MdReportProblem } from "react-icons/md";
 import { useTranslation } from "react-i18next";
+import useDetalhesAlbumPage from "../../DetalhesAlbum/hooks/useDetalhesAlbumPage";
+import useDetalhesAlbum from "../../DetalhesAlbum/hooks/useDetalhesAlbum";
 
 /**
  * Componente que exibe um cartão de álbum avaliado
@@ -11,20 +13,21 @@ import { useTranslation } from "react-i18next";
  */
 const CardAlbumAvaliado = ({ album, setAlbumSelecionado }) => {
   const { t } = useTranslation();
+  const {
+    detalhesAlbum,
+    progressoAvaliacao: progressoAvaliacaoHook,
+    carregando,
+    erro,
+  } = useDetalhesAlbumPage(album.id);
 
-  // Verificação defensiva para garantir que progressoAvaliacao exista
-  const progressoAvaliacao = album.progressoAvaliacao || {
-    avaliadas: 0,
-    total: 0,
-    percentual: 0,
-  };
-
-  // Formatar a média: número inteiro para notas inteiras, uma casa decimal para fracionárias
-  const mediaFormatada = album.mediaAvaliacao
-    ? Number.isInteger(album.mediaAvaliacao)
-      ? album.mediaAvaliacao.toString()
-      : album.mediaAvaliacao.toFixed(1)
-    : "0";
+  // Usar detalhes do hook, mas fallback para album enquanto carrega
+  const info = detalhesAlbum || album;
+  const progressoAvaliacao = progressoAvaliacaoHook ||
+    album.progressoAvaliacao || {
+      avaliadas: 0,
+      total: 0,
+      percentual: 0,
+    };
 
   // Formatar o percentual como número inteiro
   const percentualFormatado = Math.floor(progressoAvaliacao.percentual);
@@ -33,15 +36,15 @@ const CardAlbumAvaliado = ({ album, setAlbumSelecionado }) => {
     <div
       key={album.id}
       className={`flex flex-col bg-cinza-escuro rounded-xl p-3 hover:bg-cinza transition-all duration-300 transform hover:scale-105 cursor-pointer ${
-        album.erro ? "border border-red-500" : ""
+        erro || album.erro ? "border border-red-500" : ""
       }`}
       onClick={() => setAlbumSelecionado(album.id)}
     >
       {/* Imagem do álbum */}
-      {album.images && album.images.length > 0 ? (
+      {info.images && info.images.length > 0 ? (
         <img
-          src={album.images[0].url}
-          alt={t("albumCard.coverAlt", { albumName: album.name })}
+          src={info.images[0].url}
+          alt={t("albumCard.coverAlt", { albumName: info.name })}
           className="w-full h-auto aspect-square object-cover rounded-lg shadow-lg mb-3"
         />
       ) : (
@@ -52,10 +55,10 @@ const CardAlbumAvaliado = ({ album, setAlbumSelecionado }) => {
 
       {/* Informações do álbum */}
       <h3 className="font-bold text-sm md:text-base mb-1 line-clamp-2">
-        {album.name}
+        {info.name}
       </h3>
       <p className="text-verde-destaque text-xs md:text-sm mb-1 line-clamp-1">
-        {album.artists?.map((a) => a.name).join(", ") ||
+        {info.artists?.map((a) => a.name).join(", ") ||
           t("albumCard.unknownArtist")}
       </p>
 
@@ -66,30 +69,26 @@ const CardAlbumAvaliado = ({ album, setAlbumSelecionado }) => {
           <div className="flex items-center">
             <span
               className={`text-base md:text-lg font-bold mr-1 ${(() => {
-                // Verificar primeiro se o álbum está totalmente avaliado
+                const nota = parseFloat(detalhesAlbum?.mediaAvaliacao ?? 0);
                 if (progressoAvaliacao.percentual < 100) {
-                  return "text-gray-400"; // Cor cinza enquanto não estiver 100% avaliado
+                  return "text-gray-400";
                 }
-
-                // Converter para número para garantir a comparação correta
-                const nota = parseFloat(album.mediaAvaliacao || 0);
-                if (nota < 4) return "text-red-500"; // Nota baixa: vermelho
-                if (nota < 7) return "text-yellow-500"; // Nota média: amarelo
-                return "text-verde-destaque"; // Nota alta: verde
+                if (nota < 4) return "text-red-500";
+                if (nota < 7) return "text-yellow-500";
+                return "text-verde-destaque";
               })()}`}
             >
-              {mediaFormatada}
+              {detalhesAlbum?.mediaAvaliacao ?? 0}
             </span>
             <span className="text-xs text-gray-400">/10</span>
           </div>
           {/* Botão Spotify */}
-          {((album.external_urls && album.external_urls.spotify) ||
-            album.id) && (
+          {((info.external_urls && info.external_urls.spotify) || info.id) && (
             <a
               href={
-                album.external_urls && album.external_urls.spotify
-                  ? album.external_urls.spotify
-                  : `https://open.spotify.com/album/${album.id}`
+                info.external_urls && info.external_urls.spotify
+                  ? info.external_urls.spotify
+                  : `https://open.spotify.com/album/${info.id}`
               }
               target="_blank"
               rel="noopener noreferrer"
@@ -112,7 +111,7 @@ const CardAlbumAvaliado = ({ album, setAlbumSelecionado }) => {
         </div>
 
         {/* Barra de progresso de avaliação */}
-        {!album.erro && (
+        {!erro && !album.erro && (
           <div>
             <div className="flex justify-between text-xs mb-1">
               <span className="text-gray-400 text-[10px]">

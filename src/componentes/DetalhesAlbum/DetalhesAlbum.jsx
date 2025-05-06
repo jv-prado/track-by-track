@@ -7,6 +7,7 @@ import BlocoCardsAlbum from "./componentes/BlocoCardsAlbum";
 import ListaFaixas from "./componentes/ListaFaixas";
 import Overlay from "./componentes/Overlay";
 import Carregamento from "../Feedback/Carregamento";
+import { ReviewsUsuariosAlbum } from "./componentes";
 
 const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
   const {
@@ -158,6 +159,8 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
         avaliarFaixa={avaliarFaixa}
         formatarDuracao={formatarDuracao}
       />
+      {/* Reviews dos usuários para o álbum */}
+      <ReviewsUsuariosAlbum className="hidden" albumId={detalhesAlbum.id} />
       {/* Cards de favorito, pior música e histórico - versão mobile/tablet */}
       <BlocoCardsAlbum
         faixaFavorita={faixaFavorita}

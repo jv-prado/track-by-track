@@ -407,7 +407,7 @@ function App() {
             style={{
               scrollbarWidth: "thin",
               scrollbarColor: " #81fe88 #2C2C2C",
-              height: "100dvh",
+              height: "90dvh",
               paddingBottom: "calc(var(--safe-area-inset-bottom) + 60px)",
             }}
           >

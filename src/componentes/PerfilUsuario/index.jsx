@@ -5,7 +5,7 @@ import {
   updateUserProfile,
   uploadFile,
 } from "../../services/firebase/index";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { getFirestore, doc, getDoc, updateDoc } from "firebase/firestore";
 import InfoUsuario from "./InfoUsuario";
@@ -19,6 +19,7 @@ export default function PerfilUsuario() {
   const fileInputRef = useRef(null);
   const { usuario: usuarioFirebase, usuarioAtivo } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [emailSpotify, setEmailSpotify] = useState("");
   const [editandoNome, setEditandoNome] = useState(false);
   const [novoNome, setNovoNome] = useState("");
@@ -30,6 +31,10 @@ export default function PerfilUsuario() {
     setCarregando(false);
     if (usuarioFirebase?.photoURL) {
       setFotoPerfil(usuarioFirebase.photoURL);
+    }
+    const params = new URLSearchParams(location.search);
+    if (params.get("editarNome") === "1") {
+      setEditandoNome(true);
     }
     async function fetchEmailSpotify() {
       try {
@@ -83,7 +88,7 @@ export default function PerfilUsuario() {
       }
     }
     fetchEmailSpotify();
-  }, [usuarioFirebase]);
+  }, [usuarioFirebase, location]);
 
   const handleLogout = async () => {
     if (usuarioFirebase) {

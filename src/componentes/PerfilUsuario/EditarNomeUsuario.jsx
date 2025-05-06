@@ -1,3 +1,5 @@
+import { FaUser } from "react-icons/fa";
+
 export default function EditarNomeUsuario({
   editandoNome,
   setEditandoNome,
@@ -13,14 +15,16 @@ export default function EditarNomeUsuario({
 }) {
   return !editandoNome ? (
     <div className="flex flex-col items-center gap-2">
-      <p className="font-bold text-sm truncate">
+      <p className="font-bold text-sm truncate flex items-center gap-2">
+        <FaUser className="inline-block text-verde-destaque text-base" />
         {displayName || t("userProfile.user")}
       </p>
       <button
-        className="text-xs text-verde-destaque underline hover:text-verde-pastel transition-colors"
+        className="text-xs text-verde-destaque underline hover:text-verde-pastel transition-colors flex items-center gap-1"
         onClick={() => setEditandoNome(true)}
         type="button"
       >
+        <FaUser className="inline-block text-verde-destaque text-sm" />
         {t("userProfile.editName") || "Editar nome"}
       </button>
     </div>

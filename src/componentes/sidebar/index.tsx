@@ -1,5 +1,5 @@
 import Logo from "./assets/Logo.svg";
-import { FaGlobe, FaCamera, FaInstagram } from "react-icons/fa";
+import { FaGlobe, FaCamera, FaInstagram, FaUser } from "react-icons/fa";
 import { IoStarSharp, IoSearchOutline } from "react-icons/io5";
 import { IoMdExit } from "react-icons/io";
 import "../../App.css";
@@ -438,6 +438,19 @@ export default function Sidebar({ activeView, setActiveView }) {
                 >
                   <FaCamera className="mr-2 text-verde-destaque" />
                   {atualizandoFoto ? t("app.updating") : t("app.changePhoto")}
+                </button>
+
+                {/* Opção: Alterar Nome */}
+                <button
+                  onClick={() => {
+                    setPerfilMenuAberto(false);
+                    setActiveView("perfil");
+                    navigate("/perfil?editarNome=1");
+                  }}
+                  className="flex items-center w-full px-3 py-2 hover:bg-cinza-escuro/80 text-left text-sm text-gray-300"
+                >
+                  <FaUser className="mr-2 text-verde-destaque" />
+                  {t("userProfile.editName") || "Alterar nome"}
                 </button>
 
                 {/* Opção: Logout */}

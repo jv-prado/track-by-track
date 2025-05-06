@@ -65,14 +65,15 @@ const FeedGlobal = () => {
   const alternarModoVisualizacao = () => {
     setFade(false);
     setTimeout(() => {
-      setModoVisualizacao(modoVisualizacao === "grade" ? "lista" : "grade");
+      setModoVisualizacao((prev) => (prev === "grade" ? "lista" : "grade"));
       setFade(true);
     }, 180);
-    localStorage.setItem(
-      "preferenciaModoVisualizacao",
-      modoVisualizacao === "grade" ? "lista" : "grade"
-    );
   };
+
+  // Adicionar useEffect para salvar a preferência sempre que modoVisualizacao mudar
+  useEffect(() => {
+    localStorage.setItem("preferenciaModoVisualizacao", modoVisualizacao);
+  }, [modoVisualizacao]);
 
   // Atualizar largura da janela quando ela for redimensionada
   useEffect(() => {

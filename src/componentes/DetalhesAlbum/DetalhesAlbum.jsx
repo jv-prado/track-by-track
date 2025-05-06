@@ -160,7 +160,6 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
         formatarDuracao={formatarDuracao}
       />
       {/* Reviews dos usuários para o álbum */}
-      <ReviewsUsuariosAlbum className="hidden" albumId={detalhesAlbum.id} />
       {/* Cards de favorito, pior música e histórico - versão mobile/tablet */}
       <BlocoCardsAlbum
         faixaFavorita={faixaFavorita}

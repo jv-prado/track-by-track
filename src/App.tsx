@@ -4,7 +4,6 @@ import Sidebar from "./componentes/sidebar/";
 import BarraDePesquisa from "./componentes/BarraDePesquisa";
 import Feed from "./componentes/Feed/Feed";
 import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
-import PerfilUsuario from "./componentes/PerfilUsuario/";
 import PerfilPublico from "./componentes/PerfilPublico";
 import Splash from "./componentes/Splash";
 import Login from "./componentes/AuthForms/Login";
@@ -461,20 +460,6 @@ function App() {
             </Routes>
           </div>
         </div>
-
-        {/* Perfil do usuário no canto superior direito - visível apenas em telas acima de 1000px */}
-        {![
-          "/termos-de-uso",
-          "/politica-de-privacidade",
-          "/sobre",
-          "/exclusao-de-conta",
-        ].includes(location.pathname) && (
-          <div className="hidden lg:block lg:sticky lg:top-10 lg:self-start z-40">
-            <div className="mb-4 sticky top-10">
-              <PerfilUsuario />
-            </div>
-          </div>
-        )}
       </div>
 
       {/* Seletor de idioma */}

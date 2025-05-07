@@ -269,7 +269,7 @@ export default function Sidebar({ activeView, setActiveView }) {
   return (
     <>
       {/* Desktop Sidebar - visível apenas em telas acima de 1000px */}
-      <aside className="hidden lg:flex bg-cinza-escuro rounded-xl py-4 md:py-10 px-4 md:px-10 w-full md:max-w-[200px] flex-col items-center gap-4 md:gap-10 mb-4 md:mb-0 md:h-fit relative">
+      <aside className="hidden lg:flex bg-cinza-escuro rounded-xl py-4 md:py-10 px-4 md:px-10 w-full md:max-w-[200px] flex-col items-center gap-4 md:gap-6 mb-4 md:mb-0 md:h-fit relative">
         <Link to="/">
           <img
             className="w-28 md:w-40 h-auto hover:scale-110 transition-all duration-600"
@@ -277,6 +277,83 @@ export default function Sidebar({ activeView, setActiveView }) {
             alt="Logo do Track by Track"
           />
         </Link>
+        {/* Botão de Perfil - Desktop Sidebar (agora em primeiro) */}
+        {usuarioAtivoLocal && (
+          <div className="relative mb-2" ref={menuRef}>
+            <button
+              onClick={() => setPerfilMenuAberto(!perfilMenuAberto)}
+              className="flex flex-col items-center justify-center pt-1 pb-1 px-2 rounded-lg text-gray-400 w-full"
+            >
+              <div className="w-15 h-15 rounded-full overflow-hidden border border-gray-600 flex items-center justify-center bg-verde-destaque/20 mb-1">
+                {fotoPerfil ? (
+                  <img
+                    src={fotoPerfil}
+                    alt={nomeUsuario}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <span className="text-verde-destaque text-xl font-bold">
+                    {nomeUsuario.charAt(0).toUpperCase()}
+                  </span>
+                )}
+              </div>
+              <span
+                className=" mt-1 text-white"
+                style={{ font: "var(--font-paragraph)" }}
+              >
+                {t("app.profile")}
+              </span>
+            </button>
+            {/* Menu Dropdown */}
+            {perfilMenuAberto && (
+              <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 bg-cinza-escuro rounded-lg shadow-lg border border-gray-700 overflow-hidden w-40 z-50">
+                {/* Opção: Trocar Idioma */}
+                <button
+                  onClick={changeLanguage}
+                  className="flex items-center w-full px-3 py-2 hover:bg-cinza-escuro/80 text-left text-sm text-gray-300"
+                >
+                  <div className="flex items-center">
+                    <img
+                      src={isPortuguese ? BandeiraEUA : BandeiraBrasil}
+                      alt={isPortuguese ? "English" : "Português"}
+                      className="w-5 h-3 mr-2 object-cover"
+                    />
+                    {isPortuguese ? "English" : "Português"}
+                  </div>
+                </button>
+                {/* Opção: Trocar Foto */}
+                <button
+                  onClick={handleTrocarFoto}
+                  disabled={atualizandoFoto}
+                  className="flex items-center w-full px-3 py-2 hover:bg-cinza-escuro/80 text-left text-sm text-gray-300 disabled:opacity-70"
+                >
+                  <FaCamera className="mr-2 text-verde-destaque" />
+                  {atualizandoFoto ? t("app.updating") : t("app.changePhoto")}
+                </button>
+                {/* Opção: Alterar Nome */}
+                <button
+                  onClick={() => {
+                    setPerfilMenuAberto(false);
+                    setActiveView("perfil");
+                    navigate("/perfil?editarNome=1");
+                  }}
+                  className="flex items-center w-full px-3 py-2 hover:bg-cinza-escuro/80 text-left text-sm text-gray-300"
+                >
+                  <FaUser className="mr-2 text-verde-destaque" />
+                  {t("userProfile.editName") || "Alterar nome"}
+                </button>
+                {/* Opção: Logout */}
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center w-full px-3 py-2 hover:bg-cinza-escuro/80 text-left text-sm text-gray-300 border-t border-gray-700"
+                >
+                  <IoMdExit className="mr-2 text-verde-destaque" />
+                  {t("app.logout")}
+                </button>
+              </div>
+            )}
+          </div>
+        )}
         <nav className="flex flex-col w-full items-center">
           <ul className="flex flex-col items-center md:items-stretch gap-3 md:gap-12 text-center max-w-[90%] md:max-w-full">
             {!usuarioAtivoLocal ? (

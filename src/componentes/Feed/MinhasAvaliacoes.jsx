@@ -1,5 +1,5 @@
 import { MdReportProblem } from "react-icons/md";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback, memo, useMemo } from "react";
 import DetalhesAlbum from "../DetalhesAlbum/DetalhesAlbum";
 import FiltroAvaliacoes from "./Filtros/FiltroAvaliacoes";
 import CardAlbumAvaliado from "./Cards/CardAlbumAvaliado";
@@ -22,7 +22,7 @@ import { MdMusicNote } from "react-icons/md";
  * @param {number} props.progresso - Valor atual do progresso (0-100)
  * @returns {JSX.Element} Componente de barra de progresso
  */
-const BarraProgresso = ({ progresso }) => {
+const BarraProgresso = memo(({ progresso }) => {
   // Se o progresso for 0, não exibir a barra
   if (progresso <= 0) return null;
 
@@ -34,7 +34,7 @@ const BarraProgresso = ({ progresso }) => {
       ></div>
     </div>
   );
-};
+});
 
 /**
  * Componente que envolve outro para capturar erros
@@ -86,6 +86,18 @@ class TratadorErros extends React.Component {
   }
 }
 
+// Componente para um único CardAlbumAvaliado com controle de performance
+const AlbumCard = memo(({ album, setAlbumSelecionado, modo }) => {
+  return (
+    <CardAlbumAvaliado
+      key={album.id}
+      album={album}
+      setAlbumSelecionado={setAlbumSelecionado}
+      modo={modo}
+    />
+  );
+});
+
 /**
  * Componente para exibir álbuns avaliados pelo usuário
  * @returns {JSX.Element} Componente de álbuns avaliados
@@ -128,39 +140,91 @@ const MinhasAvaliacoes = () => {
     setProgressoCarregamento,
   } = useAvaliacoes();
 
-  // Atualizar largura da janela quando ela for redimensionada
+  // Atualizar largura da janela quando ela for redimensionada - com throttling
   useEffect(() => {
+    let timeoutId;
     const handleResize = () => {
-      setWindowWidth(window.innerWidth);
+      if (!timeoutId) {
+        timeoutId = setTimeout(() => {
+          setWindowWidth(window.innerWidth);
+          timeoutId = null;
+        }, 200); // delay de 200ms para evitar múltiplas atualizações
+      }
     };
 
     window.addEventListener("resize", handleResize);
     return () => {
       window.removeEventListener("resize", handleResize);
+      if (timeoutId) clearTimeout(timeoutId);
     };
   }, []);
 
-  const getGridCols = () => {
+  // Calcular colunas de grade com memoização
+  const gridCols = useMemo(() => {
     if (windowWidth < 550) return 2; // 2 itens por linha em telas menores que 550px
-    if (windowWidth < 1100) return 3; // 2 itens por linha em telas menores que 1100px
-    if (windowWidth < 1500) return 4; // 3 itens por linha em telas médias
-    return 5; // 4 itens por linha em telas grandes
-  };
+    if (windowWidth < 1100) return 3; // 3 itens por linha em telas menores que 1100px
+    if (windowWidth < 1500) return 4; // 4 itens por linha em telas médias
+    return 5; // 5 itens por linha em telas grandes
+  }, [windowWidth]);
 
-  const gridCols = getGridCols();
-
-  // Padronização da função de alternância de modo de visualização
-  const alternarModoVisualizacao = () => {
+  // Padronização da função de alternância de modo de visualização com useCallback
+  const alternarModoVisualizacao = useCallback(() => {
     setFade(false);
+    const novoModo = modoVisualizacao === "grade" ? "lista" : "grade";
+
     setTimeout(() => {
-      setModoVisualizacao(modoVisualizacao === "grade" ? "lista" : "grade");
+      setModoVisualizacao(novoModo);
       setFade(true);
     }, 300);
-    localStorage.setItem(
-      "preferenciaModoVisualizacao",
-      modoVisualizacao === "grade" ? "lista" : "grade"
-    );
-  };
+
+    localStorage.setItem("preferenciaModoVisualizacao", novoModo);
+  }, [modoVisualizacao]);
+
+  // Função memoizada para atualizar lista de álbuns
+  const atualizarListaAlbuns = useCallback(async () => {
+    // Indicar que estamos atualizando os dados
+    setCarregamentoProgressivo(true);
+
+    // Verificar se setProgressoCarregamento existe antes de chamá-lo
+    if (typeof setProgressoCarregamento === "function") {
+      setProgressoCarregamento(5); // Iniciar com um progresso pequeno para feedback visual
+    }
+
+    try {
+      // Simular progresso durante o carregamento
+      const intervaloProgresso = setInterval(() => {
+        setProgressoCarregamento((prev) => {
+          // Aumentar gradualmente até 90% (os 10% finais serão quando concluir)
+          if (prev < 90) {
+            return prev + Math.floor(Math.random() * 10) + 5;
+          }
+          return prev;
+        });
+      }, 900);
+
+      // Aguardar a conclusão da recarga
+      await recarregarListaAlbuns();
+
+      // Limpar o intervalo e definir 100% quando concluído
+      clearInterval(intervaloProgresso);
+      setProgressoCarregamento(100);
+
+      // Após um breve momento, esconder a barra de progresso
+      setTimeout(() => {
+        setProgressoCarregamento(0);
+        setCarregamentoProgressivo(false);
+      }, 200);
+    } catch (erro) {
+      console.error("Erro ao atualizar lista de álbuns:", erro);
+      // Em caso de erro, também limpar o progresso
+      setProgressoCarregamento(0);
+      setCarregamentoProgressivo(false);
+    }
+  }, [
+    recarregarListaAlbuns,
+    setCarregamentoProgressivo,
+    setProgressoCarregamento,
+  ]);
 
   // Recarregar a lista quando o usuário voltar da tela de detalhes de álbum
   useEffect(() => {
@@ -172,15 +236,7 @@ const MinhasAvaliacoes = () => {
       recarregarListaAlbuns();
       setEstavaNaTelaDetalhes(false);
     }
-  }, [albumSelecionado]);
-
-  // Garantir que os filtros e ordenação sejam aplicados quando o componente montar
-  useEffect(() => {
-    // Forçar reordenação dos álbuns exibidos quando o componente montar
-    if (albunsAvaliados && albunsAvaliados.length > 0) {
-      recarregarListaAlbuns();
-    }
-  }, []);
+  }, [albumSelecionado, estavaNaTelaDetalhes, recarregarListaAlbuns]);
 
   // Tentar recuperar autenticação automaticamente ao montar o componente
   useEffect(() => {
@@ -218,7 +274,7 @@ const MinhasAvaliacoes = () => {
     };
 
     tentarRecuperarAutenticacao();
-  }, [tentouRecuperar]);
+  }, [tentouRecuperar, tentarNovamente]);
 
   // Verificar autenticação quando o componente é montado
   useEffect(() => {
@@ -248,7 +304,7 @@ const MinhasAvaliacoes = () => {
     return () => clearInterval(intervalo);
   }, []);
 
-  const fazerLoginDemo = async () => {
+  const fazerLoginDemo = useCallback(async () => {
     setCarregandoAuth(true);
     try {
       // Criar um "usuário demo" no localStorage
@@ -285,64 +341,23 @@ const MinhasAvaliacoes = () => {
     } finally {
       setCarregandoAuth(false);
     }
-  };
+  }, []);
 
-  const atualizarListaAlbuns = async () => {
-    // Indicar que estamos atualizando os dados
-    setCarregamentoProgressivo(true);
+  // Ordenar os álbuns do mais recente para o mais antigo com memoização
+  const albunsOrdenados = useMemo(() => {
+    if (!albunsExibidos || albunsExibidos.length === 0) return [];
 
-    // Verificar se setProgressoCarregamento existe antes de chamá-lo
-    if (typeof setProgressoCarregamento === "function") {
-      setProgressoCarregamento(5); // Iniciar com um progresso pequeno para feedback visual
-    }
-
-    console.log("Iniciando atualização da lista de álbuns");
-
-    try {
-      // Simular progresso durante o carregamento
-      const intervaloProgresso = setInterval(() => {
-        setProgressoCarregamento((prev) => {
-          // Aumentar gradualmente até 90% (os 10% finais serão quando concluir)
-          if (prev < 90) {
-            return prev + Math.floor(Math.random() * 10) + 5;
-          }
-          return prev;
-        });
-      }, 900);
-
-      // Aguardar a conclusão da recarga
-      await recarregarListaAlbuns();
-
-      // Limpar o intervalo e definir 100% quando concluído
-      clearInterval(intervaloProgresso);
-      setProgressoCarregamento(100);
-
-      // Após um breve momento, esconder a barra de progresso
-      setTimeout(() => {
-        setProgressoCarregamento(0);
-        setCarregamentoProgressivo(false);
-      }, 200);
-
-      console.log("Lista de álbuns atualizada com sucesso");
-    } catch (erro) {
-      console.error("Erro ao atualizar lista de álbuns:", erro);
-      // Em caso de erro, também limpar o progresso
-      setProgressoCarregamento(0);
-      setCarregamentoProgressivo(false);
-    }
-  };
-
-  // Ordenar os álbuns do mais recente para o mais antigo
-  const albunsOrdenados = [...albunsExibidos].sort((a, b) => {
-    // Tente usar dataAvaliacao, se não existir use ultimaAtualizacao, se não existir use 0
-    const dataA = a.dataAvaliacao
-      ? new Date(a.dataAvaliacao).getTime()
-      : a.ultimaAtualizacao || 0;
-    const dataB = b.dataAvaliacao
-      ? new Date(b.dataAvaliacao).getTime()
-      : b.ultimaAtualizacao || 0;
-    return dataA - dataB; // Corrigido: Mais recente primeiro
-  });
+    return [...albunsExibidos].sort((a, b) => {
+      // Tente usar dataAvaliacao, se não existir use ultimaAtualizacao, se não existir use 0
+      const dataA = a.dataAvaliacao
+        ? new Date(a.dataAvaliacao).getTime()
+        : a.ultimaAtualizacao || 0;
+      const dataB = b.dataAvaliacao
+        ? new Date(b.dataAvaliacao).getTime()
+        : b.ultimaAtualizacao || 0;
+      return dataB - dataA; // Mais recente primeiro
+    });
+  }, [albunsExibidos]);
 
   // Exibir indicador de carregamento enquanto verificamos a autenticação
   if (carregandoTela) {
@@ -520,7 +535,7 @@ const MinhasAvaliacoes = () => {
               }}
             >
               {albunsOrdenados.map((album) => (
-                <CardAlbumAvaliado
+                <AlbumCard
                   key={album.id}
                   album={album}
                   setAlbumSelecionado={setAlbumSelecionado}
@@ -531,7 +546,7 @@ const MinhasAvaliacoes = () => {
           ) : (
             <div className="grid grid-cols-1 gap-3 md:gap-4">
               {albunsOrdenados.map((album) => (
-                <CardAlbumAvaliado
+                <AlbumCard
                   key={album.id}
                   album={album}
                   setAlbumSelecionado={setAlbumSelecionado}

@@ -37,7 +37,7 @@ export function obterCorNota(nota) {
   const notaNum = parseFloat(nota);
   if (notaNum < 4) return "text-red-500";
   if (notaNum < 7) return "text-yellow-500";
-  return "text-verde-destaque";
+  return "text-green-500";
 }
 
 // Função para atualizar ou criar uma meta tag no head

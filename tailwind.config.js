@@ -6,6 +6,9 @@ export default {
       fontFamily: {
         heading: ["Prompt", "sans-serif"],
       },
+      screens: {
+        xs: "480px",
+      },
       // Outras configurações...
     },
   },

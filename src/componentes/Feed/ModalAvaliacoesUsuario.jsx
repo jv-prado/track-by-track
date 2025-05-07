@@ -86,7 +86,7 @@ const ModalAvaliacoesUsuario = ({ usuarioId, albumId, onClose }) => {
     const notaNum = parseFloat(nota);
     if (notaNum < 4) return "bg-red-500 text-white";
     if (notaNum < 7) return "bg-yellow-500 text-gray-900";
-    return "bg-verde-destaque text-cinza-escuro";
+    return "bg-green-500 text-white";
   };
 
   // Mostrar indicador de carregamento
@@ -251,7 +251,7 @@ const ModalAvaliacoesUsuario = ({ usuarioId, albumId, onClose }) => {
           </div>
           <div
             className={
-              `rounded-lg px-2 py-1 md:px-3 md:py-2 font-bold text-lg md:text-2xl flex items-center justify-center min-w-10 w-14 md:w-20 ` +
+              `rounded-full w-9 h-9 text-base font-bold p-6 md:text-2xl flex items-center justify-center  md:h-14  md:w-14 ` +
               obterCorNota(mediaFinal)
             }
           >

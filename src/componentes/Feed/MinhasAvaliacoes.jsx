@@ -27,7 +27,7 @@ const BarraProgresso = ({ progresso }) => {
   if (progresso <= 0) return null;
 
   return (
-    <div className="w-full bg-gray-700 h-2 rounded-full overflow-hidden mb-4">
+    <div className="w-full  bg-gray-700 h-2 rounded-full overflow-hidden mb-4">
       <div
         className="bg-verde-destaque h-full transition-all duration-300 ease-out"
         style={{ width: `${progresso}%` }}

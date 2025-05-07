@@ -24,25 +24,12 @@ export function calcularMediaAvaliacoes(faixas, avaliacoes) {
   if (!faixas || !faixas.items || faixas.items.length === 0) {
     return 0;
   }
-
-  let soma = 0;
-  let faixasAvaliadas = 0;
-
-  // Percorrer todas as faixas e somar suas avaliações
-  faixas.items.forEach((faixa) => {
-    const avaliacao = avaliacoes[faixa.id] || 0;
-    soma += avaliacao;
-
-    // Contar faixas que foram avaliadas (nota > 0)
-    if (avaliacao > 0) {
-      faixasAvaliadas++;
-    }
-  });
-
-  // Calcular média com base nas faixas avaliadas, para evitar
-  // que faixas não avaliadas reduzam a média
-  const divisor = faixasAvaliadas > 0 ? faixasAvaliadas : faixas.items.length;
-  return parseFloat(((soma / divisor) * 2).toFixed(1));
+  const soma = faixas.items.reduce(
+    (total, faixa) => total + (avaliacoes[faixa.id] || 0),
+    0
+  );
+  const mediaEm5 = soma / faixas.items.length;
+  return parseFloat((mediaEm5 * 2).toFixed(1));
 }
 
 // Função para determinar a cor da nota baseada no valor

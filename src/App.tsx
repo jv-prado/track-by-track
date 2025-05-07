@@ -383,7 +383,7 @@ function App() {
   // Layout principal da aplicaçãom
   return (
     <>
-      <div className="flex flex-col h-[90vh] lg:flex-row w-full lg:w-[90vw] xl:w-[85vw] 2xl:w-[1440px]  mx-auto m-2 mt-4 lg:mt-12 gap-3 px-2 lg:px-0 content-area">
+      <div className="flex flex-col lg:flex-row w-full lg:w-[90vw] xl:w-[85vw] 2xl:w-[1440px] mx-auto m-2 mt-4  gap-3 px-2 lg:px-0 content-area ">
         {/* Sidebar sempre visível em desktop (acima de 1000px), escondida em telas menores */}
         <div className="lg:sticky lg:top-10 lg:self-start">
           <Sidebar activeView={activeView} setActiveView={handleViewChange} />

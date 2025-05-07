@@ -19,7 +19,7 @@ export default function Feed({ activeView, termoPesquisa }) {
   const { id: albumId } = useParams();
 
   return (
-    <div className="w-full bg-quase-preto rounded-xl overflow-hidden">
+    <div className="w-full mt-5 bg-quase-preto rounded-xl overflow-hidden">
       {activeView === "albuns" && (
         <MostrarTopAlbuns termoPesquisa={termoPesquisa} />
       )}

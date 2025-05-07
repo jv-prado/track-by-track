@@ -26,10 +26,12 @@ export default function Sidebar({ activeView, setActiveView }) {
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
   const [modoDemoBrowser, setModoDemo] = useState(false);
-  const [perfilMenuAberto, setPerfilMenuAberto] = useState(false);
+  const [perfilMenuAbertoDesktop, setPerfilMenuAbertoDesktop] = useState(false);
+  const [perfilMenuAbertoMobile, setPerfilMenuAbertoMobile] = useState(false);
   const [fotoPerfilLocal, setFotoPerfilLocal] = useState<string | null>(null);
   const [atualizandoFoto, setAtualizandoFoto] = useState(false);
-  const menuRef = useRef(null);
+  const menuRefDesktop = useRef(null);
+  const menuRefMobile = useRef(null);
 
   // Determinar o idioma atual
   const currentLanguage = i18n.language || "pt-BR";
@@ -49,19 +51,37 @@ export default function Sidebar({ activeView, setActiveView }) {
     }
   };
 
-  // Fechar o menu ao clicar fora dele
+  // Fechar o menu ao clicar fora dele (Desktop)
   useEffect(() => {
-    function handleClickOutside(event) {
-      if (menuRef.current && !menuRef.current.contains(event.target)) {
-        setPerfilMenuAberto(false);
+    function handleClickOutsideDesktop(event) {
+      if (
+        menuRefDesktop.current &&
+        !menuRefDesktop.current.contains(event.target)
+      ) {
+        setPerfilMenuAbertoDesktop(false);
       }
     }
-
-    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutsideDesktop);
     return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("mousedown", handleClickOutsideDesktop);
     };
-  }, [menuRef]);
+  }, [menuRefDesktop]);
+
+  // Fechar o menu ao clicar fora dele (Mobile)
+  useEffect(() => {
+    function handleClickOutsideMobile(event) {
+      if (
+        menuRefMobile.current &&
+        !menuRefMobile.current.contains(event.target)
+      ) {
+        setPerfilMenuAbertoMobile(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutsideMobile);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutsideMobile);
+    };
+  }, [menuRefMobile]);
 
   // Verificar o localStorage ao montar o componente e quando ele for atualizado
   useEffect(() => {
@@ -143,7 +163,8 @@ export default function Sidebar({ activeView, setActiveView }) {
     const newLanguage = isPortuguese ? "en-US" : "pt-BR";
     i18n.changeLanguage(newLanguage);
     localStorage.setItem("i18nextLng", newLanguage);
-    setPerfilMenuAberto(false);
+    setPerfilMenuAbertoDesktop(false);
+    setPerfilMenuAbertoMobile(false);
   };
 
   // Função para abrir a câmera ou o seletor de imagem
@@ -155,7 +176,8 @@ export default function Sidebar({ activeView, setActiveView }) {
     if (usuarioDemo) {
       // Exibir alguma mensagem de erro (pode ser adicionado um toast ou alert aqui)
       console.error("Usuários demo não podem alterar a foto");
-      setPerfilMenuAberto(false);
+      setPerfilMenuAbertoDesktop(false);
+      setPerfilMenuAbertoMobile(false);
       return;
     }
 
@@ -216,7 +238,8 @@ export default function Sidebar({ activeView, setActiveView }) {
 
     // Simular o clique no input
     inputElement.click();
-    setPerfilMenuAberto(false);
+    setPerfilMenuAbertoDesktop(false);
+    setPerfilMenuAbertoMobile(false);
   };
 
   // Verificar se o usuário está autenticado via contexto OU via localStorage
@@ -279,9 +302,11 @@ export default function Sidebar({ activeView, setActiveView }) {
         </Link>
         {/* Botão de Perfil - Desktop Sidebar (agora em primeiro) */}
         {usuarioAtivoLocal && (
-          <div className="relative mb-2" ref={menuRef}>
+          <div className="relative mb-2" ref={menuRefDesktop}>
             <button
-              onClick={() => setPerfilMenuAberto(!perfilMenuAberto)}
+              onClick={() =>
+                setPerfilMenuAbertoDesktop(!perfilMenuAbertoDesktop)
+              }
               className="flex flex-col items-center justify-center pt-1 pb-1 px-2 rounded-lg text-gray-400 w-full"
             >
               <div className="w-15 h-15 rounded-full overflow-hidden border border-gray-600 flex items-center justify-center bg-verde-destaque/20 mb-1">
@@ -305,11 +330,14 @@ export default function Sidebar({ activeView, setActiveView }) {
               </span>
             </button>
             {/* Menu Dropdown */}
-            {perfilMenuAberto && (
+            {perfilMenuAbertoDesktop && (
               <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 bg-cinza-escuro rounded-lg shadow-lg border border-gray-700 overflow-hidden w-40 z-50">
                 {/* Opção: Trocar Idioma */}
                 <button
-                  onClick={changeLanguage}
+                  onClick={() => {
+                    changeLanguage();
+                    setPerfilMenuAbertoDesktop(false);
+                  }}
                   className="flex items-center w-full px-3 py-2 hover:bg-cinza-escuro/80 text-left text-sm text-gray-300"
                 >
                   <div className="flex items-center">
@@ -323,7 +351,10 @@ export default function Sidebar({ activeView, setActiveView }) {
                 </button>
                 {/* Opção: Trocar Foto */}
                 <button
-                  onClick={handleTrocarFoto}
+                  onClick={() => {
+                    handleTrocarFoto();
+                    setPerfilMenuAbertoDesktop(false);
+                  }}
                   disabled={atualizandoFoto}
                   className="flex items-center w-full px-3 py-2 hover:bg-cinza-escuro/80 text-left text-sm text-gray-300 disabled:opacity-70"
                 >
@@ -333,7 +364,7 @@ export default function Sidebar({ activeView, setActiveView }) {
                 {/* Opção: Alterar Nome */}
                 <button
                   onClick={() => {
-                    setPerfilMenuAberto(false);
+                    setPerfilMenuAbertoDesktop(false);
                     setActiveView("perfil");
                     navigate("/perfil?editarNome=1");
                   }}
@@ -344,7 +375,10 @@ export default function Sidebar({ activeView, setActiveView }) {
                 </button>
                 {/* Opção: Logout */}
                 <button
-                  onClick={handleLogout}
+                  onClick={() => {
+                    handleLogout();
+                    setPerfilMenuAbertoDesktop(false);
+                  }}
                   className="flex items-center w-full px-3 py-2 hover:bg-cinza-escuro/80 text-left text-sm text-gray-300 border-t border-gray-700"
                 >
                   <IoMdExit className="mr-2 text-verde-destaque" />
@@ -468,9 +502,9 @@ export default function Sidebar({ activeView, setActiveView }) {
           </button>
 
           {/* Perfil do Usuário - Foto com Menu Dropdown */}
-          <div className="relative" ref={menuRef}>
+          <div className="relative" ref={menuRefMobile}>
             <button
-              onClick={() => setPerfilMenuAberto(!perfilMenuAberto)}
+              onClick={() => setPerfilMenuAbertoMobile(!perfilMenuAbertoMobile)}
               className="flex flex-col items-center justify-center pt-1 pb-1 px-2 rounded-lg text-gray-400"
             >
               <div className="w-6 h-6 rounded-full overflow-hidden border border-gray-600 flex items-center justify-center bg-verde-destaque/20">
@@ -488,13 +522,15 @@ export default function Sidebar({ activeView, setActiveView }) {
               </div>
               <span className="text-xs mt-1">{t("app.profile")}</span>
             </button>
-
             {/* Menu Dropdown */}
-            {perfilMenuAberto && (
+            {perfilMenuAbertoMobile && (
               <div className="absolute bottom-full right-0 mb-2 bg-cinza-escuro rounded-lg shadow-lg border border-gray-700 overflow-hidden w-36">
                 {/* Opção: Trocar Idioma */}
                 <button
-                  onClick={changeLanguage}
+                  onClick={() => {
+                    changeLanguage();
+                    setPerfilMenuAbertoMobile(false);
+                  }}
                   className="flex items-center w-full px-3 py-2 hover:bg-cinza-escuro/80 text-left text-sm text-gray-300"
                 >
                   <div className="flex items-center">
@@ -506,21 +542,22 @@ export default function Sidebar({ activeView, setActiveView }) {
                     {isPortuguese ? "English" : "Português"}
                   </div>
                 </button>
-
                 {/* Opção: Trocar Foto */}
                 <button
-                  onClick={handleTrocarFoto}
+                  onClick={() => {
+                    handleTrocarFoto();
+                    setPerfilMenuAbertoMobile(false);
+                  }}
                   disabled={atualizandoFoto}
                   className="flex items-center w-full px-3 py-2 hover:bg-cinza-escuro/80 text-left text-sm text-gray-300 disabled:opacity-70"
                 >
                   <FaCamera className="mr-2 text-verde-destaque" />
                   {atualizandoFoto ? t("app.updating") : t("app.changePhoto")}
                 </button>
-
                 {/* Opção: Alterar Nome */}
                 <button
                   onClick={() => {
-                    setPerfilMenuAberto(false);
+                    setPerfilMenuAbertoMobile(false);
                     setActiveView("perfil");
                     navigate("/perfil?editarNome=1");
                   }}
@@ -529,10 +566,12 @@ export default function Sidebar({ activeView, setActiveView }) {
                   <FaUser className="mr-2 text-verde-destaque" />
                   {t("userProfile.editName") || "Alterar nome"}
                 </button>
-
                 {/* Opção: Logout */}
                 <button
-                  onClick={handleLogout}
+                  onClick={() => {
+                    handleLogout();
+                    setPerfilMenuAbertoMobile(false);
+                  }}
                   className="flex items-center w-full px-3 py-2 hover:bg-cinza-escuro/80 text-left text-sm text-gray-300 border-t border-gray-700"
                 >
                   <IoMdExit className="mr-2 text-verde-destaque" />

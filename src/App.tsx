@@ -391,7 +391,7 @@ function App() {
 
         <div className="flex flex-col w-full">
           {/* Barra de pesquisa com posição sticky e z-index alto */}
-          <div className="sticky top-10 z-100 flex items-center">
+          <div className="sticky top-10 bg-cinza-escuro rounded-xl z-100 flex items-center">
             <div className="flex-grow">
               <BarraDePesquisa
                 onSearch={handleSearch}

@@ -50,10 +50,26 @@ const CardAlbumAvaliado = ({ album, setAlbumSelecionado, modo = "grade" }) => {
     const mediaAlbum = album?.mediaAvaliacao || album?.media || album?.nota;
 
     // Usar a primeira disponível, com fallback para 0
-    const mediaFinal = mediaDetalhes ?? mediaAlbum ?? 0;
+    let mediaFinal = mediaDetalhes ?? mediaAlbum ?? 0;
+    let mediaNumero = parseFloat(mediaFinal);
 
-    // Converter para número e garantir que seja válido
-    const mediaNumero = parseFloat(mediaFinal);
+    // Fallback: se a média for 0, mas houver avaliações de faixas, calcular a média manualmente
+    if (
+      (isNaN(mediaNumero) || mediaNumero === 0) &&
+      album?.avaliacoes &&
+      Object.keys(album.avaliacoes).length > 0
+    ) {
+      const avaliacoes = Object.values(album.avaliacoes).filter(
+        (v) => typeof v === "number"
+      );
+      const totalFaixas = avaliacoes.length;
+      if (totalFaixas > 0) {
+        // Média na escala 0-5, converter para 0-10
+        const soma = avaliacoes.reduce((a, b) => a + b, 0);
+        const mediaEscala5 = soma / totalFaixas;
+        mediaNumero = mediaEscala5 * 2;
+      }
+    }
     return isNaN(mediaNumero) ? 0 : mediaNumero;
   };
 

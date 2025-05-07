@@ -141,10 +141,10 @@ const MinhasAvaliacoes = () => {
   }, []);
 
   const getGridCols = () => {
-    if (windowWidth < 550) return 2; // 2 albuns por linha em telas menores que 550px
-    if (windowWidth < 1100) return 2; // 2 albuns por linha em telas menores que 1100px
-    if (windowWidth < 1500) return 3; // 3 albuns por linha em telas médias
-    return 5; // 5 albuns por linha em telas grandes
+    if (windowWidth < 550) return 2; // 2 itens por linha em telas menores que 550px
+    if (windowWidth < 1100) return 3; // 2 itens por linha em telas menores que 1100px
+    if (windowWidth < 1500) return 4; // 3 itens por linha em telas médias
+    return 5; // 4 itens por linha em telas grandes
   };
 
   const gridCols = getGridCols();

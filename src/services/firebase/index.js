@@ -217,6 +217,35 @@ export const observarAutenticacao = (callback) => {
   return onAuthStateChanged(auth, callback);
 };
 
+// Função utilitária para filtrar os dados do álbum antes de salvar
+function filtrarAlbumParaSalvar(album) {
+  const obj = {
+    artista: album.artista ?? "",
+    avaliacoes: album.avaliacoes ?? {},
+    data_atualizacao: album.data_atualizacao ?? null,
+    data_avaliacao: album.data_avaliacao ?? null,
+    data_primeira_avaliacao: album.data_primeira_avaliacao ?? null,
+    faixas: Array.isArray(album.faixas)
+      ? album.faixas.map((f) => ({
+          id: f.id ?? "",
+          nome: f.nome ?? "",
+        }))
+      : [],
+    id: album.id ?? "",
+    imagem: album.imagem ?? "",
+    isPrimeiraAvaliacao: album.isPrimeiraAvaliacao ?? false,
+    mediaAvaliacao: album.mediaAvaliacao ?? 0,
+    nome: album.nome ?? "",
+    preferencias: album.preferencias ?? {},
+    progresso: album.progresso ?? { avaliadas: 0, total: 0, percentual: 0 },
+  };
+  // Remove qualquer campo undefined (por segurança extra)
+  Object.keys(obj).forEach((k) => {
+    if (obj[k] === undefined) obj[k] = null;
+  });
+  return obj;
+}
+
 /**
  * Salva a avaliação de um álbum para o usuário atual
  * @param {string} albumId - ID do álbum no Spotify
@@ -459,7 +488,7 @@ export const salvarAvaliacaoAlbum = async (
 
       // Adicionar novo álbum ao array existente
       await updateDoc(userRef, {
-        albuns_avaliados: arrayUnion(dadosAlbum),
+        albuns_avaliados: arrayUnion(filtrarAlbumParaSalvar(dadosAlbum)),
       });
     }
 
@@ -935,6 +964,18 @@ export const salvarAlbumCacheSpotify = async (albumId, detalhes, faixas) => {
       (album) => album.id === albumId
     );
 
+    // Filtrar detalhes e faixas para salvar apenas o essencial
+    const detalhesFiltrados = filtrarAlbumParaSalvar({
+      ...detalhes,
+      faixas:
+        faixas && Array.isArray(faixas.items)
+          ? faixas.items.map((faixa) => ({
+              id: faixa.id,
+              nome: faixa.name || "Faixa sem nome",
+            }))
+          : [],
+    });
+
     if (albumExistente) {
       // Se o álbum já existe, apenas atualizar os dados de cache
       // Criar uma nova cópia do array e modificar a cópia
@@ -942,8 +983,7 @@ export const salvarAlbumCacheSpotify = async (albumId, detalhes, faixas) => {
         if (album.id === albumId) {
           return {
             ...album,
-            detalhes: detalhes,
-            faixas: faixas,
+            ...detalhesFiltrados,
             cache_atualizado: new Date(), // Usar Date em vez de serverTimestamp dentro do array
           };
         }

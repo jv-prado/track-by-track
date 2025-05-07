@@ -40,6 +40,26 @@ const CardAlbumAvaliado = ({ album, setAlbumSelecionado, modo = "grade" }) => {
       percentual: 0,
     };
 
+  // Função para obter a média de avaliação considerando múltiplas possíveis propriedades
+  const obterMediaAvaliacao = () => {
+    // Verificar todas as possíveis propriedades onde a média pode estar armazenada
+    const mediaDetalhes =
+      detalhesAlbum?.mediaAvaliacao ||
+      detalhesAlbum?.media ||
+      detalhesAlbum?.nota;
+    const mediaAlbum = album?.mediaAvaliacao || album?.media || album?.nota;
+
+    // Usar a primeira disponível, com fallback para 0
+    const mediaFinal = mediaDetalhes ?? mediaAlbum ?? 0;
+
+    // Converter para número e garantir que seja válido
+    const mediaNumero = parseFloat(mediaFinal);
+    return isNaN(mediaNumero) ? 0 : mediaNumero;
+  };
+
+  // Obter a média de avaliação
+  const mediaAvaliacao = obterMediaAvaliacao();
+
   // Formatar o percentual como número inteiro
   const percentualFormatado =
     progressoAvaliacao && typeof progressoAvaliacao.percentual === "number"
@@ -130,14 +150,12 @@ const CardAlbumAvaliado = ({ album, setAlbumSelecionado, modo = "grade" }) => {
               {/* Nota compacta */}
               <div
                 className={`${getRatingColor(
-                  parseFloat(detalhesAlbum?.mediaAvaliacao || 0)
+                  mediaAvaliacao
                 )} text-cinza-escuro rounded-lg px-3 py-1 md:px-4 md:py-2 text-lg md:text-2xl lg:text-3xl font-bold flex items-center shadow-sm`}
               >
-                {detalhesAlbum?.mediaAvaliacao
-                  ? Number.isInteger(detalhesAlbum.mediaAvaliacao)
-                    ? detalhesAlbum.mediaAvaliacao.toString()
-                    : detalhesAlbum.mediaAvaliacao.toFixed(1)
-                  : "0"}
+                {Number.isInteger(mediaAvaliacao)
+                  ? mediaAvaliacao.toString()
+                  : mediaAvaliacao.toFixed(1)}
               </div>
             </div>
 
@@ -273,19 +291,11 @@ const CardAlbumAvaliado = ({ album, setAlbumSelecionado, modo = "grade" }) => {
           {/* Nota como badge */}
           <div
             className={`absolute bottom-2 right-2 text-white font-bold rounded-full w-9 h-9 xs:w-10 xs:h-10 sm:w-12 sm:h-12 flex items-center justify-center md:text-base text-sm xs:text-base
-              ${getRatingColor(
-                parseFloat(
-                  detalhesAlbum && detalhesAlbum.mediaAvaliacao
-                    ? detalhesAlbum.mediaAvaliacao
-                    : 0
-                )
-              )}`}
+              ${getRatingColor(mediaAvaliacao)}`}
           >
-            {detalhesAlbum && detalhesAlbum.mediaAvaliacao
-              ? Number.isInteger(Number(detalhesAlbum.mediaAvaliacao))
-                ? Number(detalhesAlbum.mediaAvaliacao).toString()
-                : Number(detalhesAlbum.mediaAvaliacao).toFixed(1)
-              : "0"}
+            {Number.isInteger(mediaAvaliacao)
+              ? mediaAvaliacao.toString()
+              : mediaAvaliacao.toFixed(1)}
           </div>
 
           {/* Overlay com botões */}

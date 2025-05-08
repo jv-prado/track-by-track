@@ -127,6 +127,7 @@ const DetalhesAlbum = ({ albumId: albumIdProp, onVoltar: onVoltarProp }) => {
             mostrarPopoverMedia={mostrarPopoverMedia}
             popoverMediaRef={popoverMediaRef}
             t={t}
+            obterCorNota={obterCorNota}
             avaliacoesUsuariosAlbum={avaliacoesUsuariosAlbum}
             setMostrarPopover={setMostrarPopover}
             mostrarPopover={mostrarPopover}

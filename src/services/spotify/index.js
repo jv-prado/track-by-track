@@ -43,7 +43,6 @@ const getToken = async () => {
  */
 async function fetchWithErrorHandling(url, options, tentativas = 3) {
   try {
-    console.log(`[Spotify] Requisitando: ${url}`);
     const response = await fetch(url, options);
 
     if (!response.ok) {
@@ -52,10 +51,6 @@ async function fetchWithErrorHandling(url, options, tentativas = 3) {
         // Obter o tempo de espera recomendado ou usar um padrão
         const retryAfter = response.headers.get("Retry-After") || 2;
         const delayMs = parseInt(retryAfter) * 1000;
-
-        console.warn(
-          `Limite de requisições atingido. Aguardando ${retryAfter}s antes de tentar novamente...`
-        );
 
         // Esperar pelo tempo recomendado
         await new Promise((resolve) => setTimeout(resolve, delayMs));
@@ -78,7 +73,6 @@ async function fetchWithErrorHandling(url, options, tentativas = 3) {
       // Para erros 404, retornar um objeto vazio compatível com a estrutura esperada
       // em vez de lançar um erro, para evitar quebrar a interface
       if (response.status === 404) {
-        console.warn(`[Spotify] Recurso não encontrado: ${url}`);
         // Retorna um objeto "vazio" que é compatível com a estrutura esperada
         return { tracks: [], albums: { items: [] }, artists: { items: [] } };
       }
@@ -88,12 +82,8 @@ async function fetchWithErrorHandling(url, options, tentativas = 3) {
 
     return await response.json();
   } catch (error) {
-    console.error("Erro na requisição:", error);
     // Se for um erro de rede, tentar novamente se ainda houver tentativas
     if (error.name === "TypeError" && tentativas > 0) {
-      console.warn(
-        `Erro de rede detectado, tentando novamente... (${tentativas} tentativas restantes)`
-      );
       await new Promise((resolve) => setTimeout(resolve, 2000));
       return fetchWithErrorHandling(url, options, tentativas - 1);
     }
@@ -120,7 +110,6 @@ export async function buscarArtista(nomeArtista) {
 
     return data.artists;
   } catch (error) {
-    console.error("Erro ao buscar artista:", error);
     throw new Error(`Não foi possível buscar o artista: ${error.message}`);
   }
 }
@@ -142,7 +131,6 @@ export async function buscarAlbum(nomeAlbum) {
 
     return data.albums;
   } catch (error) {
-    console.error("Erro ao buscar álbum:", error);
     throw new Error(`Não foi possível buscar o álbum: ${error.message}`);
   }
 }
@@ -161,7 +149,6 @@ export async function buscarAlbunsPorArtista(artistaId) {
       getAuthHeaders(token)
     );
   } catch (error) {
-    console.error("Erro ao buscar álbuns do artista:", error);
     throw new Error(
       `Não foi possível buscar os álbuns do artista: ${error.message}`
     );
@@ -182,7 +169,6 @@ export async function buscarFaixasPorAlbum(albumId) {
       getAuthHeaders(token)
     );
   } catch (error) {
-    console.error("Erro ao buscar faixas do álbum:", error);
     throw new Error(
       `Não foi possível buscar as faixas do álbum: ${error.message}`
     );
@@ -214,7 +200,6 @@ export async function buscarDetalhesAlbum(albumId) {
 
     return resultado;
   } catch (error) {
-    console.error("Erro ao buscar detalhes do álbum:", error);
     throw new Error(
       `Não foi possível buscar os detalhes do álbum: ${error.message}`
     );
@@ -236,7 +221,6 @@ export async function buscarPlaylistsEmDestaque(country = "BR", limit = 10) {
       getAuthHeaders(token)
     );
   } catch (error) {
-    console.error("Erro ao buscar playlists em destaque:", error);
     throw new Error(
       `Não foi possível buscar as playlists em destaque: ${error.message}`
     );
@@ -258,7 +242,6 @@ export async function buscarNovosLancamentos(country = "BR", limit = 10) {
       getAuthHeaders(token)
     );
   } catch (error) {
-    console.error("Erro ao buscar novos lançamentos:", error);
     throw new Error(
       `Não foi possível buscar os novos lançamentos: ${error.message}`
     );
@@ -279,7 +262,6 @@ export async function buscarSinglesRecentes(limit = 10) {
       getAuthHeaders(token)
     );
   } catch (error) {
-    console.error("Erro ao buscar singles recentes:", error);
     throw new Error(
       `Não foi possível buscar os singles recentes: ${error.message}`
     );
@@ -301,7 +283,6 @@ export async function buscarCategorias(country = "BR", limit = 20) {
       getAuthHeaders(token)
     );
   } catch (error) {
-    console.error("Erro ao buscar categorias:", error);
     throw new Error(`Não foi possível buscar as categorias: ${error.message}`);
   }
 }
@@ -351,12 +332,10 @@ export async function buscarArtistasPorGenero(genero = "pop", limit = 10) {
 
       return fallbackData || { artists: { items: [] } };
     } catch (error) {
-      console.warn("Erro na busca de artistas por gênero:", error);
       // Retornar uma estrutura vazia compatível
       return { artists: { items: [] } };
     }
   } catch (error) {
-    console.error("Erro ao buscar artistas por gênero:", error);
     // Retornar uma estrutura vazia em vez de lançar erro
     return { artists: { items: [] } };
   }
@@ -413,7 +392,6 @@ export async function buscarTopTracks(country = "BR", limit = 10) {
         : [],
     };
   } catch (error) {
-    console.error("Erro ao buscar faixas mais tocadas:", error);
     // Retornar um array vazio em vez de lançar erro
     return { tracks: [] };
   }

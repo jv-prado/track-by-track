@@ -284,7 +284,6 @@ export default function useAvaliacoes({ termoPesquisaInicial = "" } = {}) {
 
           // Transformar os dados para o formato esperado pela interface
           const albumsProcessados = albumsDoFirebase.map((album) => {
-            // Converter a última atualização para timestamp
             let ultimaAtualizacao = album.data_atualizacao?.toDate
               ? album.data_atualizacao.toDate().getTime()
               : album.data_atualizacao || Date.now();
@@ -293,8 +292,20 @@ export default function useAvaliacoes({ termoPesquisaInicial = "" } = {}) {
             const faixasAvaliadas = Object.values(album.avaliacoes).filter(
               (avaliacao) => avaliacao > 0
             ).length;
-            // Total de faixas do álbum
-            const totalFaixas = Object.keys(album.avaliacoes).length;
+
+            // Tentar obter o total real de faixas
+            let totalFaixas = 0;
+            if (album.faixas && Array.isArray(album.faixas)) {
+              totalFaixas = album.faixas.length;
+            } else if (
+              album.faixas &&
+              album.faixas.items &&
+              Array.isArray(album.faixas.items)
+            ) {
+              totalFaixas = album.faixas.items.length;
+            } else {
+              totalFaixas = Object.keys(album.avaliacoes).length;
+            }
 
             return {
               id: album.id,
@@ -308,7 +319,10 @@ export default function useAvaliacoes({ termoPesquisaInicial = "" } = {}) {
               progressoAvaliacao: {
                 avaliadas: faixasAvaliadas,
                 total: totalFaixas,
-                percentual: Math.round((faixasAvaliadas / totalFaixas) * 100),
+                percentual:
+                  totalFaixas > 0
+                    ? Math.round((faixasAvaliadas / totalFaixas) * 100)
+                    : 0,
               },
               ultimaAtualizacao,
             };

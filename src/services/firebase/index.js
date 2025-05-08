@@ -190,12 +190,8 @@ export const fazerLogout = async () => {
     // Executar o logout do Firebase Auth
     await signOut(auth);
 
-    console.log(
-      "Logout completo com sucesso - todos os dados de autenticação foram removidos"
-    );
     return true;
   } catch (error) {
-    console.error("Erro ao fazer logout:", error);
     throw error;
   }
 };
@@ -450,7 +446,7 @@ export const salvarAvaliacaoAlbum = async (
 
         dadosAlbum.data_atualizacao = new Date();
       }
-      // Se for primeira avaliação completa, marca como tal e registra o timestamp
+      // Se for primeira avaliação completa, marcar como tal e registra o timestamp
       else if (isPrimeiraAvaliacaoConcluida) {
         dadosAlbum.isPrimeiraAvaliacao = true;
         dadosAlbum.data_completou_100 = new Date(); // NOVO: registrar quando o álbum completou 100%
@@ -553,8 +549,6 @@ export const obterAvaliacoesGlobais = async (
           total: 0,
           percentual: 0,
         };
-
-        // Log para depuração
 
         // Calcular a média das avaliações deste álbum (mantemos este cálculo)
         let soma = 0;
@@ -1002,7 +996,6 @@ export const salvarAlbumCacheSpotify = async (albumId, detalhes, faixas) => {
       );
     }
   } catch (error) {
-    console.error("Erro ao salvar cache do Spotify:", error);
     throw error;
   }
 };

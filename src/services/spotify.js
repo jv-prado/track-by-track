@@ -44,7 +44,6 @@ const getToken = async () => {
     spotifyTokenExpiry &&
     Date.now() < parseInt(spotifyTokenExpiry)
   ) {
-    console.log("Usando token do Spotify");
     return spotifyToken;
   }
 
@@ -52,29 +51,22 @@ const getToken = async () => {
   const refreshToken = localStorage.getItem("spotify_refresh_token");
   if (refreshToken) {
     try {
-      console.log("Tentando renovar token do Spotify");
       const tokenAtualizado = await atualizarToken();
       if (tokenAtualizado) {
-        console.log("Token do Spotify renovado com sucesso");
         return localStorage.getItem("spotify_access_token");
       }
-    } catch (err) {
-      console.error("Erro ao atualizar token do Spotify:", err);
-    }
+    } catch (err) {}
   }
 
   // Verificar se temos um token de usuário via Firebase
   const userToken = getAuthToken();
   if (userToken) {
-    console.log("Usando token de usuário autenticado via Firebase");
     return userToken;
   }
 
   // Verificar se há um usuário logado via Firebase (email/senha)
   const usuarioFirebase = getUsuarioAtual();
   if (usuarioFirebase && !usuarioFirebase.uid.startsWith("spotify_")) {
-    console.log("Usuário Firebase detectado, gerando token cliente para busca");
-
     // Se não temos token do Spotify, mas temos usuário Firebase,
     // vamos obter um token de cliente para permitir as buscas
     const clientToken = await getSpotifyToken();
@@ -85,18 +77,15 @@ const getToken = async () => {
         "spotify_token_expires_at",
         String(Date.now() + 3600 * 1000)
       );
-      console.log("Token de cliente obtido e armazenado para usuário Firebase");
       return clientToken;
     }
   }
 
   // Esperamos que o usuário faça login antes de usar funcionalidades que precisam de autenticação
-  console.log("Nenhum token de usuário disponível. É necessário fazer login.");
 
   // Verificar se temos um token de cliente em último caso (funcionalidades públicas)
   // Evitamos usar isso para funções que exigem autenticação do usuário
   const clientToken = await getSpotifyToken();
-  console.log("Usando token de cliente (funcionalidades limitadas)");
   return clientToken;
 };
 
@@ -157,13 +146,11 @@ export async function buscarArtista(nomeArtista) {
   try {
     // Verificar se o usuário está autenticado
     if (!estaAutenticado()) {
-      console.log("Usuário não está autenticado para buscar artistas");
       throw new Error("É necessário fazer login para buscar artistas");
     }
 
     const token = await getToken();
     if (!token) {
-      console.error("Não foi possível obter um token válido");
       throw new Error(
         "Não foi possível autenticar. Por favor, faça login novamente."
       );
@@ -177,7 +164,6 @@ export async function buscarArtista(nomeArtista) {
 
     return resultado.artists;
   } catch (error) {
-    console.error("Erro ao buscar artista:", error);
     throw error;
   }
 }
@@ -193,7 +179,6 @@ export async function buscarAlbum(nomeAlbum, limit = 20, offset = 0) {
   try {
     // Verificar se o usuário está autenticado
     if (!estaAutenticado()) {
-      console.log("Usuário não está autenticado para buscar álbuns");
       throw new Error("É necessário fazer login para buscar álbuns");
     }
 
@@ -205,7 +190,6 @@ export async function buscarAlbum(nomeAlbum, limit = 20, offset = 0) {
 
     return resultado.albums;
   } catch (error) {
-    console.error("Erro ao buscar álbum:", error);
     throw error;
   }
 }
@@ -219,9 +203,6 @@ export async function buscarAlbunsPorArtista(artistaId) {
   try {
     // Verificar se o usuário está autenticado
     if (!estaAutenticado()) {
-      console.log(
-        "Usuário não está autenticado para buscar álbuns por artista"
-      );
       throw new Error(
         "É necessário fazer login para buscar álbuns por artista"
       );
@@ -234,7 +215,6 @@ export async function buscarAlbunsPorArtista(artistaId) {
 
     return resultado;
   } catch (error) {
-    console.error("Erro ao buscar álbuns por artista:", error);
     throw error;
   }
 }
@@ -248,7 +228,6 @@ export async function buscarFaixasPorAlbum(albumId) {
   try {
     // Verificar se o usuário está autenticado
     if (!estaAutenticado()) {
-      console.log("Usuário não está autenticado para buscar faixas por álbum");
       throw new Error("É necessário fazer login para buscar faixas por álbum");
     }
 
@@ -259,7 +238,6 @@ export async function buscarFaixasPorAlbum(albumId) {
 
     return resultado;
   } catch (error) {
-    console.error("Erro ao buscar faixas por álbum:", error);
     throw error;
   }
 }
@@ -273,7 +251,6 @@ export async function buscarDetalhesAlbum(albumId) {
   try {
     // Verificar se o usuário está autenticado
     if (!estaAutenticado()) {
-      console.log("Usuário não está autenticado para buscar detalhes do álbum");
       throw new Error("É necessário fazer login para buscar detalhes do álbum");
     }
 
@@ -284,7 +261,6 @@ export async function buscarDetalhesAlbum(albumId) {
 
     return resultado;
   } catch (error) {
-    console.error("Erro ao buscar detalhes do álbum:", error);
     throw error;
   }
 }
@@ -300,7 +276,6 @@ export async function buscarSingle(nomeSingle, limit = 20, offset = 0) {
   try {
     // Verificar se o usuário está autenticado
     if (!estaAutenticado()) {
-      console.log("Usuário não está autenticado para buscar singles");
       throw new Error("É necessário fazer login para buscar singles");
     }
 
@@ -321,7 +296,6 @@ export async function buscarSingle(nomeSingle, limit = 20, offset = 0) {
 
     return resultado.albums;
   } catch (error) {
-    console.error("Erro ao buscar single:", error);
     throw error;
   }
 }
@@ -350,9 +324,6 @@ const REDIRECT_URI = (() => {
   ];
 
   if (!allowedOrigins.includes(origin)) {
-    console.warn(
-      `ATENÇÃO: O domínio ${origin} não está cadastrado como redirect_uri no painel do Spotify. Adicione este domínio para evitar erros de login.`
-    );
   }
 
   // Logar o URI para debugging
@@ -409,7 +380,6 @@ const generateCodeChallenge = async (codeVerifier) => {
       .replace(/\//g, "_")
       .replace(/=+$/, "");
   } catch (error) {
-    console.error("Erro ao gerar code challenge:", error);
     throw error;
   }
 };
@@ -495,7 +465,6 @@ export const iniciarLoginSpotify = async () => {
     );
 
     if (storedVerifier !== codeVerifier) {
-      console.error("ERRO: Code verifier não foi armazenado corretamente");
       return;
     }
 
@@ -540,9 +509,7 @@ export const iniciarLoginSpotify = async () => {
 
     // Redirecionar para a página de autorização do Spotify
     window.location.href = authUrl.toString();
-  } catch (error) {
-    console.error("Erro ao iniciar fluxo de autenticação:", error);
-  }
+  } catch (error) {}
 };
 
 // Troca o código de autorização pelo token de acesso usando PKCE
@@ -553,7 +520,6 @@ export const trocarCodePorToken = async (code) => {
     // Verificar se o código já foi usado (checar no sessionStorage)
     const codeUsed = sessionStorage.getItem("spotify_code_used");
     if (codeUsed === code) {
-      console.error("Este código de autorização já foi usado anteriormente");
       return false;
     }
 
@@ -564,7 +530,6 @@ export const trocarCodePorToken = async (code) => {
     const codeVerifier = localStorage.getItem("pkce_code_verifier");
 
     if (!codeVerifier) {
-      console.error("Code verifier não encontrado no localStorage");
       return false;
     }
 
@@ -635,17 +600,11 @@ export const trocarCodePorToken = async (code) => {
             localStorage.removeItem("pkce_code_verifier");
             localStorage.removeItem("spotify_auth_state");
           } else if (errorData.error === "invalid_client") {
-            console.error(
-              "Client ID inválido ou não autorizado para este redirect_uri."
-            );
           }
         } catch (jsonError) {
           // Erro não é JSON válido
-          console.error("Não foi possível fazer parse do erro como JSON");
         }
-      } catch (textError) {
-        console.error("Não foi possível obter texto do erro");
-      }
+      } catch (textError) {}
 
       // Remover o código em processamento, pois falhou
       sessionStorage.removeItem("spotify_code_processing");
@@ -676,16 +635,11 @@ export const trocarCodePorToken = async (code) => {
           "[ERRO] Faltam escopos críticos:",
           escoposFaltando.join(", ")
         );
-        console.warn("Autenticação pode falhar em endpoints protegidos!");
-      } else {
-        console.log("[OK] Todos os escopos críticos foram concedidos");
       }
     } else {
-      console.warn("[AVISO] Resposta não inclui informação sobre escopos");
     }
 
     if (data.access_token) {
-      console.log("Token de acesso recebido com sucesso");
       const expiresAt = Date.now() + data.expires_in * 1000;
       localStorage.setItem("spotify_access_token", data.access_token);
       localStorage.setItem("spotify_token_expires_at", expiresAt.toString());
@@ -710,13 +664,11 @@ export const trocarCodePorToken = async (code) => {
 
       return true;
     } else {
-      console.error("Token de acesso não recebido na resposta");
       // Remover o código em processamento, pois falhou
       sessionStorage.removeItem("spotify_code_processing");
       return false;
     }
   } catch (error) {
-    console.error("Erro ao trocar código por token:", error);
     // Remover o código em processamento em caso de erro
     sessionStorage.removeItem("spotify_code_processing");
     return false;
@@ -732,9 +684,6 @@ export const verificarToken = () => {
 
   // Se não tiver token nem timestamp de expiração, o token não é válido
   if (!accessToken || !expiresAt) {
-    console.log(
-      "Token do Spotify não encontrado ou timestamp de expiração ausente"
-    );
     return false;
   }
 
@@ -749,18 +698,6 @@ export const verificarToken = () => {
   // Se estiver a menos de 5 minutos para expirar, considera expirado
   const tokenValido = tempoRestante > 5 * 60 * 1000;
 
-  if (tokenValido) {
-    console.log(
-      `Token do Spotify válido, expira em aproximadamente ${expiraEmMinutos} minutos`
-    );
-  } else {
-    console.log(
-      `Token do Spotify expirado ou prestes a expirar (${
-        expiraEmMinutos < 0 ? "expirado há" : "expira em"
-      } ${Math.abs(expiraEmMinutos)} minutos)`
-    );
-  }
-
   return tokenValido;
 };
 
@@ -769,19 +706,16 @@ export const atualizarToken = async () => {
   const refreshToken = localStorage.getItem("spotify_refresh_token");
 
   if (!refreshToken) {
-    console.log("Não há refresh token disponível");
     return false;
   }
 
   // Verificar se o refresh token parece ser válido
   if (refreshToken.length < 20) {
-    console.error("Refresh token parece inválido (muito curto)");
     logout(); // Limpar tokens inválidos
     return false;
   }
 
   try {
-    console.log("Tentando atualizar token com refresh token");
     const tokenUrl = "https://accounts.spotify.com/api/token";
     const payload = {
       method: "POST",
@@ -795,23 +729,11 @@ export const atualizarToken = async () => {
       }),
     };
 
-    console.log("Enviando requisição para atualizar token");
     const response = await fetch(tokenUrl, payload);
 
     if (!response.ok) {
-      console.error(`Erro ao atualizar token: ${response.status}`);
-
-      // Log para debug
-      try {
-        const errorText = await response.text();
-        console.error("Erro detalhado:", errorText);
-      } catch (e) {
-        // Ignora erros ao tentar ler o corpo da resposta
-      }
-
       // Se o refresh token for inválido ou expirado, limpar os tokens
       if (response.status === 400 || response.status === 401) {
-        console.log("Refresh token inválido ou expirado. Limpando tokens...");
         logout();
       }
       return false;
@@ -820,13 +742,11 @@ export const atualizarToken = async () => {
     const data = await response.json();
 
     if (data.access_token) {
-      console.log("Token atualizado com sucesso");
       const expiresAt = Date.now() + data.expires_in * 1000;
       localStorage.setItem("spotify_access_token", data.access_token);
 
       // Atualiza o refresh token se um novo for fornecido
       if (data.refresh_token) {
-        console.log("Novo refresh token recebido e armazenado");
         localStorage.setItem("spotify_refresh_token", data.refresh_token);
       }
 
@@ -834,15 +754,11 @@ export const atualizarToken = async () => {
 
       // Log para confirmar quanto tempo o token é válido
       const expiresIn = Math.floor((expiresAt - Date.now()) / 1000 / 60); // em minutos
-      console.log(`Novo token expira em ${expiresIn} minutos`);
-
       return true;
     }
 
-    console.error("Resposta não contém access_token:", data);
     return false;
   } catch (error) {
-    console.error("Erro ao atualizar token:", error);
     return false;
   }
 };
@@ -858,19 +774,14 @@ export const chamadaAPI = async (endpoint, method = "GET", body = null) => {
     !tokenExpiry || Date.now() >= parseInt(tokenExpiry) - 5 * 60 * 1000;
 
   if (!accessToken || tokenExpirado) {
-    console.log("Token expirado ou prestes a expirar, tentando atualizar...");
     const tokenAtualizado = await atualizarToken();
 
     if (!tokenAtualizado) {
-      console.error(
-        "Não foi possível atualizar o token. Usuário será deslogado."
-      );
       logout();
       throw new Error(
         "Token expirado e não foi possível atualizá-lo. Faça login novamente."
       );
     } else {
-      console.log("Token atualizado com sucesso!");
       accessToken = localStorage.getItem("spotify_access_token");
     }
   }
@@ -892,12 +803,9 @@ export const chamadaAPI = async (endpoint, method = "GET", body = null) => {
         const cacheValido = Date.now() - timestamp < 24 * 60 * 60 * 1000;
 
         if (cacheValido) {
-          console.log(`Usando dados em cache para ${endpoint}`);
           return data;
         }
-      } catch (e) {
-        console.error("Erro ao ler cache:", e);
-      }
+      } catch (e) {}
     }
   }
 
@@ -914,7 +822,6 @@ export const chamadaAPI = async (endpoint, method = "GET", body = null) => {
   }
 
   try {
-    console.log(`Chamando API do Spotify: ${endpoint}`);
     const response = await fetch(
       `https://api.spotify.com/v1${endpoint}`,
       options
@@ -923,10 +830,6 @@ export const chamadaAPI = async (endpoint, method = "GET", body = null) => {
     if (!response.ok) {
       // Tratamento especial para endpoint /me com erro 403
       if (response.status === 403 && endpoint === "/me") {
-        console.warn(
-          "[SOLUÇÃO ALTERNATIVA] Tentando método diferente para obter perfil básico do usuário devido a erro 403"
-        );
-
         try {
           // Tentar obter ID do usuário de um endpoint menos restritivo
           const userPlaylistsResponse = await fetch(
@@ -944,7 +847,6 @@ export const chamadaAPI = async (endpoint, method = "GET", body = null) => {
 
               if (match && match[1]) {
                 const userId = match[1];
-                console.log(`[RECUPERADO] ID do usuário Spotify: ${userId}`);
 
                 // Retornar perfil básico com ID real
                 return {
@@ -960,15 +862,11 @@ export const chamadaAPI = async (endpoint, method = "GET", body = null) => {
               }
             }
           }
-        } catch (altError) {
-          console.error("[FALHA] Método alternativo também falhou:", altError);
-        }
+        } catch (altError) {}
       }
 
       // Tratamento específico para erro 403 (Forbidden)
       if (response.status === 403) {
-        console.warn(`Erro 403 no endpoint ${endpoint} - Permissão negada`);
-
         // Verificar se temos cache para este endpoint
         if (method === "GET") {
           const cacheKey = `spotify_cache_${endpoint}`;
@@ -976,19 +874,13 @@ export const chamadaAPI = async (endpoint, method = "GET", body = null) => {
 
           if (cachedData) {
             try {
-              console.log(`Usando cache para ${endpoint} após erro 403`);
               const { data } = JSON.parse(cachedData);
               return data;
-            } catch (e) {
-              console.error("Erro ao ler cache após 403:", e);
-            }
+            } catch (e) {}
           }
 
           // Para endpoints específicos, podemos retornar dados padrão
           if (endpoint === "/me") {
-            console.log(
-              "[DEBUG] Erro 403 ao buscar perfil do usuário. Isso pode indicar que o token não tem os escopos necessários."
-            );
             throw new Error(
               "Erro 403: Permissão negada ao acessar o perfil do usuário."
             );
@@ -1002,17 +894,10 @@ export const chamadaAPI = async (endpoint, method = "GET", body = null) => {
 
       // Token expirado, tentar atualizar e tentar novamente
       if (response.status === 401) {
-        console.log(
-          "Token expirou durante a requisição, tentando atualizar novamente..."
-        );
         const tokenAtualizado = await atualizarToken();
         if (tokenAtualizado) {
-          console.log("Token atualizado, repetindo chamada à API");
           return chamadaAPI(endpoint, method, body);
         } else {
-          console.error(
-            "Não foi possível atualizar o token após erro 401. Usuário será deslogado."
-          );
           logout();
           throw new Error(
             "Token expirado e não foi possível atualizá-lo. Faça login novamente."
@@ -1027,7 +912,6 @@ export const chamadaAPI = async (endpoint, method = "GET", body = null) => {
         if (errorData.error && errorData.error.message) {
           errorMessage += ` - ${errorData.error.message}`;
         }
-        console.error("Detalhes do erro:", errorData);
       } catch (e) {
         // Ignore erros ao tentar parse da resposta de erro
       }
@@ -1051,7 +935,6 @@ export const chamadaAPI = async (endpoint, method = "GET", body = null) => {
 
     return data;
   } catch (error) {
-    console.error("Erro na chamada à API:", error);
     throw error;
   }
 };
@@ -1087,8 +970,6 @@ export const estaAutenticado = () => {
   // Verificar primeiro se há um usuário Firebase logado (por email/senha)
   const usuarioFirebase = getUsuarioAtual();
   if (usuarioFirebase && !usuarioFirebase.uid.startsWith("spotify_")) {
-    console.log("Usuário autenticado via Firebase (email/senha)");
-
     // Se não há token do Spotify, mas temos usuário Firebase,
     // vamos obter um token de cliente que funciona para as buscas básicas
     if (!localStorage.getItem("spotify_access_token")) {
@@ -1103,12 +984,9 @@ export const estaAutenticado = () => {
               "spotify_token_expires_at",
               String(Date.now() + 3600 * 1000)
             );
-            console.log(
-              "Token de cliente do Spotify obtido para usuário Firebase"
-            );
           }
         })
-        .catch((err) => console.error("Erro ao obter token de cliente:", err));
+        .catch((err) => {});
     }
 
     return true;
@@ -1125,13 +1003,9 @@ export const estaAutenticado = () => {
     const autenticadoFlag =
       localStorage.getItem("spotify_autenticado") === "true";
     if (!autenticadoFlag) {
-      console.log(
-        "Token válido mas sem flag de autenticação, considerando não autenticado"
-      );
       return false;
     }
 
-    console.log("Token de acesso do Spotify válido encontrado");
     return true;
   }
 
@@ -1141,13 +1015,9 @@ export const estaAutenticado = () => {
     localStorage.getItem("spotify_autenticado") === "true";
 
   if (refreshToken && autenticadoFlag) {
-    console.log(
-      "Refresh token do Spotify encontrado, usuário pode renovar autenticação"
-    );
     return true;
   }
 
-  console.log("Usuário não está autenticado com o Spotify");
   return false;
 };
 
@@ -1228,11 +1098,7 @@ export const registrarUsuarioSpotify = async (perfilUsuario) => {
       try {
         userDoc = await getDoc(userRef);
       } catch (firestoreError) {
-        console.error("Erro ao ler documento do Firestore:", firestoreError);
         if (firestoreError.code === "permission-denied") {
-          console.warn(
-            "Permissão negada ao tentar ler a coleção usuariosSpotify. Verifique as regras de segurança do Firestore."
-          );
         }
         // Retorna os dados básicos mesmo se não conseguir ler do Firestore
         return {
@@ -1261,11 +1127,7 @@ export const registrarUsuarioSpotify = async (perfilUsuario) => {
             dados: novoUsuario,
           };
         } catch (writeError) {
-          console.error("Erro ao criar documento no Firestore:", writeError);
           if (writeError.code === "permission-denied") {
-            console.warn(
-              "Permissão negada ao tentar criar documento na coleção usuariosSpotify. Verifique as regras de segurança do Firestore."
-            );
           }
         }
       } else {
@@ -1285,14 +1147,7 @@ export const registrarUsuarioSpotify = async (perfilUsuario) => {
             dados: dadosAtualizados,
           };
         } catch (updateError) {
-          console.error(
-            "Erro ao atualizar documento no Firestore:",
-            updateError
-          );
           if (updateError.code === "permission-denied") {
-            console.warn(
-              "Permissão negada ao tentar atualizar documento na coleção usuariosSpotify. Verifique as regras de segurança do Firestore."
-            );
           }
         }
       }
@@ -1303,7 +1158,6 @@ export const registrarUsuarioSpotify = async (perfilUsuario) => {
         dados: userDoc.exists() ? userDoc.data() : { albuns_avaliados: [] },
       };
     } catch (firestoreError) {
-      console.error("Erro geral do Firestore:", firestoreError);
       // Retorna os dados básicos mesmo se houver erro do Firestore
       return {
         uid: userId,
@@ -1312,7 +1166,6 @@ export const registrarUsuarioSpotify = async (perfilUsuario) => {
       };
     }
   } catch (error) {
-    console.error("Erro ao registrar usuário do Spotify:", error);
     throw error;
   }
 };

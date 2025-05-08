@@ -18,12 +18,6 @@ export const isAuthenticated = () => {
   if (!authState.token || !authState.tokenExpiry) return false;
 
   const authenticated = authState.tokenExpiry > Date.now();
-  console.log(
-    "[Auth] Verificação de autenticação:",
-    authenticated,
-    "Token expira em:",
-    new Date(authState.tokenExpiry).toLocaleTimeString()
-  );
   return authenticated;
 };
 
@@ -49,7 +43,6 @@ export const getUserData = () => {
  * Limpa os dados de autenticação
  */
 export const logout = () => {
-  console.log("[Auth] Realizando logout - limpando token e dados do usuário");
   authState.token = null;
   authState.tokenExpiry = null;
   authState.userData = null;
@@ -62,10 +55,6 @@ export const logout = () => {
  */
 export const saveAuth = (token, expiresIn) => {
   const expiryTime = Date.now() + expiresIn * 1000;
-  console.log(
-    "[Auth] Salvando token com expiração em:",
-    new Date(expiryTime).toLocaleString()
-  );
   authState.token = token;
   authState.tokenExpiry = expiryTime;
 };
@@ -75,10 +64,6 @@ export const saveAuth = (token, expiresIn) => {
  * @param {Object} userData - Dados do usuário
  */
 export const saveUserData = (userData) => {
-  console.log(
-    "[Auth] Salvando dados do usuário:",
-    userData ? userData.id : "null"
-  );
   authState.userData = userData;
 };
 
@@ -88,11 +73,8 @@ export const saveUserData = (userData) => {
  * @returns {Promise<boolean>} Verdadeiro se conseguiu recuperar a autenticação
  */
 export const recuperarAutenticacao = async () => {
-  console.log("[Auth] Iniciando recuperação de autenticação");
-
   // Se já está autenticado, não precisa recuperar
   if (isAuthenticated()) {
-    console.log("[Auth] Já está autenticado, não é necessário recuperar");
     return true;
   }
 
@@ -100,29 +82,15 @@ export const recuperarAutenticacao = async () => {
   const { loginWithClientCredentials } = await import("./api");
 
   try {
-    console.log("[Auth] Tentando login com credenciais do cliente");
     const sucesso = await loginWithClientCredentials();
 
     // Verificar novamente o estado de autenticação após o login
     if (sucesso) {
-      console.log("[Auth] Login com client credentials bem-sucedido");
-      // Vamos verificar de novo se o token foi salvo corretamente
-      console.log(
-        "[Auth] Estado após login:",
-        "Token presente:",
-        !!authState.token,
-        "Expiry presente:",
-        !!authState.tokenExpiry,
-        "Autenticado:",
-        isAuthenticated()
-      );
       return isAuthenticated();
     } else {
-      console.log("[Auth] Falha no login com client credentials");
       return false;
     }
   } catch (error) {
-    console.error("[Auth] Erro ao recuperar autenticação:", error);
     return false;
   }
 };

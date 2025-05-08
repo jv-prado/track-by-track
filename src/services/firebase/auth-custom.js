@@ -28,18 +28,10 @@ export const autenticarComSpotify = async (spotifyUserId) => {
 
     // Rejeitar explicitamente o ID genérico spotify_user
     if (spotifyUserId === "spotify_user") {
-      console.error(
-        "[DEBUG] Tentativa de autenticar com ID genérico 'spotify_user'. É necessário um ID real do Spotify."
-      );
       throw new Error(
         "ID do Spotify inválido para autenticação: 'spotify_user'"
       );
     }
-
-    console.log(
-      "[DEBUG] Iniciando autenticação alternativa para usuário Spotify:",
-      spotifyUserId
-    );
 
     try {
       // Como estamos enfrentando problemas com a Cloud Function e autenticação anônima,
@@ -63,22 +55,18 @@ export const autenticarComSpotify = async (spotifyUserId) => {
       // Se falhar, cria um novo usuário
       let userCredential;
       try {
-        console.log("[DEBUG] Tentando fazer login com usuário existente");
         userCredential = await signInWithEmailAndPassword(
           auth,
           email,
           password
         );
-        console.log("[DEBUG] Login realizado com sucesso");
       } catch (loginError) {
-        console.log("[DEBUG] Usuário não existe, criando nova conta");
         // Se o login falhar, criar um novo usuário
         userCredential = await createUserWithEmailAndPassword(
           auth,
           email,
           password
         );
-        console.log("[DEBUG] Novo usuário criado com sucesso");
       }
 
       const firebaseUser = userCredential.user;
@@ -88,8 +76,6 @@ export const autenticarComSpotify = async (spotifyUserId) => {
         displayName: perfilCache.name || `Spotify User ${spotifyUserId}`,
         photoURL: perfilCache.imageUrl || null,
       });
-
-      console.log("[DEBUG] Perfil do usuário atualizado:", firebaseUser.uid);
 
       // Salvar a senha para futuros logins
       localStorage.setItem(
@@ -122,7 +108,6 @@ export const autenticarComSpotify = async (spotifyUserId) => {
       };
 
       await setDoc(userDocRef, userData, { merge: true });
-      console.log("[DEBUG] Dados do usuário salvos no Firestore");
 
       // Também registrar na coleção usuariosSpotify para manter compatibilidade
       try {
@@ -139,15 +124,7 @@ export const autenticarComSpotify = async (spotifyUserId) => {
           },
           { merge: true }
         );
-        console.log(
-          "[DEBUG] Usuário registrado na coleção usuariosSpotify:",
-          spotifyUserId
-        );
       } catch (spotifyCollectionError) {
-        console.error(
-          "[DEBUG] Erro ao registrar na coleção usuariosSpotify:",
-          spotifyCollectionError
-        );
         // Não interromper o fluxo por causa desse erro
       }
 
@@ -165,7 +142,6 @@ export const autenticarComSpotify = async (spotifyUserId) => {
         message: "Autenticação alternativa com Spotify realizada com sucesso",
       };
     } catch (authError) {
-      console.error("[DEBUG] Erro na autenticação alternativa:", authError);
       return {
         success: false,
         error:
@@ -174,7 +150,6 @@ export const autenticarComSpotify = async (spotifyUserId) => {
       };
     }
   } catch (error) {
-    console.error("[DEBUG] Erro ao autenticar com Spotify:", error);
     return {
       success: false,
       error: error.message || "Erro desconhecido na autenticação",

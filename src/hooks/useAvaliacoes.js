@@ -301,7 +301,10 @@ export default function useAvaliacoes({ termoPesquisaInicial = "" } = {}) {
               name: album.nome || "Álbum Desconhecido",
               artists: [{ name: album.artista }],
               images: [{ url: album.imagem }],
-              mediaAvaliacao: calcularMediaDoObjeto(album.avaliacoes),
+              mediaAvaliacao:
+                album.mediaAvaliacao !== undefined
+                  ? album.mediaAvaliacao
+                  : calcularMediaDoObjeto(album.avaliacoes),
               progressoAvaliacao: {
                 avaliadas: faixasAvaliadas,
                 total: totalFaixas,

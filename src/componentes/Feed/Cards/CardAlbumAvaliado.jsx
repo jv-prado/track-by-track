@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, memo, useEffect } from "react";
+import { useState, memo } from "react";
 import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 import { MdMusicNote } from "react-icons/md";
@@ -16,32 +16,16 @@ import { MdMusicNote } from "react-icons/md";
 const CardAlbumAvaliado = ({ album, setAlbumSelecionado, modo = "grade" }) => {
   const { t } = useTranslation();
 
-  // Verificar se album é válido
   if (!album || typeof album !== "object") {
-    console.warn("CardAlbumAvaliado: album prop is missing or invalid");
     return null;
   }
 
-  // DEBUG: Mostrar os dados recebidos para depuração
-  useEffect(() => {
-    console.log("==== DADOS DO ÁLBUM ====", album.id);
-    console.log("Nome:", album.name || album.nome);
-    console.log("Média:", album.mediaAvaliacao, album.media, album.nota);
-    console.log("Progresso:", album.progressoAvaliacao);
-    console.log("Faixas avaliadas:", album.faixasAvaliadas);
-    console.log("Total faixas:", album.totalFaixas);
-    console.log("Avaliacoes:", album.avaliacoes);
-    console.log("========================");
-  }, [album]);
-
-  // Obter a média de avaliação (exatamente como é recebida)
-  const mediaAvaliacao = album.mediaAvaliacao || album.media || album.nota || 0;
-
-  // Obter o progresso (exatamente como é recebido)
-  const progressoAvaliacao = album.progressoAvaliacao || {
-    avaliadas: album.faixasAvaliadas || 0,
-    total: album.totalFaixas || 0,
-    percentual: album.percentualAvaliacao || 0,
+  // Média e progresso direto dos dados recebidos
+  const mediaAvaliacao = album.mediaAvaliacao;
+  const progresso = album.progressoAvaliacao ?? {
+    avaliadas: 0,
+    total: 0,
+    percentual: 0,
   };
 
   // Estado para controlar o carregamento da imagem e hover
@@ -60,7 +44,7 @@ const CardAlbumAvaliado = ({ album, setAlbumSelecionado, modo = "grade" }) => {
 
   // Função para determinar a cor da nota com base no valor
   const getRatingColor = (nota) => {
-    if (!progressoAvaliacao || progressoAvaliacao.percentual < 100) {
+    if (!progresso || progresso.percentual < 100) {
       return "bg-gray-400";
     }
     if (nota < 4) return "bg-red-500";
@@ -139,36 +123,33 @@ const CardAlbumAvaliado = ({ album, setAlbumSelecionado, modo = "grade" }) => {
                   mediaAvaliacao
                 )} text-cinza-escuro rounded-lg px-3 py-1 md:px-4 md:py-2 text-lg md:text-2xl lg:text-3xl font-bold flex items-center shadow-sm`}
               >
-                {typeof mediaAvaliacao === "number" && !isNaN(mediaAvaliacao)
-                  ? Number.isInteger(mediaAvaliacao)
-                    ? mediaAvaliacao.toString()
-                    : mediaAvaliacao.toFixed(1)
-                  : "0"}
+                {mediaAvaliacao !== undefined && mediaAvaliacao !== null
+                  ? mediaAvaliacao
+                  : ""}
               </div>
             </div>
 
             {/* Progresso e botão do Spotify em linha */}
             <div className="flex items-center mt-2 md:mt-3 gap-2 justify-between">
               {/* Progresso compacto */}
-              {progressoAvaliacao && (
+              {progresso && (
                 <div className="flex-grow max-w-xl">
                   <div className="w-full h-1.5 md:h-1.5 bg-cinza rounded-full overflow-hidden">
                     <div
                       className={`h-full transition-all duration-300 ease-in-out ${
-                        (progressoAvaliacao.percentual || 0) >= 100
+                        (progresso.percentual || 0) >= 100
                           ? "bg-verde-destaque"
                           : "bg-blue-500/50"
                       }`}
                       style={{
-                        width: `${progressoAvaliacao.percentual || 0}%`,
+                        width: `${progresso.percentual || 0}%`,
                       }}
                     ></div>
                   </div>
                   <div className="flex justify-between text-xs text-gray-400 mt-0.5 md:mt-1">
-                    <span>{progressoAvaliacao.percentual || 0}%</span>
                     <span>
-                      {progressoAvaliacao.avaliadas || 0}/
-                      {progressoAvaliacao.total || 0}
+                      {progresso.avaliadas || 0}/{progresso.total || 0} (
+                      {progresso.percentual || 0}%)
                     </span>
                   </div>
                 </div>
@@ -267,11 +248,9 @@ const CardAlbumAvaliado = ({ album, setAlbumSelecionado, modo = "grade" }) => {
             className={`absolute bottom-2 right-2 text-white font-bold rounded-full w-9 h-9 xs:w-10 xs:h-10 sm:w-12 sm:h-12 flex items-center justify-center md:text-base text-sm xs:text-base
               ${getRatingColor(mediaAvaliacao)}`}
           >
-            {typeof mediaAvaliacao === "number" && !isNaN(mediaAvaliacao)
-              ? Number.isInteger(mediaAvaliacao)
-                ? mediaAvaliacao.toString()
-                : mediaAvaliacao.toFixed(1)
-              : "0"}
+            {mediaAvaliacao !== undefined && mediaAvaliacao !== null
+              ? mediaAvaliacao
+              : ""}
           </div>
 
           {/* Overlay com botões */}
@@ -344,27 +323,26 @@ const CardAlbumAvaliado = ({ album, setAlbumSelecionado, modo = "grade" }) => {
             </div>
 
             {/* Barra de progresso */}
-            {progressoAvaliacao && (
+            {progresso && (
               <div className="mt-2">
                 <div className="flex justify-between text-xs mb-1">
                   <span className="text-gray-400 text-[10px]">
                     {t("albumCard.rated")}:
                   </span>
                   <span className="text-gray-400 text-[10px]">
-                    {progressoAvaliacao.avaliadas || 0}/
-                    {progressoAvaliacao.total || 0} (
-                    {progressoAvaliacao.percentual || 0}%)
+                    {progresso.avaliadas || 0}/{progresso.total || 0} (
+                    {progresso.percentual || 0}%)
                   </span>
                 </div>
                 <div className="w-full h-1.5 bg-cinza rounded-full overflow-hidden">
                   <div
                     className={`h-full transition-all duration-300 ease-in-out ${
-                      (progressoAvaliacao.percentual || 0) >= 100
+                      (progresso.percentual || 0) >= 100
                         ? "bg-verde-destaque"
                         : "bg-blue-500/50"
                     }`}
                     style={{
-                      width: `${progressoAvaliacao.percentual || 0}%`,
+                      width: `${progresso.percentual || 0}%`,
                     }}
                   ></div>
                 </div>
@@ -389,5 +367,4 @@ const CardAlbumAvaliado = ({ album, setAlbumSelecionado, modo = "grade" }) => {
   );
 };
 
-// Memoizar o componente para evitar renderizações desnecessárias
 export default memo(CardAlbumAvaliado);

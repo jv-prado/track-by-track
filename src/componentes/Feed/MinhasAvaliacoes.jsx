@@ -104,7 +104,7 @@ const AlbumCard = memo(({ album, setAlbumSelecionado, modo }) => {
  */
 const MinhasAvaliacoes = () => {
   const { t } = useTranslation();
-  const [autenticado, setAutenticado] = useState(isAuthenticated());
+  const [autenticado, setAutenticado] = useState(null); // null = ainda não verificado
   const [carregandoAuth, setCarregandoAuth] = useState(false);
   const [tentouRecuperar, setTentouRecuperar] = useState(false);
   const [carregandoTela, setCarregandoTela] = useState(true);
@@ -360,12 +360,12 @@ const MinhasAvaliacoes = () => {
   }, [albunsExibidos]);
 
   // Exibir indicador de carregamento enquanto verificamos a autenticação
-  if (carregandoTela) {
+  if (carregandoTela || autenticado === null) {
     return <Carregamento />;
   }
 
   // Se não estiver autenticado, mostrar mensagem e botão para fazer login no modo demo
-  if (!autenticado) {
+  if (autenticado === false) {
     return (
       <div className="p-8 text-center">
         <h2 className="text-2xl font-bold text-verde-destaque mb-4">

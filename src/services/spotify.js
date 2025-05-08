@@ -327,10 +327,7 @@ const REDIRECT_URI = (() => {
   }
 
   // Logar o URI para debugging
-  console.log("Configurando REDIRECT_URI:", uri);
-  console.log(
-    "IMPORTANTE: Este URI deve ser exatamente igual ao configurado no Spotify Developer Dashboard"
-  );
+
   return uri;
 })();
 

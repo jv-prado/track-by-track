@@ -9,6 +9,13 @@ const authState = {
   userData: null,
 };
 
+// Restauração automática do token demo do localStorage para persistência entre reloads
+if (!authState.token && localStorage.getItem("demo_token")) {
+  authState.token = localStorage.getItem("demo_token");
+  authState.tokenExpiry = parseInt(localStorage.getItem("demo_token_expiry"));
+  // Se quiser restaurar userData, pode adicionar aqui
+}
+
 /**
  * Verifica se o usuário está autenticado
  * @returns {boolean} Verdadeiro se o usuário estiver autenticado

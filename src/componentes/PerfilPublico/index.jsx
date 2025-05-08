@@ -533,7 +533,7 @@ const PerfilPublico = () => {
                         rel="noopener noreferrer"
                         className="inline-flex items-center justify-center bg-green-600 hover:bg-green-500 text-white rounded-md text-xs px-2 py-1 transition-colors shadow-sm z-20"
                         onClick={(e) => e.stopPropagation()}
-                        title="Ouvir no Spotify"
+                        title={t("feed.ouvirSpotify", "Ouvir no Spotify")}
                       >
                         <FaSpotify className="text-base text-white" />
                       </a>
@@ -624,6 +624,7 @@ const PerfilPublico = () => {
                             rel="noopener noreferrer"
                             className="inline-flex items-center bg-green-600 hover:bg-green-500 text-white rounded-md text-xs px-2 py-1 transition-colors shadow-sm z-20"
                             onClick={(e) => e.stopPropagation()}
+                            title={t("feed.ouvirSpotify", "Ouvir no Spotify")}
                           >
                             <FaSpotify className="mr-1 text-base text-white" />
                             <span className="whitespace-nowrap">

@@ -813,7 +813,7 @@ const FeedGlobal = () => {
                             rel="noopener noreferrer"
                             className="bg-black rounded-full p-3 hover:bg-black/80 transition-colors shadow-lg"
                             onClick={(e) => e.stopPropagation()}
-                            title="Ouvir no Spotify"
+                            title={t("feed.ouvirSpotify", "Ouvir no Spotify")}
                           >
                             <FaSpotify className="h-6 w-6 text-green-400" />
                           </a>
@@ -934,7 +934,7 @@ const FeedGlobal = () => {
                         rel="noopener noreferrer"
                         className="bg-black rounded-full p-1 hover:bg-black/80 transition-colors"
                         onClick={(e) => e.stopPropagation()}
-                        title="Ouvir no Spotify"
+                        title={t("feed.ouvirSpotify", "Ouvir no Spotify")}
                       >
                         <FaSpotify className="h-3.5 w-3.5 xs:h-4 xs:w-4 text-green-400" />
                       </a>
@@ -1129,7 +1129,7 @@ const FeedGlobal = () => {
                             rel="noopener noreferrer"
                             className="bg-black/70 hover:bg-black text-white rounded-md text-xs p-1.5 sm:p-2 transition-colors shadow-sm"
                             onClick={(e) => e.stopPropagation()}
-                            title="Ouvir no Spotify"
+                            title={t("feed.ouvirSpotify", "Ouvir no Spotify")}
                           >
                             <FaSpotify className="text-sm sm:text-base text-green-400" />
                           </a>

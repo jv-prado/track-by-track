@@ -245,7 +245,7 @@ const ModalAvaliacoesUsuario = ({ usuarioId, albumId, onClose }) => {
                 className="inline-flex items-center text-xs text-gray-300 hover:text-green-400 hover:bg-black/50 transition-colors bg-black/30 rounded-md w-fit px-2 py-1"
               >
                 <FaSpotify className="mr-1 text-green-400" />
-                {t("albumDetails.listenOnSpotify", "Ouvir no Spotify")}
+                {t("albumDetails.listenOnSpotify", "Listen on Spotify")}
               </a>
             </div>
           </div>

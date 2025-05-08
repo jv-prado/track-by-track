@@ -45,23 +45,17 @@ export function AuthProvider({ children }) {
         const userDoc = await getDoc(userRef);
 
         if (userDoc.exists()) {
-          console.log("Dados do usuário Spotify encontrados no Firestore");
           return userDoc.data();
         } else {
-          console.log("Nenhum dado do usuário Spotify encontrado no Firestore");
           return null;
         }
       } catch (firestoreError) {
-        console.error("Erro ao acessar Firestore:", firestoreError);
         if (firestoreError.code === "permission-denied") {
-          console.warn(
-            "Permissão negada ao tentar acessar a coleção usuariosSpotify. Verifique as regras de segurança do Firestore."
-          );
+          return null;
         }
         return null;
       }
     } catch (error) {
-      console.error("Erro ao buscar dados do usuário Spotify:", error);
       return null;
     }
   };
@@ -73,10 +67,6 @@ export function AuthProvider({ children }) {
     try {
       // Verificar se é um usuário autenticado via Spotify (tem o prefixo 'spotify_')
       if (usuarioFirebase.uid.startsWith("spotify_")) {
-        console.log(
-          "Usuário autenticado via Firebase Auth com token personalizado do Spotify"
-        );
-
         // Extrair o ID do Spotify do UID do Firebase
         const spotifyId = usuarioFirebase.uid.replace("spotify_", "");
 
@@ -102,45 +92,32 @@ export function AuthProvider({ children }) {
             return true;
           }
         } catch (error) {
-          console.error("Erro ao buscar dados do usuário Spotify:", error);
+          return false;
         }
       }
 
       return false;
     } catch (error) {
-      console.error("Erro ao verificar autenticação personalizada:", error);
       return false;
     }
   };
 
   // Função para verificar métodos alternativos de autenticação
   const verificarOutrosMetodosAutenticacao = async () => {
-    console.log("Verificando métodos alternativos de autenticação");
-
     // Verificar autenticação com Spotify (dados são armazenados na coleção 'usuariosSpotify')
     const refreshToken = localStorage.getItem("spotify_refresh_token");
     const spotifyAutenticado =
       localStorage.getItem("spotify_autenticado") === "true";
 
     if (refreshToken || spotifyAutenticado) {
-      console.log(
-        "Refresh token ou flag de autenticação do Spotify encontrada"
-      );
-
       // Primeiro verificar se há um usuário Firebase autenticado por token personalizado
       const usuarioFirebase = getUsuarioAtual();
       if (usuarioFirebase && usuarioFirebase.uid.startsWith("spotify_")) {
-        console.log(
-          "Usuário Spotify autenticado via Firebase Auth detectado:",
-          usuarioFirebase.uid
-        );
-
         // Se já estiver autenticado via Firebase Auth, não precisamos fazer nada adicional
         const autenticado = await verificarAutenticacaoPersonalizada(
           usuarioFirebase
         );
         if (autenticado) {
-          console.log("Autenticação personalizada verificada com sucesso");
           return;
         }
       }
@@ -149,7 +126,6 @@ export function AuthProvider({ children }) {
       try {
         const perfilCached = localStorage.getItem("spotify_user_profile");
         if (perfilCached) {
-          console.log("Usando perfil do Spotify em cache");
           const perfil = JSON.parse(perfilCached);
           setUsuarioSpotify(perfil);
 
@@ -163,41 +139,24 @@ export function AuthProvider({ children }) {
 
           // Se já temos um perfil em cache, isso é suficiente para considerar o usuário autenticado
           // Não precisamos fazer chamada à API neste momento
-          console.log(
-            "Usando perfil em cache sem verificar na API para evitar erro 403"
-          );
           return;
         }
       } catch (error) {
-        console.error("Erro ao ler perfil do Spotify em cache:", error);
+        return;
       }
 
       try {
         // Verifica se o token está válido, se não estiver, tenta renová-lo
         let tokenValido = verificarToken();
-        console.log(
-          "Status do token atual:",
-          tokenValido ? "Válido" : "Inválido ou expirado"
-        );
 
         if (!tokenValido) {
-          console.log("Token expirado, tentando renovar...");
           tokenValido = await atualizarToken();
-          console.log(
-            "Renovação do token:",
-            tokenValido ? "Bem-sucedida" : "Falhou"
-          );
         }
 
         // Só tenta obter o perfil se o token estiver válido
         if (tokenValido) {
-          console.log("Obtendo perfil atualizado do Spotify");
           try {
             const perfilSpotify = await obterPerfilUsuario();
-            console.log(
-              "Perfil obtido com sucesso:",
-              perfilSpotify?.display_name
-            );
             setUsuarioSpotify(perfilSpotify);
 
             // Atualizar o cache
@@ -218,11 +177,6 @@ export function AuthProvider({ children }) {
                 setSpotifyUserData(userData);
               }
             } catch (registroError) {
-              console.error(
-                "Erro ao registrar/atualizar usuário Spotify na coleção 'usuariosSpotify':",
-                registroError
-              );
-
               // Tenta buscar dados mesmo que o registro falhe
               const dadosFirestore = await buscarDadosUsuarioSpotify(
                 perfilSpotify.id
@@ -232,39 +186,23 @@ export function AuthProvider({ children }) {
               }
             }
           } catch (apiError) {
-            console.error(
-              "Erro ao obter perfil (possível erro 403):",
-              apiError
-            );
-
             // Se o erro for 403, vamos apenas usar o perfil em cache se disponível
             if (apiError.message && apiError.message.includes("403")) {
-              console.log(
-                "Erro 403 detectado - permissão negada pela API do Spotify"
-              );
-
               // Não limpar os tokens, apenas evitar a tentativa de obter o perfil
               // O usuário ainda pode navegar nas funcionalidades básicas
               const perfilCached = localStorage.getItem("spotify_user_profile");
               if (perfilCached) {
-                console.log("Usando perfil em cache após erro 403");
-                try {
-                  const perfil = JSON.parse(perfilCached);
-                  setUsuarioSpotify(perfil);
+                const perfil = JSON.parse(perfilCached);
+                setUsuarioSpotify(perfil);
 
-                  // Buscar dados do usuário da coleção 'usuariosSpotify'
-                  if (perfil.id) {
-                    const dadosFirestore = await buscarDadosUsuarioSpotify(
-                      perfil.id
-                    );
-                    if (dadosFirestore) {
-                      setSpotifyUserData(dadosFirestore);
-                    }
+                // Buscar dados do usuário da coleção 'usuariosSpotify'
+                if (perfil.id) {
+                  const dadosFirestore = await buscarDadosUsuarioSpotify(
+                    perfil.id
+                  );
+                  if (dadosFirestore) {
+                    setSpotifyUserData(dadosFirestore);
                   }
-                } catch (e) {
-                  console.error("Erro ao processar cache após 403:", e);
-                  setUsuarioSpotify(null);
-                  setSpotifyUserData(null);
                 }
               } else {
                 // Se não temos perfil em cache, criamos um perfil mínimo
@@ -277,7 +215,6 @@ export function AuthProvider({ children }) {
               }
             } else {
               // Para outros erros, limpamos os tokens
-              console.error("Erro não relacionado a permissão (não é 403)");
               logoutSpotify();
               setUsuarioSpotify(null);
               setSpotifyUserData(null);
@@ -286,16 +223,12 @@ export function AuthProvider({ children }) {
           }
         } else {
           // Se não foi possível renovar o token, limpa dados da sessão Spotify
-          console.log(
-            "Não foi possível renovar o token, fazendo logout do Spotify"
-          );
           logoutSpotify();
           setUsuarioSpotify(null);
           setSpotifyUserData(null);
           localStorage.removeItem("spotify_autenticado");
         }
       } catch (error) {
-        console.error("Erro geral ao carregar perfil do Spotify:", error);
         // Em caso de erro na API, limpa os dados da sessão para evitar ciclos de erro
         logoutSpotify();
         setUsuarioSpotify(null);
@@ -320,7 +253,6 @@ export function AuthProvider({ children }) {
 
         // Verificar se é um usuário Spotify (autenticado via token personalizado)
         if (user.uid.startsWith("spotify_")) {
-          console.log("Detectado usuário Spotify via Firebase Auth:", user.uid);
           verificarAutenticacaoPersonalizada(user).then((autenticado) => {
             if (!autenticado) {
               setUsuario(dadosUsuario); // Fallback para usuário normal se não conseguir carregar dados Spotify
@@ -354,9 +286,6 @@ export function AuthProvider({ children }) {
       const spotifyAutenticado = localStorage.getItem("spotify_autenticado");
 
       if (loginRedirect === "true" && spotifyAutenticado === "true") {
-        console.log(
-          "Detectado login recente com Spotify, verificando autenticação"
-        );
         verificarOutrosMetodosAutenticacao();
       }
     };

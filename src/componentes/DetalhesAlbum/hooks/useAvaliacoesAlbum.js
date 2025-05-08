@@ -70,11 +70,6 @@ export default function useAvaliacoesAlbum(
       avaliacoesParaUsar
     );
 
-    // LOG PARA DEPURAÇÃO
-    console.log("[SALVAR NO BANCO] Média calculada:", mediaAtual);
-    console.log("[SALVAR NO BANCO] Faixas usadas:", faixasParaSalvar);
-    console.log("[SALVAR NO BANCO] Avaliações usadas:", avaliacoesParaUsar);
-
     // Preferências finais
     const preferencias = {
       faixaFavorita,
@@ -126,9 +121,6 @@ export default function useAvaliacoesAlbum(
     // Garantir que estamos criando um novo objeto para forçar reatividade
     setProgressoAvaliacao({ ...novoProgresso });
 
-    // Log para depuração (remover após resolver o problema)
-    console.log("[avaliarFaixa] Novo progresso:", novoProgresso);
-
     if (usuarioFirebase) {
       try {
         if (detalhesAlbum) {
@@ -136,7 +128,7 @@ export default function useAvaliacoesAlbum(
           await salvarEstadoAlbumNoBanco({}, novasAvaliacoes);
         }
       } catch (error) {
-        console.error("Erro ao salvar avaliação:", error);
+        // Erro ao salvar avaliação
       }
     } else {
       // Para usuário não logado ou modo demo, atualizar o localStorage global
@@ -489,10 +481,7 @@ export default function useAvaliacoesAlbum(
               data_review: review ? new Date() : null,
             });
           } catch (erroFirebase) {
-            console.error(
-              "Erro ao resetar avaliações no Firebase:",
-              erroFirebase
-            );
+            // Erro ao resetar avaliações no Firebase
           }
         } else {
           // Usuário em modo anônimo/demo, salvar no localStorage
@@ -529,7 +518,7 @@ export default function useAvaliacoesAlbum(
         setMostrarConfirmacao("resetar");
       }
     } catch (erro) {
-      console.error("Erro ao resetar avaliações:", erro);
+      // Erro ao resetar avaliações
     }
   };
 
@@ -562,7 +551,7 @@ export default function useAvaliacoesAlbum(
               }
             }
           } catch (erroFirebase) {
-            console.error("Erro ao remover álbum do Firebase:", erroFirebase);
+            // Erro ao remover álbum do Firebase
           }
         } else {
           // Usuário em modo anônimo/demo
@@ -614,7 +603,7 @@ export default function useAvaliacoesAlbum(
         setMostrarConfirmacao("remover");
       }
     } catch (erro) {
-      console.error("Erro ao remover álbum:", erro);
+      // Erro ao remover álbum
     }
   };
 

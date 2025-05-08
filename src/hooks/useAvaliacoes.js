@@ -328,7 +328,6 @@ export default function useAvaliacoes({ termoPesquisaInicial = "" } = {}) {
             };
           });
 
-          console.log("Carregando dados sincronizados do Firebase");
           // Também carregar os dados mais atualizados para evitar a necessidade
           // para manter consistência com outros componentes
           const dadosFirebase = await carregarAvaliacoesSincronizadas();
@@ -342,9 +341,6 @@ export default function useAvaliacoes({ termoPesquisaInicial = "" } = {}) {
             (a, b) => (b.ultimaAtualizacao || 0) - (a.ultimaAtualizacao || 0)
           );
 
-          console.log(
-            `Carregamento de ${albumsOrdenados.length} álbuns do Firebase concluído`
-          );
           setAlbunsAvaliados(albumsOrdenados);
           setAlbunsExibidos(albumsOrdenados);
           setCarregando(false);
@@ -357,13 +353,8 @@ export default function useAvaliacoes({ termoPesquisaInicial = "" } = {}) {
         }
       } else {
         // Se não estiver usando Firebase, usar dados em memória
-        console.log("Carregando álbuns a partir dos dados em memória");
-        const avaliacoesFaixas = getAvaliacoesFaixas();
-        const mapaFaixasAlbuns = getMapaFaixasAlbuns();
-
         // Se não temos o mapa de faixas para álbuns, não podemos mostrar os álbuns
-        if (Object.keys(mapaFaixasAlbuns).length === 0) {
-          console.log("Nenhum mapeamento de faixas para álbuns encontrado");
+        if (Object.keys(getMapaFaixasAlbuns()).length === 0) {
           setAlbunsAvaliados([]);
           setAlbunsExibidos([]);
           setCarregando(false);

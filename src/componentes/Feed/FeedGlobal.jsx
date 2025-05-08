@@ -181,28 +181,14 @@ const FeedGlobal = () => {
   const verificarProgresso100 = (avaliacao) => {
     // Se não existe o objeto de progresso, não está completo
     if (!avaliacao.progresso) {
-      console.log(`Álbum ${avaliacao.nome} não tem objeto progresso`);
       return false;
     }
 
     // Obter o valor percentual convertendo para número para garantir comparação correta
     const percentual = Number(avaliacao.progresso.percentual);
 
-    // Logging detalhado para depuração
-    console.log(`Álbum: ${avaliacao.nome || "sem nome"}`);
-    console.log(`  ID: ${avaliacao.id}`);
-    console.log(`  Progresso objeto completo:`, avaliacao.progresso);
-    console.log(
-      `  Progresso.percentual (tipo: ${typeof avaliacao.progresso
-        .percentual}): ${avaliacao.progresso.percentual}`
-    );
-    console.log(
-      `  Convertido para Number: ${percentual} (${typeof percentual})`
-    );
-
     // Verificar se é exatamente 100 (comparação estrita)
     const ehCem = percentual === 100;
-    console.log(`  É exatamente 100%: ${ehCem}`);
 
     return ehCem;
   };
@@ -216,20 +202,6 @@ const FeedGlobal = () => {
 
     try {
       const avaliacoesGlobais = await obterAvaliacoesGlobais(LIMITE_POR_PAGINA);
-
-      // Examinar cada avaliação antes do processamento
-      console.log("====== AVALIAÇÕES ORIGINAIS DO SERVIDOR ======");
-      avaliacoesGlobais.forEach((av, idx) => {
-        console.log(`Avaliação #${idx + 1}: ${av.nome}, ID: ${av.id}`);
-        console.log(`  Usuário: ${av.usuario.nome}, ID: ${av.usuario.id}`);
-        console.log(`  Progresso:`, av.progresso);
-        console.log(`  Progresso.percentual: ${av.progresso?.percentual}`);
-        if (av.progresso?.percentual !== 100) {
-          console.log(
-            `  ⚠️ ATENÇÃO: Percentual diferente de 100: ${av.progresso?.percentual}`
-          );
-        }
-      });
 
       // Validar e processar as imagens antes de definir o estado
       // Mantenha todo o processamento, mas mude apenas a filtragem para garantir 100%
@@ -253,26 +225,13 @@ const FeedGlobal = () => {
       }));
 
       // Agora aplicamos o filtro estrito para exatamente 100%
-      console.log(
-        `Antes da filtragem: ${avaliacoesProcessadas.length} avaliações`
-      );
-
-      // Filtra apenas avaliações com 100% de progresso
       avaliacoesProcessadas = avaliacoesProcessadas.filter((avaliacao) => {
         // Conversão para garantir comparação numérica
         const percentual = Number(avaliacao.progresso?.percentual);
         const ehCem = percentual === 100;
 
-        console.log(
-          `Filtragem - ${avaliacao.nome}: percentual=${percentual}, é 100%=${ehCem}`
-        );
-
         return ehCem;
       });
-
-      console.log(
-        `Após filtragem: ${avaliacoesProcessadas.length} avaliações com exatamente 100% de progresso`
-      );
 
       // Atualiza o estado com as avaliações filtradas
       setAvaliacoes(avaliacoesProcessadas);
@@ -284,7 +243,6 @@ const FeedGlobal = () => {
           avaliacoesProcessadas[avaliacoesProcessadas.length - 1];
       }
     } catch (error) {
-      console.error("Erro ao carregar feed global:", error);
       setErro(error.message || "Erro ao carregar as avaliações globais");
     } finally {
       setCarregando(false);
@@ -296,7 +254,6 @@ const FeedGlobal = () => {
     if (carregandoMais) return;
 
     setCarregandoMais(true);
-    console.log("Carregando mais avaliações da página", pagina + 1);
 
     try {
       // Usar a última avaliação carregada como ponto de partida para a próxima consulta
@@ -307,22 +264,6 @@ const FeedGlobal = () => {
         LIMITE_POR_PAGINA,
         ultimaAvaliacao
       );
-
-      console.log(`Encontradas ${novasAvaliacoes.length} novas avaliações`);
-
-      // Examinar cada avaliação antes do processamento
-      console.log("====== NOVAS AVALIAÇÕES DO SERVIDOR ======");
-      novasAvaliacoes.forEach((av, idx) => {
-        console.log(`Nova Avaliação #${idx + 1}: ${av.nome}, ID: ${av.id}`);
-        console.log(`  Usuário: ${av.usuario.nome}, ID: ${av.usuario.id}`);
-        console.log(`  Progresso:`, av.progresso);
-        console.log(`  Progresso.percentual: ${av.progresso?.percentual}`);
-        if (av.progresso?.percentual !== 100) {
-          console.log(
-            `  ⚠️ ATENÇÃO: Percentual diferente de 100: ${av.progresso?.percentual}`
-          );
-        }
-      });
 
       // Processar as novas avaliações com a mesma lógica anterior
       let avaliacoesProcessadas = novasAvaliacoes.map((avaliacao) => ({
@@ -345,26 +286,13 @@ const FeedGlobal = () => {
       }));
 
       // Aplicar o filtro estrito para 100%
-      console.log(
-        `Antes da filtragem: ${avaliacoesProcessadas.length} novas avaliações`
-      );
-
-      // Filtra apenas avaliações com 100% de progresso
       avaliacoesProcessadas = avaliacoesProcessadas.filter((avaliacao) => {
         // Conversão para garantir comparação numérica
         const percentual = Number(avaliacao.progresso?.percentual);
         const ehCem = percentual === 100;
 
-        console.log(
-          `Filtragem de novas - ${avaliacao.nome}: percentual=${percentual}, é 100%=${ehCem}`
-        );
-
         return ehCem;
       });
-
-      console.log(
-        `Após filtragem: ${avaliacoesProcessadas.length} novas avaliações com exatamente 100% de progresso`
-      );
 
       // Adicionar as novas avaliações ao array existente
       if (avaliacoesProcessadas.length > 0) {
@@ -376,10 +304,6 @@ const FeedGlobal = () => {
 
           const novasAvaliacoesFiltradas = avaliacoesProcessadas.filter(
             (a) => !idsExistentes.has(`${a.id}-${a.usuario.id}`)
-          );
-
-          console.log(
-            `Adicionando ${novasAvaliacoesFiltradas.length} avaliações únicas`
           );
 
           // Se existem itens novos, atualizar a referência da última avaliação
@@ -397,7 +321,6 @@ const FeedGlobal = () => {
       // Verificar se ainda há mais avaliações para carregar
       setTemMaisAvaliacoes(avaliacoesProcessadas.length > 0);
     } catch (error) {
-      console.error("Erro ao carregar mais avaliações:", error);
       // Não mostrar erro para o usuário ao carregar mais, apenas log
     } finally {
       setCarregandoMais(false);
@@ -456,7 +379,6 @@ const FeedGlobal = () => {
 
       return "Data não disponível";
     } catch (erro) {
-      console.warn("Erro ao formatar data:", erro);
       return "Data não disponível";
     }
   };
@@ -523,7 +445,6 @@ const FeedGlobal = () => {
     const carregarComentarios = async () => {
       if (modalReviewAberto && avaliacaoSelecionada) {
         try {
-          console.log("Carregando comentários para:", avaliacaoSelecionada);
           setComentarios([]);
           const lista = await buscarComentariosResenha(
             avaliacaoSelecionada.albumId,
@@ -531,10 +452,8 @@ const FeedGlobal = () => {
           );
           // Ordenar por data crescente
           lista.sort((a, b) => (a.data?.seconds || 0) - (b.data?.seconds || 0));
-          console.log("Comentários carregados:", lista);
           setComentarios(lista);
         } catch (e) {
-          console.error("Erro ao carregar comentários:", e);
           setComentarios([]);
         }
       }
@@ -546,27 +465,14 @@ const FeedGlobal = () => {
   // Função de enviar comentário atualizada para incluir mais dados do usuário
   const enviarComentario = async () => {
     try {
-      console.log("Tentando enviar comentário");
-
       if (!avaliacaoSelecionada) {
-        console.error("Erro: avaliacaoSelecionada é null ou undefined");
         alert("Erro ao salvar comentário: dados da avaliação não encontrados");
         return;
       }
 
       if (!novoComentario) {
-        console.log("Comentário vazio, não será enviado");
         return;
       }
-
-      console.log("Dados de comentário:", {
-        albumId: avaliacaoSelecionada.albumId,
-        usuarioId: avaliacaoSelecionada.usuarioId,
-        autor: usuarioFirebase?.displayName || "Anônimo",
-        texto: novoComentario,
-        autorId: usuarioFirebase?.uid || null,
-        autorFoto: usuarioFirebase?.photoURL || null,
-      });
 
       await adicionarComentarioResenha({
         albumId: avaliacaoSelecionada.albumId,
@@ -577,7 +483,6 @@ const FeedGlobal = () => {
         autorFoto: usuarioFirebase?.photoURL || null,
       });
 
-      console.log("Comentário enviado com sucesso!");
       setNovoComentario("");
 
       // Recarregar comentários após enviar
@@ -588,7 +493,6 @@ const FeedGlobal = () => {
       lista.sort((a, b) => (a.data?.seconds || 0) - (b.data?.seconds || 0));
       setComentarios(lista);
     } catch (e) {
-      console.error("Erro ao enviar comentário:", e);
       alert("Erro ao salvar comentário. Tente novamente.");
     }
   };
@@ -622,7 +526,6 @@ const FeedGlobal = () => {
       setComentarioEditando(null);
       setTextoEdicao("");
     } catch (e) {
-      console.error("Erro ao editar comentário:", e);
       alert("Erro ao editar comentário. Tente novamente.");
     }
   };
@@ -636,7 +539,6 @@ const FeedGlobal = () => {
         setComentarios(comentarios.filter((c) => c.id !== comentarioId));
       }
     } catch (e) {
-      console.error("Erro ao excluir comentário:", e);
       alert("Erro ao excluir comentário. Tente novamente.");
     }
   };

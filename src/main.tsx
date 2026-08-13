@@ -1,13 +1,8 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
-import App from "./App.tsx";
-import { BrowserRouter } from "react-router-dom";
-import { AuthProvider } from "./contexts/AuthContext";
+import { AppProviders } from "./app/providers";
 import "./i18n";
 import "./index.css";
-
-// Importar inicialização do Firebase para garantir persistência
-import "./services/firebase/init.js";
 
 // Limpar service workers que podem estar interferindo
 if ("serviceWorker" in navigator) {
@@ -64,11 +59,7 @@ const rootElement = document.getElementById("root");
 if (rootElement) {
   ReactDOM.createRoot(rootElement).render(
     <React.StrictMode>
-      <BrowserRouter>
-        <AuthProvider>
-          <App />
-        </AuthProvider>
-      </BrowserRouter>
+      <AppProviders />
     </React.StrictMode>
   );
 }

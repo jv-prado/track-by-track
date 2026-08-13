@@ -48,7 +48,17 @@ ios/.DS_Store
 capacitor.config.json
 capacitor.config.ts
 # Outros
+.env
 .env.local
 .env.development.local
 .env.test.local
+.env.production
 .env.production.local
+!.env.example
+coverage
+api/openapi.json.tmp
+
+# Nunca commitar service account do Firebase (migração fase 7)
+*firebase-adminsdk*.json
+scripts/*.json
+!scripts/package.json

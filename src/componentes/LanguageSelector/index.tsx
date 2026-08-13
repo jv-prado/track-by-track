@@ -1,178 +1,85 @@
-import React, { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import BandeiraBrasil from "../../assets/Flag_of_Brazil.svg";
-import BandeiraEUA from "../../assets/Flag_of_the_United_States.svg";
+import { Check } from "lucide-react";
+import { cn } from "@/shared/lib/cn";
 
-const LanguageSelector: React.FC = () => {
+const LANGUAGES = [
+  { code: "pt-BR", short: "pt", label: "Português", flag: "/images/flags/brazil.svg" },
+  { code: "en-US", short: "en", label: "English", flag: "/images/flags/usa.svg" },
+  { code: "es-ES", short: "es", label: "Español", flag: "/images/flags/spain.svg" },
+] as const;
+
+interface LanguageSelectorProps {
+  direction?: "up" | "down";
+  className?: string;
+  /** Só a bandeira no gatilho, sem o nome do idioma — usado no topbar mobile, onde espaço é curto. */
+  compact?: boolean;
+}
+
+export default function LanguageSelector({
+  direction = "down",
+  className,
+  compact = false,
+}: LanguageSelectorProps) {
   const { i18n } = useTranslation();
-  const [isHovering, setIsHovering] = useState(false);
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
 
-  const changeLanguage = (lng: string) => {
-    i18n.changeLanguage(lng);
-    localStorage.setItem("i18nextLng", lng);
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (ref.current && !ref.current.contains(event.target as Node)) setOpen(false);
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const current =
+    LANGUAGES.find((lang) => i18n.language?.startsWith(lang.short)) ?? LANGUAGES[0];
+
+  const changeLanguage = (code: string) => {
+    i18n.changeLanguage(code);
+    setOpen(false);
   };
 
-  const currentLanguage = i18n.language || "pt-BR";
-  const isPortuguese = currentLanguage.startsWith("pt");
-
   return (
-    <div
-      style={{
-        position: "fixed",
-        right: "20px",
-        bottom: "30px",
-        zIndex: 9999,
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        flexDirection: "column",
-      }}
-      onMouseEnter={() => setIsHovering(true)}
-      onMouseLeave={() => setIsHovering(false)}
-    >
-      {/* Menu de seleção de idioma - visível apenas ao passar o mouse */}
-      {isHovering && (
-        <div
-          className="language-options"
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            gap: "10px",
-            marginBottom: "15px",
-            animation: "fadeIn 0.3s ease-in-out",
-          }}
-        >
-          {/* Botão de idioma inglês */}
-          {isPortuguese && (
-            <button
-              onClick={() => changeLanguage("en-US")}
-              style={{
-                width: "55px",
-                height: "55px",
-                backgroundColor: "#1A1A1A",
-                color: "#FFF",
-                borderRadius: "50%",
-                border: "3px solid #444",
-                fontSize: "25px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                boxShadow: "0 5px 15px rgba(0,0,0,0.5)",
-                cursor: "pointer",
-                transition: "transform 0.2s, border-color 0.2s",
-                overflow: "hidden",
-                padding: "2px",
-              }}
-              className="hover-scale"
-              title="English"
-            >
-              <img
-                src={BandeiraEUA}
-                alt="USA Flag"
-                style={{
-                  width: "100%",
-                  height: "100%",
-                  objectFit: "cover",
-                  borderRadius: "50%",
-                }}
-              />
-            </button>
-          )}
+    <div className={cn("relative", className)} ref={ref}>
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-label="Idioma"
+        className={cn(
+          "flex items-center gap-2 rounded-lg text-sm text-gray-300 hover:bg-white/5 hover:text-white transition cursor-pointer",
+          compact ? "p-2" : "px-3 py-2 w-full",
+        )}
+      >
+        <img src={current.flag} alt="" className="w-5 h-3.5 object-cover rounded-[2px] shrink-0" />
+        {!compact && <span className="truncate">{current.label}</span>}
+      </button>
 
-          {/* Botão de idioma português */}
-          {!isPortuguese && (
-            <button
-              onClick={() => changeLanguage("pt-BR")}
-              style={{
-                width: "55px",
-                height: "55px",
-                backgroundColor: "#1A1A1A",
-                color: "#FFF",
-                borderRadius: "50%",
-                border: "3px solid #444",
-                fontSize: "25px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                boxShadow: "0 5px 15px rgba(0,0,0,0.5)",
-                cursor: "pointer",
-                transition: "transform 0.2s, border-color 0.2s",
-                overflow: "hidden",
-                padding: "2px",
-              }}
-              className="hover-scale"
-              title="Português"
-            >
-              <img
-                src={BandeiraBrasil}
-                alt="Brazil Flag"
-                style={{
-                  width: "100%",
-                  height: "100%",
-                  objectFit: "cover",
-                  borderRadius: "50%",
-                }}
-              />
-            </button>
+      {open && (
+        <div
+          className={cn(
+            "absolute left-0 w-full min-w-40 rounded-lg border border-white/10 bg-cinza-escuro shadow-lg shadow-black/40 overflow-hidden z-50",
+            direction === "up" ? "bottom-full mb-1" : "top-full mt-1",
           )}
+        >
+          {LANGUAGES.map((lang) => (
+            <button
+              key={lang.code}
+              type="button"
+              onClick={() => changeLanguage(lang.code)}
+              className={cn(
+                "flex items-center gap-2 w-full px-3 py-2 text-sm text-left hover:bg-white/5 transition cursor-pointer",
+                lang.code === current.code ? "text-dourado" : "text-gray-300",
+              )}
+            >
+              <img src={lang.flag} alt="" className="w-5 h-3.5 object-cover rounded-[2px] shrink-0" />
+              <span className="flex-1">{lang.label}</span>
+              {lang.code === current.code && <Check size={14} />}
+            </button>
+          ))}
         </div>
       )}
-
-      {/* Botão principal de idioma - sempre visível */}
-      <div
-        style={{
-          position: "relative",
-          transition: "transform 0.3s",
-          transform: isHovering ? "scale(1.1)" : "scale(1)",
-        }}
-      >
-        <button
-          style={{
-            width: "70px",
-            height: "70px",
-            backgroundColor: "#81fe88",
-            color: "#000",
-            borderRadius: "50%",
-            border: "3px solid #000",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            boxShadow: "0 5px 15px rgba(0,0,0,0.5)",
-            cursor: "pointer",
-            transition: "all 0.3s ease",
-            overflow: "hidden",
-            padding: "3px",
-          }}
-          title={isPortuguese ? "Português" : "English"}
-        >
-          <img
-            src={isPortuguese ? BandeiraBrasil : BandeiraEUA}
-            alt={isPortuguese ? "Brazil Flag" : "USA Flag"}
-            style={{
-              width: "100%",
-              height: "100%",
-              objectFit: "cover",
-              borderRadius: "50%",
-            }}
-          />
-        </button>
-      </div>
-
-      <style>
-        {`
-          @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-          }
-          
-          .hover-scale:hover {
-            transform: scale(1.1);
-            border-color: #81fe88;
-          }
-        `}
-      </style>
     </div>
   );
-};
-
-export default LanguageSelector;
+}

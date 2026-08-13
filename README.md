@@ -1,176 +1,102 @@
-# Track By Track
+# Track by Track
 
-Aplicação web para avaliação de faixas de álbuns musicais, permitindo que usuários avaliem faixas individualmente e acompanhem suas avaliações.
+Plataforma para criação de rankings de álbuns: usuários avaliam faixas individualmente e o
+sistema calcula a ordenação/nota final do álbum. Domínio completo e decisões de arquitetura
+estão documentados em [`CLAUDE.md`](./CLAUDE.md) — este README é só o "como rodar".
 
-## Funcionalidades
+## Stack
 
-- Autenticação com Spotify
-- Visualização dos álbuns e artistas mais populares
-- Busca de álbuns e artistas
-- Avaliação de faixas de álbuns
-- Visualização e filtragem das avaliações realizadas
-- Sincronização de avaliações com o servidor
+- **Frontend** (`/`, raiz): Vite + React + TypeScript, TanStack Router + TanStack Query,
+  Zustand, Axios, Tailwind v4.
+- **API** (`api/`): NestJS + DDD, MongoDB (Mongoose), JWT + refresh rotativo, `nestjs-pino`
+  (logs estruturados), `@nestjs/throttler` (rate limit).
+- **Scripts** (`scripts/`): migração one-off de um Firestore legado pro Mongo atual —
+  só relevante se você está migrando dados antigos, não é necessário pro dia a dia.
 
-## Tecnologias Utilizadas
+Repositório único, três `package.json` independentes (`/`, `api/`, `scripts/`) — sem
+workspaces, `npm install` roda separado em cada um.
 
-- React 19
-- React Router 7
-- TailwindCSS
-- Vite
-- Spotify API
-- LocalStorage para persistência de dados
+## Setup rápido
 
-## Estrutura do Projeto
-
-```
-src/
-├── componentes/            # Componentes de interface
-│   ├── Avaliacao/          # Componentes de avaliação
-│   ├── BarraDePesquisa/    # Componente de pesquisa
-│   ├── Feed/               # Componentes de feed
-│   │   ├── Cards/          # Cartões de álbuns
-│   │   ├── Filtros/        # Filtros de conteúdo
-│   ├── sidebar/            # Menu lateral
-├── hooks/                  # Hooks customizados
-├── services/               # Serviços e API
-├── App.tsx                 # Componente principal
-├── main.tsx               # Ponto de entrada da aplicação
-└── index.css              # Estilos globais
-```
-
-## Componentes Principais
-
-### MinhasAvaliacoes
-
-Exibe os álbuns avaliados pelo usuário, com opções de filtragem por nota e pesquisa por nome ou artista.
-
-### DetalhesAlbum
-
-Exibe detalhes de um álbum específico e permite avaliar as faixas.
-
-### Feed
-
-Componente central que gerencia a exibição de conteúdo com base na seleção do usuário.
-
-## Serviços
-
-### spotify.js
-
-Comunicação com a API do Spotify para buscar informações de álbuns, artistas e faixas.
-
-### auth.js
-
-Gerenciamento de autenticação com o Spotify.
-
-### avaliacoes.js
-
-Funções para manipulação de avaliações de faixas e álbuns.
-
-### sync.js
-
-Sincronização de avaliações com o servidor.
-
-## Instalação e Execução
+Pré-requisitos: Node 22+, Docker (pro Mongo local), `npm`.
 
 ```bash
-# Instalar dependências
+# 1. Variáveis de ambiente — cada pasta tem seu próprio .env.example
+cd api && cp .env.example .env  # api/.env — preencher SPOTIFY_CLIENT_ID/SECRET e JWT_ACCESS_SECRET
+cd .. && cp .env.example .env   # .env da raiz — já aponta pro backend local
+
+# 2. Instalar dependências (cada pasta é independente)
+npm install                     # raiz (web)
+cd api && npm install && cd ..  # api
+
+# 3. Subir tudo: infra em docker + API + web
+npm run dev:full
+```
+
+`npm run dev:full` levanta, em ordem: **Mongo 7** (`:27018`), **mongo-express** (`:8081`) e
+**Redis 7** (`:6380`) via `docker compose`, e depois a **API** (`:3333/v1`, Swagger em `/docs`)
+e a **web** (`:5173`) em paralelo.
+
+Só a infra: `npm run dev:infra` · derrubar: `npm run dev:infra:down`.
+
+O Redis é **opcional**: `CACHE_DRIVER` vem como `memory` por padrão, então a API funciona
+mesmo com o container parado. `redis` só passa a valer quando você roda mais de uma instância
+(ver [`docs/CACHE-REDIS.md`](./docs/CACHE-REDIS.md)) — e, mesmo configurada com `redis`, a API
+degrada para o Mongo se o Redis cair, nunca responde erro por causa disso.
+
+`api/.env` exige `SPOTIFY_CLIENT_ID`/`SPOTIFY_CLIENT_SECRET` (Client Credentials — usado só
+pra buscar catálogo de álbuns, nunca envolve login/conta de usuário) e um
+`JWT_ACCESS_SECRET` com 32+ caracteres — a API valida essas variáveis com Zod no boot e
+crasha com mensagem clara se algo estiver faltando ou fora do formato esperado.
+
+## Comandos úteis
+
+Rodar dentro de cada pasta (`api/` ou raiz):
+
+```bash
+npm run typecheck   # tsc, sem emitir
+npm run lint        # eslint
+npm test            # unitários (api/) — jest + repositórios in-memory
+npm run test:e2e    # e2e (api/) — supertest + mongodb-memory-server, banco isolado
+npm run build        # build de produção
+```
+
+Comando extra da API: `npm run openapi:gen` regenera `api/openapi.json` (contrato — a web
+consome isso pra gerar tipos, ver seção 2.2 do `CLAUDE.md`). Ele **compila antes de gerar**
+(`nest build && node dist/src/openapi.js`) porque só o `tsc` emite `design:paramtypes`; rodando
+por `tsx`/esbuild o Swagger não enxerga os DTOs de `@Query()` e o contrato sai sem nenhum query
+param.
+
+Cache: `docs/CACHE-REDIS.md` tem o plano, as chaves, os TTLs e a tabela de invalidação.
+`GET /v1/health` reporta driver, status e contadores de hit/miss/erro do cache.
+
+## Deploy
+
+- **API**: `api/Dockerfile` (multi-stage, `node:22-slim`, usuário não-root) já pronto e
+  testado (`docker build` + `docker run` contra Mongo real). Onde hospedar fica em aberto —
+  Railway, Render, Fly.io ou um VPS qualquer servem, desde que rodem um container Node
+  normal com acesso à `MONGODB_URI` (Atlas em produção, ver `api/.env.production.example`)
+  e às demais variáveis do `.env`.
+- **Web**: `npm run build` gera `dist/` estático — qualquer hosting estático serve
+  (Vercel, Firebase Hosting, Netlify). `firebase.json` na raiz já está configurado só pra
+  isso (seção `hosting`; Firestore/Auth/Functions do Firebase foram removidos por completo
+  do produto, ver `CLAUDE.md` seção 0).
+
+## Migração de dados legados (Firestore → Mongo)
+
+Só necessário se você está migrando uma instalação antiga que ainda usava Firestore:
+
+```bash
+cd scripts
 npm install
-
-# Executar em modo de desenvolvimento
-npm run dev
-
-# Construir para produção
-npm run build
-
-# Visualizar versão de produção
-npm run preview
+cp .env.example .env   # GOOGLE_APPLICATION_CREDENTIALS + MONGODB_URI de destino
+npm run migrate:dry-run   # só relata contagens, não escreve nada — rodar sempre primeiro
+npm run migrate            # escreve de verdade — idempotente, seguro rodar mais de uma vez
 ```
 
-## Configuração
-
-Para utilizar a autenticação com o Spotify, é necessário configurar as variáveis de ambiente em um arquivo `.env`:
-
-```
-VITE_SPOTIFY_CLIENT_ID=seu_client_id
-VITE_SPOTIFY_REDIRECT_URI=http://localhost:5173/callback
-```
-
-## Configuração CORS para Firebase Storage
-
-Se você encontrar problemas de CORS ao fazer upload de imagens de perfil durante o desenvolvimento, é necessário configurar o Firebase Storage para aceitar solicitações do seu ambiente local:
-
-1. Instale o Firebase CLI:
-
-```bash
-npm install -g firebase-tools
-```
-
-2. Faça login no Firebase:
-
-```bash
-firebase login
-```
-
-3. Configure o CORS no bucket do Firebase Storage:
-
-```bash
-gsutil cors set cors.json gs://trackbytrack-57ae6.firebasestorage.app
-```
-
-Para usar temporariamente armazenamento local durante o desenvolvimento (evitando problemas de CORS), a aplicação já contém uma solução alternativa que é ativada automaticamente quando está rodando em localhost.
+**Nunca** rode `migrate` (sem `--dry-run`) contra um Firestore de produção sem um
+backup/export feito antes e sem confirmação explícita de quem pediu a migração.
 
 ## Licença
 
-Este projeto está licenciado sob a licença MIT.
-
-# Otimizações de Desempenho - Carregamento de Avaliações
-
-## Melhorias Implementadas
-
-Foram implementadas diversas otimizações para melhorar o desempenho do carregamento das avaliações de álbuns:
-
-### 1. Sistema de Cache
-
-- Implementado um sistema de cache em memória para armazenar informações de álbuns já carregados
-- Os dados do cache também são salvos no localStorage para persistência entre sessões
-- O cache tem uma validade de 7 dias para garantir dados atualizados quando necessário
-
-### 2. Otimização no Processamento em Lote
-
-- Aumentado o tamanho dos lotes de processamento de 3 para 8 álbuns por vez
-- Reduzido o tempo de espera entre lotes de 1000ms para 500ms
-- Isso diminui significativamente o tempo total de carregamento quando há muitos álbuns
-
-### 3. Carregamento Progressivo
-
-- Implementado um sistema de carregamento progressivo que exibe os álbuns à medida que são carregados
-- Não é mais necessário esperar que todos os álbuns sejam carregados para começar a usar o aplicativo
-- Adicionada uma barra de progresso para visualizar o andamento do carregamento
-
-### 4. Melhorias na Interface
-
-- Adicionado um botão de "Atualizar" para facilitar a recarga da lista de álbuns
-- Componente de carregamento melhorado para aceitar mensagens personalizadas
-- Feedback visual aprimorado durante o processo de carregamento
-
-## Benefícios
-
-- **Experiência do usuário melhorada**: Os usuários podem começar a interagir com os álbuns mais rapidamente
-- **Menor consumo de API**: Menos chamadas à API do Spotify graças ao sistema de cache
-- **Melhor feedback visual**: Os usuários têm uma indicação clara do progresso de carregamento
-- **Menor tempo de espera**: Tempo de carregamento reduzido significativamente para usuários com muitos álbuns avaliados
-
-## Arquivos Modificados
-
-1. `src/services/avaliacoes.js` - Implementação do cache e otimização de lotes
-2. `src/hooks/useAvaliacoes.js` - Implementação do carregamento progressivo
-3. `src/componentes/Feed/MinhasAvaliacoes.jsx` - Adição da barra de progresso e UI aprimorada
-4. `src/componentes/Feedback/Carregamento.jsx` - Melhorias no componente de carregamento
-
-## Próximos Passos
-
-Outras possíveis melhorias para o futuro:
-
-- Implementar lazy loading para imagens de álbuns
-- Adicionar virtualização para listas muito grandes de álbuns
-- Criar um worker em segundo plano para pré-carregar detalhes de álbuns quando o usuário estiver ocioso
+MIT.

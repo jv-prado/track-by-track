@@ -4,6 +4,7 @@ import LanguageDetector from "i18next-browser-languagedetector";
 
 import ptBR from "./locales/pt-BR.json";
 import enUS from "./locales/en-US.json";
+import esES from "./locales/es-ES.json";
 
 i18n
   .use(LanguageDetector)
@@ -16,11 +17,17 @@ i18n
       "en-US": {
         translation: enUS,
       },
+      "es-ES": {
+        translation: esES,
+      },
       pt: {
         translation: ptBR,
       },
       en: {
         translation: enUS,
+      },
+      es: {
+        translation: esES,
       },
     },
     fallbackLng: "pt-BR",
@@ -29,7 +36,7 @@ i18n
       escapeValue: false,
     },
     detection: {
-      order: ["navigator", "localStorage"],
+      order: ["localStorage", "navigator"],
       lookupLocalStorage: "i18nextLng",
       caches: ["localStorage"],
     },
@@ -38,12 +45,7 @@ i18n
     },
   });
 
-i18n.on("initialized", () => {
-  // Removido o console.log
-});
-
 i18n.on("languageChanged", (lng) => {
-  // Removido o console.log
   document.documentElement.lang = lng;
 });
 

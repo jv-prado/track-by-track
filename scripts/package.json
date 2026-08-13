@@ -1,0 +1,21 @@
+{
+  "name": "trackbytrack-migration",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Migração one-off Firestore -> MongoDB (Fase 7). Não faz parte do runtime da API nem da web.",
+  "scripts": {
+    "migrate": "tsx migrate-firestore-to-mongo.ts",
+    "migrate:dry-run": "tsx migrate-firestore-to-mongo.ts --dry-run"
+  },
+  "dependencies": {
+    "axios": "^1.19.0",
+    "dotenv": "^17.2.3",
+    "firebase-admin": "^14.2.0",
+    "mongoose": "^9.9.2"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "tsx": "^4.23.12",
+    "typescript": "^5.7.3"
+  }
+}

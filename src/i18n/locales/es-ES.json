@@ -1,0 +1,212 @@
+{
+  "app": {
+    "login": "Entrar"
+  },
+  "nav": {
+    "feed": "Feed",
+    "search": "Buscar",
+    "myRankings": "Mis valoraciones",
+    "topAlbums": "Top álbumes",
+    "logout": "Salir",
+    "profile": "Perfil"
+  },
+  "common": {
+    "retry": "Intentar de nuevo",
+    "cancel": "Cancelar",
+    "save": "Guardar",
+    "saving": "Guardando...",
+    "send": "Enviar",
+    "back": "Volver",
+    "clearFilters": "Limpiar filtros",
+    "notApplicable": "No aplica"
+  },
+  "auth": {
+    "email": "Email",
+    "password": "Contraseña",
+    "confirmPassword": "Confirmar contraseña",
+    "rememberMe": "Mantener sesión iniciada",
+    "createAccount": "Regístrate",
+    "noAccount": "¿No tienes una cuenta?",
+    "registerHere": "Regístrate aquí",
+    "alreadyAccount": "¿Ya tienes una cuenta?",
+    "loginHere": "Entra aquí",
+    "loggingIn": "Entrando...",
+    "acceptTerms": "Acepto la",
+    "andThe": "y los",
+    "registeringAccount": "Registrando...",
+    "registerButton": "Registrar"
+  },
+  "privacyPolicy": {
+    "title": "Política de Privacidad",
+    "intro": "Tu privacidad es importante para nosotros. Al usar Track by Track, algunos datos personales se recopilan de acuerdo con la legislación vigente, principalmente para garantizar la mejor experiencia posible en la plataforma.",
+    "dataUsage": "Al crear tu cuenta, recopilamos información como tu nombre y correo electrónico. Estos datos se usan exclusivamente para autenticación, personalización de la experiencia y funciones de la aplicación, como mostrar tu perfil, calcular promedios de calificación y mostrar tu historial.",
+    "dataSharing": "Tus datos no se comparten con terceros, excepto cuando lo exija la ley. No usamos tus datos con fines de marketing.",
+    "support": "Puedes solicitar la eliminación de tus datos en cualquier momento a través de la aplicación o contactando a nuestro soporte. Para más información, envía un correo a contatotrackbytrack@gmail.com."
+  },
+  "termsOfUse": {
+    "title": "Términos de Uso",
+    "agreement": "Al usar esta plataforma, aceptas respetar las reglas y políticas establecidas, incluyendo el uso responsable de las funciones y proporcionar información veraz en el registro. Track by Track utiliza la API oficial de Spotify solo para mostrar información pública sobre álbumes, artistas y canciones. No almacenamos, redistribuimos ni ponemos a disposición contenido protegido de Spotify.",
+    "prohibited": "No está permitido usar la plataforma con fines ilícitos u ofensivos, para eludir restricciones de Spotify, acceder a datos de terceros sin consentimiento, o violar los Términos de Servicio de Spotify.",
+    "breach": "El incumplimiento de los términos puede resultar en la suspensión o eliminación de la cuenta, además de posibles sanciones legales.",
+    "updates": "Estos términos pueden actualizarse periódicamente. Te recomendamos revisarlos con regularidad."
+  },
+  "about": {
+    "title": "Acerca de",
+    "description": "Track by Track es una plataforma para amantes de la música que quieren valorar álbumes canción por canción, creando un registro detallado de sus experiencias musicales.",
+    "purpose": "Nuestro propósito es ofrecer una forma organizada de documentar tus impresiones sobre los álbumes, permitiéndote comparar tus valoraciones con otros usuarios y redescubrir música que marcó tu vida.",
+    "spotifyIntegration": "Integración con Spotify",
+    "spotifyDescription": "Usamos la API oficial de Spotify para obtener información precisa sobre álbumes, artistas y canciones. Nuestra aplicación no almacena ni distribuye contenido protegido por derechos de autor de Spotify.",
+    "disclaimer": "Esta aplicación no está afiliada, asociada, autorizada, patrocinada ni conectada de ninguna forma oficial con Spotify AB. El nombre Spotify, así como las marcas, logotipos e imágenes relacionadas, son marcas registradas de sus respectivos propietarios.",
+    "features": "Funcionalidades",
+    "featuresList": [
+      "Valoración detallada de álbumes canción por canción",
+      "Destaca tus canciones favoritas y menos favoritas",
+      "Comparación con valoraciones de otros usuarios",
+      "Historial completo de tus valoraciones",
+      "Búsqueda de álbumes y artistas vía Spotify"
+    ],
+    "contact": "Para contactarnos, envía un correo a:",
+    "email": "contatotrackbytrack@gmail.com",
+    "developedBy": "Desarrollado por João Victor Prado"
+  },
+  "feed": {
+    "title": "Feed",
+    "subtitle": "Valoraciones recientes de la comunidad.",
+    "tracksProgress": "{{rated}}/{{total}} canciones",
+    "emptyTitle": "Aún no hay valoraciones",
+    "emptyDescription": "Busca un álbum y empieza a valorar sus canciones.",
+    "error": "No se pudo cargar el feed."
+  },
+  "myRankings": {
+    "title": "Mis valoraciones",
+    "subtitle": "Todos los álbumes que ya valoraste, en un solo lugar.",
+    "statAlbums": "álbumes",
+    "statAverage": "promedio general",
+    "statTracksRated": "canciones valoradas",
+    "searchPlaceholder": "Buscar por álbum o artista...",
+    "minPlaceholder": "Mín.",
+    "maxPlaceholder": "Máx.",
+    "sortLabel": "Ordenar por",
+    "sortRecent": "Más recientes",
+    "sortScoreDesc": "Mayor nota",
+    "sortScoreAsc": "Menor nota",
+    "emptyTitle": "Aún no has valorado ningún álbum",
+    "emptyDescription": "Busca un álbum para empezar.",
+    "emptyFilterTitle": "Ninguna valoración coincide con ese filtro",
+    "emptyFilterDescription": "Intenta ajustar la búsqueda o el rango de notas.",
+    "error": "No se pudieron cargar tus valoraciones."
+  },
+  "topAlbums": {
+    "title": "Top álbumes",
+    "subtitle": "Los álbumes mejor valorados por la comunidad.",
+    "ratingsCount_one": "{{count}} valoración",
+    "ratingsCount_other": "{{count}} valoraciones",
+    "emptyTitle": "Todavía no hay álbumes valorados",
+    "emptyDescription": "En cuanto los usuarios valoren álbumes, el ranking aparece aquí.",
+    "error": "No se pudo cargar el top de álbumes."
+  },
+  "search": {
+    "title": "Buscar álbumes",
+    "subtitle": "Encuentra un álbum en el catálogo para empezar a valorar.",
+    "placeholder": "Nombre del álbum o artista...",
+    "clearAria": "Limpiar búsqueda",
+    "startTitle": "Empieza a escribir",
+    "startDescription": "Busca el nombre de un álbum o artista para ver los resultados aquí.",
+    "emptyTitle": "Ningún álbum encontrado",
+    "emptyDescription": "Prueba con otro término de búsqueda.",
+    "error": "No se pudo buscar. Inténtalo de nuevo."
+  },
+  "albumDetail": {
+    "tracks": "Canciones",
+    "ratedOf": "{{rated}}/{{total}} valoradas",
+    "ignoredCount_one": "({{count}} ignorada)",
+    "ignoredCount_other": "({{count}} ignoradas)",
+    "ratedPercentage": "{{percentage}}% valorado",
+    "yourReview": "Tu reseña",
+    "rateNow": "Valorar ahora",
+    "reviewedOn": "Valorado el {{date}}",
+    "reviewHeading": "Reseña",
+    "listenSpotify": "Escuchar en Spotify",
+    "listenYoutube": "Escuchar en YouTube Music",
+    "listenAppleMusic": "Escuchar en Apple Music",
+    "notFound": "Álbum no encontrado.",
+    "rankingNotFound": "Ranking no encontrado.",
+    "averageScore": "Puntuación media",
+    "progress": "Progreso de la valoración",
+    "history": "Historial",
+    "firstRating": "Primera valoración",
+    "lastModified": "Última modificación",
+    "noRecord": "Sin registro",
+    "share": "Compartir",
+    "linkCopied": "¡Enlace copiado!",
+    "shareError": "No se pudo compartir.",
+    "trackIgnored": "Ignorada",
+    "ignoreTrack": "Ignorar canción (no cuenta en la media)",
+    "unignoreTrack": "Volver a valorar esta canción"
+  },
+  "review": {
+    "placeholder": "¿Qué te pareció este álbum?",
+    "favoriteTrack": "Canción favorita",
+    "worstTrack": "Peor canción",
+    "save": "Guardar reseña",
+    "saveSuccess": "Reseña guardada con éxito.",
+    "saveError": "No se pudo guardar la reseña."
+  },
+  "rankingActions": {
+    "reset": "Restablecer valoraciones",
+    "resetConfirm": "Esto borra todas las notas, tu reseña y la pista favorita/peor de este álbum. No se puede deshacer.",
+    "resetConfirmYes": "Sí, restablecer",
+    "removeConfirm": "¿Eliminar definitivamente?",
+    "removeConfirmYes": "Sí, eliminar",
+    "removeAlbum": "Eliminar álbum"
+  },
+  "comments": {
+    "title": "Comentarios",
+    "placeholder": "Deja un comentario...",
+    "empty": "Aún no hay comentarios.",
+    "edited": "(editado)",
+    "editAria": "Editar comentario",
+    "deleteAria": "Eliminar comentario"
+  },
+  "starRating": {
+    "ariaLabel": "Nota {{star}}"
+  },
+  "communityStats": {
+    "title": "Top 3 de la comunidad",
+    "ratingsAndAverage": "{{count}} valoraciones · promedio {{average}}",
+    "favoriteTracks": "Canciones favoritas",
+    "worstTracks": "Peores canciones"
+  },
+  "communityReviews": {
+    "title": "Reseñas de otros usuarios",
+    "ratingOnly": "Calificó sin dejar reseña"
+  },
+  "profile": {
+    "title": "Mi perfil",
+    "displayNameLabel": "Nombre para mostrar",
+    "saved": "¡Guardado!",
+    "deleteAccountLink": "Eliminar mi cuenta",
+    "fallbackTitle": "Perfil",
+    "error": "No se pudo cargar el perfil.",
+    "empty": "No se encontraron valoraciones",
+    "changeAvatar": "Cambiar foto",
+    "avatarInvalidType": "Formato inválido. Usa JPEG, PNG o WebP.",
+    "avatarTooLarge": "Imagen muy grande. Máximo 5MB.",
+    "avatarUploadFailed": "No se pudo subir la foto. Intenta de nuevo."
+  },
+  "pagination": {
+    "previous": "Página anterior",
+    "next": "Página siguiente",
+    "pageOf": "Página {{page}} de {{totalPages}}"
+  },
+  "accountDeletion": {
+    "title": "Eliminar cuenta",
+    "warning": "Esto borra permanentemente tu cuenta, valoraciones y comentarios. No se puede deshacer.",
+    "passwordLabel": "Confirma tu contraseña",
+    "deleting": "Eliminando...",
+    "confirmYes": "Sí, eliminar definitivamente",
+    "cta": "Eliminar cuenta",
+    "wrongPassword": "Contraseña incorrecta.",
+    "genericError": "Error al eliminar la cuenta. Inténtalo de nuevo."
+  }
+}

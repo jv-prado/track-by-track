@@ -1,75 +1,146 @@
-@import url("https://fonts.googleapis.com/css2?family=Prompt:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap");
 @import "tailwindcss";
 
+@font-face {
+    font-family: "SF Pro Display";
+    src: url("./assets/fonts/SFProDisplay-Regular.otf") format("opentype");
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "SF Pro Display";
+    src: url("./assets/fonts/SFProDisplay-RegularItalic.otf") format("opentype");
+    font-weight: 400;
+    font-style: italic;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "SF Pro Display";
+    src: url("./assets/fonts/SFProDisplay-Medium.otf") format("opentype");
+    font-weight: 500;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "SF Pro Display";
+    src: url("./assets/fonts/SFProDisplay-Semibold.otf") format("opentype");
+    font-weight: 600;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "SF Pro Display";
+    src: url("./assets/fonts/SFProDisplay-Bold.otf") format("opentype");
+    font-weight: 700;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "SF Pro Display";
+    src: url("./assets/fonts/SFProDisplay-Heavy.otf") format("opentype");
+    font-weight: 800;
+    font-style: normal;
+    font-display: swap;
+}
+
 :root {
-  /* Variáveis para espaçamento seguro */
-  --safe-area-inset-top: env(safe-area-inset-top, 0px);
-  --safe-area-inset-right: env(safe-area-inset-right, 0px);
-  --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
-  --safe-area-inset-left: env(safe-area-inset-left, 0px);
+    /* Variáveis para espaçamento seguro */
+    --safe-area-inset-top: env(safe-area-inset-top, 0px);
+    --safe-area-inset-right: env(safe-area-inset-right, 0px);
+    --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
+    --safe-area-inset-left: env(safe-area-inset-left, 0px);
 
-  /* Altura da barra de navegação móvel (aproximadamente) */
-  --mobile-nav-height: 60px;
+    /* Altura da barra de navegação móvel (aproximadamente) */
+    --mobile-nav-height: 60px;
 
-  /* Altura da viewport ajustada para barras de navegação */
-  --vh: 1vh; /* Será calculado via JavaScript */
+    /* Altura da viewport ajustada para barras de navegação */
+    --vh: 1vh; /* Será calculado via JavaScript */
 
-  /* Altura total do conteúdo, compensando barras de navegação */
-  --app-height: calc(
-    100 * var(--vh) - var(--mobile-nav-height) - var(--safe-area-inset-bottom)
-  );
+    /* Altura total do conteúdo, compensando barras de navegação */
+    --app-height: calc(
+        100 * var(--vh) - var(--mobile-nav-height) -
+            var(--safe-area-inset-bottom)
+    );
 }
 
 @theme {
-  --font-roboto: "Roboto", sans-serif;
-  --font-prompt: "Prompt", sans-serif;
-  --color-verde-destaque: #81fe88;
-  --color-verde-pastel: #bfffc3;
-  --color-verde-petroleo: #132e35;
-  --color-grafite: #01080e;
-  --color-cinza-escuro: #171d1f;
-  --color-cinza: #3e3e3f;
-  --color-cinza-medio: #888888;
-  --color-cinza-claro: #bcbcbc;
-  --color-offwhite: #e1e1e1;
-  --color-branco: #ffffff;
-  --font-heading: 500 2.75rem/120% "Prompt", sans-serif;
-  --font-heading-small: 500 2.313rem/120% "Prompt", sans-serif;
-  --font-subtitle-large: 400 1.938rem/150% "Prompt", sans-serif;
-  --font-subtitle: 400 1.625rem/150% "Prompt", sans-serif;
-  --font-paragraph-large: 400 1.375rem/150% "Prompt", sans-serif;
-  --font-paragraph-large: 400 1.375rem/150% "Prompt", sans-serif;
-  --font-paragraph: 400 1.125rem/150% "Prompt", sans-serif;
-  --font-paragraph-small: 400 0.938rem/150% "Prompt", sans-serif;
-  --font-label: 400 0.781rem/150% "Prompt", sans-serif;
+    --font-sans: "SF Pro Display", -apple-system, ui-sans-serif, system-ui, sans-serif;
+    --color-roxo: #5d1f89;
+    --color-roxo-escuro: #341e49;
+    --color-roxo-vivo: #7c3aed;
+    --color-dourado: #ffba08;
+    --color-dourado-claro: #f0c878;
+    --color-grafite: #01080e;
+    --color-cinza-escuro: #171d1f;
+    --color-cinza: #3e3e3f;
+    --color-cinza-medio: #888888;
+    --color-cinza-claro: #bcbcbc;
+    --color-offwhite: #e1e1e1;
+    --color-branco: #ffffff;
+    --font-heading: 700 2.75rem/120% "SF Pro Display", sans-serif;
+    --font-heading-small: 700 2.313rem/120% "SF Pro Display", sans-serif;
+    --font-subtitle-large: 600 1.938rem/150% "SF Pro Display", sans-serif;
+    --font-subtitle: 600 1.625rem/150% "SF Pro Display", sans-serif;
+    --font-paragraph-large: 400 1.375rem/150% "SF Pro Display", sans-serif;
+    --font-paragraph: 400 1.125rem/150% "SF Pro Display", sans-serif;
+    --font-paragraph-small: 400 0.938rem/150% "SF Pro Display", sans-serif;
+    --font-label: 500 0.781rem/150% "SF Pro Display", sans-serif;
+
+    /* Radix Presence só espera unmount em `animation`, não em `transition` — por isso
+       o Sheet (drawer) usa animate-sheet-* em vez de transition-transform. */
+    --animate-sheet-in: sheetSlideIn 220ms cubic-bezier(0.16, 1, 0.3, 1) both;
+    --animate-sheet-out: sheetSlideOut 180ms cubic-bezier(0.4, 0, 1, 1) both;
+    /* mobile: a sheet vira bottom sheet, desliza de baixo em vez da direita */
+    --animate-sheet-up-in: sheetSlideUp 220ms cubic-bezier(0.16, 1, 0.3, 1) both;
+    --animate-sheet-up-out: sheetSlideDown 180ms cubic-bezier(0.4, 0, 1, 1) both;
+    --animate-overlay-in: overlayFadeIn 200ms ease-out both;
+    --animate-overlay-out: overlayFadeOut 150ms ease-in both;
+    --animate-toast-in: toastSlideIn 200ms cubic-bezier(0.16, 1, 0.3, 1) both;
+    --animate-modal-in: modalZoomIn 180ms cubic-bezier(0.16, 1, 0.3, 1) both;
+    --animate-modal-out: modalZoomOut 150ms cubic-bezier(0.4, 0, 1, 1) both;
 }
 
 html,
 body {
-  touch-action: manipulation;
-  -webkit-overflow-scrolling: touch;
-  overflow-x: hidden;
-  overscroll-behavior: none;
-  height: 100%;
-  /* Usar padding-bottom para compensar a barra de navegação */
-  padding-bottom: var(--safe-area-inset-bottom);
+    touch-action: manipulation;
+    -webkit-overflow-scrolling: touch;
+    overflow-x: hidden;
+    overscroll-behavior: none;
+    height: 100%;
+    /* Usar padding-bottom para compensar a barra de navegação */
+    padding-bottom: var(--safe-area-inset-bottom);
 }
 
 /* Aplicar altura dinâmica ao elemento raiz da aplicação */
 #root {
-  min-height: var(--app-height);
-  padding-bottom: var(--safe-area-inset-bottom);
+    min-height: var(--app-height);
+    padding-bottom: var(--safe-area-inset-bottom);
+}
+
+/* Mobile: esconder a barra de scroll (usuário já sabe que rola). Desktop mantém a nativa. */
+@media (max-width: 639px) {
+    html {
+        scrollbar-width: none;
+    }
+    html::-webkit-scrollbar {
+        display: none;
+    }
 }
 
 body {
-  background-color: var(--color-grafite);
-  color: var(--color-branco);
-  touch-action: pan-x pan-y;
+    background-color: var(--color-grafite);
+    color: var(--color-branco);
+    touch-action: pan-x pan-y;
 }
 
 /* Prevenir seleção de texto */
 * {
-  -webkit-tap-highlight-color: transparent;
+    -webkit-tap-highlight-color: transparent;
 }
 
 /* Ajustes para elementos interativos */
@@ -78,79 +149,166 @@ a,
 input,
 select,
 textarea {
-  touch-action: manipulation;
+    touch-action: manipulation;
 }
 
 /* Estilos para elementos fixos no fundo da tela (como barras de navegação) */
 .fixed-bottom {
-  padding-bottom: var(--safe-area-inset-bottom);
+    padding-bottom: var(--safe-area-inset-bottom);
 }
 
 /* Ajuste para conteúdo principal para evitar que seja coberto por barras de navegação */
 .content-area {
-  min-height: var(--app-height);
+    min-height: var(--app-height);
 }
 
 @keyframes fadeIn {
-  0% {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0);
-  }
+    0% {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 @keyframes floatLogo {
-  0% {
-    transform: translateY(0px);
-  }
-  50% {
-    transform: translateY(-8px);
-  }
-  100% {
-    transform: translateY(0px);
-  }
+    0% {
+        transform: translateY(0px);
+    }
+    50% {
+        transform: translateY(-8px);
+    }
+    100% {
+        transform: translateY(0px);
+    }
 }
 
 @keyframes shine {
-  0% {
-    background-position: -100% 0;
-  }
-  100% {
-    background-position: 200% 0;
-  }
+    0% {
+        background-position: -100% 0;
+    }
+    100% {
+        background-position: 200% 0;
+    }
+}
+
+@keyframes sheetSlideIn {
+    from {
+        transform: translateX(100%);
+    }
+    to {
+        transform: translateX(0);
+    }
+}
+
+@keyframes sheetSlideOut {
+    from {
+        transform: translateX(0);
+    }
+    to {
+        transform: translateX(100%);
+    }
+}
+
+@keyframes sheetSlideUp {
+    from {
+        transform: translateY(100%);
+    }
+    to {
+        transform: translateY(0);
+    }
+}
+
+@keyframes sheetSlideDown {
+    from {
+        transform: translateY(0);
+    }
+    to {
+        transform: translateY(100%);
+    }
+}
+
+@keyframes overlayFadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes overlayFadeOut {
+    from {
+        opacity: 1;
+    }
+    to {
+        opacity: 0;
+    }
+}
+
+@keyframes modalZoomIn {
+    from {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+    }
+}
+
+@keyframes modalZoomOut {
+    from {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+    }
+    to {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.95);
+    }
+}
+
+@keyframes toastSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .animate-fadeIn {
-  animation: fadeIn 1s ease-in forwards;
+    animation: fadeIn 1s ease-in forwards;
 }
 
 .animate-float {
-  animation: floatLogo 4s ease-in-out infinite;
+    animation: floatLogo 4s ease-in-out infinite;
 }
 
 .logo-shine {
-  position: relative;
-  overflow: hidden;
+    position: relative;
+    overflow: hidden;
 }
 
 .logo-shine::before {
-  content: "";
-  position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background: linear-gradient(
-    to right,
-    rgba(255, 255, 255, 0) 0%,
-    rgba(255, 255, 255, 0.3) 50%,
-    rgba(255, 255, 255, 0) 100%
-  );
-  transform: rotate(30deg);
-  animation: shine 3s infinite linear;
-  z-index: 20;
-  pointer-events: none;
+    content: "";
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(
+        to right,
+        rgba(255, 255, 255, 0) 0%,
+        rgba(255, 255, 255, 0.3) 50%,
+        rgba(255, 255, 255, 0) 100%
+    );
+    transform: rotate(30deg);
+    animation: shine 3s infinite linear;
+    z-index: 20;
+    pointer-events: none;
 }

@@ -58,7 +58,14 @@ export function Modal({ open, onOpenChange, title, description, children, footer
   if (!mounted) return null;
 
   return (
-    <RNModal visible={mounted} transparent animationType="none" onRequestClose={() => onOpenChange(false)}>
+    <RNModal
+      visible={mounted}
+      transparent
+      animationType="none"
+      onRequestClose={() => onOpenChange(false)}
+      statusBarTranslucent
+      navigationBarTranslucent
+    >
       <Pressable
         className="absolute inset-0 bg-black/60"
         onPress={() => onOpenChange(false)}

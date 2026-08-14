@@ -1,8 +1,8 @@
 import { useTranslation } from "react-i18next";
-import { Link } from "@tanstack/react-router";
 import { useFollowersQuery, useFollowingQuery } from "@/queries/follows";
+import { useUsersStatsQuery } from "@/queries/discovery";
 import { useInfiniteScroll } from "@/shared/lib/use-infinite-scroll";
-import { getInitials } from "@/shared/lib/initials";
+import { UserCard } from "@/shared/social/UserCard";
 import { Modal } from "@/shared/ui/Modal";
 import { Spinner } from "@/shared/ui/Spinner";
 import { EmptyState } from "@/shared/ui/EmptyState";
@@ -25,6 +25,7 @@ export function FollowListModal({
   const query = kind === "followers" ? followersQuery : followingQuery;
   const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } = query;
   const items = data?.pages.flatMap((page) => page.data) ?? [];
+  const stats = useUsersStatsQuery(items.map((item) => item.userId));
   const sentinelRef = useInfiniteScroll({
     hasNextPage: Boolean(hasNextPage),
     isFetchingNextPage,
@@ -51,30 +52,16 @@ export function FollowListModal({
         ) : (
           <>
             {items.map((item) => (
-              <Link
+              <UserCard
                 key={item.userId}
-                to="/profile/$userId"
-                params={{ userId: item.userId }}
-                onClick={() => onOpenChange(false)}
-                className="flex items-center gap-3 rounded-lg px-2 py-2 hover:bg-white/5 transition"
-              >
-                {item.avatarUrl ? (
-                  <img
-                    src={item.avatarUrl}
-                    alt=""
-                    className="w-10 h-10 rounded-full object-cover shrink-0 ring-1 ring-white/10"
-                  />
-                ) : (
-                  <div className="w-10 h-10 rounded-full bg-cinza-medio flex items-center justify-center shrink-0 ring-1 ring-white/10">
-                    <span className="text-gray-300 text-sm font-semibold leading-none">
-                      {getInitials(item.displayName)}
-                    </span>
-                  </div>
-                )}
-                <span className="text-white text-sm font-medium truncate">
-                  {item.displayName}
-                </span>
-              </Link>
+                userId={item.userId}
+                displayName={item.displayName}
+                avatarUrl={item.avatarUrl}
+                memberSince={item.createdAt}
+                stats={stats.data?.get(item.userId)}
+                isStatsLoading={stats.isPending}
+                onNavigate={() => onOpenChange(false)}
+              />
             ))}
 
             {hasNextPage && (

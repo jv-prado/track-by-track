@@ -1,5 +1,8 @@
 import { User } from '../../../domain/entities/user.entity';
-import { UserRepository } from '../../../domain/repositories/user.repository';
+import {
+  UserRepository,
+  UserSearchResult,
+} from '../../../domain/repositories/user.repository';
 
 export class InMemoryUserRepository implements UserRepository {
   private readonly users = new Map<string, User>();
@@ -29,6 +32,21 @@ export class InMemoryUserRepository implements UserRepository {
       }
     }
     return Promise.resolve(null);
+  }
+
+  search(
+    query: string,
+    limit: number,
+    offset: number,
+  ): Promise<UserSearchResult> {
+    const q = query.toLowerCase();
+    const matches = [...this.users.values()].filter((user) =>
+      user.displayName.toLowerCase().includes(q),
+    );
+    return Promise.resolve({
+      items: matches.slice(offset, offset + limit),
+      total: matches.length,
+    });
   }
 
   delete(id: string): Promise<void> {

@@ -83,7 +83,11 @@ class FakeUserDirectory {
 
   getPublicProfile(userId: string): Promise<PublicUserProfile | null> {
     if (!this.known.has(userId)) return Promise.resolve(null);
-    return Promise.resolve({ id: userId, displayName: userId.toUpperCase() });
+    return Promise.resolve({
+      id: userId,
+      displayName: userId.toUpperCase(),
+      createdAt: '2026-01-01T00:00:00.000Z',
+    });
   }
 }
 

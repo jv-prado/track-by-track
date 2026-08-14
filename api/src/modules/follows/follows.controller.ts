@@ -12,16 +12,43 @@ import {
 import { ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { Public } from '../../shared/infrastructure/decorators/public.decorator';
 import { CurrentUser } from '../../shared/infrastructure/decorators/current-user.decorator';
+import { UserDirectoryService } from '../identity/application/services/user-directory.service';
+import { buildPaginationMeta } from '../../shared/infrastructure/pagination';
 import { FollowsService } from './follows.service';
 import { ListFollowsQueryDto } from './dtos/list-follows-query.dto';
-import { FollowStatsDto, FollowUsersPageDto } from './dtos/follow.responses';
+import { SearchUsersQueryDto } from './dtos/search-users-query.dto';
+import {
+  FollowStatsDto,
+  FollowUsersPageDto,
+  UserSearchPageDto,
+} from './dtos/follow.responses';
 
 @ApiTags('follows')
 @Controller('users')
 export class FollowsController {
   constructor(
     @Inject(FollowsService) private readonly follows: FollowsService,
+    @Inject(UserDirectoryService)
+    private readonly userDirectory: UserDirectoryService,
   ) {}
+
+  // rota estática (`search`) não colide com `:userId/...` abaixo — formas de
+  // path diferentes — mas fica antes por convenção (ver AlbumCatalogController).
+  @Public()
+  @ApiOkResponse({ type: UserSearchPageDto })
+  @Get('search')
+  async search(@Query() query: SearchUsersQueryDto) {
+    const offset = (query.page - 1) * query.perPage;
+    const { items, total } = await this.userDirectory.searchPublicProfiles(
+      query.q,
+      query.perPage,
+      offset,
+    );
+    return {
+      data: items,
+      meta: buildPaginationMeta(query.page, query.perPage, total),
+    };
+  }
 
   @ApiOkResponse({ type: FollowStatsDto })
   @HttpCode(HttpStatus.OK)

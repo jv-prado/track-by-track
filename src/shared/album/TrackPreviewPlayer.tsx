@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Pause, Play } from "lucide-react";
+import { Pause, Play, Volume2, VolumeX } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { getWaveformPeaks } from "@/shared/lib/decode-waveform";
 import { Spinner } from "@/shared/ui/Spinner";
@@ -21,8 +21,11 @@ export function TrackPreviewPlayer({
   isPlaying,
   currentTime,
   duration,
+  volume,
   onToggle,
   onSeek,
+  onVolumeChange,
+  onToggleMute,
 }: {
   /** `undefined` = ainda não sabemos (busca sob demanda); `null` = confirmado sem prévia. */
   previewUrl?: string | null;
@@ -30,8 +33,12 @@ export function TrackPreviewPlayer({
   isPlaying: boolean;
   currentTime: number;
   duration: number;
+  /** 0 a 1. */
+  volume: number;
   onToggle: () => void;
   onSeek: (time: number) => void;
+  onVolumeChange: (volume: number) => void;
+  onToggleMute: () => void;
 }) {
   const { t } = useTranslation();
   const [peaks, setPeaks] = useState<number[] | null>(null);
@@ -104,6 +111,27 @@ export function TrackPreviewPlayer({
           <span className="text-gray-500 text-xs tabular-nums shrink-0">
             {formatElapsed(currentTime)} / {formatElapsed(duration || 30)}
           </span>
+
+          <div className="flex items-center gap-1.5 shrink-0">
+            <button
+              type="button"
+              onClick={onToggleMute}
+              aria-label={volume === 0 ? t("albumDetail.unmutePreview") : t("albumDetail.mutePreview")}
+              className="shrink-0 flex items-center justify-center w-6 h-6 rounded-full text-gray-400 hover:text-dourado hover:bg-white/5 transition cursor-pointer"
+            >
+              {volume === 0 ? <VolumeX size={14} /> : <Volume2 size={14} />}
+            </button>
+            <input
+              type="range"
+              min={0}
+              max={1}
+              step={0.05}
+              value={volume}
+              onChange={(event) => onVolumeChange(Number(event.target.value))}
+              aria-label={t("albumDetail.volumePreview")}
+              className="h-1 w-16 cursor-pointer accent-dourado"
+            />
+          </div>
         </>
       )}
     </div>

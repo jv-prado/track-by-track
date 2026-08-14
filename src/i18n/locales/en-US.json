@@ -12,7 +12,9 @@
     "logoutError": "Couldn't sign out. Try again.",
     "profile": "My profile",
     "settings": "Settings",
-    "continueEditing": "Continue editing"
+    "continueEditing": "Continue editing",
+    "collapseSidebar": "Collapse menu",
+    "expandSidebar": "Expand menu"
   },
   "common": {
     "retry": "Try again",
@@ -127,6 +129,7 @@
     "sortScoreAsc": "Lowest score",
     "emptyTitle": "You haven't rated any albums yet",
     "emptyDescription": "Search for an album to get started.",
+    "emptyAddCta": "Rate an album",
     "emptyFilterTitle": "No rating matches this filter",
     "emptyFilterDescription": "Try adjusting the search or score range.",
     "error": "Could not load your ratings."
@@ -154,14 +157,19 @@
     "loading3": "Almost there..."
   },
   "search": {
-    "title": "Search albums",
-    "subtitle": "Find an album in the catalog to start ranking.",
+    "title": "Search",
+    "subtitle": "Find albums to rank or users to follow.",
+    "tabAlbums": "Albums",
+    "tabUsers": "Users",
     "placeholder": "Album or artist name...",
+    "usersPlaceholder": "Username...",
     "clearAria": "Clear search",
     "startTitle": "Start typing",
     "startDescription": "Search for an album or artist name to see results here.",
+    "usersStartDescription": "Search for a username to see results here.",
     "emptyTitle": "No albums found",
     "emptyDescription": "Try another search term.",
+    "usersEmptyTitle": "No users found",
     "error": "Could not search. Please try again."
   },
   "albumDetail": {
@@ -182,6 +190,12 @@
     "playPreview": "Play preview",
     "pausePreview": "Pause preview",
     "seekPreview": "Seek preview",
+    "volumePreview": "Preview volume",
+    "mutePreview": "Mute preview",
+    "unmutePreview": "Unmute preview",
+    "previewUnavailable": "No preview available for this track.",
+    "previewLookupError": "Couldn't load the preview. Try again.",
+    "previewPlaybackError": "Couldn't play the preview.",
     "notFound": "Album not found.",
     "rankingNotFound": "Ranking not found.",
     "averageScore": "Average score",
@@ -211,6 +225,7 @@
     "worstTrackSaved": "Worst track saved",
     "saveError": "Could not save the review.",
     "notChosen": "Not chosen yet",
+    "noReviewYet": "This user hasn't written a review of this album yet.",
     "save": "Save review",
     "saveSuccess": "Review saved successfully."
   },
@@ -256,6 +271,9 @@
     "title": "Reviews from other users",
     "ratingOnly": "Rated without leaving a review"
   },
+  "user": {
+    "memberSince": "Member since {{date}}"
+  },
   "profile": {
     "title": "My profile",
     "displayNameLabel": "Display name",
@@ -265,6 +283,7 @@
     "fallbackTitle": "Profile",
     "error": "Could not load the profile.",
     "empty": "No ratings found",
+    "emptyOwnDescription": "Search for an album to start rating.",
     "changeAvatar": "Change photo",
     "avatarInvalidType": "Invalid format. Use JPEG, PNG, or WebP.",
     "avatarTooLarge": "Image too large. Max 5MB.",

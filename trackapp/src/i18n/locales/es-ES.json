@@ -180,6 +180,12 @@
     "playPreview": "Escuchar vista previa",
     "pausePreview": "Pausar vista previa",
     "seekPreview": "Ir a un punto de la vista previa",
+    "volumePreview": "Volumen de la vista previa",
+    "mutePreview": "Silenciar vista previa",
+    "unmutePreview": "Activar sonido de la vista previa",
+    "previewUnavailable": "No hay vista previa disponible para esta pista.",
+    "previewLookupError": "No se pudo cargar la vista previa. Inténtalo de nuevo.",
+    "previewPlaybackError": "No se pudo reproducir la vista previa.",
     "notFound": "Álbum no encontrado.",
     "rankingNotFound": "Ranking no encontrado.",
     "averageScore": "Puntuación media",
@@ -209,6 +215,7 @@
     "worstTrackSaved": "Peor canción guardada",
     "saveError": "No se pudo guardar la reseña.",
     "notChosen": "Aún no elegida",
+    "noReviewYet": "Este usuario todavía no ha escrito una reseña de este álbum.",
     "save": "Guardar reseña",
     "saveSuccess": "Reseña guardada con éxito."
   },
@@ -253,6 +260,9 @@
   "communityReviews": {
     "title": "Reseñas de otros usuarios",
     "ratingOnly": "Calificó sin dejar reseña"
+  },
+  "user": {
+    "memberSince": "Miembro desde {{date}}"
   },
   "profile": {
     "title": "Mi perfil",

@@ -4,6 +4,8 @@ export { useTopAlbumsInfiniteQuery } from "./useTopAlbumsInfiniteQuery";
 export { useProfileQuery } from "./useProfileQuery";
 export { useProfileInfiniteQuery } from "./useProfileInfiniteQuery";
 export { useUserStatsQuery, type UserStats } from "./useUserStatsQuery";
+export { useUsersStatsQuery, type UserStatsItem } from "./useUsersStatsQuery";
 export { useAlbumReviewsInfiniteQuery } from "./useAlbumReviewsInfiniteQuery";
 export { useAlbumStatsQuery } from "./useAlbumStatsQuery";
 export { useLastEditedAlbumQuery } from "./useLastEditedAlbumQuery";
+export { useAlbumPreviewQuery } from "./useAlbumPreviewQuery";

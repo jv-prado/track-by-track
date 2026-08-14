@@ -1,10 +1,13 @@
 import { Pressable, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
-import { Pause, Play } from "lucide-react-native";
+import { Pause, Play, Volume2, VolumeX } from "lucide-react-native";
 import { Spinner } from "@/components/ui/Spinner";
 import { colors } from "@/lib/colors";
 
 const FALLBACK_BAR_COUNT = 28;
+// Web usa `<input type="range">`; RN não tem slider nativo e o app não traz
+// @react-native-community/slider — barra própria com o responder do próprio View.
+const VOLUME_BAR_WIDTH = 64; // w-16 == 64px
 const FALLBACK_PEAKS = Array<number>(FALLBACK_BAR_COUNT).fill(0.2);
 
 function formatElapsed(seconds: number): string {
@@ -20,8 +23,12 @@ export interface TrackPreviewPlayerProps {
   isPlaying: boolean;
   currentTime: number;
   duration: number;
+  /** 0 a 1. */
+  volume: number;
   onToggle: () => void;
   onSeek: (time: number) => void;
+  onVolumeChange: (volume: number) => void;
+  onToggleMute: () => void;
 }
 
 /**
@@ -38,8 +45,11 @@ export function TrackPreviewPlayer({
   isPlaying,
   currentTime,
   duration,
+  volume,
   onToggle,
   onSeek,
+  onVolumeChange,
+  onToggleMute,
 }: TrackPreviewPlayerProps) {
   const { t } = useTranslation();
 
@@ -93,6 +103,33 @@ export function TrackPreviewPlayer({
           <Text className="shrink-0 text-xs tabular-nums text-gray-500">
             {formatElapsed(currentTime)} / {formatElapsed(duration || 30)}
           </Text>
+
+          <View className="flex-row items-center gap-1.5">
+            <Pressable
+              onPress={onToggleMute}
+              accessibilityLabel={volume === 0 ? t("albumDetail.unmutePreview") : t("albumDetail.mutePreview")}
+              className="h-6 w-6 items-center justify-center rounded-full"
+            >
+              {volume === 0 ? (
+                <VolumeX size={14} color={colors.cinzaClaro} />
+              ) : (
+                <Volume2 size={14} color={colors.dourado} />
+              )}
+            </Pressable>
+            <View
+              accessibilityLabel={t("albumDetail.volumePreview")}
+              onStartShouldSetResponder={() => true}
+              onMoveShouldSetResponder={() => true}
+              onResponderGrant={(event) => onVolumeChange(event.nativeEvent.locationX / VOLUME_BAR_WIDTH)}
+              onResponderMove={(event) => onVolumeChange(event.nativeEvent.locationX / VOLUME_BAR_WIDTH)}
+              style={{ width: VOLUME_BAR_WIDTH }}
+              className="h-7 justify-center"
+            >
+              <View className="h-1 rounded-full bg-white/15">
+                <View className="h-1 rounded-full bg-dourado" style={{ width: `${volume * 100}%` }} />
+              </View>
+            </View>
+          </View>
         </>
       )}
     </View>

@@ -1,5 +1,5 @@
 import { Image, Pressable, Text, View } from "react-native";
-import { Link } from "expo-router";
+import { Link, type Href } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { Music } from "lucide-react-native";
 import type { FeedItem } from "@/shared/api/types";
@@ -33,7 +33,7 @@ export function FeedCard({
   const progressPct = item.totalTracks > 0 ? Math.round((item.ratedTracks / item.totalTracks) * 100) : 0;
 
   return (
-    <Link href={href} asChild>
+    <Link href={href as Href} asChild>
       <Pressable
         className={cn(
           "flex-1 rounded-xl border border-white/5 bg-cinza-escuro",

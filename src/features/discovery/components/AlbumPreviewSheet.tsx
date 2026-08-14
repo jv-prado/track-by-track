@@ -1,8 +1,7 @@
 import { useNavigate } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { Ban, Heart, ListMusic, Maximize2, MessageSquare, Music, X } from "lucide-react";
-import { useAlbumDetailQuery } from "@/queries/album-catalog";
-import { useUserRankingForAlbumQuery } from "@/queries/ranking";
+import { useAlbumPreviewQuery } from "@/queries/discovery";
 import { BottomSheet } from "@/shared/ui/BottomSheet";
 import { Button } from "@/shared/ui/Button";
 import { Card } from "@/shared/ui/Card";
@@ -51,15 +50,14 @@ export function AlbumPreviewSheet({
   const navigate = useNavigate();
   const preview = useTrackPreviewPlayer();
 
-  // enabled: false enquanto fechada — evita as duas queries dispararem em toda
-  // troca de item selecionado antes da sheet realmente abrir.
-  const albumQuery = useAlbumDetailQuery(open ? albumId : "");
-  const rankingQuery = useUserRankingForAlbumQuery(open ? userId : "", open ? albumId : "");
+  // enabled: false enquanto fechada — evita a query disparar em toda troca de
+  // item selecionado antes da sheet realmente abrir.
+  const previewQuery = useAlbumPreviewQuery(open ? userId : "", open ? albumId : "");
 
-  const album = albumQuery.data;
-  const ranking = rankingQuery.data;
-  const isLoading = open && (albumQuery.isLoading || rankingQuery.isLoading);
-  const isError = albumQuery.isError || rankingQuery.isError;
+  const album = previewQuery.data?.album;
+  const ranking = previewQuery.data?.ranking;
+  const isLoading = open && previewQuery.isLoading;
+  const isError = previewQuery.isError;
 
   const handleViewFull = () => {
     onOpenChange(false);
@@ -148,38 +146,36 @@ export function AlbumPreviewSheet({
             </p>
           </div>
 
-          {(ranking.review.text || favoriteTrackName || worstTrackName) && (
-            <div className="flex flex-col gap-2">
-              {ranking.review.text && (
-                <Card className="p-3">
-                  <p className="flex items-center gap-1.5 text-sm font-medium text-blue-400 mb-1">
-                    <MessageSquare size={14} /> {t("albumDetail.reviewHeading")}
-                  </p>
-                  <p className="text-gray-200 text-sm whitespace-pre-wrap">{ranking.review.text}</p>
-                </Card>
+          <div className="flex flex-col gap-2">
+            <Card className="p-3">
+              <p className="flex items-center gap-1.5 text-sm font-medium text-blue-400 mb-1">
+                <MessageSquare size={14} /> {t("albumDetail.reviewHeading")}
+              </p>
+              {ranking.review.text ? (
+                <p className="text-gray-200 text-sm whitespace-pre-wrap">{ranking.review.text}</p>
+              ) : (
+                <p className="text-gray-200 text-sm">{t("review.noReviewYet")}</p>
               )}
-              {(favoriteTrackName || worstTrackName) && (
-                <div className="grid grid-cols-2 gap-2">
-                  <Card className="p-3">
-                    <p className="flex items-center gap-1.5 text-xs font-medium text-red-400 mb-1">
-                      <Heart size={12} /> {t("review.favoriteTrack")}
-                    </p>
-                    <p className="text-gray-200 text-sm truncate">
-                      {favoriteTrackName ?? t("review.notChosen")}
-                    </p>
-                  </Card>
-                  <Card className="p-3">
-                    <p className="flex items-center gap-1.5 text-xs font-medium text-gray-400 mb-1">
-                      <Ban size={12} /> {t("review.worstTrack")}
-                    </p>
-                    <p className="text-gray-200 text-sm truncate">
-                      {worstTrackName ?? t("review.notChosen")}
-                    </p>
-                  </Card>
-                </div>
-              )}
+            </Card>
+            <div className="grid grid-cols-2 gap-2">
+              <Card className="p-3">
+                <p className="flex items-center gap-1.5 text-xs font-medium text-red-400 mb-1">
+                  <Heart size={12} /> {t("review.favoriteTrack")}
+                </p>
+                <p className="text-gray-200 text-sm truncate">
+                  {favoriteTrackName ?? t("review.notChosen")}
+                </p>
+              </Card>
+              <Card className="p-3">
+                <p className="flex items-center gap-1.5 text-xs font-medium text-gray-400 mb-1">
+                  <Ban size={12} /> {t("review.worstTrack")}
+                </p>
+                <p className="text-gray-200 text-sm truncate">
+                  {worstTrackName ?? t("review.notChosen")}
+                </p>
+              </Card>
             </div>
-          )}
+          </div>
 
           <div>
             <h2 className="text-white font-semibold flex items-center gap-2 mb-3">

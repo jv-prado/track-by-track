@@ -2,8 +2,12 @@ import { Inject, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, type QueryFilter } from 'mongoose';
 import { RankingSchemaClass } from '../ranking/infrastructure/persistence/ranking.schema';
+import { GetRankingUseCase } from '../ranking/application/use-cases/get-ranking/get-ranking.use-case';
+import { RankingView } from '../ranking/application/ranking-view';
 import { AlbumSchemaClass } from '../album-catalog/album.schema';
 import { AlbumCatalogService } from '../album-catalog/album-catalog.service';
+import { AlbumDetail } from '../album-catalog/spotify-normalizer';
+import { AlbumNotFoundError } from '../album-catalog/errors/album-not-found.error';
 import {
   Paginated,
   buildPaginationMeta,
@@ -43,6 +47,10 @@ export interface UserStats {
   tracksRated: number;
 }
 
+export interface UserStatsItem extends UserStats {
+  userId: string;
+}
+
 export interface TopAlbumItem {
   albumId: string;
   albumName: string;
@@ -50,6 +58,11 @@ export interface TopAlbumItem {
   albumImageUrl?: string;
   averageScore: number;
   ratingsCount: number;
+}
+
+export interface AlbumPreview {
+  album: AlbumDetail;
+  ranking: RankingView;
 }
 
 export interface LastEditedAlbum {
@@ -249,6 +262,7 @@ const ALBUM_REVIEWS_TTL = 5 * 60;
 const USER_STATS_TTL = 5 * 60;
 const USER_RANKINGS_TTL = 60;
 const LAST_EDITED_ALBUM_TTL = 60;
+const ALBUM_PREVIEW_TTL = 60;
 
 @Injectable()
 export class DiscoveryService {
@@ -261,6 +275,7 @@ export class DiscoveryService {
     @Inject(CacheKeys) private readonly keys: CacheKeys,
     private readonly albumCatalog: AlbumCatalogService,
     @Inject(FollowsService) private readonly follows: FollowsService,
+    @Inject(GetRankingUseCase) private readonly getRanking: GetRankingUseCase,
   ) {}
 
   /**
@@ -459,16 +474,42 @@ export class DiscoveryService {
     search?: string,
     sort: ByUserSort = 'recent',
     genre?: string,
+    completedOnly = false,
   ): Promise<Paginated<FeedItem>> {
     // Busca é texto livre: cardinalidade de chave sem teto, não entra em cache.
     if (search)
-      return this.loadByUser(userId, page, perPage, search, sort, genre);
+      return this.loadByUser(
+        userId,
+        page,
+        perPage,
+        search,
+        sort,
+        genre,
+        completedOnly,
+      );
 
     const version = await this.cache.version(this.keys.versionUser(userId));
     return this.cache.getOrSet(
-      this.keys.userRankings(version, userId, sort, page, perPage, genre),
+      this.keys.userRankings(
+        version,
+        userId,
+        sort,
+        page,
+        perPage,
+        genre,
+        completedOnly,
+      ),
       USER_RANKINGS_TTL,
-      () => this.loadByUser(userId, page, perPage, undefined, sort, genre),
+      () =>
+        this.loadByUser(
+          userId,
+          page,
+          perPage,
+          undefined,
+          sort,
+          genre,
+          completedOnly,
+        ),
     );
   }
 
@@ -479,6 +520,7 @@ export class DiscoveryService {
     search: string | undefined,
     sort: ByUserSort,
     genre?: string,
+    completedOnly = false,
   ): Promise<Paginated<FeedItem>> {
     const sortStage: Record<string, 1 | -1> =
       sort === 'score-desc'
@@ -517,7 +559,15 @@ export class DiscoveryService {
       data: FeedItem[];
       totalCount: { count: number }[];
     }>([
-      { $match: { userId, ...HAS_RATED_TRACK_MATCH } },
+      {
+        $match: {
+          userId,
+          ...HAS_RATED_TRACK_MATCH,
+          // Perfil público (completedOnly) só mostra álbum 100% avaliado —
+          // mesmo critério do feed global (completedAt em loadFeed).
+          ...(completedOnly ? { completedAt: { $ne: null } } : {}),
+        },
+      },
       ...FEED_JOIN_STAGES,
       ...searchStage,
       ...genreStage,
@@ -542,22 +592,51 @@ export class DiscoveryService {
     return { data, meta: buildPaginationMeta(page, perPage, total) };
   }
 
-  async userStats(userId: string): Promise<UserStats> {
+  async userStats(userId: string, completedOnly = false): Promise<UserStats> {
     const version = await this.cache.version(this.keys.versionUser(userId));
     return this.cache.getOrSet(
-      this.keys.userStats(version, userId),
+      this.keys.userStats(version, userId, completedOnly),
       USER_STATS_TTL,
-      () => this.loadUserStats(userId),
+      () => this.loadUserStats(userId, completedOnly),
     );
   }
 
-  private async loadUserStats(userId: string): Promise<UserStats> {
+  /**
+   * Stats de vários usuários numa request — lista de seguidores/busca renderiza
+   * um card por usuário e não pode virar N chamadas HTTP. Reaproveita o cache
+   * versionado por usuário de `userStats`, então repetição entre páginas é grátis.
+   */
+  async usersStats(
+    userIds: string[],
+    completedOnly = false,
+  ): Promise<UserStatsItem[]> {
+    const unique = [...new Set(userIds)];
+    return Promise.all(
+      unique.map(async (userId) => ({
+        userId,
+        ...(await this.userStats(userId, completedOnly)),
+      })),
+    );
+  }
+
+  private async loadUserStats(
+    userId: string,
+    completedOnly = false,
+  ): Promise<UserStats> {
     const [row] = await this.rankingModel.aggregate<{
       total: number;
       averageScore: number;
       tracksRated: number;
     }>([
-      { $match: { userId, ...HAS_RATED_TRACK_MATCH } },
+      {
+        $match: {
+          userId,
+          ...HAS_RATED_TRACK_MATCH,
+          // Mesmo critério de completedOnly de loadByUser — stats do perfil
+          // público não contam rascunho em progresso.
+          ...(completedOnly ? { completedAt: { $ne: null } } : {}),
+        },
+      },
       {
         $group: {
           _id: null,
@@ -645,6 +724,36 @@ export class DiscoveryService {
 
     await this.resolveMissingAlbums([row]);
     return row;
+  }
+
+  /**
+   * Join server-side pra sheet de preview do feed (`AlbumPreviewSheet`): antes
+   * disparava `useAlbumDetailQuery` + `useUserRankingForAlbumQuery` em paralelo
+   * no cliente, 2 requests HTTP pra 1 drawer. TTL curto (`versionUser`) porque
+   * ranking muda a cada estrela clicada; álbum quase nunca muda mas não vale
+   * cache próprio só pra isso — reaproveita o cache do `AlbumCatalogService`.
+   */
+  async albumPreview(userId: string, albumId: string): Promise<AlbumPreview> {
+    const version = await this.cache.version(this.keys.versionUser(userId));
+    return this.cache.getOrSet(
+      this.keys.albumPreview(version, userId, albumId),
+      ALBUM_PREVIEW_TTL,
+      () => this.loadAlbumPreview(userId, albumId),
+    );
+  }
+
+  private async loadAlbumPreview(
+    userId: string,
+    albumId: string,
+  ): Promise<AlbumPreview> {
+    const [album, ranking] = await Promise.all([
+      this.albumCatalog.getAlbum(albumId),
+      this.getRanking.byUserAndAlbum(userId, albumId),
+    ]);
+    if (!album) {
+      throw new AlbumNotFoundError();
+    }
+    return { album, ranking };
   }
 
   async topAlbums(

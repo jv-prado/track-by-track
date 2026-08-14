@@ -180,6 +180,12 @@
     "playPreview": "Ouvir prévia",
     "pausePreview": "Pausar prévia",
     "seekPreview": "Ir para trecho da prévia",
+    "volumePreview": "Volume da prévia",
+    "mutePreview": "Silenciar prévia",
+    "unmutePreview": "Ativar som da prévia",
+    "previewUnavailable": "Nenhuma prévia disponível para esta faixa.",
+    "previewLookupError": "Não foi possível buscar a prévia. Tente de novo.",
+    "previewPlaybackError": "Não foi possível tocar a prévia.",
     "notFound": "Álbum não encontrado.",
     "rankingNotFound": "Ranking não encontrado.",
     "averageScore": "Média geral",
@@ -209,6 +215,7 @@
     "worstTrackSaved": "Pior faixa salva",
     "saveError": "Não foi possível salvar a review.",
     "notChosen": "Ainda não escolhida",
+    "noReviewYet": "Este usuário ainda não escreveu uma review deste álbum.",
     "save": "Salvar review",
     "saveSuccess": "Review salva com sucesso."
   },
@@ -253,6 +260,9 @@
   "communityReviews": {
     "title": "Reviews de outros usuários",
     "ratingOnly": "Avaliou sem deixar review"
+  },
+  "user": {
+    "memberSince": "Membro desde {{date}}"
   },
   "profile": {
     "title": "Meu perfil",

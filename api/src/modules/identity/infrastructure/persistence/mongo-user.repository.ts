@@ -2,9 +2,16 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { User } from '../../domain/entities/user.entity';
-import { UserRepository } from '../../domain/repositories/user.repository';
+import {
+  UserRepository,
+  UserSearchResult,
+} from '../../domain/repositories/user.repository';
 import { UserSchemaClass } from './user.schema';
 import { UserMapper } from './user.mapper';
+
+function escapeRegex(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
 
 @Injectable()
 export class MongoUserRepository implements UserRepository {
@@ -44,6 +51,30 @@ export class MongoUserRepository implements UserRepository {
       .lean()
       .exec();
     return doc ? UserMapper.toDomain(doc) : null;
+  }
+
+  async search(
+    query: string,
+    limit: number,
+    offset: number,
+  ): Promise<UserSearchResult> {
+    const filter = {
+      displayNameLower: {
+        $regex: escapeRegex(query.toLowerCase()),
+        $options: 'i',
+      },
+    };
+    const [docs, total] = await Promise.all([
+      this.model
+        .find(filter)
+        .sort({ displayNameLower: 1 })
+        .skip(offset)
+        .limit(limit)
+        .lean()
+        .exec(),
+      this.model.countDocuments(filter).exec(),
+    ]);
+    return { items: docs.map((doc) => UserMapper.toDomain(doc)), total };
   }
 
   async delete(id: string): Promise<void> {

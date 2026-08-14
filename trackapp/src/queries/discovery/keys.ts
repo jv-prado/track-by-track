@@ -12,9 +12,13 @@ export interface ProfileFilters extends FeedFilters {
   search?: string;
   sort?: ProfileSort;
   genre?: string;
+  completedOnly?: boolean;
 }
 
-export type ProfileInfiniteFilters = Pick<ProfileFilters, "search" | "sort" | "genre">;
+export type ProfileInfiniteFilters = Pick<
+  ProfileFilters,
+  "search" | "sort" | "genre" | "completedOnly"
+>;
 
 export const discoveryKeys = {
   all: ["discovery"] as const,
@@ -28,7 +32,10 @@ export const discoveryKeys = {
     [...discoveryKeys.all, "profile", userId, filters] as const,
   profileInfinite: (userId: string, filters: ProfileInfiniteFilters) =>
     [...discoveryKeys.all, "profile-infinite", userId, filters] as const,
-  profileStats: (userId: string) => [...discoveryKeys.all, "profile-stats", userId] as const,
+  usersStats: (userIds: readonly string[], completedOnly?: boolean) =>
+    [...discoveryKeys.all, "users-stats", userIds, completedOnly ?? false] as const,
+  profileStats: (userId: string, completedOnly?: boolean) =>
+    [...discoveryKeys.all, "profile-stats", userId, completedOnly ?? false] as const,
   albumReviews: (albumId: string, filters: FeedFilters) =>
     [...discoveryKeys.all, "album-reviews", albumId, filters] as const,
   albumReviewsInfinite: (albumId: string) =>

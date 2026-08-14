@@ -29,6 +29,7 @@ export type TopAlbumItem = Schemas["TopAlbumsPageDto"]["data"][number];
 export type AlbumReviewItem = Schemas["AlbumReviewsPageDto"]["data"][number];
 export type UserStats = Schemas["UserStatsDto"];
 export type LastEditedAlbum = Schemas["LastEditedAlbumDto"];
+export type AlbumPreview = Schemas["AlbumPreviewDto"];
 export type AlbumStats = Schemas["AlbumStatsDto"];
 export type TrackTally = Schemas["AlbumStatsDto"]["topFavoriteTracks"][number];
 
@@ -46,6 +47,7 @@ export type CommentView = Schemas["CommentViewDto"];
 
 export type FollowStats = Schemas["FollowStatsDto"];
 export type FollowUserItem = Schemas["FollowUsersPageDto"]["data"][number];
+export type PublicUser = Schemas["UserSearchPageDto"]["data"][number];
 
 export type NotificationView = Schemas["NotificationsPageDto"]["data"][number];
 export type UnreadCount = Schemas["UnreadCountDto"];

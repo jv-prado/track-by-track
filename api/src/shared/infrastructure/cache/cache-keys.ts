@@ -116,8 +116,8 @@ export class CacheKeys {
     return `${this.root}:album-reviews:v${version}:${albumId}:p${page}:${perPage}`;
   }
 
-  userStats(version: number, userId: string): string {
-    return `${this.root}:user-stats:v${version}:${userId}`;
+  userStats(version: number, userId: string, completedOnly = false): string {
+    return `${this.root}:user-stats:v${version}:${userId}:${completedOnly ? 'completed' : 'all'}`;
   }
 
   userRankings(
@@ -127,11 +127,16 @@ export class CacheKeys {
     page: number,
     perPage: number,
     genre?: string,
+    completedOnly = false,
   ): string {
-    return `${this.root}:user-rankings:v${version}:${userId}:${sort}:p${page}:${perPage}:${genre ?? 'all'}`;
+    return `${this.root}:user-rankings:v${version}:${userId}:${sort}:p${page}:${perPage}:${genre ?? 'all'}:${completedOnly ? 'completed' : 'all'}`;
   }
 
   lastEditedAlbum(version: number, userId: string): string {
     return `${this.root}:last-edited:v${version}:${userId}`;
+  }
+
+  albumPreview(version: number, userId: string, albumId: string): string {
+    return `${this.root}:album-preview:v${version}:${userId}:${albumId}`;
   }
 }

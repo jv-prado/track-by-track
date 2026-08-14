@@ -17,15 +17,19 @@ import {
 import { DiscoveryService } from './discovery.service';
 import { PaginationQueryDto } from './dtos/pagination-query.dto';
 import { ByUserQueryDto } from './dtos/by-user-query.dto';
+import { UserStatsQueryDto } from './dtos/user-stats-query.dto';
+import { UsersStatsQueryDto } from './dtos/users-stats-query.dto';
 import { FeedQueryDto } from './dtos/feed-query.dto';
 import { TopAlbumsQueryDto } from './dtos/top-albums-query.dto';
 import {
+  AlbumPreviewDto,
   AlbumReviewsPageDto,
   AlbumStatsDto,
   FeedPageDto,
   LastEditedAlbumDto,
   TopAlbumsPageDto,
   UserStatsDto,
+  UsersStatsDto,
 } from './dtos/discovery.responses';
 
 @ApiTags('discovery')
@@ -67,6 +71,19 @@ export class DiscoveryController {
     );
   }
 
+  /** Caminho estático de um segmento só — não colide com `users/:userId`. */
+  @Public()
+  @Get('users-stats')
+  @PublicCache(60)
+  @ApiOkResponse({ type: UsersStatsDto })
+  async usersStats(@Query() query: UsersStatsQueryDto) {
+    const data = await this.discovery.usersStats(
+      query.userIds,
+      query.completedOnly,
+    );
+    return { data };
+  }
+
   @Public()
   @Get('users/:userId')
   @PublicCache(30)
@@ -82,6 +99,7 @@ export class DiscoveryController {
       query.search,
       query.sort,
       query.genre,
+      query.completedOnly,
     );
   }
 
@@ -89,8 +107,11 @@ export class DiscoveryController {
   @Get('users/:userId/stats')
   @PublicCache(60)
   @ApiOkResponse({ type: UserStatsDto })
-  async userStats(@Param('userId') userId: string) {
-    return this.discovery.userStats(userId);
+  async userStats(
+    @Param('userId') userId: string,
+    @Query() query: UserStatsQueryDto,
+  ) {
+    return this.discovery.userStats(userId, query.completedOnly);
   }
 
   @Public()
@@ -118,6 +139,21 @@ export class DiscoveryController {
   @ApiOkResponse({ type: AlbumStatsDto })
   async albumStats(@Param('albumId') albumId: string) {
     return this.discovery.albumStats(albumId);
+  }
+
+  /**
+   * Join de álbum+ranking pra sheet de preview do feed — substitui os 2
+   * requests que `AlbumPreviewSheet` disparava em paralelo no cliente.
+   */
+  @Public()
+  @Get('album-preview/:userId/:albumId')
+  @PublicCache(30)
+  @ApiOkResponse({ type: AlbumPreviewDto })
+  async albumPreview(
+    @Param('userId') userId: string,
+    @Param('albumId') albumId: string,
+  ) {
+    return this.discovery.albumPreview(userId, albumId);
   }
 
   // Sem @Public: é dado do próprio usuário logado, nunca de outro — por isso

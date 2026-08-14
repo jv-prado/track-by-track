@@ -1,8 +1,8 @@
-import { FlatList, Image, Pressable, Text, View } from "react-native";
-import { Link } from "expo-router";
+import { FlatList, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { useFollowersQuery, useFollowingQuery } from "@/queries/follows";
-import { getInitials } from "@/lib/initials";
+import { useUsersStatsQuery } from "@/queries/discovery";
+import { UserCard } from "@/components/social/UserCard";
 import { Modal } from "@/components/ui/Modal";
 import { Spinner } from "@/components/ui/Spinner";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -26,6 +26,7 @@ export function FollowListModal({
   const query = kind === "followers" ? followersQuery : followingQuery;
   const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } = query;
   const items = data?.pages.flatMap((page) => page.data) ?? [];
+  const stats = useUsersStatsQuery(items.map((item) => item.userId));
 
   return (
     <Modal
@@ -44,20 +45,15 @@ export function FollowListModal({
           data={items}
           keyExtractor={(item) => item.userId}
           renderItem={({ item }) => (
-            <Link href={`/profile/${item.userId}`} asChild>
-              <Pressable onPress={() => onOpenChange(false)} className="flex-row items-center gap-3 rounded-lg px-2 py-2">
-                {item.avatarUrl ? (
-                  <Image source={{ uri: item.avatarUrl }} className="h-10 w-10 rounded-full" />
-                ) : (
-                  <View className="h-10 w-10 items-center justify-center rounded-full bg-cinza-medio">
-                    <Text className="text-sm font-semibold text-gray-300">{getInitials(item.displayName)}</Text>
-                  </View>
-                )}
-                <Text className="flex-1 text-sm font-medium text-white" numberOfLines={1}>
-                  {item.displayName}
-                </Text>
-              </Pressable>
-            </Link>
+            <UserCard
+              userId={item.userId}
+              displayName={item.displayName}
+              avatarUrl={item.avatarUrl}
+              memberSince={item.createdAt}
+              stats={stats.data?.get(item.userId)}
+              isStatsLoading={stats.isPending}
+              onNavigate={() => onOpenChange(false)}
+            />
           )}
           onEndReached={() => hasNextPage && !isFetchingNextPage && fetchNextPage()}
           onEndReachedThreshold={0.5}

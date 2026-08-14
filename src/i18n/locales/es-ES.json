@@ -12,7 +12,9 @@
     "logoutError": "No se pudo cerrar sesión. Inténtalo de nuevo.",
     "profile": "Mi perfil",
     "settings": "Configuración",
-    "continueEditing": "Continuar editando"
+    "continueEditing": "Continuar editando",
+    "collapseSidebar": "Contraer menú",
+    "expandSidebar": "Expandir menú"
   },
   "common": {
     "retry": "Intentar de nuevo",
@@ -127,6 +129,7 @@
     "sortScoreAsc": "Menor nota",
     "emptyTitle": "Aún no has valorado ningún álbum",
     "emptyDescription": "Busca un álbum para empezar.",
+    "emptyAddCta": "Valorar un álbum",
     "emptyFilterTitle": "Ninguna valoración coincide con ese filtro",
     "emptyFilterDescription": "Intenta ajustar la búsqueda o el rango de notas.",
     "error": "No se pudieron cargar tus valoraciones."
@@ -154,14 +157,19 @@
     "loading3": "Ya casi..."
   },
   "search": {
-    "title": "Buscar álbumes",
-    "subtitle": "Encuentra un álbum en el catálogo para empezar a valorar.",
+    "title": "Buscar",
+    "subtitle": "Encuentra álbumes para valorar o usuarios para seguir.",
+    "tabAlbums": "Álbumes",
+    "tabUsers": "Usuarios",
     "placeholder": "Nombre del álbum o artista...",
+    "usersPlaceholder": "Nombre de usuario...",
     "clearAria": "Limpiar búsqueda",
     "startTitle": "Empieza a escribir",
     "startDescription": "Busca el nombre de un álbum o artista para ver los resultados aquí.",
+    "usersStartDescription": "Busca el nombre de un usuario para ver los resultados aquí.",
     "emptyTitle": "Ningún álbum encontrado",
     "emptyDescription": "Prueba con otro término de búsqueda.",
+    "usersEmptyTitle": "Ningún usuario encontrado",
     "error": "No se pudo buscar. Inténtalo de nuevo."
   },
   "albumDetail": {
@@ -182,6 +190,12 @@
     "playPreview": "Escuchar vista previa",
     "pausePreview": "Pausar vista previa",
     "seekPreview": "Ir a un punto de la vista previa",
+    "volumePreview": "Volumen de la vista previa",
+    "mutePreview": "Silenciar vista previa",
+    "unmutePreview": "Activar sonido de la vista previa",
+    "previewUnavailable": "No hay vista previa disponible para esta pista.",
+    "previewLookupError": "No se pudo cargar la vista previa. Inténtalo de nuevo.",
+    "previewPlaybackError": "No se pudo reproducir la vista previa.",
     "notFound": "Álbum no encontrado.",
     "rankingNotFound": "Ranking no encontrado.",
     "averageScore": "Puntuación media",
@@ -211,6 +225,7 @@
     "worstTrackSaved": "Peor canción guardada",
     "saveError": "No se pudo guardar la reseña.",
     "notChosen": "Aún no elegida",
+    "noReviewYet": "Este usuario todavía no ha escrito una reseña de este álbum.",
     "save": "Guardar reseña",
     "saveSuccess": "Reseña guardada con éxito."
   },
@@ -256,6 +271,9 @@
     "title": "Reseñas de otros usuarios",
     "ratingOnly": "Calificó sin dejar reseña"
   },
+  "user": {
+    "memberSince": "Miembro desde {{date}}"
+  },
   "profile": {
     "title": "Mi perfil",
     "displayNameLabel": "Nombre para mostrar",
@@ -265,6 +283,7 @@
     "fallbackTitle": "Perfil",
     "error": "No se pudo cargar el perfil.",
     "empty": "No se encontraron valoraciones",
+    "emptyOwnDescription": "Busca un álbum para empezar a valorar.",
     "changeAvatar": "Cambiar foto",
     "avatarInvalidType": "Formato inválido. Usa JPEG, PNG o WebP.",
     "avatarTooLarge": "Imagen muy grande. Máximo 5MB.",

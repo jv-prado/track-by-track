@@ -6,6 +6,7 @@ import {
 } from '../ranking/infrastructure/persistence/ranking.schema';
 import { AlbumSchema, AlbumSchemaClass } from '../album-catalog/album.schema';
 import { AlbumCatalogModule } from '../album-catalog/album-catalog.module';
+import { RankingModule } from '../ranking/ranking.module';
 import { FollowsModule } from '../follows/follows.module';
 import { DiscoveryController } from './discovery.controller';
 import { DiscoveryService } from './discovery.service';
@@ -17,6 +18,7 @@ import { DiscoveryService } from './discovery.service';
       { name: AlbumSchemaClass.name, schema: AlbumSchema },
     ]),
     AlbumCatalogModule,
+    RankingModule,
     FollowsModule,
   ],
   controllers: [DiscoveryController],

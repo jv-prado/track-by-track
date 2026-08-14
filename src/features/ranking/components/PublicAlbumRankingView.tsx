@@ -250,7 +250,7 @@ export function PublicAlbumRankingView({ userId, albumId }: { userId: string; al
               {ranking.review.text ? (
                 <ExpandableText text={ranking.review.text} />
               ) : (
-                <p className="text-gray-200 text-sm">{t("review.notChosen")}</p>
+                <p className="text-gray-200 text-sm">{t("review.noReviewYet")}</p>
               )}
             </Card>
             <Card className="p-3">

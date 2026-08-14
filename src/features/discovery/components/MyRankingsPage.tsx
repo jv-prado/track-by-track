@@ -14,6 +14,7 @@ import { Select } from "@/shared/ui/Select";
 import { BottomSheet } from "@/shared/ui/BottomSheet";
 import { AlbumPreviewSheet } from "./AlbumPreviewSheet";
 import { StatCard } from "@/shared/ui/StatCard";
+import { AddAlbumCard } from "@/shared/ui/AddAlbumCard";
 import { Button } from "@/shared/ui/Button";
 import { Spinner } from "@/shared/ui/Spinner";
 import { ErrorState } from "@/shared/ui/ErrorState";
@@ -78,7 +79,13 @@ export function MyRankingsPage() {
 
   if (!isLoading && data && items.length === 0 && !hasActiveFilters) {
     return (
-      <EmptyState title={t("myRankings.emptyTitle")} description={t("myRankings.emptyDescription")} />
+      <div className="flex flex-col items-center justify-center gap-4 py-12 text-center">
+        <AddAlbumCard label={t("myRankings.emptyAddCta")} />
+        <div>
+          <p className="text-white font-medium">{t("myRankings.emptyTitle")}</p>
+          <p className="text-gray-400 text-sm">{t("myRankings.emptyDescription")}</p>
+        </div>
+      </div>
     );
   }
 

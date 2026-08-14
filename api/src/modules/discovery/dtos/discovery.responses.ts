@@ -1,6 +1,8 @@
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
 import { paginatedSchema } from '../../../shared/infrastructure/response-schemas';
+import { albumDetailSchema } from '../../album-catalog/dtos/album.responses';
+import { rankingViewSchema } from '../../ranking/presentation/dtos/ranking.responses';
 
 export const feedItemSchema = z.object({
   id: z.string(),
@@ -24,6 +26,15 @@ export const userStatsSchema = z.object({
   total: z.number(),
   averageScore: z.number(),
   tracksRated: z.number(),
+});
+
+/** Mesmas métricas de `userStatsSchema`, com o dono — resposta em lote (`GET /discovery/users-stats`). */
+export const userStatsItemSchema = userStatsSchema.extend({
+  userId: z.string(),
+});
+
+export const usersStatsSchema = z.object({
+  data: z.array(userStatsItemSchema),
 });
 
 export const topAlbumItemSchema = z.object({
@@ -73,14 +84,25 @@ export const albumStatsSchema = z.object({
   topWorstTracks: z.array(trackTallyViewSchema),
 });
 
+/**
+ * Join server-side do que a sheet de preview do feed precisa — album-catalog
+ * (capa, faixas) + ranking (notas, review) num único request em vez de dois.
+ */
+export const albumPreviewSchema = z.object({
+  album: albumDetailSchema,
+  ranking: rankingViewSchema,
+});
+
 export const feedPageSchema = paginatedSchema(feedItemSchema);
 export const topAlbumsPageSchema = paginatedSchema(topAlbumItemSchema);
 export const albumReviewsPageSchema = paginatedSchema(albumReviewItemSchema);
 
 export class FeedPageDto extends createZodDto(feedPageSchema) {}
 export class UserStatsDto extends createZodDto(userStatsSchema) {}
+export class UsersStatsDto extends createZodDto(usersStatsSchema) {}
 export class TopAlbumsPageDto extends createZodDto(topAlbumsPageSchema) {}
 export class AlbumReviewsPageDto extends createZodDto(albumReviewsPageSchema) {}
 export class AlbumStatsDto extends createZodDto(albumStatsSchema) {}
 /** `null` quando o usuário ainda não editou nenhum álbum. */
 export class LastEditedAlbumDto extends createZodDto(lastEditedAlbumSchema) {}
+export class AlbumPreviewDto extends createZodDto(albumPreviewSchema) {}

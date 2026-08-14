@@ -310,6 +310,37 @@
         ]
       }
     },
+    "/v1/auth/password-reset/direct": {
+      "post": {
+        "operationId": "AuthController_directReset",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DirectPasswordResetDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MessageResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "auth"
+        ]
+      }
+    },
     "/v1/albums/search": {
       "get": {
         "operationId": "AlbumCatalogController_search",
@@ -1055,6 +1086,49 @@
         ]
       }
     },
+    "/v1/discovery/users-stats": {
+      "get": {
+        "operationId": "DiscoveryController_usersStats",
+        "parameters": [
+          {
+            "name": "userIds",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "completedOnly",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": "false",
+              "type": "string",
+              "enum": [
+                "true",
+                "false"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UsersStatsDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "discovery"
+        ]
+      }
+    },
     "/v1/discovery/users/{userId}": {
       "get": {
         "operationId": "DiscoveryController_byUser",
@@ -1141,6 +1215,19 @@
                 "pagode"
               ]
             }
+          },
+          {
+            "name": "completedOnly",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": "false",
+              "type": "string",
+              "enum": [
+                "true",
+                "false"
+              ]
+            }
           }
         ],
         "responses": {
@@ -1170,6 +1257,19 @@
             "in": "path",
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "name": "completedOnly",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": "false",
+              "type": "string",
+              "enum": [
+                "true",
+                "false"
+              ]
             }
           }
         ],
@@ -1347,6 +1447,44 @@
         ]
       }
     },
+    "/v1/discovery/album-preview/{userId}/{albumId}": {
+      "get": {
+        "operationId": "DiscoveryController_albumPreview",
+        "parameters": [
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "albumId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AlbumPreviewDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "discovery"
+        ]
+      }
+    },
     "/v1/discovery/me/last-edited-album": {
       "get": {
         "operationId": "DiscoveryController_lastEditedAlbum",
@@ -1365,6 +1503,59 @@
         },
         "tags": [
           "discovery"
+        ]
+      }
+    },
+    "/v1/users/search": {
+      "get": {
+        "operationId": "FollowsController_search",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 9007199254740991,
+              "default": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "name": "perPage",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20,
+              "type": "integer"
+            }
+          },
+          {
+            "name": "q",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "minLength": 1,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserSearchPageDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "follows"
         ]
       }
     },
@@ -2074,6 +2265,24 @@
           "newPassword"
         ]
       },
+      "DirectPasswordResetDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "pattern": "^(?!\\.)(?!.*\\.\\.)([A-Za-z0-9_'+\\-\\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+          },
+          "newPassword": {
+            "type": "string",
+            "minLength": 8
+          }
+        },
+        "required": [
+          "email",
+          "newPassword"
+        ]
+      },
       "AlbumSearchPageDto": {
         "type": "object",
         "properties": {
@@ -2647,6 +2856,40 @@
           "meta"
         ]
       },
+      "UsersStatsDto": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "total": {
+                  "type": "number"
+                },
+                "averageScore": {
+                  "type": "number"
+                },
+                "tracksRated": {
+                  "type": "number"
+                },
+                "userId": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "total",
+                "averageScore",
+                "tracksRated",
+                "userId"
+              ]
+            }
+          }
+        },
+        "required": [
+          "data"
+        ]
+      },
       "UserStatsDto": {
         "type": "object",
         "properties": {
@@ -2874,6 +3117,180 @@
           "topWorstTracks"
         ]
       },
+      "AlbumPreviewDto": {
+        "type": "object",
+        "properties": {
+          "album": {
+            "type": "object",
+            "properties": {
+              "spotifyId": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "artist": {
+                "type": "string"
+              },
+              "imageUrl": {
+                "type": "string"
+              },
+              "imageUrlSmall": {
+                "type": "string"
+              },
+              "releaseDate": {
+                "type": "string"
+              },
+              "tracks": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "spotifyId": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "durationMs": {
+                      "type": "number"
+                    },
+                    "trackNumber": {
+                      "type": "number"
+                    },
+                    "previewUrl": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "spotifyId",
+                    "name",
+                    "durationMs",
+                    "trackNumber"
+                  ]
+                }
+              },
+              "genres": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "required": [
+              "spotifyId",
+              "name",
+              "artist",
+              "tracks"
+            ]
+          },
+          "ranking": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "userId": {
+                "type": "string"
+              },
+              "albumId": {
+                "type": "string"
+              },
+              "entries": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "trackId": {
+                      "type": "string"
+                    },
+                    "score": {
+                      "type": "number"
+                    },
+                    "position": {
+                      "type": "number"
+                    },
+                    "ignored": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "trackId",
+                    "score",
+                    "position",
+                    "ignored"
+                  ]
+                }
+              },
+              "averageScore": {
+                "type": "number"
+              },
+              "progress": {
+                "type": "object",
+                "properties": {
+                  "rated": {
+                    "type": "number"
+                  },
+                  "total": {
+                    "type": "number"
+                  },
+                  "ignored": {
+                    "type": "number"
+                  },
+                  "percentage": {
+                    "type": "number"
+                  }
+                },
+                "required": [
+                  "rated",
+                  "total",
+                  "ignored",
+                  "percentage"
+                ]
+              },
+              "review": {
+                "type": "object",
+                "properties": {
+                  "text": {
+                    "type": "string"
+                  },
+                  "favoriteTrackId": {
+                    "type": "string"
+                  },
+                  "worstTrackId": {
+                    "type": "string"
+                  }
+                }
+              },
+              "isFirstCompletionBadgeActive": {
+                "type": "boolean"
+              },
+              "createdAt": {
+                "type": "string"
+              },
+              "updatedAt": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "userId",
+              "albumId",
+              "entries",
+              "averageScore",
+              "progress",
+              "review",
+              "isFirstCompletionBadgeActive",
+              "createdAt",
+              "updatedAt"
+            ]
+          }
+        },
+        "required": [
+          "album",
+          "ranking"
+        ]
+      },
       "LastEditedAlbumDto": {
         "type": "object",
         "properties": {
@@ -2924,6 +3341,66 @@
           "updatedAt"
         ]
       },
+      "UserSearchPageDto": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "displayName": {
+                  "type": "string"
+                },
+                "avatarUrl": {
+                  "type": "string"
+                },
+                "createdAt": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "id",
+                "displayName"
+              ]
+            }
+          },
+          "meta": {
+            "type": "object",
+            "properties": {
+              "page": {
+                "type": "number"
+              },
+              "perPage": {
+                "type": "number"
+              },
+              "total": {
+                "type": "number"
+              },
+              "totalPages": {
+                "type": "number"
+              },
+              "nextCursor": {
+                "type": "string",
+                "nullable": true
+              }
+            },
+            "required": [
+              "page",
+              "perPage",
+              "total",
+              "totalPages"
+            ]
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ]
+      },
       "FollowStatsDto": {
         "type": "object",
         "properties": {
@@ -2961,6 +3438,9 @@
                   "type": "string"
                 },
                 "followedAt": {
+                  "type": "string"
+                },
+                "createdAt": {
                   "type": "string"
                 }
               },

@@ -21,6 +21,8 @@ export interface FollowUserItem {
   displayName: string;
   avatarUrl?: string;
   followedAt: string;
+  /** Cadastro do usuário seguido/seguidor — não é a data do follow. */
+  createdAt: string;
 }
 
 export interface FollowStats {
@@ -158,6 +160,7 @@ export class FollowsService {
           displayName: profile.displayName,
           avatarUrl: profile.avatarUrl,
           followedAt: doc.createdAt.toISOString(),
+          createdAt: profile.createdAt,
         },
       ];
     });

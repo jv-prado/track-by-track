@@ -14,6 +14,7 @@ import {
 import { useProfileInfiniteQuery, useUserStatsQuery, type ProfileSort } from "@/queries/discovery";
 import { useFollowStatsQuery } from "@/queries/follows";
 import { useGenresQuery } from "@/queries/album-catalog";
+import { useAuthStore } from "@/shared/auth/auth.store";
 import { useInfiniteScroll } from "@/shared/lib/use-infinite-scroll";
 import { getInitials } from "@/shared/lib/initials";
 import { FeedCard } from "./FeedCard";
@@ -27,6 +28,7 @@ import { Input } from "@/shared/ui/Input";
 import { Select } from "@/shared/ui/Select";
 import { BottomSheet } from "@/shared/ui/BottomSheet";
 import { StatCard } from "@/shared/ui/StatCard";
+import { AddAlbumCard } from "@/shared/ui/AddAlbumCard";
 import { Button } from "@/shared/ui/Button";
 import { Spinner } from "@/shared/ui/Spinner";
 import { ErrorState } from "@/shared/ui/ErrorState";
@@ -41,6 +43,8 @@ export function PublicProfilePage() {
   const { t } = useTranslation();
   const router = useRouter();
   const { userId } = useParams({ from: "/_app/profile/$userId" });
+  const currentUserId = useAuthStore((s) => s.user?.id);
+  const isOwnProfile = currentUserId === userId;
 
   const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
@@ -62,9 +66,17 @@ export function PublicProfilePage() {
     return () => clearTimeout(timeout);
   }, [searchInput]);
 
+  // Perfil público só mostra álbum 100% avaliado — mesmo critério do feed
+  // global (backend: completedAt). "Meus rankings" continua mostrando
+  // rascunho em progresso, por isso não usa completedOnly.
   const { data, isLoading, isError, refetch, fetchNextPage, hasNextPage, isFetchingNextPage } =
-    useProfileInfiniteQuery(userId, { search: search || undefined, sort: sortOrder, genre });
-  const statsQuery = useUserStatsQuery(userId);
+    useProfileInfiniteQuery(userId, {
+      search: search || undefined,
+      sort: sortOrder,
+      genre,
+      completedOnly: true,
+    });
+  const statsQuery = useUserStatsQuery(userId, true);
   const followStats = useFollowStatsQuery(userId);
 
   const items = data?.pages.flatMap((page) => page.data) ?? [];
@@ -103,6 +115,17 @@ export function PublicProfilePage() {
   }
 
   if (!first) {
+    if (isOwnProfile) {
+      return (
+        <div className="flex flex-col items-center justify-center gap-4 py-12 text-center">
+          <AddAlbumCard label={t("myRankings.emptyAddCta")} />
+          <div>
+            <p className="text-white font-medium">{t("profile.empty")}</p>
+            <p className="text-gray-400 text-sm">{t("profile.emptyOwnDescription")}</p>
+          </div>
+        </div>
+      );
+    }
     return <EmptyState title={t("profile.empty")} />;
   }
 

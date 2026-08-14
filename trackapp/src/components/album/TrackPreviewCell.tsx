@@ -1,4 +1,6 @@
+import { useTranslation } from "react-i18next";
 import { useTrackPreviewQuery } from "@/queries/album-catalog";
+import { toast } from "@/components/ui/toast-store";
 import { TrackPreviewPlayer } from "./TrackPreviewPlayer";
 import type { useTrackPreviewPlayer } from "@/lib/use-track-preview-player";
 
@@ -14,9 +16,15 @@ export function TrackPreviewCell({
   track: { spotifyId: string; name: string; previewUrl?: string };
   preview: PreviewPlayer;
 }) {
+  const { t } = useTranslation();
   const isPlaying = preview.playingTrackId === track.spotifyId;
   const lazyPreview = useTrackPreviewQuery(albumId, track.spotifyId);
   const previewUrl = track.previewUrl ?? lazyPreview.data;
+
+  const play = async (url: string) => {
+    const started = await preview.toggle(track.spotifyId, url);
+    if (!started) toast.error(t("albumDetail.previewPlaybackError"));
+  };
 
   const handleToggle = async () => {
     if (isPlaying) {
@@ -24,12 +32,20 @@ export function TrackPreviewCell({
       return;
     }
     if (track.previewUrl) {
-      await preview.toggle(track.spotifyId, track.previewUrl);
+      await play(track.previewUrl);
       return;
     }
 
     const result = lazyPreview.data !== undefined ? lazyPreview : await lazyPreview.refetch();
-    if (result.data) await preview.toggle(track.spotifyId, result.data);
+    if (result.isError) {
+      toast.error(t("albumDetail.previewLookupError"));
+      return;
+    }
+    if (!result.data) {
+      toast.error(t("albumDetail.previewUnavailable"));
+      return;
+    }
+    await play(result.data);
   };
 
   return (
@@ -39,8 +55,11 @@ export function TrackPreviewCell({
       isPlaying={isPlaying}
       currentTime={isPlaying ? preview.currentTime : 0}
       duration={isPlaying ? preview.duration : 0}
+      volume={preview.volume}
       onToggle={handleToggle}
       onSeek={preview.seek}
+      onVolumeChange={preview.setVolume}
+      onToggleMute={preview.toggleMute}
     />
   );
 }

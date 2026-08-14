@@ -180,6 +180,12 @@
     "playPreview": "Play preview",
     "pausePreview": "Pause preview",
     "seekPreview": "Seek preview",
+    "volumePreview": "Preview volume",
+    "mutePreview": "Mute preview",
+    "unmutePreview": "Unmute preview",
+    "previewUnavailable": "No preview available for this track.",
+    "previewLookupError": "Couldn't load the preview. Try again.",
+    "previewPlaybackError": "Couldn't play the preview.",
     "notFound": "Album not found.",
     "rankingNotFound": "Ranking not found.",
     "averageScore": "Average score",
@@ -209,6 +215,7 @@
     "worstTrackSaved": "Worst track saved",
     "saveError": "Could not save the review.",
     "notChosen": "Not chosen yet",
+    "noReviewYet": "This user hasn't written a review of this album yet.",
     "save": "Save review",
     "saveSuccess": "Review saved successfully."
   },
@@ -253,6 +260,9 @@
   "communityReviews": {
     "title": "Reviews from other users",
     "ratingOnly": "Rated without leaving a review"
+  },
+  "user": {
+    "memberSince": "Member since {{date}}"
   },
   "profile": {
     "title": "My profile",

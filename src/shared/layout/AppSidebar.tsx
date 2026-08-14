@@ -21,11 +21,13 @@ import { cn } from "@/shared/lib/cn";
 import { getScoreColorClasses } from "@/shared/lib/scoreColor";
 import { ProgressBar } from "@/shared/ui/ProgressBar";
 import { toast } from "@/shared/ui/toast-store";
+import { useSidebarStore } from "./sidebar.store";
 
 export function AppSidebar() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const user = useAuthStore((s) => s.user);
+  const collapsed = useSidebarStore((s) => s.collapsed);
   const logoutMutation = useLogoutMutation();
   const lastEditedAlbum = useLastEditedAlbumQuery(user?.id).data;
   const pathname = useRouterState({ select: (s) => s.location.pathname });
@@ -97,28 +99,44 @@ export function AppSidebar() {
   return (
     <>
       {/* desktop: sidebar fixa lateral */}
-      <aside className="hidden md:flex w-72 shrink-0 bg-cinza-escuro flex-col h-screen sticky top-0 p-4">
-        <img src={Logo} alt="Track by Track" className="w-28 mx-auto mb-8" />
+      <aside
+        id="app-sidebar"
+        className={cn(
+          "hidden md:flex shrink-0 bg-cinza-escuro flex-col h-screen sticky top-0 p-4 transition-[width] duration-200 overflow-hidden",
+          collapsed ? "w-20" : "w-72",
+        )}
+      >
+        {/* -mx-4: logo sangra até a borda do aside, ignorando o padding que o
+            resto do conteúdo (nav, cards, logout) mantém */}
+        <div className="-mx-4 mb-8">
+          <img
+            src={Logo}
+            alt="Track by Track"
+            className={cn("mx-auto transition-all", collapsed ? "w-20" : "w-28")}
+          />
+        </div>
 
-        <nav className="flex-1 flex flex-col gap-1">
+        <nav className={cn("flex-1 flex flex-col", collapsed ? "gap-3" : "gap-1")}>
           {NAV_ITEMS.map(({ to, label, icon: Icon }) => (
             <Link
               key={to}
               to={to}
+              title={collapsed ? label : undefined}
               className={cn(
                 "flex items-center gap-3 rounded-lg px-3 py-2.5 transition",
+                collapsed && "justify-center px-0 py-3.5",
                 isNavActive(to)
                   ? "bg-dourado/10 text-dourado hover:bg-dourado/15"
                   : "text-gray-300 hover:bg-white/5 hover:text-white",
               )}
             >
-              <Icon size={20} />
-              <span className="text-sm sm:text-base">{label}</span>
+              <Icon size={collapsed ? 22 : 20} className="shrink-0" />
+              {!collapsed && <span className="text-sm sm:text-base">{label}</span>}
             </Link>
           ))}
         </nav>
 
-        {lastEditedAlbum && (
+        {lastEditedAlbum && !collapsed && (
           <Link
             to="/album/$albumId"
             params={{ albumId: lastEditedAlbum.albumId }}
@@ -170,10 +188,14 @@ export function AppSidebar() {
         <div className="border-t border-white/10 pt-4 mt-4">
           <button
             onClick={handleLogout}
-            className="w-full flex items-center gap-3 rounded-lg px-3 py-2.5 text-gray-400 hover:bg-white/5 hover:text-red-400 transition cursor-pointer"
+            title={collapsed ? t("nav.logout") : undefined}
+            className={cn(
+              "w-full flex items-center gap-3 rounded-lg px-3 py-2.5 text-gray-400 hover:bg-white/5 hover:text-red-400 transition cursor-pointer",
+              collapsed && "justify-center px-0",
+            )}
           >
-            <LogOut size={20} />
-            <span className="text-sm sm:text-base">{t("nav.logout")}</span>
+            <LogOut size={20} className="shrink-0" />
+            {!collapsed && <span className="text-sm sm:text-base">{t("nav.logout")}</span>}
           </button>
         </div>
       </aside>

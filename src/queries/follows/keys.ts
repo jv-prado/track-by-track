@@ -5,4 +5,6 @@ export const followsKeys = {
     [...followsKeys.all, "followers", userId] as const,
   following: (userId: string) =>
     [...followsKeys.all, "following", userId] as const,
+  searchUsers: (query: string) =>
+    [...followsKeys.all, "search", query] as const,
 };

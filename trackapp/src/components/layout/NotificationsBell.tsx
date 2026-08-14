@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Pressable, Text, View } from "react-native";
-import { router } from "expo-router";
+import { router, type Href } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { Bell, MessageSquare, UserPlus } from "lucide-react-native";
 import {
@@ -81,7 +81,7 @@ export function NotificationsBell() {
                 onPress={() => {
                   setOpen(false);
                   if (!notification.read) markRead.mutate(notification.id);
-                  router.push(notificationHref(notification));
+                  router.push(notificationHref(notification) as Href);
                 }}
                 className={cn(
                   "flex-row items-start gap-2 rounded-lg px-2 py-2.5",

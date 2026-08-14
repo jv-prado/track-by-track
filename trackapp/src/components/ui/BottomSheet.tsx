@@ -81,7 +81,14 @@ export function BottomSheet({ open, onOpenChange, title, actions, children, clas
   if (!mounted) return null;
 
   return (
-    <RNModal visible={mounted} transparent animationType="none" onRequestClose={close}>
+    <RNModal
+      visible={mounted}
+      transparent
+      animationType="none"
+      onRequestClose={close}
+      statusBarTranslucent
+      navigationBarTranslucent
+    >
       <Pressable className="absolute inset-0" onPress={close}>
         <Animated.View className="absolute inset-0 bg-black/60" style={overlayStyle} />
       </Pressable>

@@ -50,9 +50,17 @@ export function PublicProfilePage({ userId }: { userId: string }) {
     return () => clearTimeout(timeout);
   }, [searchInput]);
 
+  // Perfil público só mostra álbum 100% avaliado — mesmo critério do feed
+  // global (backend: completedAt). "Meus rankings" continua mostrando
+  // rascunho em progresso, por isso não usa completedOnly.
   const { data, isLoading, isError, refetch, fetchNextPage, hasNextPage, isFetchingNextPage } =
-    useProfileInfiniteQuery(userId, { search: search || undefined, sort: sortOrder, genre });
-  const statsQuery = useUserStatsQuery(userId);
+    useProfileInfiniteQuery(userId, {
+      search: search || undefined,
+      sort: sortOrder,
+      genre,
+      completedOnly: true,
+    });
+  const statsQuery = useUserStatsQuery(userId, true);
   const followStats = useFollowStatsQuery(userId);
   const items = data?.pages.flatMap((page) => page.data) ?? [];
   const first = data?.pages[0]?.data[0];

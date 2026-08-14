@@ -532,5 +532,57 @@ android` bundla sem erro (3796 módulos).
 **Estado do produto:** Fases 1-6 do plano concluídas. App cobre 1:1 (com as 2 exceções
 documentadas: notificações nova UI, waveform de áudio simplificada) o fluxo completo do web —
 auth, ranking de álbum, descoberta, perfil, social, avatar. Fica pra depois (fora do escopo
-deste plano, não bloqueante): i18n do mobile (strings hardcoded pt-BR em todo o app),
-`CommentThread` sem tela que o monte (mesmo estado do web).
+deste plano, não bloqueante): `CommentThread` sem tela que o monte (mesmo estado do web).
+
+### Fase 7 — i18n mobile (retrofit) — ✅ concluída (2026-08-14)
+
+Pedido do usuário: implementar i18n igual ao web, usando as traduções que já existiam prontas
+(`src/i18n/locales/{pt-BR,en-US,es-ES}.json`, 3 idiomas). Fechava o único item "adiado" que
+sobrava do inventário.
+
+**Infra:**
+- `i18next` + `react-i18next` (mesma lib do web) + `expo-localization` (locale do SO, no lugar
+  de `i18next-browser-languagedetector`, que é web-only) + `@react-native-async-storage/
+  async-storage` (persiste a escolha do usuário, equivalente ao `caches: ["localStorage"]` do
+  web).
+- Os 3 arquivos de tradução **copiados direto do web**, sem alterar uma linha — mesma fonte da
+  verdade.
+- `initI18n()` roda antes do primeiro render (`_layout.tsx`, mesmo gate que já existia pra
+  fonts/sessão) — sem isso a tela piscaria com chave de tradução crua por um frame.
+- `LanguageSelector` portado: web é dropdown-dentro-de-dropdown (botão com bandeira → abre
+  lista) — aqui o continente já é o `BottomSheet` de perfil (`AppTabBar`), então a lista de
+  idiomas aparece direto, sem segundo nível (popup dentro de popup é ruim ao toque). Mesmas 3
+  bandeiras (`assets/images/flags/*.svg`, copiadas do web), mesmo check na ativa.
+
+**Retrofit — todo texto visível trocado por `t()`, arquivo por arquivo, cruzando contra a
+fonte do web pra saber EXATAMENTE quais strings lá já passavam por `t()`** (só essas foram
+trocadas) **vs. quais já eram literais no próprio web** (mensagem de validação Zod, alguns
+toasts ad-hoc — essas ficaram literais aqui também, de propósito, pra bater 1:1 de verdade em
+vez de traduzir algo que o web nem traduz):
+`AppTabBar`, `login`/`register`, `ErrorState`, `Pagination`, `AlbumRatingView`,
+`FavoriteWorstPicker`, `RankingActions`, `ReviewForm`, `TrackPreviewPlayer`, `AlbumStatsSection`,
+`AlbumReviewsList`, `SearchPage`, `FeedCard`, `FeedPage`, `DiscoverPage`, `TopAlbumsPage`,
+`MyRankingsPage`, `PublicProfilePage`, `OwnProfilePage`, `AccountDeletionPage`,
+`PublicAlbumRankingView`, `FollowButton`, `FollowListModal`, `CommentThread`. `NotificationsBell`
+(UI nova, Fase 6) também migrou pra `t("notifications.*")` — as chaves já existiam no JSON
+(feature web tem o mesmo texto), então ficou de graça multi-idioma nela também.
+
+**2 bugs pegos de graça revisando cada arquivo contra a fonte:**
+- `SearchPage` e `FeedPage` não tinham o subtítulo (`search.subtitle`/`feed.subtitle`) que o
+  web mostra — faltava desde a Fase 4/5, adicionado agora.
+- `AlbumReviewsList`: o card de review de outro usuário não navegava (comentário antigo dizia
+  "Fase 5 ainda não tem essa rota" — mas a rota `profile/[userId]/album/[albumId]` já existia
+  desde a própria Fase 5). Virou `Link` de verdade agora.
+
+**Gotcha do Expo Router typed routes:** `href`/`router.push()` construído a partir de uma
+variável tipada `string` (não um template literal inline) quebra o typecheck do
+`experiments.typedRoutes` (`app.json`) — precisa de cast `as Href` (`FeedCard.tsx`,
+`NotificationsBell.tsx`). Template literal inline direto no `href=` do JSX não tem esse
+problema (TS infere o tipo literal certo sozinho).
+
+Validado: `npm run typecheck` limpo, `npm run lint` limpo (1 warning só no `router.d.ts`
+gerado, fora do nosso código), `npx expo export --platform android` bundla sem erro (3837
+módulos).
+
+**Estado real, atualizado:** nenhum item adiado sobrando na Fase 1-7. `CommentThread` continua
+órfão (mesmo estado do web — não é gap nosso).

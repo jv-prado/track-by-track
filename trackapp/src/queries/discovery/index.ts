@@ -13,3 +13,4 @@ export { useTopAlbumsInfiniteQuery } from "./useTopAlbumsInfiniteQuery";
 export { useProfileInfiniteQuery } from "./useProfileInfiniteQuery";
 export { useProfileQuery } from "./useProfileQuery";
 export { useUserStatsQuery, type UserStats } from "./useUserStatsQuery";
+export { useUsersStatsQuery, type UserStatsItem } from "./useUsersStatsQuery";

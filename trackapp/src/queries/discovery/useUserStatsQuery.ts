@@ -8,11 +8,13 @@ export interface UserStats {
   tracksRated: number;
 }
 
-export function useUserStatsQuery(userId: string) {
+export function useUserStatsQuery(userId: string, completedOnly?: boolean) {
   return useQuery({
-    queryKey: discoveryKeys.profileStats(userId),
+    queryKey: discoveryKeys.profileStats(userId, completedOnly),
     queryFn: async () => {
-      const { data } = await http.get<UserStats>(`/discovery/users/${userId}/stats`);
+      const { data } = await http.get<UserStats>(`/discovery/users/${userId}/stats`, {
+        params: { completedOnly },
+      });
       return data;
     },
     enabled: userId.length > 0,

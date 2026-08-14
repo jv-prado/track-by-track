@@ -36,7 +36,8 @@ import { RankingDirectoryService } from './application/services/ranking-director
     DeleteRankingUseCase,
     RankingDirectoryService,
   ],
-  // Comments consulta o dono do ranking pra saber a quem notificar.
-  exports: [RankingDirectoryService],
+  // Comments consulta o dono do ranking pra saber a quem notificar; Discovery
+  // reusa GetRankingUseCase pra montar a preview combinada de álbum+ranking.
+  exports: [RankingDirectoryService, GetRankingUseCase],
 })
 export class RankingModule {}

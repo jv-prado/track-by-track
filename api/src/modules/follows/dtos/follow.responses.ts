@@ -7,6 +7,8 @@ export const followUserItemSchema = z.object({
   displayName: z.string(),
   avatarUrl: z.string().optional(),
   followedAt: z.string(),
+  /** Cadastro do usuário ("membro desde") — não confundir com `followedAt`. Aditivo (2.3). */
+  createdAt: z.string().optional(),
 });
 
 export const followStatsSchema = z.object({
@@ -18,5 +20,16 @@ export const followStatsSchema = z.object({
 
 export const followUsersPageSchema = paginatedSchema(followUserItemSchema);
 
+export const publicUserSchema = z.object({
+  id: z.string(),
+  displayName: z.string(),
+  avatarUrl: z.string().optional(),
+  /** Cadastro do usuário ("membro desde"). Aditivo (2.3). */
+  createdAt: z.string().optional(),
+});
+
+export const userSearchPageSchema = paginatedSchema(publicUserSchema);
+
 export class FollowStatsDto extends createZodDto(followStatsSchema) {}
 export class FollowUsersPageDto extends createZodDto(followUsersPageSchema) {}
+export class UserSearchPageDto extends createZodDto(userSearchPageSchema) {}

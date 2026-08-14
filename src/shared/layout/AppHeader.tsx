@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
-import { User as UserIcon, Settings, LogOut } from "lucide-react";
+import { User as UserIcon, Settings, LogOut, PanelLeft, PanelLeftClose } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useAuthStore } from "@/shared/auth/auth.store";
 import { useLogoutMutation } from "@/queries/auth";
 import LanguageSelector from "@/componentes/LanguageSelector";
 import { NotificationsBell } from "./NotificationsBell";
+import { useSidebarStore } from "./sidebar.store";
 import { toast } from "@/shared/ui/toast-store";
 import { cn } from "@/shared/lib/cn";
 
@@ -13,6 +14,8 @@ export function AppHeader() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const user = useAuthStore((s) => s.user);
+  const collapsed = useSidebarStore((s) => s.collapsed);
+  const toggleSidebar = useSidebarStore((s) => s.toggle);
   const logoutMutation = useLogoutMutation();
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -61,7 +64,7 @@ export function AppHeader() {
       <div ref={sentinelRef} className="h-px w-full" aria-hidden />
       <header
         className={cn(
-          "sticky top-0 z-30 hidden items-center justify-end gap-4 px-4 pt-4 pb-3 transition-all duration-200 sm:px-10 md:flex md:px-6 lg:px-10",
+          "sticky top-0 z-30 hidden items-center gap-4 px-4 pt-4 pb-3 transition-all duration-200 sm:px-10 md:flex md:px-6 lg:px-10",
           "after:content-[''] after:pointer-events-none after:absolute after:inset-x-0 after:-bottom-3 after:h-3 after:transition-opacity after:duration-200",
           // Vidro de verdade: sem tingir de cinza-escuro (isso vira painel sólido, não
           // vidro). Só blur + um wash branco bem leve pro frost — o roxo passa através.
@@ -71,6 +74,17 @@ export function AppHeader() {
             : "bg-transparent after:opacity-0",
         )}
       >
+      <button
+        type="button"
+        onClick={toggleSidebar}
+        aria-expanded={!collapsed}
+        aria-controls="app-sidebar"
+        aria-label={collapsed ? t("nav.expandSidebar") : t("nav.collapseSidebar")}
+        className="flex items-center justify-center rounded-lg p-2.5 text-gray-300 hover:bg-white/5 hover:text-white transition cursor-pointer"
+      >
+        {collapsed ? <PanelLeft size={22} /> : <PanelLeftClose size={22} />}
+      </button>
+      <div className="ml-auto flex items-center gap-4">
       <LanguageSelector direction="down" className="w-auto" size="lg" />
       {user && <NotificationsBell />}
       {user && (
@@ -127,6 +141,7 @@ export function AppHeader() {
           )}
         </div>
       )}
+      </div>
       </header>
     </>
   );

@@ -250,14 +250,14 @@ export function PublicAlbumRankingView({ userId, albumId }: { userId: string; al
               {ranking.review.text ? (
                 <ExpandableText text={ranking.review.text} />
               ) : (
-                <p className="text-gray-200 text-sm">{t("review.noReviewYet")}</p>
+                <p className="text-gray-500 text-sm italic">{t("review.noReviewYet")}</p>
               )}
             </Card>
             <Card className="p-3">
               <p className="flex items-center gap-1.5 text-sm font-medium text-red-400 mb-1">
                 <Heart size={14} /> {t("review.favoriteTrack")}
               </p>
-              <p className="text-gray-200 text-sm">
+              <p className={cn("text-sm", favoriteTrackName ? "text-gray-200" : "text-gray-500 italic")}>
                 {favoriteTrackName ?? t("review.notChosen")}
               </p>
             </Card>
@@ -265,7 +265,7 @@ export function PublicAlbumRankingView({ userId, albumId }: { userId: string; al
               <p className="flex items-center gap-1.5 text-sm font-medium text-gray-400 mb-1">
                 <Ban size={14} /> {t("review.worstTrack")}
               </p>
-              <p className="text-gray-200 text-sm">
+              <p className={cn("text-sm", worstTrackName ? "text-gray-200" : "text-gray-500 italic")}>
                 {worstTrackName ?? t("review.notChosen")}
               </p>
             </Card>

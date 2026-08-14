@@ -154,7 +154,7 @@ export function AlbumPreviewSheet({
               {ranking.review.text ? (
                 <p className="text-gray-200 text-sm whitespace-pre-wrap">{ranking.review.text}</p>
               ) : (
-                <p className="text-gray-200 text-sm">{t("review.noReviewYet")}</p>
+                <p className="text-gray-500 text-sm italic">{t("review.noReviewYet")}</p>
               )}
             </Card>
             <div className="grid grid-cols-2 gap-2">
@@ -162,7 +162,7 @@ export function AlbumPreviewSheet({
                 <p className="flex items-center gap-1.5 text-xs font-medium text-red-400 mb-1">
                   <Heart size={12} /> {t("review.favoriteTrack")}
                 </p>
-                <p className="text-gray-200 text-sm truncate">
+                <p className={cn("text-sm truncate", favoriteTrackName ? "text-gray-200" : "text-gray-500 italic")}>
                   {favoriteTrackName ?? t("review.notChosen")}
                 </p>
               </Card>
@@ -170,7 +170,7 @@ export function AlbumPreviewSheet({
                 <p className="flex items-center gap-1.5 text-xs font-medium text-gray-400 mb-1">
                   <Ban size={12} /> {t("review.worstTrack")}
                 </p>
-                <p className="text-gray-200 text-sm truncate">
+                <p className={cn("text-sm truncate", worstTrackName ? "text-gray-200" : "text-gray-500 italic")}>
                   {worstTrackName ?? t("review.notChosen")}
                 </p>
               </Card>

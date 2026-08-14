@@ -15,7 +15,7 @@ import { useTranslation } from "react-i18next";
 import { useAuthStore } from "@/shared/auth/auth.store";
 import { useLogoutMutation } from "@/queries/auth";
 import { useLastEditedAlbumQuery } from "@/queries/discovery";
-import Logo from "@/componentes/sidebar/assets/Logo.svg";
+import Logo from "@/assets/logo.webp";
 import LanguageSelector from "@/componentes/LanguageSelector";
 import { cn } from "@/shared/lib/cn";
 import { getScoreColorClasses } from "@/shared/lib/scoreColor";

@@ -2,7 +2,9 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { http } from "@/shared/api/http";
 import type { RankingView } from "@/shared/api/types";
 import { discoveryKeys } from "@/queries/discovery/keys";
+import { useAuthStore } from "@/shared/auth/auth.store";
 import { rankingsKeys } from "./keys";
+import { writeLastEditedAlbum } from "./write-last-edited-album";
 
 export interface RateTrackInput {
   rankingId: string;
@@ -17,6 +19,7 @@ interface RateTrackContext {
 
 export function useRateTrackMutation() {
   const queryClient = useQueryClient();
+  const userId = useAuthStore((s) => s.user?.id);
 
   return useMutation<RankingView, unknown, RateTrackInput, RateTrackContext>({
     mutationKey: rankingsKeys.rateTrack(),
@@ -52,15 +55,33 @@ export function useRateTrackMutation() {
         queryClient.setQueryData(rankingsKeys.byAlbum(variables.albumId), context.previous);
       }
     },
-    onSettled: (_data, _error, variables) => {
+    onSettled: (data, error, variables, context) => {
       // Com várias faixas avaliadas em sequência, respostas podem chegar fora de ordem
       // e uma antiga sobrescreveria a nota mais nova. Só a última a assentar refaz o fetch;
       // até lá o cache otimista segura a UI. `isMutating` inclui a que está assentando agora.
       if (queryClient.isMutating({ mutationKey: rankingsKeys.rateTrack() }) > 1) return;
 
+      // Não dá pra só gravar `data` desta resposta no cache: com faixas avaliadas em
+      // sequência rápida, a última a assentar pode não ser a última processada no servidor
+      // (concorrência de PATCHes na mesma faixa/documento). Só um GET novo garante o estado
+      // real — e é também como o front descobre que zerar a última nota apagou o ranking no
+      // servidor (ele some quando fica vazio — ver `persistRanking` na API): o 404 vira
+      // `data: null` aqui, disparando a recriação em AlbumRatingView.
       queryClient.invalidateQueries({ queryKey: rankingsKeys.byAlbum(variables.albumId) });
-      // Nota mudou -> média/top3 do álbum e listagens (feed/perfil/top-álbuns) ficam stale.
-      queryClient.invalidateQueries({ queryKey: discoveryKeys.all });
+
+      if (error || !data) return;
+
+      if (userId) writeLastEditedAlbum(queryClient, userId, variables.albumId, data);
+
+      // Feed/top-álbuns/stats/reviews da comunidade só listam ranking completo (mesma regra
+      // do backend em `invalidate-ranking-cache.ts`) — nota trocada dentro de um ranking que
+      // segue incompleto não muda nada público. Invalidar isso a cada estrela clicada só
+      // reprocessava agregação no Mongo pra um resultado idêntico.
+      const wasComplete = context?.previous?.progress.percentage === 100;
+      const isComplete = data.progress.percentage === 100;
+      if (wasComplete || isComplete) {
+        queryClient.invalidateQueries({ queryKey: discoveryKeys.all });
+      }
     },
   });
 }

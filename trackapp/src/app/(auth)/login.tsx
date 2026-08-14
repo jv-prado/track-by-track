@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Pressable, ScrollView, Text, View } from "react-native";
+import { Image, Pressable, ScrollView, Text, View } from "react-native";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
@@ -14,7 +14,7 @@ import { PasswordInput } from "@/components/ui/PasswordInput";
 import { FormField } from "@/components/ui/FormField";
 import { toast } from "@/components/ui/toast-store";
 import { colors } from "@/lib/colors";
-import Logo from "@/assets/images/logo.svg";
+import Logo from "@/assets/images/logo.webp";
 
 // Porta 1:1 de src/features/auth/components/LoginForm.tsx (web). Mensagens
 // de validação/erro do web são literais (não passam por `t()` lá também) —
@@ -60,7 +60,7 @@ export default function LoginScreen() {
       contentContainerClassName="flex-grow items-center justify-center p-4"
     >
       <View className="mb-6 w-full max-w-md items-center">
-        <Logo width={140} height={70} />
+        <Image source={Logo} style={{ width: 140, height: 140 }} resizeMode="contain" />
       </View>
 
       <View className="w-full max-w-md rounded-xl bg-cinza-escuro p-5">

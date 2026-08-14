@@ -23,12 +23,12 @@ export class VersionCacheInvalidator implements CacheInvalidator {
   }
 
   async rankingChanged(albumId: string, userId: string): Promise<void> {
-    // Feed e top-albums só listam ranking completo: nota parcial não muda nenhum
-    // dos dois, e bumpar aqui jogaria o cache do feed fora a cada estrela clicada.
-    await Promise.all([
-      this.cache.bump(this.keys.versionAlbum(albumId)),
-      this.cache.bump(this.keys.versionUser(userId)),
-    ]);
+    // Feed, top-albums, albumStats e albumReviews só listam ranking completo (todos
+    // filtram `completedAt !== null`) — nota em ranking que segue incompleto não muda
+    // nenhum dos dois. `versionAlbum` só é lido por albumStats/albumReviews (ver
+    // discovery.service.ts), então bumpar aqui derrubava esse cache a cada estrela
+    // clicada pra um resultado que nunca mudava — Mongo reprocessava a agregação à toa.
+    await this.cache.bump(this.keys.versionUser(userId));
   }
 
   async userProfileChanged(userId: string): Promise<void> {

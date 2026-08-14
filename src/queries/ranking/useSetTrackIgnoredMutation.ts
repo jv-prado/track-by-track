@@ -2,7 +2,9 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { http } from "@/shared/api/http";
 import type { RankingView } from "@/shared/api/types";
 import { discoveryKeys } from "@/queries/discovery/keys";
+import { useAuthStore } from "@/shared/auth/auth.store";
 import { rankingsKeys } from "./keys";
+import { writeLastEditedAlbum } from "./write-last-edited-album";
 
 export interface SetTrackIgnoredInput {
   rankingId: string;
@@ -17,6 +19,7 @@ interface SetTrackIgnoredContext {
 
 export function useSetTrackIgnoredMutation() {
   const queryClient = useQueryClient();
+  const userId = useAuthStore((s) => s.user?.id);
 
   return useMutation<RankingView, unknown, SetTrackIgnoredInput, SetTrackIgnoredContext>({
     mutationKey: rankingsKeys.setTrackIgnored(),
@@ -50,9 +53,22 @@ export function useSetTrackIgnoredMutation() {
         queryClient.setQueryData(rankingsKeys.byAlbum(variables.albumId), context.previous);
       }
     },
-    onSettled: (_data, _error, variables) => {
+    onSettled: (data, error, variables, context) => {
+      // Também é como o front descobre que ignorar a última faixa avaliada esvaziou o
+      // ranking no servidor (apagado nesse caso — ver `persistRanking` na API).
       queryClient.invalidateQueries({ queryKey: rankingsKeys.byAlbum(variables.albumId) });
-      queryClient.invalidateQueries({ queryKey: discoveryKeys.all });
+
+      if (error || !data) return;
+
+      if (userId) writeLastEditedAlbum(queryClient, userId, variables.albumId, data);
+
+      // Mesma regra do backend (`invalidate-ranking-cache.ts`): feed/top-álbuns/stats/reviews
+      // da comunidade só listam ranking completo, então só importa quando isso muda aqui.
+      const wasComplete = context?.previous?.progress.percentage === 100;
+      const isComplete = data.progress.percentage === 100;
+      if (wasComplete || isComplete) {
+        queryClient.invalidateQueries({ queryKey: discoveryKeys.all });
+      }
     },
   });
 }

@@ -10,7 +10,7 @@ import { Toaster } from "@/shared/ui/Toast";
 function SessionSplash() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-grafite">
-      <img src="/src/assets/logo-icone.svg" alt="" className="w-16 animate-float" />
+      <img src="/src/assets/logo.webp" alt="" className="w-16 animate-float" />
     </div>
   );
 }

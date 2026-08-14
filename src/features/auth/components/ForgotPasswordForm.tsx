@@ -9,7 +9,7 @@ import { useRequestPasswordResetMutation } from "@/queries/auth";
 import { Button } from "@/shared/ui/Button";
 import { Input } from "@/shared/ui/Input";
 import { FormField } from "@/shared/ui/FormField";
-import Logo from "@/assets/logo.svg";
+import Logo from "@/assets/logo.webp";
 
 const forgotPasswordSchema = z.object({
   email: z.string().email("E-mail inválido"),

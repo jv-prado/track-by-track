@@ -10,7 +10,7 @@ import { Button } from "@/shared/ui/Button";
 import { PasswordInput } from "@/shared/ui/PasswordInput";
 import { FormField } from "@/shared/ui/FormField";
 import { toast } from "@/shared/ui/toast-store";
-import Logo from "@/assets/logo.svg";
+import Logo from "@/assets/logo.webp";
 
 const resetPasswordSchema = z
   .object({

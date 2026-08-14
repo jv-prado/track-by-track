@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { Music, Pencil, ArrowLeft, Share2, Eye, EyeOff, ListMusic } from "lucide-react";
@@ -74,6 +74,18 @@ export function AlbumRatingView({ albumId }: { albumId: string }) {
   const rateTrack = useRateTrackMutation();
   const setTrackIgnored = useSetTrackIgnoredMutation();
 
+  const ranking = rankingQuery.data ?? createOrGetRanking.data;
+
+  // Zerar a última nota (sem review) esvazia o ranking no servidor (ver `persistRanking` na
+  // API) — o próximo GET 404, e o efeito abaixo recria um ranking vazio na hora. Sem isso,
+  // essa recriação silenciosa reacionava o skeleton de página inteira (`createOrGetRanking.isPending`)
+  // e derrubava álbum + tracklist já carregados por uma fração de segundo. Uma vez que o
+  // usuário já viu um ranking nesta visita, a tela cheia de loading não volta.
+  const hadRankingRef = useRef(false);
+  useEffect(() => {
+    if (ranking) hadRankingRef.current = true;
+  }, [ranking]);
+
   const shouldCreateRanking =
     !rankingQuery.isLoading && rankingQuery.data === null && !createOrGetRanking.isPending;
 
@@ -86,7 +98,11 @@ export function AlbumRatingView({ albumId }: { albumId: string }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [shouldCreateRanking, albumId]);
 
-  if (albumQuery.isLoading || rankingQuery.isLoading || createOrGetRanking.isPending) {
+  if (
+    albumQuery.isLoading ||
+    rankingQuery.isLoading ||
+    (createOrGetRanking.isPending && !hadRankingRef.current)
+  ) {
     return (
       <div className="w-full">
         <AlbumHeaderSkeleton />
@@ -112,7 +128,6 @@ export function AlbumRatingView({ albumId }: { albumId: string }) {
   }
 
   const album = albumQuery.data;
-  const ranking = rankingQuery.data ?? createOrGetRanking.data;
 
   const scoreByTrack = new Map(ranking?.entries.map((e) => [e.trackId, e.score]) ?? []);
   const ignoredByTrack = new Map(ranking?.entries.map((e) => [e.trackId, e.ignored]) ?? []);

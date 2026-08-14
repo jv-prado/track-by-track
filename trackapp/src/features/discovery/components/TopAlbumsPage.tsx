@@ -2,6 +2,7 @@ import { useState } from "react";
 import { FlatList, Image, Pressable, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Link } from "expo-router";
+import { useTranslation } from "react-i18next";
 import { Filter, Music, Trophy } from "lucide-react-native";
 import { useTopAlbumsInfiniteQuery } from "@/queries/discovery";
 import { useGenresQuery } from "@/queries/album-catalog";
@@ -19,6 +20,7 @@ const SKELETON_COUNT = 6;
 
 // Porta 1:1 de src/features/discovery/components/TopAlbumsPage.tsx (web).
 export function TopAlbumsPage() {
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const [genre, setGenre] = useState<string | undefined>(undefined);
   const [genreSheetOpen, setGenreSheetOpen] = useState(false);
@@ -31,12 +33,13 @@ export function TopAlbumsPage() {
     <View className="mb-4 px-4">
       <View className="flex-row items-center gap-2">
         <Trophy size={22} color={colors.dourado} />
-        <Text className="text-xl font-bold text-white">Top álbuns</Text>
+        <Text className="text-xl font-bold text-white">{t("topAlbums.title")}</Text>
       </View>
       <View className="mt-1 flex-row items-center justify-between">
-        <Text className="text-gray-400">Os melhores avaliados pela comunidade.</Text>
+        <Text className="text-gray-400">{t("topAlbums.subtitle")}</Text>
         <Pressable
           onPress={() => setGenreSheetOpen(true)}
+          accessibilityLabel={t("discover.allGenres")}
           className="h-8 w-8 items-center justify-center rounded-lg border border-white/10 bg-cinza-medio/40"
         >
           <Filter size={14} color={colors.cinzaMedio} />
@@ -62,13 +65,13 @@ export function TopAlbumsPage() {
 
       {isError && (
         <View className="px-4">
-          <ErrorState message="Não foi possível carregar." onRetry={() => refetch()} />
+          <ErrorState message={t("topAlbums.error")} onRetry={() => refetch()} />
         </View>
       )}
 
       {data && items.length === 0 && (
         <View className="px-4">
-          <EmptyState title="Nada por aqui ainda" description="Volta quando tiver mais avaliações." />
+          <EmptyState title={t("topAlbums.emptyTitle")} description={t("topAlbums.emptyDescription")} />
         </View>
       )}
 
@@ -114,7 +117,9 @@ export function TopAlbumsPage() {
                       {item.albumArtist}
                     </Text>
                     <View className="mt-2 flex-row items-baseline justify-between gap-2">
-                      <Text className="text-xs text-gray-500">{item.ratingsCount} avaliações</Text>
+                      <Text className="text-xs text-gray-500">
+                        {t("topAlbums.ratingsCount", { count: item.ratingsCount })}
+                      </Text>
                       <Text className={cn("text-xl font-bold", scoreColor.text)}>
                         {item.averageScore.toFixed(1)}
                       </Text>
@@ -139,11 +144,11 @@ export function TopAlbumsPage() {
       <FilterBottomSheet
         open={genreSheetOpen}
         onOpenChange={setGenreSheetOpen}
-        title="Todos os gêneros"
+        title={t("discover.allGenres")}
         value={genre}
         onChange={setGenre}
         options={[
-          { value: undefined, label: "Todos os gêneros" },
+          { value: undefined, label: t("discover.allGenres") },
           ...(genres ?? []).map((g) => ({ value: g, label: genreLabel(g) })),
         ]}
       />

@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 import { Link, router } from "expo-router";
+import { useTranslation } from "react-i18next";
 import { Mail } from "lucide-react-native";
 import { useLoginMutation } from "@/queries/auth";
 import { isApiError } from "@/shared/api/errors";
@@ -15,7 +16,9 @@ import { toast } from "@/components/ui/toast-store";
 import { colors } from "@/lib/colors";
 import Logo from "@/assets/images/logo.svg";
 
-// Porta 1:1 de src/features/auth/components/LoginForm.tsx (web).
+// Porta 1:1 de src/features/auth/components/LoginForm.tsx (web). Mensagens
+// de validação/erro do web são literais (não passam por `t()` lá também) —
+// mantidas literais aqui de propósito, pra bater 1:1.
 const loginSchema = z.object({
   email: z.string().email("E-mail inválido"),
   password: z.string().min(1, "Informe a senha"),
@@ -24,6 +27,7 @@ const loginSchema = z.object({
 type LoginFormValues = z.infer<typeof loginSchema>;
 
 export default function LoginScreen() {
+  const { t } = useTranslation();
   const loginMutation = useLoginMutation();
   // no-op igual ao web — checkbox visual, não é enviado pro backend (ver
   // LoginForm.tsx original: `rememberMe` existe mas nunca é usado na mutation).
@@ -39,7 +43,7 @@ export default function LoginScreen() {
     try {
       await loginMutation.mutateAsync(values);
       // web manda pro redirect da query string ou /feed — mobile ainda não
-      // tem deep link de redirect, sempre cai no feed (placeholder até a Fase 4).
+      // tem deep link de redirect, sempre cai no feed.
       router.replace("/feed");
     } catch (error) {
       toast.error(
@@ -64,14 +68,14 @@ export default function LoginScreen() {
           className="mb-6 text-center text-dourado"
           style={{ fontFamily: "SFProDisplay-Bold", fontSize: 22 }}
         >
-          Entrar
+          {t("app.login")}
         </Text>
 
         <Controller
           control={control}
           name="email"
           render={({ field }) => (
-            <FormField label="Email" error={errors.email?.message}>
+            <FormField label={t("auth.email")} error={errors.email?.message}>
               <Input
                 value={field.value}
                 onChangeText={field.onChange}
@@ -89,7 +93,7 @@ export default function LoginScreen() {
           control={control}
           name="password"
           render={({ field }) => (
-            <FormField label="Senha" error={errors.password?.message}>
+            <FormField label={t("auth.password")} error={errors.password?.message}>
               <PasswordInput
                 value={field.value}
                 onChangeText={field.onChange}
@@ -104,7 +108,7 @@ export default function LoginScreen() {
           onPress={() => setRememberMe((v) => !v)}
           className="mb-4 flex-row items-center justify-end gap-2"
         >
-          <Text className="text-sm text-gray-300">Manter conectado</Text>
+          <Text className="text-sm text-gray-300">{t("auth.rememberMe")}</Text>
           <View
             className={`h-4 w-4 rounded ${rememberMe ? "bg-dourado" : "border border-white/20"}`}
           />
@@ -115,13 +119,13 @@ export default function LoginScreen() {
           isLoading={loginMutation.isPending}
           className="mt-2 w-full"
         >
-          {loginMutation.isPending ? "Entrando..." : "Entrar"}
+          {loginMutation.isPending ? t("auth.loggingIn") : t("app.login")}
         </Button>
 
         <View className="mt-6 flex-row justify-center gap-1">
-          <Text className="text-sm text-gray-300">Não tem uma conta?</Text>
+          <Text className="text-sm text-gray-300">{t("auth.noAccount")}</Text>
           <Link href="/register" className="text-sm font-medium text-dourado">
-            Registre-se aqui
+            {t("auth.registerHere", "Registre-se aqui")}
           </Link>
         </View>
       </View>

@@ -51,11 +51,14 @@ export function AppSidebar() {
     () => sessionStorage.getItem("continue-editing-dismissed"),
   );
 
+  // ordem: primeiro o que é "seu" (Feed, Minhas avaliações), depois o que ajuda
+  // a achar conteúdo novo (Buscar → Descobrir → Top álbuns, do mais direto ao
+  // mais exploratório).
   const NAV_ITEMS = [
     { to: "/feed", label: t("nav.feed"), icon: Home },
+    { to: "/my-rankings", label: t("nav.myRankings"), icon: ListMusic },
     { to: "/search", label: t("nav.search"), icon: Search },
     { to: "/discover", label: t("nav.discover"), icon: Sparkles },
-    { to: "/my-rankings", label: t("nav.myRankings"), icon: ListMusic },
     { to: "/top-albums", label: t("nav.topAlbums"), icon: Trophy },
   ] as const;
 

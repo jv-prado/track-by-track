@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { FlatList, Pressable, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useTranslation } from "react-i18next";
 import { ListMusic, Music2, Search, SlidersHorizontal, X } from "lucide-react-native";
 import { useProfileInfiniteQuery, useUserStatsQuery, type ProfileSort } from "@/queries/discovery";
 import { useGenresQuery } from "@/queries/album-catalog";
@@ -19,14 +20,9 @@ import { colors } from "@/lib/colors";
 
 const SKELETON_COUNT = 6;
 
-const SORT_OPTIONS: { value: ProfileSort; label: string }[] = [
-  { value: "recent", label: "Mais recentes" },
-  { value: "score-desc", label: "Maior nota" },
-  { value: "score-asc", label: "Menor nota" },
-];
-
 // Porta 1:1 de src/features/discovery/components/MyRankingsPage.tsx (web).
 export function MyRankingsPage() {
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const userId = useAuthStore((s) => s.user?.id) ?? "";
 
@@ -37,6 +33,12 @@ export function MyRankingsPage() {
   const [sortSheetOpen, setSortSheetOpen] = useState(false);
   const [genreSheetOpen, setGenreSheetOpen] = useState(false);
   const { data: genres } = useGenresQuery();
+
+  const sortOptions: { value: ProfileSort; label: string }[] = [
+    { value: "recent", label: t("myRankings.sortRecent") },
+    { value: "score-desc", label: t("myRankings.sortScoreDesc") },
+    { value: "score-asc", label: t("myRankings.sortScoreAsc") },
+  ];
 
   useEffect(() => {
     const timeout = setTimeout(() => setSearch(searchInput.trim()), 300);
@@ -58,7 +60,7 @@ export function MyRankingsPage() {
   if (isError) {
     return (
       <View className="flex-1 bg-grafite px-4" style={{ paddingTop: insets.top + 16 }}>
-        <ErrorState message="Não foi possível carregar seus rankings." onRetry={() => refetch()} />
+        <ErrorState message={t("myRankings.error")} onRetry={() => refetch()} />
       </View>
     );
   }
@@ -66,10 +68,7 @@ export function MyRankingsPage() {
   if (!isLoading && data && items.length === 0 && !hasActiveFilters) {
     return (
       <View className="flex-1 bg-grafite px-4" style={{ paddingTop: insets.top + 16 }}>
-        <EmptyState
-          title="Você ainda não avaliou nenhum álbum"
-          description="Busca um álbum e comece a rankear."
-        />
+        <EmptyState title={t("myRankings.emptyTitle")} description={t("myRankings.emptyDescription")} />
       </View>
     );
   }
@@ -79,7 +78,7 @@ export function MyRankingsPage() {
       <View className="px-4">
         <View className="mb-6 flex-row items-center gap-2">
           <ListMusic size={22} color={colors.dourado} />
-          <Text className="text-xl font-bold text-white">Minhas avaliações</Text>
+          <Text className="text-xl font-bold text-white">{t("myRankings.title")}</Text>
         </View>
 
         <View className="mb-6 flex-row gap-3">
@@ -87,14 +86,14 @@ export function MyRankingsPage() {
             accent="roxo"
             icon={<ListMusic size={18} color={colors.roxoVivo} />}
             value={statsQuery.data?.total ?? "–"}
-            label="Álbuns"
+            label={t("myRankings.statAlbums")}
             className="flex-1"
           />
           <StatCard
             accent="roxo"
             icon={<Music2 size={18} color={colors.roxoVivo} />}
             value={statsQuery.data?.tracksRated ?? "–"}
-            label="Faixas avaliadas"
+            label={t("myRankings.statTracksRated")}
             className="flex-1"
           />
         </View>
@@ -104,11 +103,12 @@ export function MyRankingsPage() {
             icon={<Search size={16} color={colors.cinzaMedio} />}
             value={searchInput}
             onChangeText={setSearchInput}
-            placeholder="Buscar por álbum ou artista..."
+            placeholder={t("myRankings.searchPlaceholder")}
             containerClassName="flex-1"
           />
           <Pressable
             onPress={() => setSortSheetOpen(true)}
+            accessibilityLabel={t("myRankings.sortLabel")}
             className="h-10 w-10 items-center justify-center rounded-lg border border-white/10 bg-cinza-medio/40"
           >
             <SlidersHorizontal size={16} color={colors.cinzaMedio} />
@@ -118,7 +118,7 @@ export function MyRankingsPage() {
         {hasActiveFilters && (
           <Pressable onPress={clearFilters} className="mb-3 flex-row items-center gap-1">
             <X size={12} color={colors.cinzaMedio} />
-            <Text className="text-xs text-gray-400">Limpar filtros</Text>
+            <Text className="text-xs text-gray-400">{t("common.clearFilters")}</Text>
           </Pressable>
         )}
       </View>
@@ -135,11 +135,11 @@ export function MyRankingsPage() {
       ) : items.length === 0 ? (
         <View className="px-4">
           <EmptyState
-            title="Nada com esses filtros"
-            description="Tenta mudar a busca ou limpar os filtros."
+            title={t("myRankings.emptyFilterTitle")}
+            description={t("myRankings.emptyFilterDescription")}
             action={
               <Button variant="outline" size="sm" onPress={clearFilters}>
-                Limpar filtros
+                {t("common.clearFilters")}
               </Button>
             }
           />
@@ -167,20 +167,20 @@ export function MyRankingsPage() {
       <FilterBottomSheet
         open={sortSheetOpen}
         onOpenChange={setSortSheetOpen}
-        title="Ordenar por"
+        title={t("myRankings.sortLabel")}
         value={sortOrder}
         onChange={setSortOrder}
-        options={SORT_OPTIONS}
+        options={sortOptions}
       />
 
       <FilterBottomSheet
         open={genreSheetOpen}
         onOpenChange={setGenreSheetOpen}
-        title="Todos os gêneros"
+        title={t("discover.allGenres")}
         value={genre}
         onChange={setGenre}
         options={[
-          { value: undefined, label: "Todos os gêneros" },
+          { value: undefined, label: t("discover.allGenres") },
           ...(genres ?? []).map((g) => ({ value: g, label: genreLabel(g) })),
         ]}
       />

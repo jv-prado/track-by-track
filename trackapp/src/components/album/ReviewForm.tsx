@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { View } from "react-native";
+import { useTranslation } from "react-i18next";
 import { useSaveReviewMutation } from "@/queries/ranking";
 import { isApiError } from "@/shared/api/errors";
 import { toast } from "@/components/ui/toast-store";
@@ -15,6 +16,7 @@ export interface ReviewFormProps {
 
 // Porta 1:1 de src/shared/album/ReviewForm.tsx (web).
 export function ReviewForm({ rankingId, albumId, initialText, onSaved }: ReviewFormProps) {
+  const { t } = useTranslation();
   const [text, setText] = useState(initialText ?? "");
   const saveReview = useSaveReviewMutation();
 
@@ -23,11 +25,11 @@ export function ReviewForm({ rankingId, albumId, initialText, onSaved }: ReviewF
       { rankingId, albumId, text: text.trim() || undefined },
       {
         onSuccess: () => {
-          toast.success("Review salva com sucesso.");
+          toast.success(t("review.saveSuccess"));
           onSaved?.();
         },
         onError: (error) => {
-          toast.error(isApiError(error) ? error.message : "Não foi possível salvar a review.");
+          toast.error(isApiError(error) ? error.message : t("review.saveError"));
         },
       },
     );
@@ -35,15 +37,10 @@ export function ReviewForm({ rankingId, albumId, initialText, onSaved }: ReviewF
 
   return (
     <View className="gap-3">
-      <TextArea
-        value={text}
-        onChangeText={setText}
-        placeholder="O que você achou desse álbum?"
-        rows={3}
-      />
+      <TextArea value={text} onChangeText={setText} placeholder={t("review.placeholder")} rows={3} />
 
       <Button onPress={handleSubmit} size="sm" isLoading={saveReview.isPending} className="self-end">
-        {saveReview.isPending ? "Salvando..." : "Salvar review"}
+        {saveReview.isPending ? t("common.saving") : t("review.save")}
       </Button>
     </View>
   );

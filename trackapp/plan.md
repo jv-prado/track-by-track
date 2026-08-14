@@ -442,5 +442,95 @@ entra junto quando essas telas forem construídas.
 Validado: `npm run typecheck` limpo, `npm run lint` limpo, `npx expo export --platform
 android` bundla sem erro (3743 módulos).
 
-**Próximo passo:** Fase 5 — Discovery + social + comments (feed real, perfil, top álbuns,
-comentários, follows) — aí sim a rota `album/[albumId].tsx` de nível raiz entra.
+### Fase 5 — Discovery + social + comments — ✅ concluída (2026-08-14)
+
+**Descoberta importante:** `AppHeader.tsx` e `NotificationsBell.tsx` (web) são **desktop-only**
+(`hidden md:flex`) — o próprio web não mostra isso na variante mobile (a `AppSidebar` mobile,
+já portada na Fase 3, não inclui notificações). Não portados: não é gap, é paridade real com o
+que o web mostra em tela de telefone. Idem `CommentThread.tsx` — existe no código-fonte web mas
+não está montado em nenhuma rota lá (órfão); portado o componente (paridade de inventário) sem
+forçar exibição em tela nenhuma, já que o web também não mostra.
+
+**Portado, 1:1:**
+- Queries completas: `album-catalog` (genres/new-releases/top-chart), `discovery`
+  (feed/top-albums/profile/user-stats), `follows` (5 hooks), `comments` (4 hooks).
+- `features/discovery/components/`: `FeedCard`, `FeedPage`, `DiscoverPage`, `TopAlbumsPage`,
+  `MyRankingsPage` (real), `PublicProfilePage`, `ProfileHeaderSkeleton`.
+- `features/auth/components/`: `OwnProfilePage` (edição de nome; avatar upload segue adiado,
+  mesmo motivo da Fase 2 — precisa de `expo-image-picker`), `AccountDeletionPage`.
+- `features/ranking/components/`: `PublicAlbumRankingView`, `UserAlbumRankingPage` (escolhe
+  entre editável/somente-leitura por `userId === currentUser.id`, mesma regra do web).
+- `components/social/`: `FollowButton`, `FollowListModal`.
+- `components/comments/CommentThread.tsx` (portado, não montado em tela — ver acima).
+- `components/discovery/FilterBottomSheet.tsx` — **novo, sem equivalente 1:1 no web**: extrai o
+  bottom sheet de opção única (gênero/ordenação) que o web repete copiado em 5 telas
+  (Feed/Discover/TopAlbums/MyRankings/PublicProfile). Mesmo resultado visual/comportamental em
+  todas — só evita repetir o bloco JSX 5 vezes; não é UI nova, é organização interna.
+
+**Roteamento — estrutura final de `(app)/`:**
+```
+feed/            _layout.tsx (Stack) · index.tsx · [userId]/album/[albumId].tsx
+search/          _layout.tsx (Stack) · index.tsx · [albumId].tsx           (Fase 4)
+discover/        _layout.tsx (Stack) · index.tsx · [albumId].tsx
+top-albums/      _layout.tsx (Stack) · index.tsx · [albumId].tsx
+my-rankings.tsx                                                             (flat)
+profile/         index.tsx · [userId]/index.tsx · [userId]/album/[albumId].tsx
+album/[albumId].tsx                                                         (raiz, fora de tab)
+delete-account.tsx
+```
+`profile/*` e `album/[albumId]` entram como `Tabs.Screen` com `options={{ href: null }}` —
+ficam fora da lista visível da tab bar mas dentro do grupo `Tabs`, então a tab bar
+(`AppTabBar`) continua visível ao navegar até lá, igual ao `_app.tsx` persistente do web.
+Menu de Perfil (`AppTabBar`, 6º slot) agora navega de verdade: "Meu perfil" →
+`/profile/{userId}`, "Configurações" → `/profile`.
+
+Validado: `npm run typecheck` limpo, `npm run lint` limpo, `npx expo export --platform
+android` bundla sem erro (3784 módulos).
+
+**Adiado (não esquecido):** upload de avatar (`expo-image-picker`), notificações (sem UI mobile
+no próprio web, ver acima).
+
+### Fase 6 — Polish (parcial, sem build) + itens adiados — ✅ concluída (2026-08-14)
+
+**Decisão do usuário:** notificações ganharam UI nova no app (não existe no web mobile — só no
+`AppHeader` desktop). Confirmado explicitamente pelo usuário como exceção deliberada à regra
+1:1 (única tela/peça do app sem equivalente literal no web mobile).
+
+**Notificações (nova, aprovada):**
+- `queries/notifications/*` portado 1:1 (mesma lógica de badge com `refetchInterval: 60_000`,
+  mark-read/mark-all-read).
+- `components/layout/NotificationsBell.tsx` — **UI nova**: sino com badge no header do Feed,
+  toque abre `BottomSheet` com a lista (dropdown do web vira bottom sheet, mesmo padrão já
+  usado em todo o resto do app). Toque num item marca como lida e navega pro perfil/álbum do
+  ator, igual à lógica de `notificationLink()` do web.
+
+**Avatar upload (adiado desde a Fase 2, concluído agora):**
+- `useUploadAvatarMutation` portado — `FormData` recebe `{uri, name, type}` (`expo-image-picker`)
+  no lugar de `File` do browser.
+- `OwnProfilePage`: toque no avatar abre a galeria (`expo-image-picker`,
+  `requestMediaLibraryPermissionsAsync` + `launchImageLibraryAsync`), mesma validação de
+  tipo/tamanho do web (5MB, jpeg/png/webp).
+
+**Ícone/splash de marca:**
+- `src/assets/logo-icone.svg` (web) — a mesma marca-símbolo que a própria `SessionSplash` do
+  web usa (`AppProviders.tsx`) — rasterizada via `sharp` (dev-only, instalado num diretório
+  isolado, não é dependência do projeto) em `icon.png` (1024²), `android-icon-foreground.png`
+  (1024², adaptive icon), `splash-icon.png` (512²), `favicon.png` (48², web export). Fundo do
+  adaptive icon e da splash = `#01080e` (grafite, mesmo token do web), não os placeholders
+  genéricos do Expo.
+- `app.json`: removida a referência a `ios.icon` (formato "Expo Icon Composer" especial,
+  cerimônia demais pra esse estágio) — iOS cai no `icon` de nível raiz, mesmo PNG.
+
+**`eas.json` criado** (profiles `development`/`preview`/`production`, Android `apk` nos dois
+primeiros pra instalar direto sem Play Store) — **sem rodar build** (pedido explícito do
+usuário). Próximo passo manual, fora desta sessão: `eas login` (conta Expo) + `eas build
+--profile preview --platform android` (e depois `ios`, resolve o problema do Mac).
+
+Validado: `npm run typecheck` limpo, `npm run lint` limpo, `npx expo export --platform
+android` bundla sem erro (3796 módulos).
+
+**Estado do produto:** Fases 1-6 do plano concluídas. App cobre 1:1 (com as 2 exceções
+documentadas: notificações nova UI, waveform de áudio simplificada) o fluxo completo do web —
+auth, ranking de álbum, descoberta, perfil, social, avatar. Fica pra depois (fora do escopo
+deste plano, não bloqueante): i18n do mobile (strings hardcoded pt-BR em todo o app),
+`CommentThread` sem tela que o monte (mesmo estado do web).

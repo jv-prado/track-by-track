@@ -13,6 +13,7 @@ export function FeedCard({
   variant = "list",
   linkTo = "/profile/$userId/album/$albumId",
   showProgress = false,
+  onOpen,
 }: {
   item: FeedItem;
   variant?: ViewMode;
@@ -20,6 +21,8 @@ export function FeedCard({
   linkTo?: "/profile/$userId/album/$albumId" | "/feed/$userId/album/$albumId";
   /** barra de progresso de avaliação — só faz sentido nos MEUS rankings (feed/perfil público são de terceiros). */
   showProgress?: boolean;
+  /** se passado, clique abre isso (ex: sheet de prévia) em vez de navegar direto pra `linkTo`. */
+  onOpen?: (item: FeedItem) => void;
 }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -28,6 +31,8 @@ export function FeedCard({
   const scoreColor = getScoreColorClasses(item.averageScore, isComplete);
   const progressPct =
     item.totalTracks > 0 ? Math.round((item.ratedTracks / item.totalTracks) * 100) : 0;
+  const activate = () =>
+    onOpen ? onOpen(item) : navigate({ to: linkTo, params: { userId: item.userId, albumId: item.albumId } });
 
   // div em vez de Link: card tem um Link aninhado pro perfil do usuário (avatar/nome),
   // e <a> dentro de <a> é HTML inválido — navegação vem de onClick + role="link".
@@ -35,11 +40,11 @@ export function FeedCard({
     <div
       role="link"
       tabIndex={0}
-      onClick={() => navigate({ to: linkTo, params: { userId: item.userId, albumId: item.albumId } })}
+      onClick={activate}
       onKeyDown={(e) => {
         if (e.key === "Enter" || e.key === " ") {
           e.preventDefault();
-          navigate({ to: linkTo, params: { userId: item.userId, albumId: item.albumId } });
+          activate();
         }
       }}
       className={cn(

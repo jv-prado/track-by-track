@@ -15,6 +15,8 @@ interface BottomSheetProps {
   /** Ações extras no header, entre o título e o botão de fechar (ex: compartilhar). */
   actions?: ReactNode;
   children: ReactNode;
+  /** Barra fixa no rodapé (ex: Fechar / Ver completo) — fica fora da área de scroll. */
+  footer?: ReactNode;
   className?: string;
 }
 
@@ -24,6 +26,7 @@ export function BottomSheet({
   title,
   actions,
   children,
+  footer,
   className,
 }: BottomSheetProps) {
   const contentRef = useRef<HTMLDivElement>(null);
@@ -85,7 +88,7 @@ export function BottomSheet({
       <Dialog.Portal>
         <Dialog.Overlay
           className={cn(
-            "fixed inset-0 z-40 bg-black/60",
+            "fixed inset-0 z-40 bg-black/75 backdrop-blur-[2px]",
             "data-[state=open]:animate-overlay-in data-[state=closed]:animate-overlay-out",
           )}
         />
@@ -96,7 +99,7 @@ export function BottomSheet({
             "fixed inset-x-0 bottom-0 z-50 flex max-h-[85vh] w-full flex-col overflow-hidden rounded-t-2xl border-t border-white/10 bg-grafite shadow-2xl shadow-black/50",
             "data-[state=open]:animate-sheet-up-in data-[state=closed]:animate-sheet-up-out",
             // sm+: volta a ser o drawer lateral, deslizando da direita
-            "sm:inset-x-auto sm:top-0 sm:right-0 sm:bottom-auto sm:h-full sm:max-h-none sm:w-full sm:max-w-md sm:rounded-t-none sm:border-t-0 sm:border-l",
+            "sm:inset-x-auto sm:top-0 sm:right-0 sm:bottom-auto sm:h-full sm:max-h-none sm:w-full sm:max-w-xl sm:rounded-t-none sm:border-t-0 sm:border-l",
             "sm:data-[state=open]:animate-sheet-in sm:data-[state=closed]:animate-sheet-out",
             className,
           )}
@@ -130,9 +133,21 @@ export function BottomSheet({
           {/* p-1 -m-1: dá espaço pro focus ring dentro da área de scroll sem
               deslocar o conteúdo — sem isso, o ring de um campo encostado no
               topo é cortado pelo `overflow-y-auto` ao rolar até ele. */}
-          <div className="min-h-0 flex-1 overflow-y-auto -m-1 p-1 px-5 pt-4 pb-[calc(1.25rem+env(safe-area-inset-bottom))]">
+          <div
+            className={cn(
+              "min-h-0 flex-1 overflow-y-auto -m-1 p-1 px-5 pt-4",
+              // com footer, o padding de safe-area vai nele (é o elemento mais baixo);
+              // sem footer, o próprio scroll precisa desse respiro.
+              footer ? "pb-5" : "pb-[calc(1.25rem+env(safe-area-inset-bottom))]",
+            )}
+          >
             {children}
           </div>
+          {footer && (
+            <div className="shrink-0 border-t border-white/5 px-5 py-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))]">
+              {footer}
+            </div>
+          )}
         </Dialog.Content>
       </Dialog.Portal>
     </Dialog.Root>

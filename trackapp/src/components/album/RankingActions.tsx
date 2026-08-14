@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { View } from "react-native";
 import { router } from "expo-router";
+import { useTranslation } from "react-i18next";
 import { RotateCcw, Trash2 } from "lucide-react-native";
 import { useResetRankingMutation, useDeleteRankingMutation } from "@/queries/ranking";
 import { Button } from "@/components/ui/Button";
@@ -21,6 +22,7 @@ export interface RankingActionsProps {
  * layout (ambas ficam disponíveis via prop, quem chama decide, igual web).
  */
 export function RankingActions({ rankingId, albumId, variant = "full" }: RankingActionsProps) {
+  const { t } = useTranslation();
   const [confirmingReset, setConfirmingReset] = useState(false);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const resetRanking = useResetRankingMutation();
@@ -33,9 +35,9 @@ export function RankingActions({ rankingId, albumId, variant = "full" }: Ranking
       {
         onSuccess: () => {
           setConfirmingReset(false);
-          toast.success("Ranking resetado.");
+          toast.success(t("rankingActions.resetSuccess"));
         },
-        onError: () => toast.error("Não foi possível resetar o ranking."),
+        onError: () => toast.error(t("rankingActions.resetError")),
       },
     );
   };
@@ -46,9 +48,9 @@ export function RankingActions({ rankingId, albumId, variant = "full" }: Ranking
       {
         onSuccess: () => {
           router.replace("/my-rankings");
-          toast.success("Álbum removido dos seus rankings.");
+          toast.success(t("rankingActions.removeSuccess"));
         },
-        onError: () => toast.error("Não foi possível remover o álbum."),
+        onError: () => toast.error(t("rankingActions.removeError")),
       },
     );
   };
@@ -59,7 +61,7 @@ export function RankingActions({ rankingId, albumId, variant = "full" }: Ranking
         variant="outline"
         size="sm"
         onPress={() => setConfirmingReset(true)}
-        accessibilityLabel="Resetar avaliações"
+        accessibilityLabel={t("rankingActions.reset")}
       >
         <RotateCcw size={14} color="#ffffff" />
       </Button>
@@ -68,7 +70,7 @@ export function RankingActions({ rankingId, albumId, variant = "full" }: Ranking
         variant="danger"
         size="sm"
         onPress={() => setConfirmingDelete(true)}
-        accessibilityLabel="Remover álbum"
+        accessibilityLabel={t("rankingActions.removeAlbum")}
       >
         <Trash2 size={14} color="#f87171" />
       </Button>
@@ -76,15 +78,15 @@ export function RankingActions({ rankingId, albumId, variant = "full" }: Ranking
       <Modal
         open={confirmingReset}
         onOpenChange={setConfirmingReset}
-        title="Resetar avaliações"
-        description="Isso apaga todas as notas, review e faixa favorita/pior deste álbum. Não pode ser desfeito."
+        title={t("rankingActions.reset")}
+        description={t("rankingActions.resetConfirm")}
         footer={
           <>
             <Button variant="ghost" size="sm" onPress={() => setConfirmingReset(false)}>
-              Cancelar
+              {t("common.cancel")}
             </Button>
             <Button variant="danger" size="sm" onPress={handleReset} isLoading={resetRanking.isPending}>
-              {resetRanking.isPending ? "Resetando..." : "Sim, resetar"}
+              {resetRanking.isPending ? t("rankingActions.resetting") : t("rankingActions.resetConfirmYes")}
             </Button>
           </>
         }
@@ -93,15 +95,15 @@ export function RankingActions({ rankingId, albumId, variant = "full" }: Ranking
       <Modal
         open={confirmingDelete}
         onOpenChange={setConfirmingDelete}
-        title="Remover álbum"
-        description="Remover de vez?"
+        title={t("rankingActions.removeAlbum")}
+        description={t("rankingActions.removeConfirm")}
         footer={
           <>
             <Button variant="ghost" size="sm" onPress={() => setConfirmingDelete(false)}>
-              Cancelar
+              {t("common.cancel")}
             </Button>
             <Button variant="danger" size="sm" onPress={handleDelete} isLoading={deleteRanking.isPending}>
-              {deleteRanking.isPending ? "Removendo..." : "Sim, remover"}
+              {deleteRanking.isPending ? t("rankingActions.removing") : t("rankingActions.removeConfirmYes")}
             </Button>
           </>
         }

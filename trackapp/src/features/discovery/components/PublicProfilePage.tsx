@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { FlatList, Image, Pressable, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router } from "expo-router";
+import { useTranslation } from "react-i18next";
 import { ArrowLeft, ListMusic, Music2, Search, SlidersHorizontal } from "lucide-react-native";
 import { useProfileInfiniteQuery, useUserStatsQuery, type ProfileSort } from "@/queries/discovery";
 import { useFollowStatsQuery } from "@/queries/follows";
@@ -24,14 +25,9 @@ import { colors } from "@/lib/colors";
 
 const SKELETON_COUNT = 6;
 
-const SORT_OPTIONS: { value: ProfileSort; label: string }[] = [
-  { value: "recent", label: "Mais recentes" },
-  { value: "score-desc", label: "Maior nota" },
-  { value: "score-asc", label: "Menor nota" },
-];
-
 // Porta 1:1 de src/features/discovery/components/PublicProfilePage.tsx (web).
 export function PublicProfilePage({ userId }: { userId: string }) {
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
 
   const [searchInput, setSearchInput] = useState("");
@@ -42,6 +38,12 @@ export function PublicProfilePage({ userId }: { userId: string }) {
   const [sortSheetOpen, setSortSheetOpen] = useState(false);
   const [genreSheetOpen, setGenreSheetOpen] = useState(false);
   const { data: genres } = useGenresQuery();
+
+  const sortOptions: { value: ProfileSort; label: string }[] = [
+    { value: "recent", label: t("myRankings.sortRecent") },
+    { value: "score-desc", label: t("myRankings.sortScoreDesc") },
+    { value: "score-asc", label: t("myRankings.sortScoreAsc") },
+  ];
 
   useEffect(() => {
     const timeout = setTimeout(() => setSearch(searchInput.trim()), 300);
@@ -81,7 +83,7 @@ export function PublicProfilePage({ userId }: { userId: string }) {
   if (isError) {
     return (
       <View className="flex-1 bg-grafite px-4" style={{ paddingTop: insets.top + 16 }}>
-        <ErrorState message="Não foi possível carregar o perfil." onRetry={() => refetch()} />
+        <ErrorState message={t("profile.error")} onRetry={() => refetch()} />
       </View>
     );
   }
@@ -89,7 +91,7 @@ export function PublicProfilePage({ userId }: { userId: string }) {
   if (!first) {
     return (
       <View className="flex-1 bg-grafite px-4" style={{ paddingTop: insets.top + 16 }}>
-        <EmptyState title="Sem avaliações públicas ainda" />
+        <EmptyState title={t("profile.empty")} />
       </View>
     );
   }
@@ -100,7 +102,7 @@ export function PublicProfilePage({ userId }: { userId: string }) {
         <Button variant="ghost" size="sm" onPress={() => (router.canGoBack() ? router.back() : router.replace("/feed"))} className="mb-4">
           <View className="flex-row items-center gap-1.5">
             <ArrowLeft size={16} color="#ffffff" />
-            <Text className="text-sm font-semibold text-white">Voltar</Text>
+            <Text className="text-sm font-semibold text-white">{t("common.back")}</Text>
           </View>
         </Button>
 
@@ -119,11 +121,15 @@ export function PublicProfilePage({ userId }: { userId: string }) {
               </Text>
               <View className="flex-row gap-1">
                 <Pressable onPress={() => setFollowListKind("followers")}>
-                  <Text className="text-sm text-gray-400">{followStats.data?.followers ?? 0} seguidores</Text>
+                  <Text className="text-sm text-gray-400">
+                    {t("follow.followers", { count: followStats.data?.followers ?? 0 })}
+                  </Text>
                 </Pressable>
                 <Text className="text-sm text-gray-400">·</Text>
                 <Pressable onPress={() => setFollowListKind("following")}>
-                  <Text className="text-sm text-gray-400">{followStats.data?.following ?? 0} seguindo</Text>
+                  <Text className="text-sm text-gray-400">
+                    {t("follow.followingCount", { count: followStats.data?.following ?? 0 })}
+                  </Text>
                 </Pressable>
               </View>
             </View>
@@ -136,14 +142,14 @@ export function PublicProfilePage({ userId }: { userId: string }) {
             accent="roxo"
             icon={<ListMusic size={18} color={colors.roxoVivo} />}
             value={statsQuery.data?.total ?? "–"}
-            label="Álbuns"
+            label={t("myRankings.statAlbums")}
             className="flex-1"
           />
           <StatCard
             accent="roxo"
             icon={<Music2 size={18} color={colors.roxoVivo} />}
             value={statsQuery.data?.tracksRated ?? "–"}
-            label="Faixas avaliadas"
+            label={t("myRankings.statTracksRated")}
             className="flex-1"
           />
         </View>
@@ -153,11 +159,12 @@ export function PublicProfilePage({ userId }: { userId: string }) {
             icon={<Search size={16} color={colors.cinzaMedio} />}
             value={searchInput}
             onChangeText={setSearchInput}
-            placeholder="Buscar por álbum ou artista..."
+            placeholder={t("myRankings.searchPlaceholder")}
             containerClassName="flex-1"
           />
           <Pressable
             onPress={() => setSortSheetOpen(true)}
+            accessibilityLabel={t("myRankings.sortLabel")}
             className="h-10 w-10 items-center justify-center rounded-lg border border-white/10 bg-cinza-medio/40"
           >
             <SlidersHorizontal size={16} color={colors.cinzaMedio} />
@@ -168,12 +175,12 @@ export function PublicProfilePage({ userId }: { userId: string }) {
       {items.length === 0 ? (
         <View className="px-4">
           <EmptyState
-            title="Nada com esses filtros"
-            description="Tenta mudar a busca ou limpar os filtros."
+            title={t("myRankings.emptyFilterTitle")}
+            description={t("myRankings.emptyFilterDescription")}
             action={
               hasActiveFilters ? (
                 <Button variant="outline" size="sm" onPress={clearFilters}>
-                  Limpar filtros
+                  {t("common.clearFilters")}
                 </Button>
               ) : undefined
             }
@@ -208,20 +215,20 @@ export function PublicProfilePage({ userId }: { userId: string }) {
       <FilterBottomSheet
         open={sortSheetOpen}
         onOpenChange={setSortSheetOpen}
-        title="Ordenar por"
+        title={t("myRankings.sortLabel")}
         value={sortOrder}
         onChange={setSortOrder}
-        options={SORT_OPTIONS}
+        options={sortOptions}
       />
 
       <FilterBottomSheet
         open={genreSheetOpen}
         onOpenChange={setGenreSheetOpen}
-        title="Todos os gêneros"
+        title={t("discover.allGenres")}
         value={genre}
         onChange={setGenre}
         options={[
-          { value: undefined, label: "Todos os gêneros" },
+          { value: undefined, label: t("discover.allGenres") },
           ...(genres ?? []).map((g) => ({ value: g, label: genreLabel(g) })),
         ]}
       />

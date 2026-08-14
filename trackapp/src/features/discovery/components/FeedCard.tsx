@@ -1,5 +1,6 @@
 import { Image, Pressable, Text, View } from "react-native";
 import { Link } from "expo-router";
+import { useTranslation } from "react-i18next";
 import { Music } from "lucide-react-native";
 import type { FeedItem } from "@/shared/api/types";
 import type { ViewMode } from "@/components/ui/ViewToggle";
@@ -25,6 +26,7 @@ export function FeedCard({
   href?: string;
   showProgress?: boolean;
 }) {
+  const { t } = useTranslation();
   const isGrid = variant === "grid";
   const isComplete = item.totalTracks > 0 && item.ratedTracks === item.totalTracks;
   const scoreColor = getScoreColorClasses(item.averageScore, isComplete);
@@ -62,7 +64,7 @@ export function FeedCard({
               )}
             >
               <Text className="text-[10px] font-semibold leading-none text-grafite">
-                {item.badge === "new" ? "Novo" : "Atualizado"}
+                {item.badge === "new" ? t("feed.badgeNew") : t("feed.badgeUpdated")}
               </Text>
             </View>
           )}
@@ -103,7 +105,7 @@ export function FeedCard({
             <View className="mt-2 flex-row items-center gap-1.5">
               <ProgressBar value={progressPct} className="h-1 flex-1" />
               <Text className="shrink-0 text-[11px] text-gray-500">
-                {item.ratedTracks}/{item.totalTracks} faixas
+                {t("common.tracksProgress", { rated: item.ratedTracks, total: item.totalTracks })}
               </Text>
             </View>
           )}

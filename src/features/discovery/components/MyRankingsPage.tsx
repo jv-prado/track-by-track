@@ -12,12 +12,14 @@ import { genreLabel } from "@/shared/lib/genreLabel";
 import { Input } from "@/shared/ui/Input";
 import { Select } from "@/shared/ui/Select";
 import { BottomSheet } from "@/shared/ui/BottomSheet";
+import { AlbumPreviewSheet } from "./AlbumPreviewSheet";
 import { StatCard } from "@/shared/ui/StatCard";
 import { Button } from "@/shared/ui/Button";
 import { Spinner } from "@/shared/ui/Spinner";
 import { ErrorState } from "@/shared/ui/ErrorState";
 import { EmptyState } from "@/shared/ui/EmptyState";
 import { cn } from "@/shared/lib/cn";
+import type { FeedItem } from "@/shared/api/types";
 
 const GRID_CLASSES =
   "grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] gap-3 sm:grid-cols-[repeat(auto-fill,minmax(200px,1fr))] sm:gap-5";
@@ -33,6 +35,7 @@ export function MyRankingsPage() {
   const [genre, setGenre] = useState<string | undefined>(undefined);
   const [sortSheetOpen, setSortSheetOpen] = useState(false);
   const [genreSheetOpen, setGenreSheetOpen] = useState(false);
+  const [previewItem, setPreviewItem] = useState<FeedItem | null>(null);
   // catálogo curado: o filtro roda sobre todos os rankings do usuário no
   // servidor, não sobre a página já carregada.
   const { data: genres } = useGenresQuery();
@@ -183,7 +186,7 @@ export function MyRankingsPage() {
         <>
           <div className={GRID_CLASSES}>
             {items.map((item) => (
-              <FeedCard key={item.id} item={item} variant="grid" showProgress />
+              <FeedCard key={item.id} item={item} variant="grid" showProgress onOpen={setPreviewItem} />
             ))}
           </div>
 
@@ -252,6 +255,17 @@ export function MyRankingsPage() {
           ))}
         </div>
       </BottomSheet>
+
+      {previewItem && (
+        <AlbumPreviewSheet
+          open={Boolean(previewItem)}
+          onOpenChange={(next) => !next && setPreviewItem(null)}
+          userId={previewItem.userId}
+          albumId={previewItem.albumId}
+          reviewerName={previewItem.userDisplayName}
+          linkTo="/profile/$userId/album/$albumId"
+        />
+      )}
     </div>
   );
 }

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { FlatList, Pressable, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useTranslation } from "react-i18next";
 import { Filter, Home } from "lucide-react-native";
 import { useFeedInfiniteQuery, type FeedScope } from "@/queries/discovery";
 import { useGenresQuery } from "@/queries/album-catalog";
@@ -12,6 +13,7 @@ import { ErrorState } from "@/components/ui/ErrorState";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Spinner } from "@/components/ui/Spinner";
 import { FilterBottomSheet } from "@/components/discovery/FilterBottomSheet";
+import { NotificationsBell } from "@/components/layout/NotificationsBell";
 import { colors } from "@/lib/colors";
 
 const SKELETON_COUNT = 6;
@@ -20,6 +22,7 @@ const SKELETON_COUNT = 6;
 // guarda scope/genre na querystring da rota — mobile usa estado local (sem
 // deep link ainda, mesma troca já feita em outras telas).
 export function FeedPage() {
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const [scope, setScope] = useState<FeedScope>("global");
   const [genre, setGenre] = useState<string | undefined>(undefined);
@@ -32,17 +35,21 @@ export function FeedPage() {
   return (
     <View className="flex-1 bg-grafite" style={{ paddingTop: insets.top + 16 }}>
       <View className="px-4">
-        <View className="mb-4 flex-row items-center gap-2">
-          <Home size={22} color={colors.dourado} />
-          <Text className="text-xl font-bold text-white">Feed</Text>
+        <View className="mb-4 flex-row items-center justify-between gap-2">
+          <View className="flex-row items-center gap-2">
+            <Home size={22} color={colors.dourado} />
+            <Text className="text-xl font-bold text-white">{t("feed.title")}</Text>
+          </View>
+          <NotificationsBell />
         </View>
+        <Text className="mb-4 text-base text-gray-400">{t("feed.subtitle")}</Text>
 
         <View className="mb-4 flex-row items-center justify-between gap-3 border-b border-white/10">
           <View className="flex-row gap-1">
             {(["global", "following"] as const).map((tab) => (
               <Pressable key={tab} onPress={() => setScope(tab)} className="px-4 py-2">
                 <Text className={cn("text-sm font-semibold", scope === tab ? "text-dourado" : "text-gray-400")}>
-                  {tab === "global" ? "Global" : "Seguindo"}
+                  {t(`feed.tabs.${tab}`)}
                 </Text>
                 {scope === tab && <View className="mt-2 h-0.5 rounded-full bg-dourado" />}
               </Pressable>
@@ -51,6 +58,7 @@ export function FeedPage() {
 
           <Pressable
             onPress={() => setGenreSheetOpen(true)}
+            accessibilityLabel={t("discover.allGenres")}
             className="mb-2 h-9 w-9 items-center justify-center rounded-lg border border-white/10 bg-cinza-medio/40"
           >
             <Filter size={15} color={colors.cinzaMedio} />
@@ -69,17 +77,13 @@ export function FeedPage() {
         />
       ) : isError ? (
         <View className="px-4">
-          <ErrorState message="Não foi possível carregar o feed." onRetry={() => refetch()} />
+          <ErrorState message={t("feed.error")} onRetry={() => refetch()} />
         </View>
       ) : items.length === 0 ? (
         <View className="px-4">
           <EmptyState
-            title={scope === "following" ? "Ninguém pra ver ainda" : "Feed vazio"}
-            description={
-              scope === "following"
-                ? "Siga alguém pra ver as avaliações aqui."
-                : "Ainda não tem avaliação pública. Seja o primeiro."
-            }
+            title={t(scope === "following" ? "feed.followingEmptyTitle" : "feed.emptyTitle")}
+            description={t(scope === "following" ? "feed.followingEmptyDescription" : "feed.emptyDescription")}
           />
         </View>
       ) : (
@@ -107,11 +111,11 @@ export function FeedPage() {
       <FilterBottomSheet
         open={genreSheetOpen}
         onOpenChange={setGenreSheetOpen}
-        title="Todos os gêneros"
+        title={t("discover.allGenres")}
         value={genre}
         onChange={setGenre}
         options={[
-          { value: undefined, label: "Todos os gêneros" },
+          { value: undefined, label: t("discover.allGenres") },
           ...(genres ?? []).map((g) => ({ value: g, label: genreLabel(g) })),
         ]}
       />

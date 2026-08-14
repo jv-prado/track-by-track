@@ -3,6 +3,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 import { Link, router } from "expo-router";
+import { useTranslation } from "react-i18next";
 import { useLoginMutation, useRegisterMutation } from "@/queries/auth";
 import { isApiError } from "@/shared/api/errors";
 import { Button } from "@/components/ui/Button";
@@ -12,7 +13,9 @@ import { FormField } from "@/components/ui/FormField";
 import { toast } from "@/components/ui/toast-store";
 import Logo from "@/assets/images/logo.svg";
 
-// Porta 1:1 de src/features/auth/components/RegisterForm.tsx (web).
+// Porta 1:1 de src/features/auth/components/RegisterForm.tsx (web). Mensagens
+// de validação/erro do web são literais (não passam por `t()` lá) —
+// mantidas literais aqui de propósito, pra bater 1:1.
 const registerSchema = z
   .object({
     displayName: z.string().min(1, "Informe seu nome"),
@@ -31,6 +34,7 @@ const registerSchema = z
 type RegisterFormValues = z.infer<typeof registerSchema>;
 
 export default function RegisterScreen() {
+  const { t } = useTranslation();
   const registerMutation = useRegisterMutation();
   const loginMutation = useLoginMutation();
 
@@ -73,14 +77,14 @@ export default function RegisterScreen() {
           className="mb-6 text-center text-white"
           style={{ fontFamily: "SFProDisplay-Bold", fontSize: 22 }}
         >
-          Cadastre-se
+          {t("auth.createAccount")}
         </Text>
 
         <Controller
           control={control}
           name="displayName"
           render={({ field }) => (
-            <FormField label="Nome de exibição" error={errors.displayName?.message}>
+            <FormField label={t("profile.displayNameLabel")} error={errors.displayName?.message}>
               <Input value={field.value} onChangeText={field.onChange} onBlur={field.onBlur} />
             </FormField>
           )}
@@ -90,7 +94,7 @@ export default function RegisterScreen() {
           control={control}
           name="email"
           render={({ field }) => (
-            <FormField label="Email" error={errors.email?.message}>
+            <FormField label={t("auth.email")} error={errors.email?.message}>
               <Input
                 value={field.value}
                 onChangeText={field.onChange}
@@ -107,7 +111,7 @@ export default function RegisterScreen() {
           control={control}
           name="password"
           render={({ field }) => (
-            <FormField label="Senha" error={errors.password?.message}>
+            <FormField label={t("auth.password")} error={errors.password?.message}>
               <PasswordInput
                 value={field.value}
                 onChangeText={field.onChange}
@@ -122,7 +126,7 @@ export default function RegisterScreen() {
           control={control}
           name="confirmPassword"
           render={({ field }) => (
-            <FormField label="Confirmar Senha" error={errors.confirmPassword?.message}>
+            <FormField label={t("auth.confirmPassword")} error={errors.confirmPassword?.message}>
               <PasswordInput
                 value={field.value}
                 onChangeText={field.onChange}
@@ -145,10 +149,11 @@ export default function RegisterScreen() {
                 <View
                   className={`mt-0.5 h-4 w-4 rounded ${field.value ? "bg-dourado" : "border border-white/20"}`}
                 />
-                {/* Links de política/termos (Fase 4/6, telas estáticas ainda não
-                    portadas) — texto simples por enquanto, sem link quebrado. */}
+                {/* Links de política/termos (rotas estáticas ainda não portadas)
+                    — texto simples por enquanto, sem link quebrado. */}
                 <Text className="flex-1 text-sm text-gray-300">
-                  Aceito a Política de Privacidade e os Termos de Uso.
+                  {t("auth.acceptTerms", "Aceito a")} {t("privacyPolicy.title")}{" "}
+                  {t("auth.andThe", "e os")} {t("termsOfUse.title")}.
                 </Text>
               </Pressable>
               {errors.consentimento && (
@@ -159,13 +164,13 @@ export default function RegisterScreen() {
         />
 
         <Button onPress={onSubmit} isLoading={isSubmitting} className="w-full">
-          {isSubmitting ? "Cadastrando..." : "Registrar"}
+          {isSubmitting ? t("auth.registeringAccount") : t("auth.registerButton")}
         </Button>
 
         <View className="mt-6 flex-row justify-center gap-1">
-          <Text className="text-sm text-gray-300">Já tem uma conta?</Text>
+          <Text className="text-sm text-gray-300">{t("auth.alreadyAccount")}</Text>
           <Link href="/login" className="text-sm font-medium text-dourado">
-            Entrar aqui
+            {t("auth.loginHere")}
           </Link>
         </View>
       </View>

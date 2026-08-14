@@ -1,4 +1,6 @@
-import { FlatList, Image, Text, View } from "react-native";
+import { FlatList, Image, Pressable, Text, View } from "react-native";
+import { Link } from "expo-router";
+import { useTranslation } from "react-i18next";
 import { Users } from "lucide-react-native";
 import { useAlbumReviewsInfiniteQuery } from "@/queries/discovery";
 import { getInitials } from "@/lib/initials";
@@ -14,11 +16,9 @@ import type { AlbumReviewItem } from "@/shared/api/types";
  * altura — mais simples, mas mesma densidade visual) + `onEndReached` no
  * lugar do observer (mesma troca documentada no plan.md §6.6 pra
  * use-infinite-scroll).
- *
- * Link pro perfil público (`/profile/$userId/album/$albumId`) não navega
- * ainda — essas rotas são Fase 5 do plan.md.
  */
 export function AlbumReviewsList({ albumId }: { albumId: string }) {
+  const { t } = useTranslation();
   const { data, isLoading, hasNextPage, isFetchingNextPage, fetchNextPage } =
     useAlbumReviewsInfiniteQuery(albumId);
 
@@ -30,7 +30,7 @@ export function AlbumReviewsList({ albumId }: { albumId: string }) {
     <View>
       <View className="mb-3 flex-row items-center gap-2">
         <Users size={16} color={colors.dourado} />
-        <Text className="font-semibold text-white">Reviews de outros usuários</Text>
+        <Text className="font-semibold text-white">{t("communityReviews.title")}</Text>
       </View>
 
       <FlatList
@@ -40,7 +40,7 @@ export function AlbumReviewsList({ albumId }: { albumId: string }) {
         columnWrapperStyle={{ gap: 12 }}
         contentContainerStyle={{ gap: 12 }}
         scrollEnabled={false}
-        renderItem={({ item }) => <ReviewCard review={item} />}
+        renderItem={({ item }) => <ReviewCard review={item} albumId={albumId} />}
         onEndReached={() => hasNextPage && !isFetchingNextPage && fetchNextPage()}
         onEndReachedThreshold={0.5}
         ListFooterComponent={
@@ -55,29 +55,33 @@ export function AlbumReviewsList({ albumId }: { albumId: string }) {
   );
 }
 
-function ReviewCard({ review }: { review: AlbumReviewItem }) {
+function ReviewCard({ review, albumId }: { review: AlbumReviewItem; albumId: string }) {
+  const { t } = useTranslation();
+
   return (
-    <View className="flex-1 gap-1 rounded-xl border border-white/5 bg-cinza-escuro p-3">
-      <View className="flex-row items-center gap-2">
-        {review.userAvatarUrl ? (
-          <Image source={{ uri: review.userAvatarUrl }} className="h-6 w-6 rounded-full" />
+    <Link href={`/profile/${review.userId}/album/${albumId}`} asChild>
+      <Pressable className="flex-1 gap-1 rounded-xl border border-white/5 bg-cinza-escuro p-3">
+        <View className="flex-row items-center gap-2">
+          {review.userAvatarUrl ? (
+            <Image source={{ uri: review.userAvatarUrl }} className="h-6 w-6 rounded-full" />
+          ) : (
+            <View className="h-6 w-6 items-center justify-center rounded-full bg-cinza-medio">
+              <Text className="text-[10px] font-semibold text-gray-300">
+                {getInitials(review.userDisplayName)}
+              </Text>
+            </View>
+          )}
+          <Text className="flex-1 text-sm font-medium text-white" numberOfLines={1}>
+            {review.userDisplayName}
+          </Text>
+        </View>
+        <Text className="text-sm font-bold text-dourado">{review.averageScore.toFixed(1)}</Text>
+        {review.reviewText ? (
+          <Text className="text-sm text-gray-300">{review.reviewText}</Text>
         ) : (
-          <View className="h-6 w-6 items-center justify-center rounded-full bg-cinza-medio">
-            <Text className="text-[10px] font-semibold text-gray-300">
-              {getInitials(review.userDisplayName)}
-            </Text>
-          </View>
+          <Text className="text-sm italic text-gray-500">{t("communityReviews.ratingOnly")}</Text>
         )}
-        <Text className="flex-1 text-sm font-medium text-white" numberOfLines={1}>
-          {review.userDisplayName}
-        </Text>
-      </View>
-      <Text className="text-sm font-bold text-dourado">{review.averageScore.toFixed(1)}</Text>
-      {review.reviewText ? (
-        <Text className="text-sm text-gray-300">{review.reviewText}</Text>
-      ) : (
-        <Text className="text-sm italic text-gray-500">Avaliou sem deixar review</Text>
-      )}
-    </View>
+      </Pressable>
+    </Link>
   );
 }

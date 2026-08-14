@@ -1,5 +1,6 @@
 import { FlatList, Image, Pressable, Text, View } from "react-native";
 import { Link } from "expo-router";
+import { useTranslation } from "react-i18next";
 import { useFollowersQuery, useFollowingQuery } from "@/queries/follows";
 import { getInitials } from "@/lib/initials";
 import { Modal } from "@/components/ui/Modal";
@@ -18,6 +19,7 @@ export function FollowListModal({
   kind: FollowListKind | null;
   onOpenChange: (open: boolean) => void;
 }) {
+  const { t } = useTranslation();
   const followersQuery = useFollowersQuery(userId);
   const followingQuery = useFollowingQuery(userId);
 
@@ -29,14 +31,14 @@ export function FollowListModal({
     <Modal
       open={kind !== null}
       onOpenChange={onOpenChange}
-      title={kind === "followers" ? "Seguidores" : "Seguindo"}
+      title={kind === "followers" ? t("follow.followersTitle") : t("follow.followingTitle")}
     >
       {isLoading ? (
         <View className="items-center py-8">
           <Spinner size={24} />
         </View>
       ) : items.length === 0 ? (
-        <EmptyState title={kind === "followers" ? "Sem seguidores ainda" : "Não segue ninguém ainda"} />
+        <EmptyState title={kind === "followers" ? t("follow.emptyFollowers") : t("follow.emptyFollowing")} />
       ) : (
         <FlatList
           data={items}

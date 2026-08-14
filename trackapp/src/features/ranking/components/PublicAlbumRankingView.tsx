@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Image, Linking, ScrollView, Text, View } from "react-native";
 import { Link, router } from "expo-router";
+import { useTranslation } from "react-i18next";
 import { Ban, Heart, ListMusic, MessageSquare, Music, Star } from "lucide-react-native";
 import { useAlbumDetailQuery } from "@/queries/album-catalog";
 import { useUserRankingForAlbumQuery } from "@/queries/ranking";
@@ -24,6 +25,7 @@ import { useTrackPreviewPlayer } from "@/lib/use-track-preview-player";
 import { colors } from "@/lib/colors";
 
 function ExpandableText({ text }: { text: string }) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
 
   return (
@@ -32,7 +34,7 @@ function ExpandableText({ text }: { text: string }) {
         {text}
       </Text>
       <Button variant="ghost" size="sm" onPress={() => setOpen(true)} className="mt-1 self-start px-0">
-        <Text className="text-xs font-medium text-blue-400">Ver mais</Text>
+        <Text className="text-xs font-medium text-blue-400">{t("common.showMore")}</Text>
       </Button>
       <BottomSheet
         open={open}
@@ -40,7 +42,7 @@ function ExpandableText({ text }: { text: string }) {
         title={
           <View className="flex-row items-center gap-2">
             <MessageSquare size={16} color="#60a5fa" />
-            <Text className="text-base font-semibold text-white">Review</Text>
+            <Text className="text-base font-semibold text-white">{t("albumDetail.reviewHeading")}</Text>
           </View>
         }
       >
@@ -62,6 +64,7 @@ function formatDuration(ms: number): string {
  * (web) — visão somente-leitura do ranking de outro usuário.
  */
 export function PublicAlbumRankingView({ userId, albumId }: { userId: string; albumId: string }) {
+  const { t, i18n } = useTranslation();
   const preview = useTrackPreviewPlayer();
 
   const albumQuery = useAlbumDetailQuery(albumId);
@@ -84,7 +87,7 @@ export function PublicAlbumRankingView({ userId, albumId }: { userId: string; al
   if (albumQuery.isError || !albumQuery.data || rankingQuery.isError || !rankingQuery.data) {
     return (
       <View className="flex-1 items-center justify-center bg-grafite">
-        <ErrorState message="Ranking não encontrado." />
+        <ErrorState message={t("albumDetail.rankingNotFound")} />
       </View>
     );
   }
@@ -96,8 +99,8 @@ export function PublicAlbumRankingView({ userId, albumId }: { userId: string; al
   const ignoredByTrack = new Map(ranking.entries.map((e) => [e.trackId, e.ignored]));
   const isComplete = ranking.progress.percentage === 100;
   const scoreColor = getScoreColorClasses(ranking.averageScore, isComplete);
-  const favoriteTrackName = album.tracks.find((t) => t.spotifyId === ranking.review.favoriteTrackId)?.name;
-  const worstTrackName = album.tracks.find((t) => t.spotifyId === ranking.review.worstTrackId)?.name;
+  const favoriteTrackName = album.tracks.find((track) => track.spotifyId === ranking.review.favoriteTrackId)?.name;
+  const worstTrackName = album.tracks.find((track) => track.spotifyId === ranking.review.worstTrackId)?.name;
 
   return (
     <ScrollView className="flex-1 bg-grafite" contentContainerClassName="gap-6 p-4 pt-16 pb-10">
@@ -106,7 +109,7 @@ export function PublicAlbumRankingView({ userId, albumId }: { userId: string; al
         size="sm"
         onPress={() => (router.canGoBack() ? router.back() : router.replace("/feed"))}
       >
-        <Text className="text-sm font-semibold text-white">Voltar</Text>
+        <Text className="text-sm font-semibold text-white">{t("common.back")}</Text>
       </Button>
 
       {reviewer && (
@@ -124,9 +127,10 @@ export function PublicAlbumRankingView({ userId, albumId }: { userId: string; al
               )}
               <View className="min-w-0">
                 <Text className="text-sm text-gray-300">
-                  Avaliação de <Text className="font-semibold text-white">{reviewer.userDisplayName}</Text>
+                  {t("albumDetail.reviewedBy")}{" "}
+                  <Text className="font-semibold text-white">{reviewer.userDisplayName}</Text>
                 </Text>
-                <Text className="text-xs text-gray-500">{formatDate(ranking.updatedAt, "pt-BR")}</Text>
+                <Text className="text-xs text-gray-500">{formatDate(ranking.updatedAt, i18n.language)}</Text>
               </View>
             </View>
           </Link>
@@ -154,24 +158,24 @@ export function PublicAlbumRankingView({ userId, albumId }: { userId: string; al
               <Button size="sm" className="bg-blue-600">
                 <View className="flex-row items-center gap-1.5">
                   <Star size={14} color="#ffffff" />
-                  <Text className="text-sm font-semibold text-white">Avaliar agora</Text>
+                  <Text className="text-sm font-semibold text-white">{t("albumDetail.rateNow")}</Text>
                 </View>
               </Button>
             </Link>
             <Button size="sm" className="bg-[#1ED760]" onPress={() => Linking.openURL(`https://open.spotify.com/album/${album.spotifyId}`)}>
-              <Text className="text-sm font-bold text-black">Spotify</Text>
+              <Text className="text-sm font-bold text-black">{t("albumDetail.listenSpotify")}</Text>
             </Button>
             <Button size="sm" className="bg-[#FF0000]" onPress={() => Linking.openURL(buildYoutubeMusicSearchUrl(album.artist, album.name))}>
-              <Text className="text-sm font-bold text-white">YouTube</Text>
+              <Text className="text-sm font-bold text-white">{t("albumDetail.listenYoutube")}</Text>
             </Button>
             <Button size="sm" className="bg-white" onPress={() => Linking.openURL(buildAppleMusicSearchUrl(album.artist, album.name))}>
-              <Text className="text-sm font-bold text-black">Apple Music</Text>
+              <Text className="text-sm font-bold text-black">{t("albumDetail.listenAppleMusic")}</Text>
             </Button>
           </View>
 
           <View className="w-full max-w-md gap-4">
             <View className="flex-row flex-wrap items-baseline justify-center gap-2">
-              <Text className="text-sm font-medium text-gray-400">Média geral</Text>
+              <Text className="text-sm font-medium text-gray-400">{t("albumDetail.averageScore")}</Text>
               <Text className={cn("text-4xl font-bold leading-none", scoreColor.text)}>
                 {ranking.averageScore.toFixed(1)}
               </Text>
@@ -179,7 +183,9 @@ export function PublicAlbumRankingView({ userId, albumId }: { userId: string; al
             </View>
             <View>
               <ProgressBar value={ranking.progress.percentage} className="h-3" />
-              <Text className="mt-1.5 text-sm text-gray-400">{ranking.progress.percentage}% avaliado</Text>
+              <Text className="mt-1.5 text-sm text-gray-400">
+                {t("albumDetail.ratedPercentage", { percentage: ranking.progress.percentage })}
+              </Text>
             </View>
           </View>
         </View>
@@ -189,34 +195,34 @@ export function PublicAlbumRankingView({ userId, albumId }: { userId: string; al
         <Card>
           <View className="mb-1 flex-row items-center gap-1.5">
             <MessageSquare size={14} color="#60a5fa" />
-            <Text className="text-sm font-medium text-blue-400">Review</Text>
+            <Text className="text-sm font-medium text-blue-400">{t("albumDetail.reviewHeading")}</Text>
           </View>
           {ranking.review.text ? (
             <ExpandableText text={ranking.review.text} />
           ) : (
-            <Text className="text-sm text-gray-200">Ainda não escolhida</Text>
+            <Text className="text-sm text-gray-200">{t("review.notChosen")}</Text>
           )}
         </Card>
         <Card>
           <View className="mb-1 flex-row items-center gap-1.5">
             <Heart size={14} color="#f87171" />
-            <Text className="text-sm font-medium text-red-400">Faixa favorita</Text>
+            <Text className="text-sm font-medium text-red-400">{t("review.favoriteTrack")}</Text>
           </View>
-          <Text className="text-sm text-gray-200">{favoriteTrackName ?? "Ainda não escolhida"}</Text>
+          <Text className="text-sm text-gray-200">{favoriteTrackName ?? t("review.notChosen")}</Text>
         </Card>
         <Card>
           <View className="mb-1 flex-row items-center gap-1.5">
             <Ban size={14} color="#9ca3af" />
-            <Text className="text-sm font-medium text-gray-400">Pior faixa</Text>
+            <Text className="text-sm font-medium text-gray-400">{t("review.worstTrack")}</Text>
           </View>
-          <Text className="text-sm text-gray-200">{worstTrackName ?? "Ainda não escolhida"}</Text>
+          <Text className="text-sm text-gray-200">{worstTrackName ?? t("review.notChosen")}</Text>
         </Card>
       </View>
 
       <View className="gap-2">
         <View className="mb-1 flex-row items-center gap-2">
           <ListMusic size={16} color={colors.dourado} />
-          <Text className="font-semibold text-white">Faixas</Text>
+          <Text className="font-semibold text-white">{t("albumDetail.tracks")}</Text>
         </View>
         {album.tracks.map((track, index) => {
           const isIgnored = ignoredByTrack.get(track.spotifyId) ?? false;
@@ -236,7 +242,7 @@ export function PublicAlbumRankingView({ userId, albumId }: { userId: string; al
               </View>
               <View className="w-full flex-row justify-end sm:w-auto">
                 {isIgnored ? (
-                  <Text className="text-xs italic text-gray-500">Ignorada</Text>
+                  <Text className="text-xs italic text-gray-500">{t("albumDetail.trackIgnored")}</Text>
                 ) : (
                   <StarRating value={scoreByTrack.get(track.spotifyId) ?? 0} disabled onChange={() => {}} />
                 )}

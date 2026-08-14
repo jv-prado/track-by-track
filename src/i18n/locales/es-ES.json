@@ -25,7 +25,8 @@
     "notApplicable": "No aplica",
     "tracksProgress": "{{rated}}/{{total}} pistas",
     "showMore": "Ver más",
-    "dismiss": "Descartar"
+    "dismiss": "Descartar",
+    "close": "Cerrar"
   },
   "auth": {
     "email": "Email",
@@ -171,6 +172,7 @@
     "ratedPercentage": "{{percentage}}% valorado",
     "yourReview": "Tu reseña",
     "rateNow": "Valorar ahora",
+    "viewFull": "Ver completo",
     "reviewedBy": "Valoración de",
     "reviewedOn": "Valorado el {{date}}",
     "reviewHeading": "Reseña",

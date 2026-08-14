@@ -19,9 +19,17 @@ export default function AppLayout() {
     <Tabs tabBar={(props) => <AppTabBar {...props} />} screenOptions={{ headerShown: false }}>
       <Tabs.Screen name="feed" />
       <Tabs.Screen name="search" />
-      <Tabs.Screen name="discover/index" />
+      <Tabs.Screen name="discover" />
       <Tabs.Screen name="my-rankings" />
-      <Tabs.Screen name="top-albums/index" />
+      <Tabs.Screen name="top-albums" />
+      {/* Fora da tab bar (href: null) — alcançadas pelo menu de Perfil ou por
+          links dentro de outras telas, mas continuam dentro do Tabs pra tab
+          bar (AppTabBar) ficar visível, igual ao _app.tsx persistente do web. */}
+      <Tabs.Screen name="profile/index" options={{ href: null }} />
+      <Tabs.Screen name="profile/[userId]/index" options={{ href: null }} />
+      <Tabs.Screen name="profile/[userId]/album/[albumId]" options={{ href: null }} />
+      <Tabs.Screen name="album/[albumId]" options={{ href: null }} />
+      <Tabs.Screen name="delete-account" options={{ href: null }} />
     </Tabs>
   );
 }

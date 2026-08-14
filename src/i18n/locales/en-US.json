@@ -25,7 +25,8 @@
     "notApplicable": "Not applicable",
     "tracksProgress": "{{rated}}/{{total}} tracks",
     "showMore": "Show more",
-    "dismiss": "Dismiss"
+    "dismiss": "Dismiss",
+    "close": "Close"
   },
   "auth": {
     "email": "Email",
@@ -171,6 +172,7 @@
     "ratedPercentage": "{{percentage}}% rated",
     "yourReview": "Your review",
     "rateNow": "Rate now",
+    "viewFull": "View full",
     "reviewedBy": "Review by",
     "reviewedOn": "Rated on {{date}}",
     "reviewHeading": "Review",

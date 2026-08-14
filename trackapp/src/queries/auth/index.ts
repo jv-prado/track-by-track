@@ -12,6 +12,7 @@ export {
   useDeleteAccountMutation,
   type DeleteAccountInput,
 } from "./useDeleteAccountMutation";
+export { useUploadAvatarMutation, type AvatarFile } from "./useUploadAvatarMutation";
 export {
   useRequestPasswordResetMutation,
   type RequestPasswordResetInput,
@@ -21,6 +22,3 @@ export {
   type ResetPasswordInput,
 } from "./useResetPasswordMutation";
 
-// useUploadAvatarMutation não portado nesta fase — RN precisa de
-// expo-image-picker + FormData com { uri, name, type } em vez de File do
-// browser; fica pra fase de mídia/perfil (não bloqueia login/registro).

@@ -1,4 +1,5 @@
 import { Pressable, Text, View } from "react-native";
+import { useTranslation } from "react-i18next";
 import { Pause, Play } from "lucide-react-native";
 import { Spinner } from "@/components/ui/Spinner";
 import { colors } from "@/lib/colors";
@@ -40,6 +41,8 @@ export function TrackPreviewPlayer({
   onToggle,
   onSeek,
 }: TrackPreviewPlayerProps) {
+  const { t } = useTranslation();
+
   if (previewUrl === null) {
     return <View style={{ width: 28 }} />;
   }
@@ -52,7 +55,7 @@ export function TrackPreviewPlayer({
       <Pressable
         onPress={onToggle}
         disabled={isLoading}
-        accessibilityLabel={isPlaying ? "Pausar prévia" : "Ouvir prévia"}
+        accessibilityLabel={isPlaying ? t("albumDetail.pausePreview") : t("albumDetail.playPreview")}
         className="h-7 w-7 items-center justify-center rounded-full bg-white/5"
       >
         {isLoading ? (
@@ -73,7 +76,7 @@ export function TrackPreviewPlayer({
               const ratio = locationX / 96; // w-24 == 96px
               onSeek(Math.max(0, Math.min(duration, ratio * duration)));
             }}
-            accessibilityLabel="Ir para trecho da prévia"
+            accessibilityLabel={t("albumDetail.seekPreview")}
             className="h-7 w-24 flex-row items-end gap-[2px]"
           >
             {bars.map((peak, index) => {

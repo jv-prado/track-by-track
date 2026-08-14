@@ -1,4 +1,5 @@
 import { Text, View } from "react-native";
+import { useTranslation } from "react-i18next";
 import { Heart, Ban } from "lucide-react-native";
 import { useSaveReviewMutation } from "@/queries/ranking";
 import type { AlbumTrack } from "@/shared/api/types";
@@ -25,6 +26,7 @@ export function FavoriteWorstPicker({
   favoriteTrackId,
   worstTrackId,
 }: FavoriteWorstPickerProps) {
+  const { t } = useTranslation();
   const saveFavorite = useSaveReviewMutation();
   const saveWorst = useSaveReviewMutation();
 
@@ -36,7 +38,7 @@ export function FavoriteWorstPicker({
       <View>
         <View className="mb-1.5 flex-row items-center gap-1.5">
           <Heart size={14} color="#f87171" />
-          <Text className="text-sm font-medium text-red-400">Faixa favorita</Text>
+          <Text className="text-sm font-medium text-red-400">{t("review.favoriteTrack")}</Text>
           {saveFavorite.isPending && <Spinner size={14} />}
         </View>
         <Select
@@ -45,27 +47,27 @@ export function FavoriteWorstPicker({
             saveFavorite.mutate(
               { rankingId, albumId, favoriteTrackId: value === NONE_VALUE ? null : value },
               {
-                onSuccess: () => toast.success("Faixa favorita salva"),
+                onSuccess: () => toast.success(t("review.favoriteTrackSaved")),
                 onError: (error) => toast.error(toApiError(error).message),
               },
             )
           }
           options={[
-            { value: NONE_VALUE, label: "Não se aplica" },
+            { value: NONE_VALUE, label: t("common.notApplicable") },
             ...tracks.map((track) => ({
               value: track.spotifyId,
               label: `${track.trackNumber}. ${track.name}`,
               disabled: track.spotifyId === worstValue,
             })),
           ]}
-          placeholder="Faixa favorita"
+          placeholder={t("review.favoriteTrack")}
         />
       </View>
 
       <View>
         <View className="mb-1.5 flex-row items-center gap-1.5">
           <Ban size={14} color="#9ca3af" />
-          <Text className="text-sm font-medium text-gray-400">Pior faixa</Text>
+          <Text className="text-sm font-medium text-gray-400">{t("review.worstTrack")}</Text>
           {saveWorst.isPending && <Spinner size={14} />}
         </View>
         <Select
@@ -74,20 +76,20 @@ export function FavoriteWorstPicker({
             saveWorst.mutate(
               { rankingId, albumId, worstTrackId: value === NONE_VALUE ? null : value },
               {
-                onSuccess: () => toast.success("Pior faixa salva"),
+                onSuccess: () => toast.success(t("review.worstTrackSaved")),
                 onError: (error) => toast.error(toApiError(error).message),
               },
             )
           }
           options={[
-            { value: NONE_VALUE, label: "Não se aplica" },
+            { value: NONE_VALUE, label: t("common.notApplicable") },
             ...tracks.map((track) => ({
               value: track.spotifyId,
               label: `${track.trackNumber}. ${track.name}`,
               disabled: track.spotifyId === favoriteValue,
             })),
           ]}
-          placeholder="Pior faixa"
+          placeholder={t("review.worstTrack")}
         />
       </View>
     </View>

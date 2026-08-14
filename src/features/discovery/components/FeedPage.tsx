@@ -14,6 +14,8 @@ import { Spinner } from "@/shared/ui/Spinner";
 import { GenreFilter } from "@/shared/ui/GenreFilter";
 import { genreLabel } from "@/shared/lib/genreLabel";
 import { BottomSheet } from "@/shared/ui/BottomSheet";
+import { AlbumPreviewSheet } from "./AlbumPreviewSheet";
+import type { FeedItem } from "@/shared/api/types";
 
 const GRID_CLASSES =
   "grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] gap-3 sm:grid-cols-[repeat(auto-fill,minmax(200px,1fr))] sm:gap-5";
@@ -24,6 +26,7 @@ export function FeedPage() {
   const { scope, genre } = useSearch({ from: "/_app/feed" });
   const navigate = useNavigate({ from: "/feed" });
   const [genreSheetOpen, setGenreSheetOpen] = useState(false);
+  const [previewItem, setPreviewItem] = useState<FeedItem | null>(null);
   // catálogo curado: mesmo vocabulário do Top Álbuns/Meus Rankings.
   const { data: genres } = useGenresQuery();
   const { data, isLoading, isError, refetch, fetchNextPage, hasNextPage, isFetchingNextPage } =
@@ -119,6 +122,7 @@ export function FeedPage() {
                 item={item}
                 variant="grid"
                 linkTo="/feed/$userId/album/$albumId"
+                onOpen={setPreviewItem}
               />
             ))}
           </div>
@@ -166,6 +170,17 @@ export function FeedPage() {
           ))}
         </div>
       </BottomSheet>
+
+      {previewItem && (
+        <AlbumPreviewSheet
+          open={Boolean(previewItem)}
+          onOpenChange={(next) => !next && setPreviewItem(null)}
+          userId={previewItem.userId}
+          albumId={previewItem.albumId}
+          reviewerName={previewItem.userDisplayName}
+          linkTo="/feed/$userId/album/$albumId"
+        />
+      )}
     </div>
   );
 }

@@ -1,5 +1,6 @@
-import { UserPlus, UserCheck } from "lucide-react-native";
 import { Text } from "react-native";
+import { useTranslation } from "react-i18next";
+import { UserPlus, UserCheck } from "lucide-react-native";
 import { useFollowMutation, useFollowStatsQuery, useUnfollowMutation } from "@/queries/follows";
 import { useAuthStore } from "@/shared/auth/auth.store";
 import { Button } from "@/components/ui/Button";
@@ -16,6 +17,7 @@ export function FollowButton({
   size?: "sm" | "md";
   className?: string;
 }) {
+  const { t } = useTranslation();
   const currentUser = useAuthStore((s) => s.user);
   const statsQuery = useFollowStatsQuery(userId);
   const follow = useFollowMutation();
@@ -30,7 +32,7 @@ export function FollowButton({
   const handlePress = () => {
     const mutation = isFollowing ? unfollow : follow;
     mutation.mutate(userId, {
-      onError: (error) => toast.error(getApiErrorMessage(error, "Não foi possível seguir.")),
+      onError: (error) => toast.error(getApiErrorMessage(error, t("follow.error"))),
     });
   };
 
@@ -49,7 +51,7 @@ export function FollowButton({
           <UserPlus size={16} color="#ffffff" />
         )}
         <Text className={isFollowing ? "text-sm font-semibold text-dourado" : "text-sm font-semibold text-white"}>
-          {isFollowing ? "Seguindo" : "Seguir"}
+          {isFollowing ? t("follow.following") : t("follow.follow")}
         </Text>
       </>
     </Button>

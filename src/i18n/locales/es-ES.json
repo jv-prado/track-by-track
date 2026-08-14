@@ -200,6 +200,7 @@
     "rankingNotFound": "Ranking no encontrado.",
     "averageScore": "Puntuación media",
     "community": "Comunidad",
+    "communityEmpty": "Sin puntuaciones de la comunidad todavía",
     "progress": "Progreso de la valoración",
     "history": "Historial",
     "firstRating": "Primera valoración",

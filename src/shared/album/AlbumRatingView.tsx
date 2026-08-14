@@ -207,26 +207,38 @@ export function AlbumRatingView({ albumId }: { albumId: string }) {
                     </span>
                     <span className="text-gray-500 text-lg sm:text-xl">/10</span>
                   </div>
-                  {statsQuery.data && statsQuery.data.ratingsCount > 0 && (
-                    <div
-                      className={cn(
-                        "inline-flex items-center gap-1.5 self-center sm:self-start rounded-full border px-2.5 py-1 -mt-1",
-                        getScoreColorClasses(statsQuery.data.averageScore, true).bg,
-                        getScoreColorClasses(statsQuery.data.averageScore, true).border,
-                      )}
-                    >
-                      <span className="text-gray-400 text-xs">{t("albumDetail.community")}</span>
-                      <span
+                  {statsQuery.data ? (
+                    statsQuery.data.ratingsCount > 0 ? (
+                      <div
                         className={cn(
-                          "text-sm font-bold",
-                          getScoreColorClasses(statsQuery.data.averageScore, true).text,
+                          "inline-flex items-center gap-1.5 self-center sm:self-start rounded-full border px-2.5 py-1 -mt-1",
+                          getScoreColorClasses(statsQuery.data.averageScore, true).bg,
+                          getScoreColorClasses(statsQuery.data.averageScore, true).border,
                         )}
                       >
-                        {statsQuery.data.averageScore.toFixed(1)}
-                      </span>
-                      <span className="text-gray-500 text-xs">
-                        ({t("communityStats.ratingsCount", { count: statsQuery.data.ratingsCount })})
-                      </span>
+                        <span className="text-gray-400 text-xs">{t("albumDetail.community")}</span>
+                        <span
+                          className={cn(
+                            "text-sm font-bold",
+                            getScoreColorClasses(statsQuery.data.averageScore, true).text,
+                          )}
+                        >
+                          {statsQuery.data.averageScore.toFixed(1)}
+                        </span>
+                        <span className="text-gray-500 text-xs">
+                          ({t("communityStats.ratingsCount", { count: statsQuery.data.ratingsCount })})
+                        </span>
+                      </div>
+                    ) : (
+                      <div className="inline-flex items-center gap-1.5 self-center sm:self-start rounded-full border border-white/10 bg-white/5 px-2.5 py-1 -mt-1">
+                        <span className="text-gray-400 text-xs">{t("albumDetail.community")}</span>
+                        <span className="text-gray-500 text-xs italic">{t("albumDetail.communityEmpty")}</span>
+                      </div>
+                    )
+                  ) : (
+                    <div className="inline-flex items-center gap-1.5 self-center sm:self-start rounded-full border border-white/10 bg-white/5 px-2.5 py-1 -mt-1 animate-pulse">
+                      <span className="text-gray-400 text-xs">{t("albumDetail.community")}</span>
+                      <span className="h-3 w-10 rounded bg-white/10" />
                     </div>
                   )}
 

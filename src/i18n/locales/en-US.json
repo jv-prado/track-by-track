@@ -200,6 +200,7 @@
     "rankingNotFound": "Ranking not found.",
     "averageScore": "Average score",
     "community": "Community",
+    "communityEmpty": "No community ratings yet",
     "progress": "Rating progress",
     "history": "History",
     "firstRating": "First rating",

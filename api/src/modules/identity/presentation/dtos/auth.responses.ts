@@ -17,14 +17,23 @@ export const authUserSummarySchema = z.object({
   avatarUrl: z.string().optional(),
 });
 
+/**
+ * `refreshToken` só vem preenchido quando a request chega com header
+ * `X-Client: mobile` (ver AuthController.isMobileClient) — web nunca recebe
+ * esse campo, continua só no cookie httpOnly (não expor refresh token a JS de
+ * página é o motivo do cookie existir). Mobile não tem cookie jar de browser,
+ * então precisa do valor no corpo pra guardar em secure storage.
+ */
 export const loginResponseSchema = z.object({
   accessToken: z.string(),
   user: authUserSummarySchema,
+  refreshToken: z.string().optional(),
 });
 
 /** Refresh não reenvia o usuário: o token novo basta pro cliente seguir. */
 export const refreshResponseSchema = z.object({
   accessToken: z.string(),
+  refreshToken: z.string().optional(),
 });
 
 export const registerResponseSchema = z.object({

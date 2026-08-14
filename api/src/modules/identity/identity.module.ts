@@ -18,6 +18,7 @@ import { RefreshTokenUseCase } from './application/use-cases/refresh-token/refre
 import { GetCurrentUserUseCase } from './application/use-cases/get-current-user/get-current-user.use-case';
 import { RequestPasswordResetUseCase } from './application/use-cases/request-password-reset/request-password-reset.use-case';
 import { ResetPasswordUseCase } from './application/use-cases/reset-password/reset-password.use-case';
+import { DirectPasswordResetUseCase } from './application/use-cases/direct-password-reset/direct-password-reset.use-case';
 import { LogoutUseCase } from './application/use-cases/logout/logout.use-case';
 import { UpdateProfileUseCase } from './application/use-cases/update-profile/update-profile.use-case';
 import { UploadAvatarUseCase } from './application/use-cases/upload-avatar/upload-avatar.use-case';
@@ -95,6 +96,7 @@ import { AuthController } from './presentation/auth.controller';
     GetCurrentUserUseCase,
     RequestPasswordResetUseCase,
     ResetPasswordUseCase,
+    DirectPasswordResetUseCase,
     LogoutUseCase,
     UpdateProfileUseCase,
     UploadAvatarUseCase,

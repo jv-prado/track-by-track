@@ -81,6 +81,16 @@
       "post": {
         "operationId": "AuthController_refresh",
         "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RefreshDto"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "",
@@ -102,6 +112,16 @@
       "post": {
         "operationId": "AuthController_logoutRoute",
         "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RefreshDto"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "",
@@ -1903,6 +1923,9 @@
               "email",
               "displayName"
             ]
+          },
+          "refreshToken": {
+            "type": "string"
           }
         },
         "required": [
@@ -1910,10 +1933,22 @@
           "user"
         ]
       },
+      "RefreshDto": {
+        "type": "object",
+        "properties": {
+          "refreshToken": {
+            "type": "string"
+          }
+        },
+        "default": {}
+      },
       "RefreshResponseDto": {
         "type": "object",
         "properties": {
           "accessToken": {
+            "type": "string"
+          },
+          "refreshToken": {
             "type": "string"
           }
         },

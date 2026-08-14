@@ -268,5 +268,179 @@ testado (login → ranking → feed → perfil → logout) nos dois.
 
 ---
 
-**Próximo passo:** revisar este plano, confirmar decisão de navegação (sidebar→tabbar, §5) e
-partir pra Fase 1.
+## Status
+
+### Fase 1 — Scaffold + fundação — ✅ concluída (2026-08-14)
+
+- `npx create-expo-app` (SDK 57, Expo Router, TS strict) mesclado em `trackapp/` (mantendo este
+  `plan.md`).
+- NativeWind **4.2.6** instalado — importante: essa versão só suporta **Tailwind v3**, não v4
+  (a doc oficial mais recente mostra sintaxe `@import "tailwindcss"` CSS-first, mas é da v5
+  pré-release; não usar essa sintaxe até upgrade explícito do NativeWind). Setup real: `babel.config.js`
+  (`nativewind/babel` vai em `presets`, não `plugins` — é preset, não plugin, apesar do que a doc
+  mostra) + `metro.config.js` (`withNativeWind`, W maiúsculo) + `tailwind.config.js` clássico com
+  `theme.extend.colors`/`fontSize` = tokens 1:1 da §3.
+- Fonts: 6 arquivos `.otf` copiados de `src/assets/fonts` (web) pra `trackapp/assets/fonts`,
+  carregados via `useFonts` em `src/lib/fonts.ts` — cada peso é uma família própria (RN não
+  sintetiza negrito de uma custom font única).
+- Pasta esquelética criada (`components/{ui,album,layout,social}`, `features/*/components`,
+  `queries/*`, `lib/`, `shared/{api,auth}`) — vazia, populada nas próximas fases.
+- Tela `src/app/index.tsx` é só **prova visual de token** (cor+fonte), não é tela do produto —
+  remover quando a Fase 3 começar.
+- `EXPO_PUBLIC_API_URL=https://trackbytrack.fly.dev/v1` em `.env` (mesmo padrão do `.env` da
+  raiz do web).
+- Validado: `npm run typecheck` limpo, `npm run lint` limpo, `npx expo export --platform
+  android` bundla sem erro (1670 módulos, fonts inclusas nos assets).
+
+### Fase 2 — Auth + camada de dados — ✅ concluída (2026-08-14)
+
+**API (`api/`, mudança aditiva, não quebra o web):**
+- Header `X-Client: mobile` é o sinal que o app manda em toda request (`shared/api/http.ts`).
+  `login`/`refresh` só devolvem `refreshToken` no corpo quando esse header está presente —
+  web nunca recebe o campo extra, continua só no cookie httpOnly.
+- `refresh`/`logout` aceitam o token via cookie **ou** corpo (`RefreshDto`, novo,
+  `refreshToken` opcional) — cookie continua tendo prioridade quando presente (web não muda).
+- `loginResponseSchema`/`refreshResponseSchema` ganharam `refreshToken?: string` (campo
+  opcional, aditivo — `response-contracts.spec.ts` atualizado pra refletir o novo shape
+  esperado). `openapi.json` regenerado, `schema.d.ts` do mobile regenerado (`npm run api:types`).
+- **Bug real achado pelo e2e** (`test/auth.e2e-spec.ts`): adicionar `@Body() dto: RefreshDto`
+  quebrou o fluxo do **web** — `refresh`/`logout` do web chamam sem corpo nenhum (só cookie,
+  sem Content-Type), `req.body` chega `undefined`, Zod rejeita objeto ausente mesmo com o campo
+  opcional → 422 em vez de 200. Corrigido com `.default({})` no schema (substitui `undefined`
+  por `{}` antes de validar). Sem o e2e isso só apareceria em produção, com o web quebrado.
+- Validado: suite unitária (`npx jest`) — 223 testes/33 suites — e **e2e completo**
+  (`npm run test:e2e`) — 9 testes/3 suites — 0 falhas nos dois, depois do fix.
+
+**Mobile (`trackapp/`):**
+- `shared/api/{errors,types,http}.ts` — porta 1:1 do web, `http.ts` adaptado (sem cookie jar):
+  `expo-secure-store` guarda o refresh token (Keychain/Keystore), single-flight refresh idêntico
+  ao web, `router.replace("/login")` no lugar de `window.location.assign`.
+- `shared/auth/auth.store.ts` (Zustand, mesma forma exata do web) + `secure-storage.ts` (novo,
+  sem equivalente web — é o que substitui o cookie).
+- `queries/auth/*` — todos os hooks portados **exceto** `useUploadAvatarMutation` (RN precisa
+  de `expo-image-picker` + `FormData` com `{uri,name,type}`, não `File` do browser — fica pra
+  fase de mídia/perfil, não bloqueia auth).
+- `components/ui/{Button,Input,PasswordInput,FormField,Spinner,Toast,toast-store}.tsx` — só o
+  necessário pra Fase 2 rodar (o resto dos 19 é Fase 3). `Spinner` usa Reanimated pra rotação
+  (RN não tem `animate-spin` de CSS); resto é tradução direta de className.
+- `react-native-svg` + `react-native-svg-transformer` configurados (`metro.config.js`) só pra
+  renderizar o `Logo.svg` **exato** do web (copiado de `src/assets/logo.svg`), sem converter
+  pra PNG.
+- **`zod` pinado em `^3.25.76`** (mesma versão do web) em vez do `^4` que o npm resolveria por
+  default — API do Zod mudou entre v3/v4 (`errorMap` vs `error`), pinar evita ter que traduzir
+  a lógica de validação do `RegisterForm` na hora de portar.
+- `(auth)/login.tsx` e `(auth)/register.tsx` — 1:1 com `LoginForm`/`RegisterForm` do web, mesmo
+  schema Zod, mesmas mensagens de erro, mesmo comportamento (`rememberMe` continua no-op, igual
+  o original). `index.tsx` virou gate de sessão temporário (Redirect pro login se deslogado,
+  card "Sessão ativa" + botão Sair se logado) — placeholder até a Fase 4 construir a home real.
+- **Adiado, não esquecido:** links de rodapé pra Política de Privacidade/Termos de Uso/Sobre
+  (rotas ainda não existem, Fase 4/6) — texto simples por enquanto, sem link quebrado.
+- Validado: `npm run typecheck` limpo, `npm run lint` limpo, `npx expo export --platform
+  android` bundla sem erro (3662 módulos).
+
+### Fase 3 — Design system base + tab bar — ✅ concluída (2026-08-14)
+
+**Componentes portados** (`components/ui/`, os 14 que faltavam — 6 já tinham vindo da Fase 2):
+`Card`, `Skeleton`, `ProgressBar`, `TextArea`, `StatCard`, `EmptyState`, `ErrorState`,
+`BrandIcon`, `Pagination`, `ViewToggle`, `Select`, `GenreFilter`, `Modal`, `BottomSheet`.
+
+**Simplificações deliberadas (RN é só telefone, sem breakpoint de desktop):**
+- `Modal`/`BottomSheet`/`Select` no web têm variante desktop (dropdown ancorado, drawer
+  lateral, modal centralizado) **e** variante mobile (bottom sheet) alternando por
+  `sm:`/`max-width: 639px`. RN só roda em telefone — então essas 3 portam **sempre** como a
+  variante mobile do web, sem a ramificação de desktop. Não é bug nem invenção, é a mesma UI
+  que o web já mostra abaixo de 640px.
+- `mobileIconOnly` (Select/GenreFilter) não tem breakpoint pra alternar em RN — tratado igual
+  `iconOnly` sempre, documentado no código.
+- `hover:` do web (Button) virou `active:` (feedback de toque) — mesmos valores de cor, só
+  troca o evento que dispara.
+- Animações CSS (`animate-spin`, `animate-pulse`, overlay/sheet fade+slide) todas portadas via
+  `react-native-reanimated` com a **mesma duração e curva de easing** do `index.css` original
+  (bezier copiado literal, não aproximado).
+- `BrandIcon` (Spotify/YouTube/Apple Music): mesmo path SVG oficial via `react-native-svg`
+  (`Svg`/`Path`), `fill="currentColor"` do web virou prop `color` explícita (RN não tem esse
+  keyword CSS).
+
+**Bug próprio corrigido:** `Button.tsx` da Fase 2 restringia `children` a `string` — quebrava o
+uso de `Pagination` (botão só com ícone, sem texto, igual ao web). Corrigido pra `ReactNode`,
+com wrap automático em `<Text>` só quando a criança é string (RN não aceita texto solto fora de
+`<Text>`, HTML aceita).
+
+**Tela de QA criada:** `src/app/_dev-components.tsx` — renderiza os 19 componentes lado a lado
+pra comparação visual 1:1 com o web (dev-only, mesmo espírito do `_dev-tokens.tsx` da Fase 1).
+
+**Tab bar (`(app)/_layout.tsx` + `components/layout/AppTabBar.tsx`):**
+- Porta 1:1 de `AppSidebar.tsx:239-335` (variante mobile do web) — mesmos 5 ícones/rotas +
+  6º slot de Perfil (não é rota, abre `BottomSheet` com Perfil/Configurações/Sair).
+- Indicador dourado deslizante via Reanimated, mesma curva/duração do web.
+- Guard real: `(app)/_layout.tsx` faz `<Redirect href="/login" />` se `!isAuthenticated` —
+  equivalente ao `beforeLoad` do TanStack Router (seção 5.5 do `CLAUDE.md`), mesma ideia.
+- **Gotcha real resolvido:** `<Tabs tabBar={...}>` do Expo Router não aceita o
+  `BottomTabBarProps` importado de `@react-navigation/bottom-tabs` direto — o Expo Router usa
+  uma versão vendorizada/ajustada desse tipo (`ColorValue` vs `string` no `tintColor`, entre
+  outras). Import correto: `expo-router/build/react-navigation/bottom-tabs`.
+- 5 telas placeholder (`feed`, `search`, `discover`, `my-rankings`, `top-albums`) — conteúdo
+  real é Fase 4/5, isso só prova que a navegação funciona.
+
+**Adiado (não esquecido):** language selector no menu de perfil (i18n do mobile não existe
+ainda, mesmo gap da Fase 2).
+
+Validado: `npm run typecheck` limpo, `npm run lint` limpo, `npx expo export --platform
+android` bundla sem erro (3687 módulos, todos os componentes novos de fato referenciados e
+passando pelo pipeline do Metro — não só typecheck).
+
+### Fase 4 — Ranking de álbum (o coração do produto) — ✅ concluída (2026-08-14)
+
+**Escopo real desta fase** (ajustado do "home, feed" original): o feed de verdade depende do
+módulo social/discovery inteiro (segue, feed global) — isso é Fase 5. Fase 4 focou no que o
+`plan.md` já chamava de critério de aceite: **fluxo completo de avaliar um álbum**. Ponto de
+entrada construído pra chegar lá: busca de álbum (`SearchPage`/`AlbumCard`) → detalhe/ranking
+(`AlbumRatingView`).
+
+**Portado, 1:1:**
+- `lib/`: `date.ts`, `youtube.ts`, `appleMusic.ts`, `scoreColor.ts` (+`colorHex` pra onde
+  precisa de cor crua, ex: ícone SVG), `use-rotating-loading-text.ts`, `initials.ts`.
+- `queries/ranking/*` (8 hooks, keys, index) — update otimista de `useRateTrackMutation`/
+  `useSetTrackIgnoredMutation` portado sem alteração (mesma guarda contra resposta fora de
+  ordem via `mutationKey`).
+- `queries/album-catalog/*` — só o necessário pro fluxo (`useSearchAlbumsInfiniteQuery`,
+  `useAlbumDetailQuery`, `useTrackPreviewQuery`); genres/new-releases/top-chart ficam pra
+  Fase 5 (Discover).
+- `queries/discovery/*` — idem, só `useAlbumStatsQuery`/`useAlbumReviewsInfiniteQuery` (o
+  `keys.ts` foi portado inteiro, é barato).
+- `components/album/`: `StarRating`, `FavoriteWorstPicker`, `RankingActions`, `ReviewForm`,
+  `AlbumHeaderSkeleton`, `AlbumStatsSection`, `AlbumReviewsList`, `TrackPreviewCell`,
+  `TrackPreviewPlayer`, `AlbumRatingView` (a tela principal).
+- `features/album-catalog/components/`: `AlbumCard`, `SearchPage`.
+- Rotas: `(app)/search/index.tsx` (real, troca o placeholder), `(app)/search/[albumId].tsx`
+  (novo — nested `_layout.tsx` Stack dentro da tab Buscar, pra tab bar continuar visível ao
+  abrir o detalhe, igual ao `_app.tsx` persistente do web).
+
+**Simplificações deliberadas, documentadas no código:**
+- **Waveform da prévia de áudio**: web decodifica a waveform real via Web Audio API
+  (`decode-waveform.ts`, `AudioContext` — não existe em RN sem módulo nativo de DSP). **Não
+  portado** — `TrackPreviewPlayer` sempre usa a mesma barra "achatada" que o próprio web já usa
+  como fallback antes da waveform real carregar. Reprodução em si funciona de verdade
+  (`expo-av`, `Audio.Sound`), só a visualização de amplitude que fica no fallback.
+- **`StarRating`**: web desliga o preview por hover pra touch (`pointerType === "touch"` já
+  retorna cedo) — ou seja, o comportamento touch do próprio web é exatamente os 2 alvos de
+  toque por estrela que esta versão implementa. Não é simplificação, é a mesma lógica de touch
+  que o web já tinha.
+- **`AlbumReviewsList`**: web usa CSS multi-column (masonry por altura, `columns-2 sm:columns-3`)
+  — RN não tem isso. Virou `FlatList numColumns={2}` (grid regular, mesma densidade, sem
+  balanceamento de altura). Infinite scroll trocou `IntersectionObserver` por `onEndReached`
+  (mesma troca já documentada no §6.6 pro resto do app).
+- **Compartilhar review**: web usa `navigator.share`/clipboard — RN usa `Share.share()` nativo
+  (share sheet do SO), mesmo link (`/profile/$userId/album/$albumId`, ainda não navegável no
+  app — rota é Fase 5 — mas o link em si abre certo no navegador/versão web).
+
+**Adiado (não esquecido):** rota `(app)/album/[albumId].tsx` (nível raiz, fora de qualquer tab
+— usada por "continuar avaliando" e "meus rankings" no web) não foi criada porque **nenhuma
+tela construída até agora navega pra ela** (feed e my-rankings ainda são placeholder, Fase 5) —
+entra junto quando essas telas forem construídas.
+
+Validado: `npm run typecheck` limpo, `npm run lint` limpo, `npx expo export --platform
+android` bundla sem erro (3743 módulos).
+
+**Próximo passo:** Fase 5 — Discovery + social + comments (feed real, perfil, top álbuns,
+comentários, follows) — aí sim a rota `album/[albumId].tsx` de nível raiz entra.

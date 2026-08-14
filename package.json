@@ -5,8 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "predev:api": "node scripts/free-port.js 3333",
     "dev:api": "npm run start:dev --prefix api",
-    "dev:full": "npm run dev:infra && concurrently -n WEB,API -c blue,green \"npm run dev\" \"npm run dev:api\"",
+    "dev:full": "npm run dev:infra && concurrently -k -n WEB,API -c blue,green \"npm run dev\" \"npm run dev:api\"",
     "build": "tsc -b && vite build",
     "typecheck": "tsc -b --noEmit",
     "lint": "eslint .",

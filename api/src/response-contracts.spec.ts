@@ -61,7 +61,12 @@ describe('Contratos de resposta batem com o que os serviços devolvem', () => {
     assertEqual<z.infer<typeof currentUserSchema>, GetCurrentUserOutput>(true);
     assertEqual<
       z.infer<typeof loginResponseSchema>,
-      { accessToken: string; user: AuthenticateUserOutput['user'] }
+      {
+        accessToken: string;
+        user: AuthenticateUserOutput['user'];
+        // só preenchido pra cliente mobile (X-Client: mobile) — ver auth.controller.ts
+        refreshToken?: string;
+      }
     >(true);
     assertEqual<z.infer<typeof registerResponseSchema>, RegisterUserOutput>(
       true,

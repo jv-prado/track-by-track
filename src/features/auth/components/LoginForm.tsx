@@ -39,6 +39,12 @@ export function LoginForm() {
       await loginMutation.mutateAsync(values);
       await navigate({ to: search.redirect ?? "/feed" });
     } catch (error) {
+      if (isApiError(error) && error.code === "MUST_RESET_PASSWORD") {
+        toast.error(t("auth.mustResetPassword"));
+        await navigate({ to: "/definir-senha", search: { email: values.email } });
+        return;
+      }
+
       toast.error(
         isApiError(error) && error.code === "INVALID_CREDENTIALS"
           ? "E-mail ou senha incorretos."
@@ -73,15 +79,20 @@ export function LoginForm() {
             <PasswordInput id="password" autoComplete="current-password" {...register("password")} />
           </FormField>
 
-          <label className="flex items-center justify-end gap-2 mb-4 text-sm text-gray-300 cursor-pointer">
-            {t("auth.rememberMe")}
-            <input
-              type="checkbox"
-              checked={rememberMe}
-              onChange={(e) => setRememberMe(e.target.checked)}
-              className="w-4 h-4 rounded accent-dourado focus:ring-2 focus:ring-dourado cursor-pointer"
-            />
-          </label>
+          <div className="flex items-center justify-between mb-4 text-sm text-gray-300">
+            <label className="flex items-center gap-2 cursor-pointer">
+              {t("auth.rememberMe")}
+              <input
+                type="checkbox"
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
+                className="w-4 h-4 rounded accent-dourado focus:ring-2 focus:ring-dourado cursor-pointer"
+              />
+            </label>
+            <Link to="/esqueci-senha" className="text-dourado hover:underline">
+              {t("auth.forgotPasswordLink")}
+            </Link>
+          </div>
 
           <Button type="submit" isLoading={loginMutation.isPending} className="w-full mt-2">
             {loginMutation.isPending ? t("auth.loggingIn") : t("app.login")}

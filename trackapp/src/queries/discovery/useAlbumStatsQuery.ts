@@ -1,0 +1,16 @@
+import { useQuery } from "@tanstack/react-query";
+import { http } from "@/shared/api/http";
+import type { AlbumStats } from "@/shared/api/types";
+import { discoveryKeys } from "./keys";
+
+// Porta 1:1 de src/queries/discovery/useAlbumStatsQuery.ts (web).
+export function useAlbumStatsQuery(albumId: string) {
+  return useQuery({
+    queryKey: discoveryKeys.albumStats(albumId),
+    queryFn: async () => {
+      const { data } = await http.get<AlbumStats>(`/discovery/albums/${albumId}/stats`);
+      return data;
+    },
+    enabled: albumId.length > 0,
+  });
+}

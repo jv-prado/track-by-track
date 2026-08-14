@@ -8,6 +8,7 @@ import {
   type RefreshTokenRepository,
 } from '../../../domain/repositories/refresh-token.repository';
 import { InvalidCredentialsError } from '../../../domain/errors/invalid-credentials.error';
+import { MustResetPasswordError } from '../../../domain/errors/must-reset-password.error';
 import { HASHER, type Hasher } from '../../ports/hasher.port';
 import { TOKEN_SIGNER, type TokenSigner } from '../../ports/token-signer.port';
 import { RefreshTokenIssuer } from '../../services/refresh-token-issuer.service';
@@ -30,10 +31,14 @@ export class AuthenticateUserUseCase {
 
   async execute(input: AuthenticateUserInput): Promise<AuthenticateUserOutput> {
     const user = await this.users.findByEmail(input.email.trim().toLowerCase());
-    const passwordHash = user?.passwordHash;
 
-    if (!user || !passwordHash) {
+    if (!user) {
       throw new InvalidCredentialsError();
+    }
+
+    const passwordHash = user.passwordHash;
+    if (!passwordHash) {
+      throw new MustResetPasswordError();
     }
 
     const passwordMatches = await this.hasher.verify(

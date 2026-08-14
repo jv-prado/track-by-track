@@ -21,7 +21,10 @@ import { Route as AppFeedRouteImport } from './routes/_app.feed'
 import { Route as AppMyRankingsRouteImport } from './routes/_app.my-rankings'
 import { Route as AppSearchRouteImport } from './routes/_app.search'
 import { Route as AppTopAlbumsRouteImport } from './routes/_app.top-albums'
+import { Route as AuthDefinirSenhaRouteImport } from './routes/_auth.definir-senha'
+import { Route as AuthEsqueciSenhaRouteImport } from './routes/_auth.esqueci-senha'
 import { Route as AuthLoginRouteImport } from './routes/_auth.login'
+import { Route as AuthRedefinirSenhaRouteImport } from './routes/_auth.redefinir-senha'
 import { Route as AuthRegisterRouteImport } from './routes/_auth.register'
 import { Route as AppAlbumAlbumIdRouteImport } from './routes/_app.album.$albumId'
 import { Route as AppDiscoverAlbumIdRouteImport } from './routes/_app.discover_.$albumId'
@@ -90,9 +93,24 @@ const AppTopAlbumsRoute = AppTopAlbumsRouteImport.update({
   path: '/top-albums',
   getParentRoute: () => AppRoute,
 } as any)
+const AuthDefinirSenhaRoute = AuthDefinirSenhaRouteImport.update({
+  id: '/definir-senha',
+  path: '/definir-senha',
+  getParentRoute: () => AuthRoute,
+} as any)
+const AuthEsqueciSenhaRoute = AuthEsqueciSenhaRouteImport.update({
+  id: '/esqueci-senha',
+  path: '/esqueci-senha',
+  getParentRoute: () => AuthRoute,
+} as any)
 const AuthLoginRoute = AuthLoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => AuthRoute,
+} as any)
+const AuthRedefinirSenhaRoute = AuthRedefinirSenhaRouteImport.update({
+  id: '/redefinir-senha',
+  path: '/redefinir-senha',
   getParentRoute: () => AuthRoute,
 } as any)
 const AuthRegisterRoute = AuthRegisterRouteImport.update({
@@ -154,7 +172,10 @@ export interface FileRoutesByFullPath {
   '/my-rankings': typeof AppMyRankingsRoute
   '/search': typeof AppSearchRoute
   '/top-albums': typeof AppTopAlbumsRoute
+  '/definir-senha': typeof AuthDefinirSenhaRoute
+  '/esqueci-senha': typeof AuthEsqueciSenhaRoute
   '/login': typeof AuthLoginRoute
+  '/redefinir-senha': typeof AuthRedefinirSenhaRoute
   '/register': typeof AuthRegisterRoute
   '/album/$albumId': typeof AppAlbumAlbumIdRoute
   '/discover/$albumId': typeof AppDiscoverAlbumIdRoute
@@ -176,7 +197,10 @@ export interface FileRoutesByTo {
   '/my-rankings': typeof AppMyRankingsRoute
   '/search': typeof AppSearchRoute
   '/top-albums': typeof AppTopAlbumsRoute
+  '/definir-senha': typeof AuthDefinirSenhaRoute
+  '/esqueci-senha': typeof AuthEsqueciSenhaRoute
   '/login': typeof AuthLoginRoute
+  '/redefinir-senha': typeof AuthRedefinirSenhaRoute
   '/register': typeof AuthRegisterRoute
   '/album/$albumId': typeof AppAlbumAlbumIdRoute
   '/discover/$albumId': typeof AppDiscoverAlbumIdRoute
@@ -200,7 +224,10 @@ export interface FileRoutesById {
   '/_app/my-rankings': typeof AppMyRankingsRoute
   '/_app/search': typeof AppSearchRoute
   '/_app/top-albums': typeof AppTopAlbumsRoute
+  '/_auth/definir-senha': typeof AuthDefinirSenhaRoute
+  '/_auth/esqueci-senha': typeof AuthEsqueciSenhaRoute
   '/_auth/login': typeof AuthLoginRoute
+  '/_auth/redefinir-senha': typeof AuthRedefinirSenhaRoute
   '/_auth/register': typeof AuthRegisterRoute
   '/_app/': typeof AppIndexRoute
   '/_app/album/$albumId': typeof AppAlbumAlbumIdRoute
@@ -225,7 +252,10 @@ export interface FileRouteTypes {
     | '/my-rankings'
     | '/search'
     | '/top-albums'
+    | '/definir-senha'
+    | '/esqueci-senha'
     | '/login'
+    | '/redefinir-senha'
     | '/register'
     | '/album/$albumId'
     | '/discover/$albumId'
@@ -247,7 +277,10 @@ export interface FileRouteTypes {
     | '/my-rankings'
     | '/search'
     | '/top-albums'
+    | '/definir-senha'
+    | '/esqueci-senha'
     | '/login'
+    | '/redefinir-senha'
     | '/register'
     | '/album/$albumId'
     | '/discover/$albumId'
@@ -270,7 +303,10 @@ export interface FileRouteTypes {
     | '/_app/my-rankings'
     | '/_app/search'
     | '/_app/top-albums'
+    | '/_auth/definir-senha'
+    | '/_auth/esqueci-senha'
     | '/_auth/login'
+    | '/_auth/redefinir-senha'
     | '/_auth/register'
     | '/_app/'
     | '/_app/album/$albumId'
@@ -377,11 +413,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppTopAlbumsRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_auth/definir-senha': {
+      id: '/_auth/definir-senha'
+      path: '/definir-senha'
+      fullPath: '/definir-senha'
+      preLoaderRoute: typeof AuthDefinirSenhaRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/_auth/esqueci-senha': {
+      id: '/_auth/esqueci-senha'
+      path: '/esqueci-senha'
+      fullPath: '/esqueci-senha'
+      preLoaderRoute: typeof AuthEsqueciSenhaRouteImport
+      parentRoute: typeof AuthRoute
+    }
     '/_auth/login': {
       id: '/_auth/login'
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof AuthLoginRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/_auth/redefinir-senha': {
+      id: '/_auth/redefinir-senha'
+      path: '/redefinir-senha'
+      fullPath: '/redefinir-senha'
+      preLoaderRoute: typeof AuthRedefinirSenhaRouteImport
       parentRoute: typeof AuthRoute
     }
     '/_auth/register': {
@@ -489,12 +546,18 @@ const AppRouteChildren: AppRouteChildren = {
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
 
 interface AuthRouteChildren {
+  AuthDefinirSenhaRoute: typeof AuthDefinirSenhaRoute
+  AuthEsqueciSenhaRoute: typeof AuthEsqueciSenhaRoute
   AuthLoginRoute: typeof AuthLoginRoute
+  AuthRedefinirSenhaRoute: typeof AuthRedefinirSenhaRoute
   AuthRegisterRoute: typeof AuthRegisterRoute
 }
 
 const AuthRouteChildren: AuthRouteChildren = {
+  AuthDefinirSenhaRoute: AuthDefinirSenhaRoute,
+  AuthEsqueciSenhaRoute: AuthEsqueciSenhaRoute,
   AuthLoginRoute: AuthLoginRoute,
+  AuthRedefinirSenhaRoute: AuthRedefinirSenhaRoute,
   AuthRegisterRoute: AuthRegisterRoute,
 }
 

@@ -7,6 +7,10 @@ import { FakeTokenSigner } from '../test-support/fake-token-signer';
 import { FakeConfigService } from '../test-support/fake-config.service';
 import { RefreshTokenIssuer } from '../../services/refresh-token-issuer.service';
 import { InvalidCredentialsError } from '../../../domain/errors/invalid-credentials.error';
+import { MustResetPasswordError } from '../../../domain/errors/must-reset-password.error';
+import { User } from '../../../domain/entities/user.entity';
+import { Email } from '../../../domain/value-objects/email.vo';
+import { UniqueEntityId } from '../../../../../shared/kernel/unique-entity-id';
 
 describe('AuthenticateUserUseCase', () => {
   async function setup() {
@@ -29,7 +33,7 @@ describe('AuthenticateUserUseCase', () => {
       tokenSigner,
       refreshTokenIssuer,
     );
-    return { useCase, refreshTokens };
+    return { useCase, refreshTokens, users };
   }
 
   it('autentica com credenciais corretas e emite tokens', async () => {
@@ -65,5 +69,28 @@ describe('AuthenticateUserUseCase', () => {
     await expect(
       useCase.execute({ email: 'ninguem@example.com', password: 'senha1234' }),
     ).rejects.toThrow(InvalidCredentialsError);
+  });
+
+  it('exige redefinição de senha para conta migrada sem passwordHash', async () => {
+    const { useCase, users } = await setup();
+    const legacyUser = User.reconstitute(
+      {
+        email: Email.create('pedro@example.com'),
+        passwordHash: null,
+        displayName: 'Pedro',
+        mustResetPassword: true,
+        legacyFirebaseUid: 'firebase-uid-123',
+        createdAt: new Date(),
+      },
+      new UniqueEntityId(),
+    );
+    await users.save(legacyUser);
+
+    await expect(
+      useCase.execute({
+        email: 'pedro@example.com',
+        password: 'qualquerCoisa',
+      }),
+    ).rejects.toThrow(MustResetPasswordError);
   });
 });

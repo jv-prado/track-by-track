@@ -21,3 +21,7 @@ export {
   useResetPasswordMutation,
   type ResetPasswordInput,
 } from "./useResetPasswordMutation";
+export {
+  useDirectPasswordResetMutation,
+  type DirectPasswordResetInput,
+} from "./useDirectPasswordResetMutation";

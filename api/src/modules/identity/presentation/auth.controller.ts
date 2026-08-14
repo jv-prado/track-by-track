@@ -36,6 +36,7 @@ import { RefreshTokenUseCase } from '../application/use-cases/refresh-token/refr
 import { GetCurrentUserUseCase } from '../application/use-cases/get-current-user/get-current-user.use-case';
 import { RequestPasswordResetUseCase } from '../application/use-cases/request-password-reset/request-password-reset.use-case';
 import { ResetPasswordUseCase } from '../application/use-cases/reset-password/reset-password.use-case';
+import { DirectPasswordResetUseCase } from '../application/use-cases/direct-password-reset/direct-password-reset.use-case';
 import { LogoutUseCase } from '../application/use-cases/logout/logout.use-case';
 import { UpdateProfileUseCase } from '../application/use-cases/update-profile/update-profile.use-case';
 import { UploadAvatarUseCase } from '../application/use-cases/upload-avatar/upload-avatar.use-case';
@@ -43,8 +44,10 @@ import { DeleteAccountUseCase } from '../application/use-cases/delete-account/de
 import { InvalidRefreshTokenError } from '../domain/errors/invalid-refresh-token.error';
 import { RegisterDto } from './dtos/register.dto';
 import { LoginDto } from './dtos/login.dto';
+import { RefreshDto } from './dtos/refresh.dto';
 import { RequestPasswordResetDto } from './dtos/request-password-reset.dto';
 import { ResetPasswordDto } from './dtos/reset-password.dto';
+import { DirectPasswordResetDto } from './dtos/direct-password-reset.dto';
 import { UpdateProfileDto } from './dtos/update-profile.dto';
 import { DeleteAccountDto } from './dtos/delete-account.dto';
 import {
@@ -57,6 +60,14 @@ import {
 } from './dtos/auth.responses';
 
 const REFRESH_COOKIE = 'refreshToken';
+/**
+ * App mobile (Expo/RN) não tem cookie jar de browser — manda esse header em
+ * toda request de auth pra API saber que precisa devolver o refresh token no
+ * corpo (secure-store do lado do cliente) em vez de só no cookie httpOnly.
+ * Web nunca manda esse header, então nunca recebe o campo extra.
+ */
+const MOBILE_CLIENT_HEADER = 'x-client';
+const MOBILE_CLIENT_VALUE = 'mobile';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -74,6 +85,8 @@ export class AuthController {
     private readonly requestPasswordReset: RequestPasswordResetUseCase,
     @Inject(ResetPasswordUseCase)
     private readonly resetPassword: ResetPasswordUseCase,
+    @Inject(DirectPasswordResetUseCase)
+    private readonly directPasswordReset: DirectPasswordResetUseCase,
     @Inject(LogoutUseCase) private readonly logout: LogoutUseCase,
     @Inject(UpdateProfileUseCase)
     private readonly updateProfile: UpdateProfileUseCase,
@@ -99,6 +112,7 @@ export class AuthController {
   @Post('login')
   async login(
     @Body() dto: LoginDto,
+    @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
   ) {
     const result = await this.authenticateUser.execute(dto);
@@ -107,7 +121,13 @@ export class AuthController {
       result.refreshToken,
       result.refreshTokenExpiresAt,
     );
-    return { accessToken: result.accessToken, user: result.user };
+    return {
+      accessToken: result.accessToken,
+      user: result.user,
+      ...(this.isMobileClient(req)
+        ? { refreshToken: result.refreshToken }
+        : {}),
+    };
   }
 
   @Public()
@@ -115,10 +135,13 @@ export class AuthController {
   @ApiOkResponse({ type: RefreshResponseDto })
   @Post('refresh')
   async refresh(
+    @Body() dto: RefreshDto,
     @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
   ) {
-    const token = req.cookies?.[REFRESH_COOKIE] as string | undefined;
+    const token =
+      (req.cookies?.[REFRESH_COOKIE] as string | undefined) ??
+      dto.refreshToken;
     if (!token) {
       throw new InvalidRefreshTokenError();
     }
@@ -128,7 +151,12 @@ export class AuthController {
       result.refreshToken,
       result.refreshTokenExpiresAt,
     );
-    return { accessToken: result.accessToken };
+    return {
+      accessToken: result.accessToken,
+      ...(this.isMobileClient(req)
+        ? { refreshToken: result.refreshToken }
+        : {}),
+    };
   }
 
   @Public()
@@ -136,10 +164,13 @@ export class AuthController {
   @ApiOkResponse({ type: MessageResponseDto })
   @Post('logout')
   async logoutRoute(
+    @Body() dto: RefreshDto,
     @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
   ) {
-    const token = req.cookies?.[REFRESH_COOKIE] as string | undefined;
+    const token =
+      (req.cookies?.[REFRESH_COOKIE] as string | undefined) ??
+      dto.refreshToken;
     if (token) {
       await this.logout.execute({ refreshToken: token });
     }
@@ -224,6 +255,24 @@ export class AuthController {
   @Post('password-reset/confirm')
   async confirmReset(@Body() dto: ResetPasswordDto) {
     return this.resetPassword.execute(dto);
+  }
+
+  /**
+   * Sem token de e-mail (ver 4.4 do CLAUDE.md — nenhum provedor escolhido
+   * ainda). Só funciona para conta migrada sem `passwordHash`; use case
+   * recusa se a conta já tiver senha.
+   */
+  @Public()
+  @Throttle({ default: { limit: 5, ttl: 60_000 } })
+  @HttpCode(HttpStatus.OK)
+  @ApiOkResponse({ type: MessageResponseDto })
+  @Post('password-reset/direct')
+  async directReset(@Body() dto: DirectPasswordResetDto) {
+    return this.directPasswordReset.execute(dto);
+  }
+
+  private isMobileClient(req: Request): boolean {
+    return req.headers[MOBILE_CLIENT_HEADER] === MOBILE_CLIENT_VALUE;
   }
 
   private setRefreshCookie(

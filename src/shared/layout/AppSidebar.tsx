@@ -9,6 +9,7 @@ import {
   LogOut,
   Settings,
   User as UserIcon,
+  X,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useAuthStore } from "@/shared/auth/auth.store";
@@ -19,6 +20,7 @@ import LanguageSelector from "@/componentes/LanguageSelector";
 import { cn } from "@/shared/lib/cn";
 import { getScoreColorClasses } from "@/shared/lib/scoreColor";
 import { ProgressBar } from "@/shared/ui/ProgressBar";
+import { toast } from "@/shared/ui/toast-store";
 
 export function AppSidebar() {
   const { t } = useTranslation();
@@ -38,6 +40,16 @@ export function AppSidebar() {
   // (/search/$albumId, /top-albums/$albumId, /feed/$userId/album/$albumId) só
   // pra manter esse item ativo aqui.
   const isNavActive = (to: string) => activePath === to || activePath.startsWith(`${to}/`);
+
+  // card "continuar avaliando" (mobile): só faz sentido em Feed/Search — nas
+  // outras telas (Minhas Avaliações, Top Álbuns, Descobrir, perfil...) ou é
+  // redundante ou compete com conteúdo próprio da tela.
+  const showContinueEditingCard = pathname === "/feed" || pathname === "/search";
+  // dispensado fica escondido até o usuário editar OUTRO álbum — a chave
+  // inclui o albumId de propósito, então editar um novo álbum "reseta" o card.
+  const [dismissedAlbumId, setDismissedAlbumId] = useState<string | null>(
+    () => sessionStorage.getItem("continue-editing-dismissed"),
+  );
 
   const NAV_ITEMS = [
     { to: "/feed", label: t("nav.feed"), icon: Home },
@@ -62,8 +74,12 @@ export function AppSidebar() {
 
   const handleLogout = async () => {
     setProfileMenuOpen(false);
-    await logoutMutation.mutateAsync();
-    await navigate({ to: "/login" });
+    try {
+      await logoutMutation.mutateAsync();
+      await navigate({ to: "/login" });
+    } catch {
+      toast.error(t("nav.logoutError"));
+    }
   };
 
   const isProfileActive = isNavActive("/profile");
@@ -158,6 +174,72 @@ export function AppSidebar() {
           </button>
         </div>
       </aside>
+
+      {/* mobile: card flutuante "continuar avaliando" acima da tab bar —
+          só em Feed/Search, e só se o usuário não dispensou esse álbum */}
+      {lastEditedAlbum && showContinueEditingCard && dismissedAlbumId !== lastEditedAlbum.albumId && (
+        <div
+          className="md:hidden fixed inset-x-0 z-30 mx-3 flex items-center gap-2.5 rounded-lg border border-white/10 bg-cinza-escuro/95 backdrop-blur p-2 pr-1.5 shadow-lg shadow-black/40"
+          style={{ bottom: "calc(4rem + env(safe-area-inset-bottom))" }}
+        >
+          <Link
+            to="/album/$albumId"
+            params={{ albumId: lastEditedAlbum.albumId }}
+            className="flex min-w-0 flex-1 items-center gap-2.5"
+          >
+            {lastEditedAlbum.albumImageUrl ? (
+              <img
+                src={lastEditedAlbum.albumImageUrl}
+                alt=""
+                className="h-9 w-9 shrink-0 rounded object-cover"
+              />
+            ) : (
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded bg-white/10">
+                <ListMusic size={16} />
+              </div>
+            )}
+            <div className="min-w-0 flex-1">
+              <p className="text-[9px] uppercase tracking-wide text-gray-500 leading-none mb-0.5">
+                {t("nav.continueEditing")}
+              </p>
+              <p className="truncate text-xs text-gray-200 leading-tight">
+                {lastEditedAlbum.albumName}
+              </p>
+              <div className="flex items-center gap-1.5 mt-1">
+                <ProgressBar value={lastEditedAlbum.progress.percentage} className="h-1 flex-1" />
+                <span className="text-gray-500 text-[10px] shrink-0 tabular-nums">
+                  {t("common.tracksProgress", {
+                    rated: lastEditedAlbum.progress.rated,
+                    total: lastEditedAlbum.progress.total,
+                  })}
+                </span>
+              </div>
+            </div>
+            <span
+              className={cn(
+                "shrink-0 text-sm font-bold",
+                getScoreColorClasses(
+                  lastEditedAlbum.averageScore,
+                  lastEditedAlbum.progress.rated === lastEditedAlbum.progress.total,
+                ).text,
+              )}
+            >
+              {lastEditedAlbum.averageScore.toFixed(1)}
+            </span>
+          </Link>
+          <button
+            type="button"
+            aria-label={t("common.dismiss")}
+            onClick={() => {
+              sessionStorage.setItem("continue-editing-dismissed", lastEditedAlbum.albumId);
+              setDismissedAlbumId(lastEditedAlbum.albumId);
+            }}
+            className="shrink-0 rounded-full p-1.5 text-gray-500 hover:text-white hover:bg-white/10 transition cursor-pointer"
+          >
+            <X size={14} />
+          </button>
+        </div>
+      )}
 
       {/* mobile: bottom tab bar */}
       <nav

@@ -5,6 +5,7 @@ import { RotateCcw, Trash2 } from "lucide-react";
 import { useResetRankingMutation, useDeleteRankingMutation } from "@/queries/ranking";
 import { Button } from "@/shared/ui/Button";
 import { Modal } from "@/shared/ui/Modal";
+import { toast } from "@/shared/ui/toast-store";
 import { cn } from "@/shared/lib/cn";
 
 interface RankingActionsProps {
@@ -26,14 +27,26 @@ export function RankingActions({ rankingId, albumId, variant = "full" }: Ranking
   const handleReset = () => {
     resetRanking.mutate(
       { rankingId, albumId },
-      { onSuccess: () => setConfirmingReset(false) },
+      {
+        onSuccess: () => {
+          setConfirmingReset(false);
+          toast.success(t("rankingActions.resetSuccess"));
+        },
+        onError: () => toast.error(t("rankingActions.resetError")),
+      },
     );
   };
 
   const handleDelete = () => {
     deleteRanking.mutate(
       { rankingId, albumId },
-      { onSuccess: () => navigate({ to: "/my-rankings" }) },
+      {
+        onSuccess: () => {
+          navigate({ to: "/my-rankings" });
+          toast.success(t("rankingActions.removeSuccess"));
+        },
+        onError: () => toast.error(t("rankingActions.removeError")),
+      },
     );
   };
 
@@ -76,8 +89,15 @@ export function RankingActions({ rankingId, albumId, variant = "full" }: Ranking
             <Button variant="ghost" size="sm" onClick={() => setConfirmingReset(false)}>
               {t("common.cancel")}
             </Button>
-            <Button variant="danger" size="sm" onClick={handleReset} disabled={resetRanking.isPending}>
-              {t("rankingActions.resetConfirmYes")}
+            <Button
+              variant="danger"
+              size="sm"
+              onClick={handleReset}
+              isLoading={resetRanking.isPending}
+            >
+              {resetRanking.isPending
+                ? t("rankingActions.resetting")
+                : t("rankingActions.resetConfirmYes")}
             </Button>
           </>
         }
@@ -93,8 +113,15 @@ export function RankingActions({ rankingId, albumId, variant = "full" }: Ranking
             <Button variant="ghost" size="sm" onClick={() => setConfirmingDelete(false)}>
               {t("common.cancel")}
             </Button>
-            <Button variant="danger" size="sm" onClick={handleDelete} disabled={deleteRanking.isPending}>
-              {t("rankingActions.removeConfirmYes")}
+            <Button
+              variant="danger"
+              size="sm"
+              onClick={handleDelete}
+              isLoading={deleteRanking.isPending}
+            >
+              {deleteRanking.isPending
+                ? t("rankingActions.removing")
+                : t("rankingActions.removeConfirmYes")}
             </Button>
           </>
         }

@@ -6,7 +6,7 @@ import { useGenresQuery } from "@/queries/album-catalog";
 import { useAuthStore } from "@/shared/auth/auth.store";
 import { useInfiniteScroll } from "@/shared/lib/use-infinite-scroll";
 import { FeedCard } from "./FeedCard";
-import { FeedCardSkeleton } from "./FeedCardSkeleton";
+import { FeedCardSkeleton } from "@/shared/ui/FeedCardSkeleton";
 import { GenreFilter } from "@/shared/ui/GenreFilter";
 import { genreLabel } from "@/shared/lib/genreLabel";
 import { Input } from "@/shared/ui/Input";

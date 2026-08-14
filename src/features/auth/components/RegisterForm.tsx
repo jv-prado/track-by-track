@@ -9,6 +9,7 @@ import { Button } from "@/shared/ui/Button";
 import { Input } from "@/shared/ui/Input";
 import { PasswordInput } from "@/shared/ui/PasswordInput";
 import { FormField } from "@/shared/ui/FormField";
+import { toast } from "@/shared/ui/toast-store";
 import Logo from "@/assets/logo.svg";
 
 const registerSchema = z
@@ -38,7 +39,6 @@ export function RegisterForm() {
     register,
     handleSubmit,
     formState: { errors },
-    setError,
   } = useForm<RegisterFormValues>({ resolver: zodResolver(registerSchema) });
 
   const onSubmit = handleSubmit(async (values) => {
@@ -47,11 +47,11 @@ export function RegisterForm() {
       await loginMutation.mutateAsync({ email: values.email, password: values.password });
       await navigate({ to: "/feed" });
     } catch (error) {
-      if (isApiError(error) && error.code === "USER_EMAIL_ALREADY_TAKEN") {
-        setError("email", { message: "Este e-mail já está em uso." });
-      } else {
-        setError("root", { message: "Erro ao criar conta. Tente novamente." });
-      }
+      toast.error(
+        isApiError(error) && error.code === "USER_EMAIL_ALREADY_TAKEN"
+          ? "Este e-mail já está em uso."
+          : "Erro ao criar conta. Tente novamente.",
+      );
     }
   });
 
@@ -67,12 +67,6 @@ export function RegisterForm() {
         <h2 className="text-xl sm:text-2xl text-white font-bold mb-4 sm:mb-6 text-center">
           {t("auth.createAccount")}
         </h2>
-
-        {errors.root && (
-          <div className="bg-red-900/30 border border-red-500 text-red-200 p-2.5 sm:p-3 rounded-lg mb-4 text-sm sm:text-base">
-            {errors.root.message}
-          </div>
-        )}
 
         <form onSubmit={onSubmit}>
           <FormField
@@ -130,7 +124,7 @@ export function RegisterForm() {
             )}
           </div>
 
-          <Button type="submit" disabled={isSubmitting} className="w-full">
+          <Button type="submit" isLoading={isSubmitting} className="w-full">
             {isSubmitting ? t("auth.registeringAccount") : t("auth.registerButton")}
           </Button>
         </form>

@@ -1,7 +1,7 @@
 import { useRef, useState, type ChangeEvent, type FormEvent } from "react";
 import { Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
-import { Loader2, Save } from "lucide-react";
+import { Save } from "lucide-react";
 import { useUpdateProfileMutation, useUploadAvatarMutation } from "@/queries/auth";
 import { useAuthStore } from "@/shared/auth/auth.store";
 import { isApiError } from "@/shared/api/errors";
@@ -19,7 +19,6 @@ export function OwnProfilePage() {
   const updateProfile = useUpdateProfileMutation();
   const uploadAvatar = useUploadAvatarMutation();
   const [displayName, setDisplayName] = useState(user?.displayName ?? "");
-  const [avatarError, setAvatarError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   if (!user) return null;
@@ -47,17 +46,17 @@ export function OwnProfilePage() {
     if (!file) return;
 
     if (!ACCEPTED_AVATAR_TYPES.includes(file.type)) {
-      setAvatarError(t("profile.avatarInvalidType"));
+      toast.error(t("profile.avatarInvalidType"));
       return;
     }
     if (file.size > MAX_AVATAR_BYTES) {
-      setAvatarError(t("profile.avatarTooLarge"));
+      toast.error(t("profile.avatarTooLarge"));
       return;
     }
 
-    setAvatarError(null);
     uploadAvatar.mutate(file, {
-      onError: () => setAvatarError(t("profile.avatarUploadFailed")),
+      onSuccess: () => toast.success(t("profile.avatarSaved")),
+      onError: () => toast.error(t("profile.avatarUploadFailed")),
     });
   };
 
@@ -84,12 +83,11 @@ export function OwnProfilePage() {
           <Button
             type="button"
             variant="secondary"
-            disabled={uploadAvatar.isPending}
+            isLoading={uploadAvatar.isPending}
             onClick={() => fileInputRef.current?.click()}
           >
             {uploadAvatar.isPending ? t("common.saving") : t("profile.changeAvatar")}
           </Button>
-          {avatarError && <p className="text-red-400 text-sm">{avatarError}</p>}
         </div>
         <input
           ref={fileInputRef}
@@ -111,12 +109,8 @@ export function OwnProfilePage() {
           />
         </FormField>
 
-        <Button type="submit" disabled={updateProfile.isPending} className="self-end gap-2">
-          {updateProfile.isPending ? (
-            <Loader2 className="w-4 h-4 animate-spin" />
-          ) : (
-            <Save className="w-4 h-4" />
-          )}
+        <Button type="submit" isLoading={updateProfile.isPending} className="self-end gap-2">
+          {!updateProfile.isPending && <Save className="w-4 h-4" />}
           {updateProfile.isPending ? t("common.saving") : t("common.save")}
         </Button>
       </form>

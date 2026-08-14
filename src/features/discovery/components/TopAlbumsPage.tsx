@@ -7,7 +7,7 @@ import { useGenresQuery } from "@/queries/album-catalog";
 import { Spinner } from "@/shared/ui/Spinner";
 import { ErrorState } from "@/shared/ui/ErrorState";
 import { EmptyState } from "@/shared/ui/EmptyState";
-import { FeedCardSkeleton } from "./FeedCardSkeleton";
+import { FeedCardSkeleton } from "@/shared/ui/FeedCardSkeleton";
 import { GenreFilter } from "@/shared/ui/GenreFilter";
 import { BottomSheet } from "@/shared/ui/BottomSheet";
 import { genreLabel } from "@/shared/lib/genreLabel";

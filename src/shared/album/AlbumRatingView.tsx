@@ -16,6 +16,7 @@ import { FavoriteWorstPicker } from "@/shared/album/FavoriteWorstPicker";
 import { RankingActions } from "@/shared/album/RankingActions";
 import { AlbumStatsSection } from "@/shared/album/AlbumStatsSection";
 import { AlbumReviewsList } from "@/shared/album/AlbumReviewsList";
+import { AlbumHeaderSkeleton, TrackRowSkeleton, TRACK_SKELETON_COUNT } from "@/shared/album/AlbumHeaderSkeleton";
 import { Spinner } from "@/shared/ui/Spinner";
 import { ErrorState } from "@/shared/ui/ErrorState";
 import { Card } from "@/shared/ui/Card";
@@ -30,6 +31,7 @@ import { buildAppleMusicSearchUrl } from "@/shared/lib/appleMusic";
 import { formatDate } from "@/shared/lib/date";
 import { cn } from "@/shared/lib/cn";
 import { useTrackPreviewPlayer } from "@/shared/lib/use-track-preview-player";
+import { useRotatingLoadingText } from "@/shared/lib/use-rotating-loading-text";
 import { TrackPreviewCell } from "./TrackPreviewCell";
 
 function formatDuration(ms: number): string {
@@ -45,6 +47,9 @@ export function AlbumRatingView({ albumId }: { albumId: string }) {
   const currentUser = useAuthStore((s) => s.user);
   const [reviewOpen, setReviewOpen] = useState(false);
   const preview = useTrackPreviewPlayer();
+  // pior caso daqui bate no Spotify (álbum nunca visto) + cria o ranking em sequência — o
+  // skeleton sozinho não conta essa segunda etapa, por isso o texto embaixo (ver PLANO-LOADING-STATES.md §3.7).
+  const loadingText = useRotatingLoadingText(["albumDetail.loadingAlbum", "albumDetail.loadingRanking"]);
 
   const handleShare = async () => {
     if (!currentUser) return;
@@ -74,15 +79,30 @@ export function AlbumRatingView({ albumId }: { albumId: string }) {
 
   useEffect(() => {
     if (shouldCreateRanking) {
-      createOrGetRanking.mutate(albumId);
+      createOrGetRanking.mutate(albumId, {
+        onError: () => toast.error(t("albumDetail.createRankingError")),
+      });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [shouldCreateRanking, albumId]);
 
   if (albumQuery.isLoading || rankingQuery.isLoading || createOrGetRanking.isPending) {
     return (
-      <div className="flex justify-center py-16">
-        <Spinner className="h-8 w-8" />
+      <div className="w-full">
+        <AlbumHeaderSkeleton />
+
+        <div className="flex items-center justify-center gap-2 py-4">
+          <Spinner className="h-4 w-4" />
+          <p key={loadingText} className="text-gray-400 text-sm">
+            {t(loadingText)}
+          </p>
+        </div>
+
+        <div className="pt-2 flex flex-col gap-2">
+          {Array.from({ length: TRACK_SKELETON_COUNT }).map((_, i) => (
+            <TrackRowSkeleton key={i} />
+          ))}
+        </div>
       </div>
     );
   }
@@ -101,12 +121,7 @@ export function AlbumRatingView({ albumId }: { albumId: string }) {
 
   return (
     <div className="w-full">
-      <div className="relative z-0 -mx-6 -mt-6 px-6 pt-6 sm:-mx-10 sm:-mt-10 sm:px-10 sm:pt-10">
-        <div
-          aria-hidden
-          className="absolute inset-x-0 -top-24 bottom-0 overflow-hidden bg-gradient-to-b from-roxo-vivo/40 via-roxo-escuro/50 to-transparent"
-        />
-        <div className="relative flex w-full items-center justify-between gap-2 mb-4">
+      <div className="flex w-full items-center justify-between gap-2 mb-4">
           <Button
             variant="ghost"
             size="sm"
@@ -122,7 +137,7 @@ export function AlbumRatingView({ albumId }: { albumId: string }) {
           {ranking && <RankingActions rankingId={ranking.id} albumId={albumId} variant="compact" />}
         </div>
 
-        <div className="relative pb-4 sm:pb-6 flex flex-col items-center text-center gap-4 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between sm:text-left sm:gap-6">
+        <div className="pb-4 sm:pb-6 flex flex-col items-center text-center gap-4 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between sm:text-left sm:gap-6">
           <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-start sm:gap-6 min-w-0">
               {album.imageUrl ? (
                 <img
@@ -256,9 +271,8 @@ export function AlbumRatingView({ albumId }: { albumId: string }) {
             </div>
           )}
         </div>
-      </div>
 
-      <div className="pt-4 sm:pt-6 flex flex-col gap-6">
+      <div className="pt-6 sm:pt-8 flex flex-col gap-6">
         <section className="pt-2 border-t border-white/5">
           <h2 className="text-white font-semibold flex items-center gap-2 mb-3">
             <ListMusic size={16} className="text-dourado" /> {t("albumDetail.tracks")}
@@ -303,12 +317,10 @@ export function AlbumRatingView({ albumId }: { albumId: string }) {
                         disabled={!ranking}
                         onChange={(score) => {
                           if (!ranking) return;
-                          rateTrack.mutate({
-                            rankingId: ranking.id,
-                            trackId: track.spotifyId,
-                            score,
-                            albumId,
-                          });
+                          rateTrack.mutate(
+                            { rankingId: ranking.id, trackId: track.spotifyId, score, albumId },
+                            { onError: () => toast.error(t("albumDetail.rateError")) },
+                          );
                         }}
                       />
                     )}
@@ -316,12 +328,15 @@ export function AlbumRatingView({ albumId }: { albumId: string }) {
                       <button
                         type="button"
                         onClick={() =>
-                          setTrackIgnored.mutate({
-                            rankingId: ranking.id,
-                            trackId: track.spotifyId,
-                            ignored: !isIgnored,
-                            albumId,
-                          })
+                          setTrackIgnored.mutate(
+                            {
+                              rankingId: ranking.id,
+                              trackId: track.spotifyId,
+                              ignored: !isIgnored,
+                              albumId,
+                            },
+                            { onError: () => toast.error(t("albumDetail.ignoreError")) },
+                          )
                         }
                         title={
                           isIgnored ? t("albumDetail.unignoreTrack") : t("albumDetail.ignoreTrack")

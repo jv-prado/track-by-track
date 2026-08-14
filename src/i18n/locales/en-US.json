@@ -9,6 +9,7 @@
     "myRankings": "My rankings",
     "topAlbums": "Top albums",
     "logout": "Logout",
+    "logoutError": "Couldn't sign out. Try again.",
     "profile": "My profile",
     "settings": "Settings",
     "continueEditing": "Continue editing"
@@ -23,7 +24,8 @@
     "clearFilters": "Clear filters",
     "notApplicable": "Not applicable",
     "tracksProgress": "{{rated}}/{{total}} tracks",
-    "showMore": "Show more"
+    "showMore": "Show more",
+    "dismiss": "Dismiss"
   },
   "auth": {
     "email": "Email",
@@ -173,7 +175,12 @@
     "shareError": "Could not share.",
     "trackIgnored": "Ignored",
     "ignoreTrack": "Ignore track (excluded from average)",
-    "unignoreTrack": "Rate this track again"
+    "unignoreTrack": "Rate this track again",
+    "loadingAlbum": "Fetching album data...",
+    "loadingRanking": "Setting up your ranking...",
+    "rateError": "Couldn't save the rating. Try again.",
+    "ignoreError": "Couldn't update the track. Try again.",
+    "createRankingError": "Couldn't set up your ranking. Try again."
   },
   "review": {
     "placeholder": "What did you think of this album?",
@@ -190,9 +197,15 @@
     "reset": "Reset ratings",
     "resetConfirm": "This clears every rating, your review, and favorite/worst track for this album. Can't be undone.",
     "resetConfirmYes": "Yes, reset",
+    "resetting": "Resetting...",
+    "resetSuccess": "Ranking reset.",
+    "resetError": "Couldn't reset the ranking.",
     "removeConfirm": "Remove for good?",
     "removeConfirmYes": "Yes, remove",
-    "removeAlbum": "Remove album"
+    "removeAlbum": "Remove album",
+    "removing": "Removing...",
+    "removeSuccess": "Album removed from your rankings.",
+    "removeError": "Couldn't remove the album."
   },
   "comments": {
     "title": "Comments",
@@ -200,7 +213,13 @@
     "empty": "No comments yet.",
     "edited": "(edited)",
     "editAria": "Edit comment",
-    "deleteAria": "Delete comment"
+    "deleteAria": "Delete comment",
+    "createSuccess": "Comment posted.",
+    "createError": "Couldn't post the comment.",
+    "updateSuccess": "Comment updated.",
+    "updateError": "Couldn't save the edit.",
+    "deleteSuccess": "Comment deleted.",
+    "deleteError": "Couldn't delete the comment."
   },
   "starRating": {
     "ariaLabel": "Rating {{star}}"
@@ -228,7 +247,8 @@
     "changeAvatar": "Change photo",
     "avatarInvalidType": "Invalid format. Use JPEG, PNG, or WebP.",
     "avatarTooLarge": "Image too large. Max 5MB.",
-    "avatarUploadFailed": "Could not upload the photo. Try again."
+    "avatarUploadFailed": "Could not upload the photo. Try again.",
+    "avatarSaved": "Photo updated!"
   },
   "pagination": {
     "previous": "Previous page",
@@ -243,7 +263,8 @@
     "confirmYes": "Yes, delete for good",
     "cta": "Delete account",
     "wrongPassword": "Wrong password.",
-    "genericError": "Error deleting the account. Please try again."
+    "genericError": "Error deleting the account. Please try again.",
+    "success": "Account deleted."
   },
   "follow": {
     "follow": "Follow",

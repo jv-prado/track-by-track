@@ -8,10 +8,12 @@ import { EmptyState } from "@/shared/ui/EmptyState";
 import { ErrorState } from "@/shared/ui/ErrorState";
 import { useInfiniteScroll } from "@/shared/lib/use-infinite-scroll";
 import { AlbumCard } from "./AlbumCard";
+import { FeedCardSkeleton } from "@/shared/ui/FeedCardSkeleton";
 
 // mesma grade do Discover/Feed (ver DiscoverPage.tsx) — cartão idêntico merece mesmo tamanho.
 const GRID_CLASSES =
   "grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] gap-3 sm:grid-cols-[repeat(auto-fill,minmax(200px,1fr))] sm:gap-5";
+const SKELETON_COUNT = 10;
 
 export function SearchPage() {
   const { t } = useTranslation();
@@ -69,8 +71,10 @@ export function SearchPage() {
       )}
 
       {query.trim() && isLoading && !data && (
-        <div className="flex justify-center py-8">
-          <Spinner className="h-6 w-6" />
+        <div className={GRID_CLASSES}>
+          {Array.from({ length: SKELETON_COUNT }).map((_, i) => (
+            <FeedCardSkeleton key={i} />
+          ))}
         </div>
       )}
 

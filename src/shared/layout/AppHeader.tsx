@@ -6,6 +6,7 @@ import { useAuthStore } from "@/shared/auth/auth.store";
 import { useLogoutMutation } from "@/queries/auth";
 import LanguageSelector from "@/componentes/LanguageSelector";
 import { NotificationsBell } from "./NotificationsBell";
+import { toast } from "@/shared/ui/toast-store";
 import { cn } from "@/shared/lib/cn";
 
 export function AppHeader() {
@@ -47,8 +48,12 @@ export function AppHeader() {
 
   const handleLogout = async () => {
     setMenuOpen(false);
-    await logoutMutation.mutateAsync();
-    await navigate({ to: "/login" });
+    try {
+      await logoutMutation.mutateAsync();
+      await navigate({ to: "/login" });
+    } catch {
+      toast.error(t("nav.logoutError"));
+    }
   };
 
   return (
@@ -58,8 +63,11 @@ export function AppHeader() {
         className={cn(
           "sticky top-0 z-30 hidden items-center justify-end gap-4 px-4 pt-4 pb-3 transition-all duration-200 sm:px-10 md:flex md:px-6 lg:px-10",
           "after:content-[''] after:pointer-events-none after:absolute after:inset-x-0 after:-bottom-3 after:h-3 after:transition-opacity after:duration-200",
+          // Vidro de verdade: sem tingir de cinza-escuro (isso vira painel sólido, não
+          // vidro). Só blur + um wash branco bem leve pro frost — o roxo passa através.
+          // Só no scroll — hover não aciona (pedido explícito, sem efeito no bg ao passar o mouse).
           scrolled
-            ? "bg-cinza-escuro/95 backdrop-blur-md after:bg-gradient-to-b after:from-black/30 after:to-transparent after:opacity-100"
+            ? "bg-white/5 backdrop-blur-lg after:bg-gradient-to-b after:from-black/30 after:to-transparent after:opacity-100"
             : "bg-transparent after:opacity-0",
         )}
       >

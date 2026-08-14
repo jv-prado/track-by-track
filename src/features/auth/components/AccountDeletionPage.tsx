@@ -6,6 +6,7 @@ import { isApiError } from "@/shared/api/errors";
 import { Button } from "@/shared/ui/Button";
 import { PasswordInput } from "@/shared/ui/PasswordInput";
 import { FormField } from "@/shared/ui/FormField";
+import { toast } from "@/shared/ui/toast-store";
 
 export function AccountDeletionPage() {
   const { t } = useTranslation();
@@ -13,16 +14,15 @@ export function AccountDeletionPage() {
   const deleteAccount = useDeleteAccountMutation();
   const [password, setPassword] = useState("");
   const [confirming, setConfirming] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
-    setError(null);
     try {
       await deleteAccount.mutateAsync({ password });
+      toast.success(t("accountDeletion.success"));
       await navigate({ to: "/login" });
     } catch (err) {
-      setError(
+      toast.error(
         isApiError(err) && err.code === "INVALID_CREDENTIALS"
           ? t("accountDeletion.wrongPassword")
           : t("accountDeletion.genericError"),
@@ -36,12 +36,6 @@ export function AccountDeletionPage() {
       <p className="text-gray-400 text-sm mb-4">{t("accountDeletion.warning")}</p>
 
       <form onSubmit={handleSubmit} className="bg-cinza-escuro rounded-xl p-4 flex flex-col gap-3">
-        {error && (
-          <div className="bg-red-900/30 border border-red-500 text-red-200 p-2.5 rounded-lg text-sm">
-            {error}
-          </div>
-        )}
-
         <FormField label={t("accountDeletion.passwordLabel")} htmlFor="password">
           <PasswordInput
             id="password"
@@ -55,7 +49,8 @@ export function AccountDeletionPage() {
             <Button
               type="submit"
               variant="danger"
-              disabled={deleteAccount.isPending || !password}
+              disabled={!password}
+              isLoading={deleteAccount.isPending}
               className="flex-1"
             >
               {deleteAccount.isPending ? t("accountDeletion.deleting") : t("accountDeletion.confirmYes")}

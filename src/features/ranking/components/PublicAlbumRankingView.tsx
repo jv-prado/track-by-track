@@ -6,7 +6,7 @@ import { useAlbumDetailQuery } from "@/queries/album-catalog";
 import { useUserRankingForAlbumQuery } from "@/queries/ranking";
 import { useProfileQuery } from "@/queries/discovery";
 import { StarRating } from "@/shared/album/StarRating";
-import { Spinner } from "@/shared/ui/Spinner";
+import { AlbumHeaderSkeleton, TrackRowSkeleton, TRACK_SKELETON_COUNT } from "@/shared/album/AlbumHeaderSkeleton";
 import { ErrorState } from "@/shared/ui/ErrorState";
 import { Card } from "@/shared/ui/Card";
 import { Button } from "@/shared/ui/Button";
@@ -81,8 +81,17 @@ export function PublicAlbumRankingView({ userId, albumId }: { userId: string; al
 
   if (albumQuery.isLoading || rankingQuery.isLoading) {
     return (
-      <div className="flex justify-center py-16">
-        <Spinner className="h-8 w-8" />
+      <div className="w-full">
+        {/* sem texto de feedback aqui: sem etapa de criar ranking, e o álbum quase sempre já
+            está em cache (alguém rankeou antes de existir uma URL pra essa tela) — ver
+            PLANO-LOADING-STATES.md §3.8. */}
+        <AlbumHeaderSkeleton showReviewerRow />
+
+        <div className="pt-4 sm:pt-6 flex flex-col gap-2">
+          {Array.from({ length: TRACK_SKELETON_COUNT }).map((_, i) => (
+            <TrackRowSkeleton key={i} />
+          ))}
+        </div>
       </div>
     );
   }
@@ -107,27 +116,22 @@ export function PublicAlbumRankingView({ userId, albumId }: { userId: string; al
 
   return (
     <div className="w-full">
-      <div className="relative z-0 -mx-6 -mt-6 px-6 pt-6 sm:-mx-10 sm:-mt-10 sm:px-10 sm:pt-10">
-        <div
-          aria-hidden
-          className="absolute inset-x-0 -top-24 bottom-0 overflow-hidden bg-gradient-to-b from-roxo-escuro/60 to-transparent"
-        />
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => {
-            // se a página foi aberta direto (link compartilhado, nova aba), não há pra onde
-            // voltar dentro do app — history.back() vira no-op silencioso nesse caso.
-            if (window.history.length > 1) router.history.back();
-            else router.navigate({ to: "/feed" });
-          }}
-          className="relative mb-4"
-        >
-          <ArrowLeft size={16} /> {t("common.back")}
-        </Button>
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={() => {
+          // se a página foi aberta direto (link compartilhado, nova aba), não há pra onde
+          // voltar dentro do app — history.back() vira no-op silencioso nesse caso.
+          if (window.history.length > 1) router.history.back();
+          else router.navigate({ to: "/feed" });
+        }}
+        className="mb-4"
+      >
+        <ArrowLeft size={16} /> {t("common.back")}
+      </Button>
 
-        {reviewer && (
-          <div className="relative flex items-center gap-2 mb-5 pb-4 border-b border-white/10 sm:gap-3">
+      {reviewer && (
+          <div className="flex items-center gap-2 mb-5 pb-4 border-b border-white/10 sm:gap-3">
             <Link
               to="/profile/$userId"
               params={{ userId }}
@@ -162,7 +166,7 @@ export function PublicAlbumRankingView({ userId, albumId }: { userId: string; al
           </div>
         )}
 
-        <div className="relative pb-4 sm:pb-6 flex flex-col items-center text-center gap-4 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between sm:text-left sm:gap-6">
+        <div className="pb-4 sm:pb-6 flex flex-col items-center text-center gap-4 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between sm:text-left sm:gap-6">
           <div className="flex flex-col items-center text-center gap-4 sm:flex-row sm:items-start sm:text-left sm:gap-6 min-w-0">
           {album.imageUrl ? (
             <img
@@ -267,9 +271,8 @@ export function PublicAlbumRankingView({ userId, albumId }: { userId: string; al
             </Card>
           </div>
         </div>
-      </div>
 
-      <div className="pt-4 sm:pt-6 flex flex-col gap-6">
+      <div className="pt-6 sm:pt-8 flex flex-col gap-6">
         <section>
           <h2 className="text-white font-semibold flex items-center gap-2 mb-3">
             <ListMusic size={16} className="text-dourado" /> {t("albumDetail.tracks")}

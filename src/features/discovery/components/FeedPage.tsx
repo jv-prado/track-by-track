@@ -7,7 +7,7 @@ import { useGenresQuery } from "@/queries/album-catalog";
 import { cn } from "@/shared/lib/cn";
 import { useInfiniteScroll } from "@/shared/lib/use-infinite-scroll";
 import { FeedCard } from "./FeedCard";
-import { FeedCardSkeleton } from "./FeedCardSkeleton";
+import { FeedCardSkeleton } from "@/shared/ui/FeedCardSkeleton";
 import { ErrorState } from "@/shared/ui/ErrorState";
 import { EmptyState } from "@/shared/ui/EmptyState";
 import { Spinner } from "@/shared/ui/Spinner";

@@ -1,6 +1,7 @@
 import { forwardRef, type ButtonHTMLAttributes } from "react";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/shared/lib/cn";
+import { Spinner } from "./Spinner";
 
 const buttonVariants = cva(
   "inline-flex items-center justify-center gap-2 rounded-lg font-semibold sm:font-bold transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dourado focus-visible:ring-offset-2 focus-visible:ring-offset-grafite",
@@ -26,11 +27,27 @@ const buttonVariants = cva(
 
 export interface ButtonProps
   extends ButtonHTMLAttributes<HTMLButtonElement>,
-    VariantProps<typeof buttonVariants> {}
+    VariantProps<typeof buttonVariants> {
+  /**
+   * Ação sem update otimista (delete, reset, salvar, login...) — troca o ícone por um spinner
+   * e desabilita o botão. Não usar em ação que já muda a UI no clique (estrela, seguir): aqui
+   * seria regressão, não feedback.
+   */
+  isLoading?: boolean;
+}
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, ...props }, ref) => (
-    <button ref={ref} className={cn(buttonVariants({ variant, size }), className)} {...props} />
+  ({ className, variant, size, isLoading, disabled, children, ...props }, ref) => (
+    <button
+      ref={ref}
+      className={cn(buttonVariants({ variant, size }), className)}
+      disabled={disabled || isLoading}
+      aria-busy={isLoading || undefined}
+      {...props}
+    >
+      {isLoading && <Spinner className="size-4 shrink-0" />}
+      {children}
+    </button>
   ),
 );
 Button.displayName = "Button";

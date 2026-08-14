@@ -17,6 +17,8 @@ import { useGenresQuery } from "@/queries/album-catalog";
 import { useInfiniteScroll } from "@/shared/lib/use-infinite-scroll";
 import { getInitials } from "@/shared/lib/initials";
 import { FeedCard } from "./FeedCard";
+import { FeedCardSkeleton } from "@/shared/ui/FeedCardSkeleton";
+import { ProfileHeaderSkeleton } from "./ProfileHeaderSkeleton";
 import { FollowButton } from "@/shared/social/FollowButton";
 import { FollowListModal } from "@/shared/social/FollowListModal";
 import { GenreFilter } from "@/shared/ui/GenreFilter";
@@ -33,6 +35,7 @@ import { cn } from "@/shared/lib/cn";
 
 const GRID_CLASSES =
   "grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] gap-3 sm:grid-cols-[repeat(auto-fill,minmax(200px,1fr))] sm:gap-5";
+const SKELETON_COUNT = 10;
 
 export function PublicProfilePage() {
   const { t } = useTranslation();
@@ -84,8 +87,13 @@ export function PublicProfilePage() {
 
   if (isLoading) {
     return (
-      <div className="flex justify-center py-16">
-        <Spinner className="h-8 w-8" />
+      <div className="w-full">
+        <ProfileHeaderSkeleton />
+        <div className={GRID_CLASSES}>
+          {Array.from({ length: SKELETON_COUNT }).map((_, i) => (
+            <FeedCardSkeleton key={i} />
+          ))}
+        </div>
       </div>
     );
   }

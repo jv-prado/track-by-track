@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { Check, Filter, Music, Sparkles } from "lucide-react";
@@ -12,6 +12,7 @@ import { Spinner } from "@/shared/ui/Spinner";
 import { ErrorState } from "@/shared/ui/ErrorState";
 import { EmptyState } from "@/shared/ui/EmptyState";
 import { useInfiniteScroll } from "@/shared/lib/use-infinite-scroll";
+import { useRotatingLoadingText } from "@/shared/lib/use-rotating-loading-text";
 import { GenreFilter } from "@/shared/ui/GenreFilter";
 import { BottomSheet } from "@/shared/ui/BottomSheet";
 import { genreLabel } from "@/shared/lib/genreLabel";
@@ -22,20 +23,6 @@ const GRID_CLASSES =
   "grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] gap-3 sm:grid-cols-[repeat(auto-fill,minmax(200px,1fr))] sm:gap-5";
 
 type DiscoverTab = "new-releases" | "top-chart";
-
-/** Troca a mensagem de loading a cada 5s pra loading longo não parecer travado. */
-function useRotatingLoadingText(keys: readonly string[], intervalMs = 5000) {
-  const [index, setIndex] = useState(0);
-
-  useEffect(() => {
-    const id = setInterval(() => {
-      setIndex((prev) => (prev + 1) % keys.length);
-    }, intervalMs);
-    return () => clearInterval(id);
-  }, [keys.length, intervalMs]);
-
-  return keys[index] ?? keys[0] ?? "";
-}
 
 /** Campos que o cartão precisa — `AlbumSummary` e `TopChartAlbum` satisfazem os dois. */
 interface DiscoverAlbumCard {

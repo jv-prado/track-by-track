@@ -9,6 +9,7 @@
     "myRankings": "Mis valoraciones",
     "topAlbums": "Top álbumes",
     "logout": "Salir",
+    "logoutError": "No se pudo cerrar sesión. Inténtalo de nuevo.",
     "profile": "Mi perfil",
     "settings": "Configuración",
     "continueEditing": "Continuar editando"
@@ -23,7 +24,8 @@
     "clearFilters": "Limpiar filtros",
     "notApplicable": "No aplica",
     "tracksProgress": "{{rated}}/{{total}} pistas",
-    "showMore": "Ver más"
+    "showMore": "Ver más",
+    "dismiss": "Descartar"
   },
   "auth": {
     "email": "Email",
@@ -173,7 +175,12 @@
     "shareError": "No se pudo compartir.",
     "trackIgnored": "Ignorada",
     "ignoreTrack": "Ignorar canción (no cuenta en la media)",
-    "unignoreTrack": "Volver a valorar esta canción"
+    "unignoreTrack": "Volver a valorar esta canción",
+    "loadingAlbum": "Buscando datos del álbum...",
+    "loadingRanking": "Preparando tu ranking...",
+    "rateError": "No se pudo guardar la nota. Inténtalo de nuevo.",
+    "ignoreError": "No se pudo actualizar la canción. Inténtalo de nuevo.",
+    "createRankingError": "No se pudo preparar tu ranking. Inténtalo de nuevo."
   },
   "review": {
     "placeholder": "¿Qué te pareció este álbum?",
@@ -190,9 +197,15 @@
     "reset": "Restablecer valoraciones",
     "resetConfirm": "Esto borra todas las notas, tu reseña y la pista favorita/peor de este álbum. No se puede deshacer.",
     "resetConfirmYes": "Sí, restablecer",
+    "resetting": "Restableciendo...",
+    "resetSuccess": "Ranking restablecido.",
+    "resetError": "No se pudo restablecer el ranking.",
     "removeConfirm": "¿Eliminar definitivamente?",
     "removeConfirmYes": "Sí, eliminar",
-    "removeAlbum": "Eliminar álbum"
+    "removeAlbum": "Eliminar álbum",
+    "removing": "Eliminando...",
+    "removeSuccess": "Álbum eliminado de tus rankings.",
+    "removeError": "No se pudo eliminar el álbum."
   },
   "comments": {
     "title": "Comentarios",
@@ -200,7 +213,13 @@
     "empty": "Aún no hay comentarios.",
     "edited": "(editado)",
     "editAria": "Editar comentario",
-    "deleteAria": "Eliminar comentario"
+    "deleteAria": "Eliminar comentario",
+    "createSuccess": "Comentario enviado.",
+    "createError": "No se pudo enviar el comentario.",
+    "updateSuccess": "Comentario actualizado.",
+    "updateError": "No se pudo guardar la edición.",
+    "deleteSuccess": "Comentario eliminado.",
+    "deleteError": "No se pudo eliminar el comentario."
   },
   "starRating": {
     "ariaLabel": "Nota {{star}}"
@@ -228,7 +247,8 @@
     "changeAvatar": "Cambiar foto",
     "avatarInvalidType": "Formato inválido. Usa JPEG, PNG o WebP.",
     "avatarTooLarge": "Imagen muy grande. Máximo 5MB.",
-    "avatarUploadFailed": "No se pudo subir la foto. Intenta de nuevo."
+    "avatarUploadFailed": "No se pudo subir la foto. Intenta de nuevo.",
+    "avatarSaved": "¡Foto actualizada!"
   },
   "pagination": {
     "previous": "Página anterior",
@@ -243,7 +263,8 @@
     "confirmYes": "Sí, eliminar definitivamente",
     "cta": "Eliminar cuenta",
     "wrongPassword": "Contraseña incorrecta.",
-    "genericError": "Error al eliminar la cuenta. Inténtalo de nuevo."
+    "genericError": "Error al eliminar la cuenta. Inténtalo de nuevo.",
+    "success": "Cuenta eliminada."
   },
   "follow": {
     "follow": "Seguir",

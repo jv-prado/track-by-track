@@ -43,7 +43,7 @@ export function ReviewForm({ rankingId, albumId, initialText, onSaved }: ReviewF
         rows={3}
       />
 
-      <Button type="submit" size="sm" disabled={saveReview.isPending} className="self-end">
+      <Button type="submit" size="sm" isLoading={saveReview.isPending} className="self-end">
         {saveReview.isPending ? t("common.saving") : t("review.save")}
       </Button>
     </form>

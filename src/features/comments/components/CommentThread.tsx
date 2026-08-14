@@ -12,6 +12,7 @@ import { Button } from "@/shared/ui/Button";
 import { Input } from "@/shared/ui/Input";
 import { Card } from "@/shared/ui/Card";
 import { Spinner } from "@/shared/ui/Spinner";
+import { toast } from "@/shared/ui/toast-store";
 
 export function CommentThread({ rankingId }: { rankingId: string }) {
   const { t } = useTranslation();
@@ -28,7 +29,13 @@ export function CommentThread({ rankingId }: { rankingId: string }) {
   const handleCreate = (event: FormEvent) => {
     event.preventDefault();
     if (!newText.trim()) return;
-    createComment.mutate(newText.trim(), { onSuccess: () => setNewText("") });
+    createComment.mutate(newText.trim(), {
+      onSuccess: () => {
+        setNewText("");
+        toast.success(t("comments.createSuccess"));
+      },
+      onError: () => toast.error(t("comments.createError")),
+    });
   };
 
   const startEditing = (commentId: string, text: string) => {
@@ -40,8 +47,21 @@ export function CommentThread({ rankingId }: { rankingId: string }) {
     if (!editingText.trim()) return;
     updateComment.mutate(
       { commentId, text: editingText.trim() },
-      { onSuccess: () => setEditingId(null) },
+      {
+        onSuccess: () => {
+          setEditingId(null);
+          toast.success(t("comments.updateSuccess"));
+        },
+        onError: () => toast.error(t("comments.updateError")),
+      },
     );
+  };
+
+  const handleDelete = (commentId: string) => {
+    deleteComment.mutate(commentId, {
+      onSuccess: () => toast.success(t("comments.deleteSuccess")),
+      onError: () => toast.error(t("comments.deleteError")),
+    });
   };
 
   return (
@@ -58,7 +78,7 @@ export function CommentThread({ rankingId }: { rankingId: string }) {
             placeholder={t("comments.placeholder")}
             containerClassName="flex-1"
           />
-          <Button type="submit" size="sm" disabled={createComment.isPending}>
+          <Button type="submit" size="sm" isLoading={createComment.isPending}>
             {t("common.send")}
           </Button>
         </form>
@@ -90,14 +110,16 @@ export function CommentThread({ rankingId }: { rankingId: string }) {
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => startEditing(comment.id, comment.text)}
-                      className="text-gray-400 hover:text-dourado cursor-pointer"
+                      disabled={updateComment.isPending || deleteComment.isPending}
+                      className="text-gray-400 hover:text-dourado cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                       aria-label={t("comments.editAria")}
                     >
                       <Pencil size={14} />
                     </button>
                     <button
-                      onClick={() => deleteComment.mutate(comment.id)}
-                      className="text-gray-400 hover:text-red-400 cursor-pointer"
+                      onClick={() => handleDelete(comment.id)}
+                      disabled={deleteComment.isPending}
+                      className="text-gray-400 hover:text-red-400 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                       aria-label={t("comments.deleteAria")}
                     >
                       <Trash2 size={14} />
@@ -114,10 +136,19 @@ export function CommentThread({ rankingId }: { rankingId: string }) {
                     containerClassName="flex-1"
                   />
                   <div className="flex gap-2 justify-end">
-                    <Button size="sm" onClick={() => handleUpdate(comment.id)}>
+                    <Button
+                      size="sm"
+                      onClick={() => handleUpdate(comment.id)}
+                      isLoading={updateComment.isPending}
+                    >
                       {t("common.save")}
                     </Button>
-                    <Button size="sm" variant="ghost" onClick={() => setEditingId(null)}>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => setEditingId(null)}
+                      disabled={updateComment.isPending}
+                    >
                       {t("common.cancel")}
                     </Button>
                   </div>

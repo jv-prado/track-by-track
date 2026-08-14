@@ -11,6 +11,7 @@ import { Button } from "@/shared/ui/Button";
 import { Input } from "@/shared/ui/Input";
 import { PasswordInput } from "@/shared/ui/PasswordInput";
 import { FormField } from "@/shared/ui/FormField";
+import { toast } from "@/shared/ui/toast-store";
 import Logo from "@/assets/logo.svg";
 
 const loginSchema = z.object({
@@ -31,7 +32,6 @@ export function LoginForm() {
     register,
     handleSubmit,
     formState: { errors },
-    setError,
   } = useForm<LoginFormValues>({ resolver: zodResolver(loginSchema) });
 
   const onSubmit = handleSubmit(async (values) => {
@@ -39,11 +39,11 @@ export function LoginForm() {
       await loginMutation.mutateAsync(values);
       await navigate({ to: search.redirect ?? "/feed" });
     } catch (error) {
-      if (isApiError(error) && error.code === "INVALID_CREDENTIALS") {
-        setError("root", { message: "E-mail ou senha incorretos." });
-      } else {
-        setError("root", { message: "Erro ao fazer login. Tente novamente." });
-      }
+      toast.error(
+        isApiError(error) && error.code === "INVALID_CREDENTIALS"
+          ? "E-mail ou senha incorretos."
+          : "Erro ao fazer login. Tente novamente.",
+      );
     }
   });
 
@@ -57,12 +57,6 @@ export function LoginForm() {
         <h2 className="text-xl sm:text-2xl text-dourado font-bold mb-4 sm:mb-6 text-center">
           {t("app.login")}
         </h2>
-
-        {errors.root && (
-          <div className="bg-red-900/30 border border-red-500 text-red-200 p-2.5 sm:p-3 rounded-lg mb-4 text-sm sm:text-base">
-            {errors.root.message}
-          </div>
-        )}
 
         <form onSubmit={onSubmit} className="mb-4">
           <FormField label={t("auth.email")} htmlFor="email" error={errors.email?.message}>
@@ -89,7 +83,7 @@ export function LoginForm() {
             />
           </label>
 
-          <Button type="submit" disabled={loginMutation.isPending} className="w-full mt-2">
+          <Button type="submit" isLoading={loginMutation.isPending} className="w-full mt-2">
             {loginMutation.isPending ? t("auth.loggingIn") : t("app.login")}
           </Button>
         </form>

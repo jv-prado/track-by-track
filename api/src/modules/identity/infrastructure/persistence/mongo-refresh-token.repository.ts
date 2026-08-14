@@ -64,7 +64,14 @@ export class MongoRefreshTokenRepository implements RefreshTokenRepository {
     );
   }
 
-  async markRotated(id: string, replacedByTokenHash: string): Promise<void> {
-    await this.model.updateOne({ _id: id }, { $set: { replacedByTokenHash } });
+  async markRotated(id: string, replacedByTokenHash: string): Promise<boolean> {
+    // A condição no filtro é o que torna isto atômico: sem ela, dois usos
+    // simultâneos do mesmo token liam `replacedByTokenHash: null` antes de
+    // qualquer escrita e ambos rotacionavam com sucesso.
+    const result = await this.model.updateOne(
+      { _id: id, replacedByTokenHash: null, revokedAt: null },
+      { $set: { replacedByTokenHash } },
+    );
+    return result.modifiedCount === 1;
   }
 }

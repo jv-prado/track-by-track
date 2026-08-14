@@ -5,10 +5,13 @@
   "nav": {
     "feed": "Feed",
     "search": "Buscar",
+    "discover": "Descobrir",
     "myRankings": "Minhas avaliações",
     "topAlbums": "Top álbuns",
     "logout": "Sair",
-    "profile": "Perfil"
+    "profile": "Meu perfil",
+    "settings": "Configurações",
+    "continueEditing": "Continuar editando"
   },
   "common": {
     "retry": "Tentar novamente",
@@ -18,7 +21,9 @@
     "send": "Enviar",
     "back": "Voltar",
     "clearFilters": "Limpar filtros",
-    "notApplicable": "Não se aplica"
+    "notApplicable": "Não se aplica",
+    "tracksProgress": "{{rated}}/{{total}} faixas",
+    "showMore": "Ver mais"
   },
   "auth": {
     "email": "Email",
@@ -73,9 +78,17 @@
     "title": "Feed",
     "subtitle": "Avaliações recentes da comunidade.",
     "tracksProgress": "{{rated}}/{{total}} faixas",
+    "badgeNew": "Novo",
+    "badgeUpdated": "Atualizado",
     "emptyTitle": "Nenhuma avaliação ainda",
     "emptyDescription": "Busque um álbum e comece a avaliar as faixas.",
-    "error": "Não foi possível carregar o feed."
+    "error": "Não foi possível carregar o feed.",
+    "tabs": {
+      "global": "Global",
+      "following": "Seguindo"
+    },
+    "followingEmptyTitle": "Seu feed está vazio",
+    "followingEmptyDescription": "Siga outras pessoas para ver as avaliações delas aqui."
   },
   "myRankings": {
     "title": "Minhas avaliações",
@@ -105,6 +118,19 @@
     "emptyDescription": "Assim que usuários avaliarem álbuns, o ranking aparece aqui.",
     "error": "Não foi possível carregar o top álbuns."
   },
+  "discover": {
+    "title": "Descobrir",
+    "subtitle": "Novos lançamentos e os álbuns mais tocados agora.",
+    "tabNewReleases": "Lançamentos",
+    "tabTopChart": "Top Charts",
+    "allGenres": "Todos os gêneros",
+    "emptyTitle": "Nenhum álbum encontrado",
+    "emptyDescription": "Tente outro filtro ou volte mais tarde.",
+    "error": "Não foi possível carregar os álbuns.",
+    "loading1": "Vasculhando lançamentos novos...",
+    "loading2": "Separando os álbuns mais tocados...",
+    "loading3": "Quase lá..."
+  },
   "search": {
     "title": "Buscar álbuns",
     "subtitle": "Encontre um álbum no catálogo pra começar a rankear.",
@@ -124,14 +150,19 @@
     "ratedPercentage": "{{percentage}}% avaliado",
     "yourReview": "Sua review",
     "rateNow": "Avaliar agora",
+    "reviewedBy": "Avaliação de",
     "reviewedOn": "Avaliado em {{date}}",
     "reviewHeading": "Review",
-    "listenSpotify": "Ouvir no Spotify",
-    "listenYoutube": "Ouvir no YouTube Music",
-    "listenAppleMusic": "Ouvir no Apple Music",
+    "listenSpotify": "Spotify",
+    "listenYoutube": "YouTube Music",
+    "listenAppleMusic": "Apple Music",
+    "playPreview": "Ouvir prévia",
+    "pausePreview": "Pausar prévia",
+    "seekPreview": "Ir para trecho da prévia",
     "notFound": "Álbum não encontrado.",
     "rankingNotFound": "Ranking não encontrado.",
     "averageScore": "Média geral",
+    "community": "Comunidade",
     "progress": "Progresso da avaliação",
     "history": "Histórico",
     "firstRating": "Primeira avaliação",
@@ -148,9 +179,12 @@
     "placeholder": "O que você achou desse álbum?",
     "favoriteTrack": "Faixa favorita",
     "worstTrack": "Pior faixa",
+    "favoriteTrackSaved": "Faixa favorita salva",
+    "worstTrackSaved": "Pior faixa salva",
+    "saveError": "Não foi possível salvar a review.",
+    "notChosen": "Ainda não escolhida",
     "save": "Salvar review",
-    "saveSuccess": "Review salva com sucesso.",
-    "saveError": "Não foi possível salvar a review."
+    "saveSuccess": "Review salva com sucesso."
   },
   "rankingActions": {
     "reset": "Resetar avaliações",
@@ -174,6 +208,7 @@
   "communityStats": {
     "title": "Top 3 da comunidade",
     "ratingsAndAverage": "{{count}} avaliações · média {{average}}",
+    "ratingsCount": "{{count}} avaliações",
     "favoriteTracks": "Faixas favoritas",
     "worstTracks": "Piores faixas"
   },
@@ -185,6 +220,7 @@
     "title": "Meu perfil",
     "displayNameLabel": "Nome de exibição",
     "saved": "Salvo!",
+    "saveError": "Não foi possível salvar o perfil.",
     "deleteAccountLink": "Excluir minha conta",
     "fallbackTitle": "Perfil",
     "error": "Não foi possível carregar o perfil.",
@@ -208,5 +244,31 @@
     "cta": "Excluir conta",
     "wrongPassword": "Senha incorreta.",
     "genericError": "Erro ao excluir a conta. Tente novamente."
+  },
+  "follow": {
+    "follow": "Seguir",
+    "following": "Seguindo",
+    "followers_one": "{{count}} seguidor",
+    "followers_other": "{{count}} seguidores",
+    "followingCount_one": "seguindo {{count}}",
+    "followingCount_other": "seguindo {{count}}",
+    "error": "Não foi possível concluir. Tente de novo.",
+    "followersTitle": "Seguidores",
+    "followingTitle": "Seguindo",
+    "emptyFollowers": "Nenhum seguidor ainda.",
+    "emptyFollowing": "Ainda não segue ninguém."
+  },
+  "notifications": {
+    "title": "Notificações",
+    "empty": "Nada por aqui ainda.",
+    "markAllRead": "Marcar todas como lidas",
+    "comment": "{{name}} comentou na sua avaliação",
+    "follow": "{{name}} começou a seguir você"
+  },
+  "share": {
+    "image": "Compartilhar imagem",
+    "generating": "Gerando imagem...",
+    "error": "Não foi possível gerar a imagem.",
+    "downloaded": "Imagem salva."
   }
 }

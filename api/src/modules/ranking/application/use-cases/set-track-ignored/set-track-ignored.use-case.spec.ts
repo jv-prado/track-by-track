@@ -32,7 +32,7 @@ describe('SetTrackIgnoredUseCase', () => {
       rankings,
       new FakeCacheInvalidator(),
     );
-    return { useCase, rankingId: created.ranking.id };
+    return { useCase, rankings, rankingId: created.ranking.id };
   }
 
   it('marca uma faixa como ignorada, excluindo-a da média', async () => {
@@ -97,6 +97,40 @@ describe('SetTrackIgnoredUseCase', () => {
         ignored: true,
       }),
     ).rejects.toThrow(RankingForbiddenError);
+  });
+
+  it('mantém o ranking no banco quando a única marcação é um ignore', async () => {
+    const { useCase, rankings, rankingId } = await setup();
+
+    await useCase.execute({
+      rankingId,
+      requestingUserId: 'user-1',
+      trackId: 't1',
+      ignored: true,
+    });
+
+    // Ignorar é conteúdo do usuário: sem isto o ranking sumia e o próximo
+    // request sobre o mesmo rankingId virava 404.
+    await expect(rankings.findById(rankingId)).resolves.not.toBeNull();
+  });
+
+  it('apaga o ranking quando o último ignore é desfeito e não há nota nem review', async () => {
+    const { useCase, rankings, rankingId } = await setup();
+    await useCase.execute({
+      rankingId,
+      requestingUserId: 'user-1',
+      trackId: 't1',
+      ignored: true,
+    });
+
+    await useCase.execute({
+      rankingId,
+      requestingUserId: 'user-1',
+      trackId: 't1',
+      ignored: false,
+    });
+
+    await expect(rankings.findById(rankingId)).resolves.toBeNull();
   });
 
   it('lança TrackNotInAlbumError para faixa que não pertence ao álbum', async () => {

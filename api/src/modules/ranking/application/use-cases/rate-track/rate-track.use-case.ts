@@ -11,7 +11,7 @@ import {
   CACHE_INVALIDATOR,
   type CacheInvalidator,
 } from '../../../../../shared/application/ports/cache-invalidator.port';
-import { invalidateRankingCache } from '../../invalidate-ranking-cache';
+import { persistRanking } from '../../persist-ranking';
 
 export interface RateTrackInput {
   rankingId: string;
@@ -39,8 +39,12 @@ export class RateTrackUseCase {
 
     const wasComplete = ranking.completedAt !== null;
     ranking.rateTrack(input.trackId, Score.create(input.score));
-    await this.rankings.save(ranking);
-    await invalidateRankingCache(this.cacheInvalidator, ranking, wasComplete);
+    await persistRanking(
+      this.rankings,
+      this.cacheInvalidator,
+      ranking,
+      wasComplete,
+    );
 
     return toRankingView(ranking);
   }

@@ -7,9 +7,10 @@ import { rankingsKeys } from "./keys";
 export interface SaveReviewInput {
   rankingId: string;
   albumId: string;
-  text?: string;
-  favoriteTrackId?: string;
-  worstTrackId?: string;
+  // undefined = não envia o campo (servidor mantém o valor atual); null = limpa explicitamente.
+  text?: string | null;
+  favoriteTrackId?: string | null;
+  worstTrackId?: string | null;
 }
 
 export function useSaveReviewMutation() {

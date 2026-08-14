@@ -30,10 +30,14 @@ async function generate() {
   );
   await app.close();
 
-  console.log('openapi.json gerado.');
+  // Script de CLI: escreve direto no stdout/stderr em vez de usar o Logger da
+  // app — não há request nem contexto Nest para correlacionar aqui.
+  process.stdout.write('openapi.json gerado.\n');
 }
 
 generate().catch((error: unknown) => {
-  console.error(error);
+  process.stderr.write(
+    `${String(error instanceof Error ? error.stack : error)}\n`,
+  );
   process.exit(1);
 });

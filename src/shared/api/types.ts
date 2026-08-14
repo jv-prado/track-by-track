@@ -1,147 +1,51 @@
+import type { components } from "./schema";
+
 /**
- * Tipos escritos à mão enquanto o pipeline de codegen do OpenAPI (seção 2.2 do
- * CLAUDE.md) não está configurado. Cobrem só os endpoints já consumidos pelo
- * frontend — ver pendência na Fase 8 do CLAUDE.md.
+ * Aliases sobre o contrato gerado (`schema.d.ts`, produzido por `npm run api:types`
+ * a partir de `api/openapi.json`). Nada aqui é escrito à mão: se um campo mudar
+ * na API, o erro aparece no typecheck da web, não em runtime — que é o ponto da
+ * seção 2.2 do CLAUDE.md. Para corrigir um tipo, mexa no schema Zod da API e
+ * regenere; nunca edite `schema.d.ts` nem descreva o shape aqui.
  */
+type Schemas = components["schemas"];
 
-export interface CurrentUser {
-  id: string;
-  email: string;
-  displayName: string;
-  avatarUrl?: string;
-  mustResetPassword: boolean;
-  createdAt: string;
-}
+export type CurrentUser = Schemas["CurrentUserResponseDto"];
+export type AuthUserSummary = Schemas["ProfileResponseDto"];
+export type LoginResponse = Schemas["LoginResponseDto"];
+export type RefreshResponse = Schemas["RefreshResponseDto"];
+export type RegisterResponse = Schemas["RegisterResponseDto"];
+export type MessageResponse = Schemas["MessageResponseDto"];
 
-export interface AuthUserSummary {
-  id: string;
-  email: string;
-  displayName: string;
-}
+export type PaginationMeta = Schemas["FeedPageDto"]["meta"];
 
-export interface LoginResponse {
-  accessToken: string;
-  user: AuthUserSummary;
-}
-
-export interface RegisterResponse {
-  id: string;
-  email: string;
-  displayName: string;
-  createdAt: string;
-}
-
-export interface PaginationMeta {
-  page: number;
-  perPage: number;
-  total: number;
-  totalPages: number;
-  /** Cursor da próxima página (feed). `null` = fim da lista. */
-  nextCursor?: string | null;
-}
-
+/** Envelope de lista paginada — o `meta` é o mesmo em todos os endpoints. */
 export interface Paginated<T> {
   data: T[];
   meta: PaginationMeta;
 }
 
-export interface FeedItem {
-  id: string;
-  userId: string;
-  userDisplayName: string;
-  userAvatarUrl?: string;
-  albumId: string;
-  albumName: string;
-  albumArtist: string;
-  albumImageUrl?: string;
-  averageScore: number;
-  ratedTracks: number;
-  totalTracks: number;
-  createdAt: string;
-}
+export type FeedItem = Schemas["FeedPageDto"]["data"][number];
+export type TopAlbumItem = Schemas["TopAlbumsPageDto"]["data"][number];
+export type AlbumReviewItem = Schemas["AlbumReviewsPageDto"]["data"][number];
+export type UserStats = Schemas["UserStatsDto"];
+export type LastEditedAlbum = Schemas["LastEditedAlbumDto"];
+export type AlbumStats = Schemas["AlbumStatsDto"];
+export type TrackTally = Schemas["AlbumStatsDto"]["topFavoriteTracks"][number];
 
-export interface TopAlbumItem {
-  albumId: string;
-  albumName: string;
-  albumArtist: string;
-  albumImageUrl?: string;
-  averageScore: number;
-  ratingsCount: number;
-}
+export type AlbumSummary = Schemas["AlbumSearchPageDto"]["data"][number];
+export type NewReleaseAlbum = Schemas["NewReleasesPageDto"]["data"][number];
+export type TopChartAlbum = Schemas["TopChartPageDto"]["data"][number];
+export type AlbumDetail = Schemas["AlbumDetailDto"];
+export type AlbumTrack = Schemas["AlbumDetailDto"]["tracks"][number];
+export type TrackPreview = Schemas["TrackPreviewDto"];
 
-export interface AlbumSummary {
-  spotifyId: string;
-  name: string;
-  artist: string;
-  /** 640px — só onde a capa aparece grande. */
-  imageUrl?: string;
-  /** 300px — o que os grids devem usar (~1/4 dos bytes). */
-  imageUrlSmall?: string;
-  releaseDate?: string;
-}
+export type RankingView = Schemas["RankingViewDto"];
+export type RankingEntryView = Schemas["RankingViewDto"]["entries"][number];
 
-export interface AlbumTrack {
-  spotifyId: string;
-  name: string;
-  durationMs: number;
-  trackNumber: number;
-}
+export type CommentView = Schemas["CommentViewDto"];
 
-export interface AlbumDetail extends AlbumSummary {
-  tracks: AlbumTrack[];
-}
+export type FollowStats = Schemas["FollowStatsDto"];
+export type FollowUserItem = Schemas["FollowUsersPageDto"]["data"][number];
 
-export interface RankingEntryView {
-  trackId: string;
-  score: number;
-  position: number;
-  ignored: boolean;
-}
-
-export interface RankingView {
-  id: string;
-  userId: string;
-  albumId: string;
-  entries: RankingEntryView[];
-  averageScore: number;
-  progress: { rated: number; total: number; ignored: number; percentage: number };
-  review: { text?: string; favoriteTrackId?: string; worstTrackId?: string };
-  isFirstCompletionBadgeActive: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface AlbumReviewItem {
-  rankingId: string;
-  userId: string;
-  userDisplayName: string;
-  userAvatarUrl?: string;
-  reviewText: string | null;
-  averageScore: number;
-  createdAt: string;
-}
-
-export interface TrackTally {
-  trackId: string;
-  trackName: string;
-  percentage: number;
-}
-
-export interface AlbumStats {
-  albumId: string;
-  averageScore: number;
-  ratingsCount: number;
-  topFavoriteTracks: TrackTally[];
-  topWorstTracks: TrackTally[];
-}
-
-export interface CommentView {
-  id: string;
-  rankingId: string;
-  authorId: string;
-  authorDisplayName: string;
-  authorAvatarUrl?: string;
-  text: string;
-  createdAt: string;
-  editedAt: string | null;
-}
+export type NotificationView = Schemas["NotificationsPageDto"]["data"][number];
+export type UnreadCount = Schemas["UnreadCountDto"];

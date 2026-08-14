@@ -22,6 +22,15 @@ export class InMemoryUserRepository implements UserRepository {
     return Promise.resolve(null);
   }
 
+  findByDisplayName(displayName: string): Promise<User | null> {
+    for (const user of this.users.values()) {
+      if (user.displayName.toLowerCase() === displayName.toLowerCase()) {
+        return Promise.resolve(user);
+      }
+    }
+    return Promise.resolve(null);
+  }
+
   delete(id: string): Promise<void> {
     this.users.delete(id);
     return Promise.resolve();

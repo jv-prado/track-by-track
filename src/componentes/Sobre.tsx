@@ -10,7 +10,7 @@ export default function Sobre() {
     // se a página foi aberta direto (link compartilhado, nova aba), não há pra onde
     // voltar dentro do app — history.back() vira no-op silencioso nesse caso.
     if (window.history.length > 1) window.history.back();
-    else router.navigate({ to: "/" });
+    else router.navigate({ to: "/feed" });
   };
 
   const featuresList = t("about.featuresList", { returnObjects: true }) as string[];
@@ -29,18 +29,18 @@ export default function Sobre() {
       </div>
 
       <div className="bg-cinza-escuro p-6 rounded-xl w-full max-w-3xl mx-auto">
-        <h1 className="text-2xl text-white font-bold mb-4 text-center">{t("about.title")}</h1>
+        <h1 className="text-xl sm:text-2xl text-white font-bold mb-4 text-center">{t("about.title")}</h1>
 
         <p className="text-gray-200 mb-4">{t("about.description")}</p>
         <p className="text-gray-200 mb-6">{t("about.purpose")}</p>
 
-        <h2 className="text-xl text-dourado font-semibold mb-3 flex items-center">
+        <h2 className="text-lg sm:text-xl text-dourado font-semibold mb-3 flex items-center">
           <Music className="mr-2" size={18} /> {t("about.spotifyIntegration")}
         </h2>
         <p className="text-gray-200 mb-2">{t("about.spotifyDescription")}</p>
         <p className="text-gray-200 mb-6 text-sm italic">{t("about.disclaimer")}</p>
 
-        <h2 className="text-xl text-dourado font-semibold mb-3">{t("about.features")}</h2>
+        <h2 className="text-lg sm:text-xl text-dourado font-semibold mb-3">{t("about.features")}</h2>
         <ul className="list-disc pl-6 mb-6 text-gray-200">
           {featuresList.map((feature, index) => (
             <li key={`feature-${index}`} className="mb-1">

@@ -1,16 +1,18 @@
 export interface FeedCursor {
-  createdAt: Date;
+  /** Valor do campo de ordenação do feed (hoje `updatedAt` — ver FEED_SORT). */
+  sortAt: Date;
   id: string;
 }
 
 /**
- * Cursor opaco: `base64url({createdAt ISO}|{id})`. Opaco de propósito — o cliente
+ * Cursor opaco: `base64url({sortAt ISO}|{id})`. Opaco de propósito — o cliente
  * devolve o que recebeu e não depende do formato, então trocar o critério de
- * ordenação depois não quebra ninguém.
+ * ordenação depois não quebra ninguém (foi trocado de `createdAt` pra
+ * `updatedAt` sem precisar versionar o endpoint).
  */
 export function encodeFeedCursor(cursor: FeedCursor): string {
   return Buffer.from(
-    `${cursor.createdAt.toISOString()}|${cursor.id}`,
+    `${cursor.sortAt.toISOString()}|${cursor.id}`,
     'utf8',
   ).toString('base64url');
 }
@@ -21,9 +23,9 @@ export function decodeFeedCursor(raw: string): FeedCursor | null {
   const separator = decoded.indexOf('|');
   if (separator <= 0) return null;
 
-  const createdAt = new Date(decoded.slice(0, separator));
+  const sortAt = new Date(decoded.slice(0, separator));
   const id = decoded.slice(separator + 1);
-  if (Number.isNaN(createdAt.getTime()) || id.length === 0) return null;
+  if (Number.isNaN(sortAt.getTime()) || id.length === 0) return null;
 
-  return { createdAt, id };
+  return { sortAt, id };
 }

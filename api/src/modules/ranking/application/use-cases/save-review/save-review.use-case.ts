@@ -6,18 +6,20 @@ import {
 import { RankingNotFoundError } from '../../../domain/errors/ranking-not-found.error';
 import { RankingForbiddenError } from '../../../domain/errors/ranking-forbidden.error';
 import { RankingView, toRankingView } from '../../ranking-view';
+import type { ReviewProps } from '../../../domain/entities/album-ranking.aggregate';
 import {
   CACHE_INVALIDATOR,
   type CacheInvalidator,
 } from '../../../../../shared/application/ports/cache-invalidator.port';
-import { invalidateRankingCache } from '../../invalidate-ranking-cache';
+import { persistRanking } from '../../persist-ranking';
 
 export interface SaveReviewInput {
   rankingId: string;
   requestingUserId: string;
-  text?: string;
-  favoriteTrackId?: string;
-  worstTrackId?: string;
+  // undefined = campo não enviado, não mexe. null = enviado explicitamente pra limpar.
+  text?: string | null;
+  favoriteTrackId?: string | null;
+  worstTrackId?: string | null;
 }
 
 @Injectable()
@@ -38,13 +40,20 @@ export class SaveReviewUseCase {
     }
 
     const wasComplete = ranking.completedAt !== null;
-    ranking.saveReview({
-      text: input.text,
-      favoriteTrackId: input.favoriteTrackId,
-      worstTrackId: input.worstTrackId,
-    });
-    await this.rankings.save(ranking);
-    await invalidateRankingCache(this.cacheInvalidator, ranking, wasComplete);
+    // só entra no patch o que o cliente de fato mandou — preserva os outros campos da review.
+    const patch: Partial<ReviewProps> = {};
+    if (input.text !== undefined) patch.text = input.text ?? undefined;
+    if (input.favoriteTrackId !== undefined)
+      patch.favoriteTrackId = input.favoriteTrackId ?? undefined;
+    if (input.worstTrackId !== undefined)
+      patch.worstTrackId = input.worstTrackId ?? undefined;
+    ranking.saveReview(patch);
+    await persistRanking(
+      this.rankings,
+      this.cacheInvalidator,
+      ranking,
+      wasComplete,
+    );
 
     return toRankingView(ranking);
   }

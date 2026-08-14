@@ -1,8 +1,11 @@
 import { useRef, useState, type ChangeEvent, type FormEvent } from "react";
 import { Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
+import { Loader2, Save } from "lucide-react";
 import { useUpdateProfileMutation, useUploadAvatarMutation } from "@/queries/auth";
 import { useAuthStore } from "@/shared/auth/auth.store";
+import { isApiError } from "@/shared/api/errors";
+import { toast } from "@/shared/ui/toast-store";
 import { Button } from "@/shared/ui/Button";
 import { Input } from "@/shared/ui/Input";
 import { FormField } from "@/shared/ui/FormField";
@@ -16,7 +19,6 @@ export function OwnProfilePage() {
   const updateProfile = useUpdateProfileMutation();
   const uploadAvatar = useUploadAvatarMutation();
   const [displayName, setDisplayName] = useState(user?.displayName ?? "");
-  const [saved, setSaved] = useState(false);
   const [avatarError, setAvatarError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -24,10 +26,18 @@ export function OwnProfilePage() {
 
   const handleSubmit = (event: FormEvent) => {
     event.preventDefault();
-    setSaved(false);
     updateProfile.mutate(
       { displayName: displayName.trim() },
-      { onSuccess: () => setSaved(true) },
+      {
+        onSuccess: () => toast.success(t("profile.saved")),
+        onError: (error) => {
+          const message =
+            isApiError(error) && error.code === "USER_DISPLAY_NAME_ALREADY_TAKEN"
+              ? error.message
+              : t("profile.saveError");
+          toast.error(message);
+        },
+      },
     );
   };
 
@@ -101,15 +111,18 @@ export function OwnProfilePage() {
           />
         </FormField>
 
-        {saved && <p className="text-dourado text-sm">{t("profile.saved")}</p>}
-
-        <Button type="submit" disabled={updateProfile.isPending} className="self-start">
+        <Button type="submit" disabled={updateProfile.isPending} className="self-end gap-2">
+          {updateProfile.isPending ? (
+            <Loader2 className="w-4 h-4 animate-spin" />
+          ) : (
+            <Save className="w-4 h-4" />
+          )}
           {updateProfile.isPending ? t("common.saving") : t("common.save")}
         </Button>
       </form>
 
       <div className="mt-6 text-center">
-        <Link to="/exclusao-de-conta" className="text-red-400 text-sm hover:underline">
+        <Link to="/delete-account" className="text-red-400 text-sm hover:underline">
           {t("profile.deleteAccountLink")}
         </Link>
       </div>

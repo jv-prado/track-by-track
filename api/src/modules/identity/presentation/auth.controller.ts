@@ -19,7 +19,13 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import type { Request, Response } from 'express';
 import { ConfigService } from '@nestjs/config';
-import { ApiBody, ApiConsumes, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBody,
+  ApiConsumes,
+  ApiCreatedResponse,
+  ApiOkResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import { Public } from '../../../shared/infrastructure/decorators/public.decorator';
 import { CurrentUser } from '../../../shared/infrastructure/decorators/current-user.decorator';
@@ -41,6 +47,14 @@ import { RequestPasswordResetDto } from './dtos/request-password-reset.dto';
 import { ResetPasswordDto } from './dtos/reset-password.dto';
 import { UpdateProfileDto } from './dtos/update-profile.dto';
 import { DeleteAccountDto } from './dtos/delete-account.dto';
+import {
+  CurrentUserResponseDto,
+  LoginResponseDto,
+  MessageResponseDto,
+  ProfileResponseDto,
+  RefreshResponseDto,
+  RegisterResponseDto,
+} from './dtos/auth.responses';
 
 const REFRESH_COOKIE = 'refreshToken';
 
@@ -72,6 +86,7 @@ export class AuthController {
 
   @Public()
   @Throttle({ default: { limit: 5, ttl: 60_000 } })
+  @ApiCreatedResponse({ type: RegisterResponseDto })
   @Post('register')
   async register(@Body() dto: RegisterDto) {
     return this.registerUser.execute(dto);
@@ -80,6 +95,7 @@ export class AuthController {
   @Public()
   @Throttle({ default: { limit: 5, ttl: 60_000 } })
   @HttpCode(HttpStatus.OK)
+  @ApiOkResponse({ type: LoginResponseDto })
   @Post('login')
   async login(
     @Body() dto: LoginDto,
@@ -96,6 +112,7 @@ export class AuthController {
 
   @Public()
   @HttpCode(HttpStatus.OK)
+  @ApiOkResponse({ type: RefreshResponseDto })
   @Post('refresh')
   async refresh(
     @Req() req: Request,
@@ -116,6 +133,7 @@ export class AuthController {
 
   @Public()
   @HttpCode(HttpStatus.OK)
+  @ApiOkResponse({ type: MessageResponseDto })
   @Post('logout')
   async logoutRoute(
     @Req() req: Request,
@@ -129,12 +147,14 @@ export class AuthController {
     return { message: 'Logout realizado.' };
   }
 
+  @ApiOkResponse({ type: CurrentUserResponseDto })
   @Get('me')
   async me(@CurrentUser() user: { sub: string; email: string }) {
     return this.getCurrentUser.execute({ userId: user.sub });
   }
 
   @HttpCode(HttpStatus.OK)
+  @ApiOkResponse({ type: ProfileResponseDto })
   @Patch('me')
   async updateMe(
     @Body() dto: UpdateProfileDto,
@@ -150,6 +170,7 @@ export class AuthController {
   @Post('me/avatar')
   @UseInterceptors(FileInterceptor('avatar'))
   @ApiConsumes('multipart/form-data')
+  @ApiOkResponse({ type: ProfileResponseDto })
   @ApiBody({
     schema: {
       type: 'object',
@@ -191,6 +212,7 @@ export class AuthController {
   @Public()
   @Throttle({ default: { limit: 5, ttl: 60_000 } })
   @HttpCode(HttpStatus.OK)
+  @ApiOkResponse({ type: MessageResponseDto })
   @Post('password-reset/request')
   async requestReset(@Body() dto: RequestPasswordResetDto) {
     return this.requestPasswordReset.execute(dto);
@@ -198,6 +220,7 @@ export class AuthController {
 
   @Public()
   @HttpCode(HttpStatus.OK)
+  @ApiOkResponse({ type: MessageResponseDto })
   @Post('password-reset/confirm')
   async confirmReset(@Body() dto: ResetPasswordDto) {
     return this.resetPassword.execute(dto);

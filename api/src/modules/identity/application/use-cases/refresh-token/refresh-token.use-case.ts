@@ -47,7 +47,17 @@ export class RefreshTokenUseCase {
     }
 
     const issued = this.refreshTokenIssuer.issue(record.family);
-    await this.refreshTokens.markRotated(record.id, issued.tokenHash);
+    const rotated = await this.refreshTokens.markRotated(
+      record.id,
+      issued.tokenHash,
+    );
+    if (!rotated) {
+      // Outra requisição rotacionou este mesmo token entre o check acima e
+      // aqui: dois usos simultâneos do mesmo refresh são indistinguíveis de
+      // token roubado sendo usado em paralelo. Trata igual ao replay.
+      await this.refreshTokens.revokeFamily(record.family);
+      throw new InvalidRefreshTokenError();
+    }
     await this.refreshTokens.create({
       userId: user.id.toString(),
       tokenHash: issued.tokenHash,

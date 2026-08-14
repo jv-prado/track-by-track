@@ -1,21 +1,22 @@
 import { useEffect, useState } from "react";
-import { Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
-import { Search, Music, X } from "lucide-react";
-import { useSearchAlbumsQuery } from "@/queries/album-catalog";
+import { Search, X } from "lucide-react";
+import { useSearchAlbumsInfiniteQuery } from "@/queries/album-catalog";
 import { Input } from "@/shared/ui/Input";
 import { Spinner } from "@/shared/ui/Spinner";
 import { EmptyState } from "@/shared/ui/EmptyState";
 import { ErrorState } from "@/shared/ui/ErrorState";
-import { Pagination } from "@/shared/ui/Pagination";
+import { useInfiniteScroll } from "@/shared/lib/use-infinite-scroll";
+import { AlbumCard } from "./AlbumCard";
 
-const PER_PAGE = 24;
+// mesma grade do Discover/Feed (ver DiscoverPage.tsx) — cartão idêntico merece mesmo tamanho.
+const GRID_CLASSES =
+  "grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] gap-3 sm:grid-cols-[repeat(auto-fill,minmax(200px,1fr))] sm:gap-5";
 
 export function SearchPage() {
   const { t } = useTranslation();
   const [queryInput, setQueryInput] = useState("");
   const [query, setQuery] = useState("");
-  const [page, setPage] = useState(1);
 
   // debounce: espera parar de digitar antes de bater na API
   useEffect(() => {
@@ -23,20 +24,20 @@ export function SearchPage() {
     return () => clearTimeout(timeout);
   }, [queryInput]);
 
-  useEffect(() => {
-    setPage(1);
-  }, [query]);
-
-  const { data, isLoading, isError, refetch } = useSearchAlbumsQuery(query, {
-    page,
-    perPage: PER_PAGE,
+  const { data, isLoading, isError, refetch, fetchNextPage, hasNextPage, isFetchingNextPage } =
+    useSearchAlbumsInfiniteQuery(query);
+  const items = data?.pages.flatMap((page) => page.data) ?? [];
+  const sentinelRef = useInfiniteScroll({
+    hasNextPage: Boolean(hasNextPage),
+    isFetchingNextPage,
+    fetchNextPage,
   });
 
   return (
     <div className="w-full">
       <div className="flex items-start justify-between gap-3 mb-6">
         <div>
-          <h1 className="text-white text-2xl font-bold flex items-center gap-2">
+          <h1 className="text-white text-xl sm:text-2xl font-bold flex items-center gap-2">
             <Search size={22} className="text-dourado" />
             {t("search.title")}
           </h1>
@@ -44,7 +45,7 @@ export function SearchPage() {
         </div>
       </div>
 
-      <div className="relative mb-6">
+      <div className="relative mb-6 max-w-sm">
         <Input
           icon={<Search size={16} />}
           value={queryInput}
@@ -77,41 +78,23 @@ export function SearchPage() {
         <ErrorState message={t("search.error")} onRetry={() => refetch()} />
       )}
 
-      {query.trim() && data && data.data.length === 0 && (
+      {query.trim() && data && items.length === 0 && (
         <EmptyState title={t("search.emptyTitle")} description={t("search.emptyDescription")} />
       )}
 
-      {query.trim() && data && data.data.length > 0 && (
+      {query.trim() && data && items.length > 0 && (
         <>
-          <div className="grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))] gap-4">
-            {data.data.map((album) => (
-              <Link
-                key={album.spotifyId}
-                to="/album/$albumId"
-                params={{ albumId: album.spotifyId }}
-                className="flex flex-col bg-cinza-escuro border border-white/5 rounded-xl hover:border-dourado/30 hover:bg-white/5 transition"
-              >
-                {album.imageUrlSmall ?? album.imageUrl ? (
-                  <img
-                    // card de 160px: capa de 300px basta e pesa ~1/4 da de 640px
-                    src={album.imageUrlSmall ?? album.imageUrl}
-                    alt=""
-                    className="w-full aspect-square rounded-t-xl object-cover bg-cinza-medio"
-                  />
-                ) : (
-                  <div className="w-full aspect-square rounded-t-xl bg-cinza-medio flex items-center justify-center">
-                    <Music size={32} className="text-gray-500" />
-                  </div>
-                )}
-                <div className="p-3 min-w-0">
-                  <p className="text-white font-medium truncate">{album.name}</p>
-                  <p className="text-gray-400 text-sm truncate">{album.artist}</p>
-                </div>
-              </Link>
+          <div className={GRID_CLASSES}>
+            {items.map((album) => (
+              <AlbumCard key={album.spotifyId} album={album} />
             ))}
           </div>
 
-          <Pagination page={data.meta.page} totalPages={data.meta.totalPages} onPageChange={setPage} />
+          {hasNextPage && (
+            <div ref={sentinelRef} className="flex justify-center py-8">
+              {isFetchingNextPage && <Spinner className="h-6 w-6" />}
+            </div>
+          )}
         </>
       )}
     </div>

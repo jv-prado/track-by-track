@@ -14,12 +14,14 @@ interface LanguageSelectorProps {
   className?: string;
   /** Só a bandeira no gatilho, sem o nome do idioma — usado no topbar mobile, onde espaço é curto. */
   compact?: boolean;
+  size?: "md" | "lg";
 }
 
 export default function LanguageSelector({
   direction = "down",
   className,
   compact = false,
+  size = "md",
 }: LanguageSelectorProps) {
   const { i18n } = useTranslation();
   const [open, setOpen] = useState(false);
@@ -48,11 +50,16 @@ export default function LanguageSelector({
         onClick={() => setOpen((v) => !v)}
         aria-label="Idioma"
         className={cn(
-          "flex items-center gap-2 rounded-lg text-sm text-gray-300 hover:bg-white/5 hover:text-white transition cursor-pointer",
-          compact ? "p-2" : "px-3 py-2 w-full",
+          "flex items-center gap-2 rounded-lg text-gray-300 hover:bg-white/5 hover:text-white transition cursor-pointer",
+          "text-base",
+          compact ? "p-2" : size === "lg" ? "px-3 py-2.5 w-full" : "px-3 py-2 w-full",
         )}
       >
-        <img src={current.flag} alt="" className="w-5 h-3.5 object-cover rounded-[2px] shrink-0" />
+        <img
+          src={current.flag}
+          alt=""
+          className={cn("object-cover rounded-[2px] shrink-0", size === "lg" ? "w-7 h-5" : "w-5 h-3.5")}
+        />
         {!compact && <span className="truncate">{current.label}</span>}
       </button>
 
@@ -69,13 +76,18 @@ export default function LanguageSelector({
               type="button"
               onClick={() => changeLanguage(lang.code)}
               className={cn(
-                "flex items-center gap-2 w-full px-3 py-2 text-sm text-left hover:bg-white/5 transition cursor-pointer",
+                "flex items-center gap-2 w-full px-3 py-2 text-left hover:bg-white/5 transition cursor-pointer",
+                size === "lg" ? "text-base py-2.5" : "text-base",
                 lang.code === current.code ? "text-dourado" : "text-gray-300",
               )}
             >
-              <img src={lang.flag} alt="" className="w-5 h-3.5 object-cover rounded-[2px] shrink-0" />
+              <img
+                src={lang.flag}
+                alt=""
+                className={cn("object-cover rounded-[2px] shrink-0", size === "lg" ? "w-7 h-5" : "w-5 h-3.5")}
+              />
               <span className="flex-1">{lang.label}</span>
-              {lang.code === current.code && <Check size={14} />}
+              {lang.code === current.code && <Check size={size === "lg" ? 16 : 14} />}
             </button>
           ))}
         </div>

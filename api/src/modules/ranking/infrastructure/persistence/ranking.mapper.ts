@@ -6,10 +6,10 @@ import {
 import { RankingEntry } from '../../domain/entities/ranking-entry.entity';
 import { Score } from '../../domain/value-objects/score.vo';
 import { RankingPosition } from '../../domain/value-objects/ranking-position.vo';
-import { RankingDocument } from './ranking.schema';
+import { RankingLean } from './ranking.schema';
 
 export class RankingMapper {
-  static toDomain(doc: RankingDocument): AlbumRanking {
+  static toDomain(doc: RankingLean): AlbumRanking {
     const entries = doc.entries.map((entry) =>
       RankingEntry.create({
         trackId: entry.trackId,

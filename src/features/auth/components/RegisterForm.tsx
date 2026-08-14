@@ -45,7 +45,7 @@ export function RegisterForm() {
     try {
       await registerMutation.mutateAsync(values);
       await loginMutation.mutateAsync({ email: values.email, password: values.password });
-      await navigate({ to: "/" });
+      await navigate({ to: "/feed" });
     } catch (error) {
       if (isApiError(error) && error.code === "USER_EMAIL_ALREADY_TAKEN") {
         setError("email", { message: "Este e-mail já está em uso." });
@@ -115,11 +115,11 @@ export function RegisterForm() {
               </div>
               <label htmlFor="consentimento" className="ml-2 text-sm sm:text-base text-gray-300">
                 {t("auth.acceptTerms", "Aceito a")}{" "}
-                <Link to="/politica-de-privacidade" className="text-dourado hover:underline" target="_blank">
+                <Link to="/privacy-policy" className="text-dourado hover:underline" target="_blank">
                   {t("privacyPolicy.title")}
                 </Link>{" "}
                 {t("auth.andThe", "e os")}{" "}
-                <Link to="/termos-de-uso" className="text-dourado hover:underline" target="_blank">
+                <Link to="/terms-of-use" className="text-dourado hover:underline" target="_blank">
                   {t("termsOfUse.title")}
                 </Link>
                 .

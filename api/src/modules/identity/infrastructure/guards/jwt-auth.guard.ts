@@ -25,9 +25,17 @@ export class JwtAuthGuard implements CanActivate {
       context.getHandler(),
       context.getClass(),
     ]);
-    if (isPublic) return true;
-
     const request = context.switchToHttp().getRequest<Request>();
+
+    if (isPublic) {
+      // Rota pública ainda tenta identificar quem chamou: é o que permite a
+      // uma resposta pública trazer um pedaço dependente do visitante (ex:
+      // `isFollowing` em follow-stats). Token ausente ou inválido segue como
+      // anônimo — nunca 401, senão a rota deixaria de ser pública.
+      this.tryAttachUser(request);
+      return true;
+    }
+
     const authHeader = request.headers.authorization;
     if (!authHeader?.startsWith('Bearer ')) {
       throw new UnauthorizedException('Token de acesso ausente.');
@@ -37,5 +45,17 @@ export class JwtAuthGuard implements CanActivate {
     const payload = this.tokenSigner.verifyAccessToken(token);
     request.user = payload;
     return true;
+  }
+
+  private tryAttachUser(request: Request): void {
+    const authHeader = request.headers.authorization;
+    if (!authHeader?.startsWith('Bearer ')) return;
+    try {
+      request.user = this.tokenSigner.verifyAccessToken(
+        authHeader.slice('Bearer '.length),
+      );
+    } catch {
+      // Anônimo. Rota pública não pode falhar por causa de token ruim.
+    }
   }
 }

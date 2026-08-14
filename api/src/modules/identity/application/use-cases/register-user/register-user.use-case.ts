@@ -7,6 +7,7 @@ import {
   type UserRepository,
 } from '../../../domain/repositories/user.repository';
 import { EmailAlreadyTakenError } from '../../../domain/errors/email-already-taken.error';
+import { DisplayNameAlreadyTakenError } from '../../../domain/errors/display-name-already-taken.error';
 import { WeakPasswordError } from '../../../domain/errors/weak-password.error';
 import { HASHER, type Hasher } from '../../ports/hasher.port';
 import { RegisterUserInput, RegisterUserOutput } from './register-user.input';
@@ -32,11 +33,17 @@ export class RegisterUserUseCase {
       throw new EmailAlreadyTakenError(email.value);
     }
 
+    const displayName = input.displayName.trim();
+    const existingName = await this.users.findByDisplayName(displayName);
+    if (existingName) {
+      throw new DisplayNameAlreadyTakenError(displayName);
+    }
+
     const hash = await this.hasher.hash(input.password);
     const user = User.create({
       email,
       passwordHash: PasswordHash.fromHash(hash),
-      displayName: input.displayName.trim(),
+      displayName,
     });
 
     await this.users.save(user);

@@ -79,4 +79,31 @@ describe('spotify-normalizer', () => {
       },
     ]);
   });
+
+  it('sem gêneros informados, não inclui o campo (compatível com cache antigo)', () => {
+    const detail = normalizeAlbumDetail({
+      id: 'abc123',
+      name: 'The Suffering',
+      artists: [{ name: 'Artist A' }],
+      images: [],
+      tracks: { items: [] },
+    });
+
+    expect(detail.genres).toBeUndefined();
+  });
+
+  it('inclui gêneros quando informados — vêm do artista, não do álbum', () => {
+    const detail = normalizeAlbumDetail(
+      {
+        id: 'abc123',
+        name: 'The Suffering',
+        artists: [{ name: 'Artist A' }],
+        images: [],
+        tracks: { items: [] },
+      },
+      ['rock', 'metal'],
+    );
+
+    expect(detail.genres).toEqual(['rock', 'metal']);
+  });
 });

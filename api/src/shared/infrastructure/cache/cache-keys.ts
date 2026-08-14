@@ -55,21 +55,52 @@ export class CacheKeys {
     return `${this.root}:spotify:token`;
   }
 
+  /** Sem page/perPage: a lista inteira é cacheada uma vez e paginada em memória. */
+  spotifyNewReleases(): string {
+    return `${this.root}:spotify:new-releases:recent`;
+  }
+
+  // --- Apple (chart de Top Albums, RSS público sem auth) -------------------
+  /** Chart cru (sem `spotifyId`) — a resolução por item cai no cache de busca. */
+  appleTopAlbumsChart(): string {
+    return `${this.root}:apple:top-albums:chart`;
+  }
+
+  // --- iTunes (prévia de áudio, fonte substituta do Spotify) ---------------
+  itunesTrackPreview(trackId: string): string {
+    return `${this.root}:itunes:preview:${trackId}`;
+  }
+
   // --- Discovery -----------------------------------------------------------
-  feedPage(version: number, page: number, perPage: number): string {
-    return `${this.root}:feed:v${version}:p${page}:${perPage}`;
+  feedPage(
+    version: number,
+    page: number,
+    perPage: number,
+    genre?: string,
+  ): string {
+    return `${this.root}:feed:v${version}:p${page}:${perPage}:${genre ?? 'all'}`;
   }
 
-  feedCursor(version: number, cursor: string, perPage: number): string {
-    return `${this.root}:feed:v${version}:c${hash(cursor)}:${perPage}`;
+  feedCursor(
+    version: number,
+    cursor: string,
+    perPage: number,
+    genre?: string,
+  ): string {
+    return `${this.root}:feed:v${version}:c${hash(cursor)}:${perPage}:${genre ?? 'all'}`;
   }
 
-  feedTotal(version: number): string {
-    return `${this.root}:feed-total:v${version}`;
+  feedTotal(version: number, genre?: string): string {
+    return `${this.root}:feed-total:v${version}:${genre ?? 'all'}`;
   }
 
-  topAlbums(version: number, page: number, perPage: number): string {
-    return `${this.root}:top-albums:v${version}:p${page}:${perPage}`;
+  topAlbums(
+    version: number,
+    page: number,
+    perPage: number,
+    genre?: string,
+  ): string {
+    return `${this.root}:top-albums:v${version}:p${page}:${perPage}:${genre ?? 'all'}`;
   }
 
   albumStats(version: number, albumId: string): string {
@@ -95,7 +126,12 @@ export class CacheKeys {
     sort: string,
     page: number,
     perPage: number,
+    genre?: string,
   ): string {
-    return `${this.root}:user-rankings:v${version}:${userId}:${sort}:p${page}:${perPage}`;
+    return `${this.root}:user-rankings:v${version}:${userId}:${sort}:p${page}:${perPage}:${genre ?? 'all'}`;
+  }
+
+  lastEditedAlbum(version: number, userId: string): string {
+    return `${this.root}:last-edited:v${version}:${userId}`;
   }
 }

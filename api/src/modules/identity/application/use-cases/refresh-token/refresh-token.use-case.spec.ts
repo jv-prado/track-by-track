@@ -84,6 +84,40 @@ describe('RefreshTokenUseCase', () => {
     ).rejects.toThrow(InvalidRefreshTokenError);
   });
 
+  it('sob uso concorrente do mesmo token, só uma rotação vence e a família é revogada', async () => {
+    const { useCase, refreshTokens, initialRefreshToken } = await setup();
+
+    // Token roubado usado no mesmo instante que o cliente legítimo (ou retry de
+    // rede duplicado): as duas leem o registro ativo antes de qualquer escrita.
+    const results = await Promise.allSettled([
+      useCase.execute({ refreshToken: initialRefreshToken }),
+      useCase.execute({ refreshToken: initialRefreshToken }),
+    ]);
+
+    const fulfilled = results.filter((r) => r.status === 'fulfilled');
+    const rejected = results.filter((r) => r.status === 'rejected');
+    expect(fulfilled).toHaveLength(1);
+    expect(rejected).toHaveLength(1);
+    expect((rejected[0] as PromiseRejectedResult).reason).toBeInstanceOf(
+      InvalidRefreshTokenError,
+    );
+
+    // Perder a corrida é tratado como reuso: a família inteira cai, então nem o
+    // refresh recém-emitido pelo vencedor continua valendo.
+    const winner = (
+      fulfilled[0] as PromiseFulfilledResult<{ refreshToken: string }>
+    ).value;
+    await expect(
+      useCase.execute({ refreshToken: winner.refreshToken }),
+    ).rejects.toThrow(InvalidRefreshTokenError);
+
+    const issuer = new RefreshTokenIssuer(new FakeConfigService());
+    const original = await refreshTokens.findByTokenHash(
+      issuer.hash(initialRefreshToken),
+    );
+    expect(original?.revokedAt).not.toBeNull();
+  });
+
   it('rejeita token expirado', async () => {
     const { useCase, refreshTokens, initialRefreshToken } = await setup();
     const hash = new RefreshTokenIssuer(new FakeConfigService()).hash(

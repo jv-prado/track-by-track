@@ -37,7 +37,7 @@ export function LoginForm() {
   const onSubmit = handleSubmit(async (values) => {
     try {
       await loginMutation.mutateAsync(values);
-      await navigate({ to: search.redirect ?? "/" });
+      await navigate({ to: search.redirect ?? "/feed" });
     } catch (error) {
       if (isApiError(error) && error.code === "INVALID_CREDENTIALS") {
         setError("root", { message: "E-mail ou senha incorretos." });
@@ -97,7 +97,7 @@ export function LoginForm() {
         <div className="mt-5 sm:mt-6 text-center">
           <p className="text-gray-300 text-sm sm:text-base">
             {t("auth.noAccount")}{" "}
-            <Link to="/registro" className="text-dourado hover:underline font-medium">
+            <Link to="/register" className="text-dourado hover:underline font-medium">
               {t("auth.registerHere", "Registre-se aqui")}
             </Link>
           </p>
@@ -106,20 +106,20 @@ export function LoginForm() {
         <div className="mt-6 pt-4 border-t border-gray-700 w-full">
           <div className="flex justify-center items-center gap-4 text-center w-full flex-wrap">
             <Link
-              to="/politica-de-privacidade"
+              to="/privacy-policy"
               className="text-gray-400 text-xs hover:text-dourado transition-colors"
             >
               {t("privacyPolicy.title")}
             </Link>
             <span className="text-gray-600">|</span>
             <Link
-              to="/termos-de-uso"
+              to="/terms-of-use"
               className="text-gray-400 text-xs hover:text-dourado transition-colors"
             >
               {t("termsOfUse.title")}
             </Link>
             <span className="text-gray-600">|</span>
-            <Link to="/sobre" className="text-gray-400 text-xs hover:text-dourado transition-colors">
+            <Link to="/about" className="text-gray-400 text-xs hover:text-dourado transition-colors">
               {t("about.title")}
             </Link>
           </div>

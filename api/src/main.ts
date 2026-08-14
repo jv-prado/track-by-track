@@ -12,7 +12,8 @@ async function bootstrap() {
   const env = validateEnv(process.env);
 
   const app = await NestFactory.create(AppModule, { bufferLogs: true });
-  app.useLogger(app.get(Logger));
+  const logger = app.get(Logger);
+  app.useLogger(logger);
   app.setGlobalPrefix('v1');
   app.use(helmet());
   app.use(cookieParser());
@@ -35,10 +36,13 @@ async function bootstrap() {
 
   await app.listen(env.PORT);
 
-  console.log(`Track by Track API rodando em http://localhost:${env.PORT}/v1`);
+  logger.log(`Track by Track API rodando em http://localhost:${env.PORT}/v1`);
 }
 
 bootstrap().catch((error: unknown) => {
-  console.error(error);
+  // Falha de boot acontece antes do logger existir — stderr é o único canal.
+  process.stderr.write(
+    `${String(error instanceof Error ? error.stack : error)}\n`,
+  );
   process.exit(1);
 });

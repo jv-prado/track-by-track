@@ -137,6 +137,28 @@ export class AlbumRanking extends AggregateRoot<AlbumRankingProps> {
     return (sum / total) * 2;
   }
 
+  /**
+   * Nenhuma faixa avaliada, nenhuma faixa ignorada e nenhuma review escrita —
+   * ranking sem qualquer sinal de conteúdo do usuário. Nasce assim (visita à
+   * página do álbum cria o registro antes da 1ª nota) ou volta a ficar assim
+   * (usuário desfaz a última nota, ou reseta tudo sem ter escrito review).
+   * Não deve contar em estatística nem sobreviver no banco — ver
+   * `persistRanking` em application/.
+   *
+   * Ignorar faixa conta como conteúdo: sem isso, marcar um interlúdio como
+   * ignorado antes da 1ª nota apagava o ranking recém-criado e o `rankingId`
+   * que o cliente já tinha em mãos passava a devolver 404.
+   */
+  get isEmpty(): boolean {
+    const hasReview = Boolean(
+      this.props.review.text ||
+      this.props.review.favoriteTrackId ||
+      this.props.review.worstTrackId,
+    );
+    const { rated, ignored } = this.progress;
+    return rated === 0 && ignored === 0 && !hasReview;
+  }
+
   get isFirstCompletionBadgeActive(): boolean {
     if (!this.props.firstCompletedAt) return false;
     return (
@@ -198,12 +220,13 @@ export class AlbumRanking extends AggregateRoot<AlbumRankingProps> {
     this.props.updatedAt = new Date();
   }
 
-  saveReview(review: ReviewProps): void {
+  /** Recebe só os campos que o cliente enviou (ver SaveReviewInput) — faz merge, nunca substitui a review inteira. */
+  saveReview(review: Partial<ReviewProps>): void {
     if (review.favoriteTrackId)
       this.assertTrackRateable(review.favoriteTrackId);
     if (review.worstTrackId) this.assertTrackRateable(review.worstTrackId);
 
-    this.props.review = review;
+    this.props.review = { ...this.props.review, ...review };
     this.props.updatedAt = new Date();
   }
 

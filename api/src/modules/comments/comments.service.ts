@@ -3,6 +3,11 @@ import { Inject, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { UserDirectoryService } from '../identity/application/services/user-directory.service';
+import { RankingDirectoryService } from '../ranking/application/services/ranking-directory.service';
+import {
+  NOTIFICATION_SENDER,
+  type NotificationSender,
+} from '../../shared/application/ports/notification-sender.port';
 import { CommentSchemaClass } from './comment.schema';
 import { CommentNotFoundError } from './errors/comment-not-found.error';
 import { CommentForbiddenError } from './errors/comment-forbidden.error';
@@ -52,6 +57,10 @@ export class CommentsService {
     private readonly model: Model<CommentSchemaClass>,
     @Inject(UserDirectoryService)
     private readonly userDirectory: UserDirectoryService,
+    @Inject(RankingDirectoryService)
+    private readonly rankingDirectory: RankingDirectoryService,
+    @Inject(NOTIFICATION_SENDER)
+    private readonly notifications: NotificationSender,
   ) {}
 
   async create(
@@ -70,6 +79,19 @@ export class CommentsService {
       createdAt: new Date(),
       editedAt: null,
     });
+
+    // Depois de gravar: o comentário é o que precisa dar certo, a notificação é
+    // consequência. O port engole a própria falha (ver notification-sender.port).
+    const owner = await this.rankingDirectory.getOwner(rankingId);
+    if (owner) {
+      await this.notifications.commentOnRanking({
+        rankingOwnerId: owner.userId,
+        actorId: authorId,
+        rankingId,
+        albumId: owner.albumId,
+      });
+    }
+
     return toView(doc.toObject());
   }
 

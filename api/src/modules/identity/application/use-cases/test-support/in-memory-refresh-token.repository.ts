@@ -49,11 +49,12 @@ export class InMemoryRefreshTokenRepository implements RefreshTokenRepository {
     return Promise.resolve();
   }
 
-  markRotated(id: string, replacedByTokenHash: string): Promise<void> {
+  markRotated(id: string, replacedByTokenHash: string): Promise<boolean> {
     const record = this.records.get(id);
-    if (record) {
-      record.replacedByTokenHash = replacedByTokenHash;
+    if (!record || record.replacedByTokenHash || record.revokedAt) {
+      return Promise.resolve(false);
     }
-    return Promise.resolve();
+    record.replacedByTokenHash = replacedByTokenHash;
+    return Promise.resolve(true);
   }
 }

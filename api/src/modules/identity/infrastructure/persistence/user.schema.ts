@@ -3,6 +3,12 @@ import { HydratedDocument } from 'mongoose';
 
 export type UserDocument = HydratedDocument<UserSchemaClass>;
 
+/**
+ * Resultado de leitura com `lean()` — objeto puro, sem os métodos do Document.
+ * É o que o mapper consome: aceita tanto o lean quanto o hidratado.
+ */
+export type UserLean = UserSchemaClass & { _id: string };
+
 @Schema({
   collection: 'users',
   timestamps: { createdAt: true, updatedAt: false },
@@ -27,6 +33,16 @@ export class UserSchemaClass {
 
   @Prop({ type: String, required: true })
   displayName!: string;
+
+  /** Espelho normalizado de `displayName` — sustenta o índice único
+   * case-insensitive sem precisar de collation na query. */
+  @Prop({
+    type: String,
+    required: true,
+    unique: true,
+    index: true,
+  })
+  displayNameLower!: string;
 
   @Prop({ type: String })
   avatarUrl?: string;

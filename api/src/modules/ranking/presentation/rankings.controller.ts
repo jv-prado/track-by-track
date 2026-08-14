@@ -12,7 +12,7 @@ import {
   Res,
 } from '@nestjs/common';
 import type { Response } from 'express';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiCreatedResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { Public } from '../../../shared/infrastructure/decorators/public.decorator';
 import { CurrentUser } from '../../../shared/infrastructure/decorators/current-user.decorator';
 import { CreateOrGetRankingUseCase } from '../application/use-cases/create-or-get-ranking/create-or-get-ranking.use-case';
@@ -26,6 +26,7 @@ import { CreateRankingDto } from './dtos/create-ranking.dto';
 import { RateTrackDto } from './dtos/rate-track.dto';
 import { SetTrackIgnoredDto } from './dtos/set-track-ignored.dto';
 import { SaveReviewDto } from './dtos/save-review.dto';
+import { RankingViewDto } from './dtos/ranking.responses';
 
 @ApiTags('rankings')
 @Controller('rankings')
@@ -44,6 +45,11 @@ export class RankingsController {
     private readonly deleteRanking: DeleteRankingUseCase,
   ) {}
 
+  @ApiCreatedResponse({ type: RankingViewDto })
+  @ApiOkResponse({
+    type: RankingViewDto,
+    description: 'Ranking já existia — devolvido sem criar outro.',
+  })
   @Post()
   async create(
     @Body() dto: CreateRankingDto,
@@ -58,6 +64,7 @@ export class RankingsController {
     return output.ranking;
   }
 
+  @ApiOkResponse({ type: RankingViewDto })
   @Get('me/:albumId')
   async getMine(
     @Param('albumId') albumId: string,
@@ -67,6 +74,7 @@ export class RankingsController {
   }
 
   @Public()
+  @ApiOkResponse({ type: RankingViewDto })
   @Get('users/:userId/albums/:albumId')
   async getByUserAndAlbum(
     @Param('userId') userId: string,
@@ -76,12 +84,14 @@ export class RankingsController {
   }
 
   @Public()
+  @ApiOkResponse({ type: RankingViewDto })
   @Get(':rankingId')
   async getById(@Param('rankingId') rankingId: string) {
     return this.getRanking.byId(rankingId);
   }
 
   @HttpCode(HttpStatus.OK)
+  @ApiOkResponse({ type: RankingViewDto })
   @Patch(':rankingId/tracks/:trackId')
   async rate(
     @Param('rankingId') rankingId: string,
@@ -98,6 +108,7 @@ export class RankingsController {
   }
 
   @HttpCode(HttpStatus.OK)
+  @ApiOkResponse({ type: RankingViewDto })
   @Patch(':rankingId/tracks/:trackId/ignore')
   async ignore(
     @Param('rankingId') rankingId: string,
@@ -114,6 +125,7 @@ export class RankingsController {
   }
 
   @HttpCode(HttpStatus.OK)
+  @ApiOkResponse({ type: RankingViewDto })
   @Patch(':rankingId/review')
   async review(
     @Param('rankingId') rankingId: string,
@@ -128,6 +140,7 @@ export class RankingsController {
   }
 
   @HttpCode(HttpStatus.OK)
+  @ApiOkResponse({ type: RankingViewDto })
   @Post(':rankingId/reset')
   async reset(
     @Param('rankingId') rankingId: string,

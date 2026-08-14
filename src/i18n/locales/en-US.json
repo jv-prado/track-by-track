@@ -5,10 +5,13 @@
   "nav": {
     "feed": "Feed",
     "search": "Search",
+    "discover": "Discover",
     "myRankings": "My rankings",
     "topAlbums": "Top albums",
     "logout": "Logout",
-    "profile": "Profile"
+    "profile": "My profile",
+    "settings": "Settings",
+    "continueEditing": "Continue editing"
   },
   "common": {
     "retry": "Try again",
@@ -18,7 +21,9 @@
     "send": "Send",
     "back": "Back",
     "clearFilters": "Clear filters",
-    "notApplicable": "Not applicable"
+    "notApplicable": "Not applicable",
+    "tracksProgress": "{{rated}}/{{total}} tracks",
+    "showMore": "Show more"
   },
   "auth": {
     "email": "Email",
@@ -73,9 +78,17 @@
     "title": "Feed",
     "subtitle": "Recent ratings from the community.",
     "tracksProgress": "{{rated}}/{{total}} tracks",
+    "badgeNew": "New",
+    "badgeUpdated": "Updated",
     "emptyTitle": "No ratings yet",
     "emptyDescription": "Search for an album and start rating its tracks.",
-    "error": "Could not load the feed."
+    "error": "Could not load the feed.",
+    "tabs": {
+      "global": "Global",
+      "following": "Following"
+    },
+    "followingEmptyTitle": "Your feed is empty",
+    "followingEmptyDescription": "Follow other people to see their ratings here."
   },
   "myRankings": {
     "title": "My rankings",
@@ -105,6 +118,19 @@
     "emptyDescription": "Once users rate albums, the ranking shows up here.",
     "error": "Could not load the top albums."
   },
+  "discover": {
+    "title": "Discover",
+    "subtitle": "New releases and the most-played albums right now.",
+    "tabNewReleases": "New releases",
+    "tabTopChart": "Top charts",
+    "allGenres": "All genres",
+    "emptyTitle": "No albums found",
+    "emptyDescription": "Try another filter or check back later.",
+    "error": "Could not load the albums.",
+    "loading1": "Digging up new releases...",
+    "loading2": "Sorting the most-played albums...",
+    "loading3": "Almost there..."
+  },
   "search": {
     "title": "Search albums",
     "subtitle": "Find an album in the catalog to start ranking.",
@@ -124,14 +150,19 @@
     "ratedPercentage": "{{percentage}}% rated",
     "yourReview": "Your review",
     "rateNow": "Rate now",
+    "reviewedBy": "Review by",
     "reviewedOn": "Rated on {{date}}",
     "reviewHeading": "Review",
-    "listenSpotify": "Listen on Spotify",
-    "listenYoutube": "Listen on YouTube Music",
-    "listenAppleMusic": "Listen on Apple Music",
+    "listenSpotify": "Spotify",
+    "listenYoutube": "YouTube Music",
+    "listenAppleMusic": "Apple Music",
+    "playPreview": "Play preview",
+    "pausePreview": "Pause preview",
+    "seekPreview": "Seek preview",
     "notFound": "Album not found.",
     "rankingNotFound": "Ranking not found.",
     "averageScore": "Average score",
+    "community": "Community",
     "progress": "Rating progress",
     "history": "History",
     "firstRating": "First rating",
@@ -148,9 +179,12 @@
     "placeholder": "What did you think of this album?",
     "favoriteTrack": "Favorite track",
     "worstTrack": "Worst track",
+    "favoriteTrackSaved": "Favorite track saved",
+    "worstTrackSaved": "Worst track saved",
+    "saveError": "Could not save the review.",
+    "notChosen": "Not chosen yet",
     "save": "Save review",
-    "saveSuccess": "Review saved successfully.",
-    "saveError": "Could not save the review."
+    "saveSuccess": "Review saved successfully."
   },
   "rankingActions": {
     "reset": "Reset ratings",
@@ -174,6 +208,7 @@
   "communityStats": {
     "title": "Community top 3",
     "ratingsAndAverage": "{{count}} ratings · average {{average}}",
+    "ratingsCount": "{{count}} ratings",
     "favoriteTracks": "Favorite tracks",
     "worstTracks": "Worst tracks"
   },
@@ -185,6 +220,7 @@
     "title": "My profile",
     "displayNameLabel": "Display name",
     "saved": "Saved!",
+    "saveError": "Could not save your profile.",
     "deleteAccountLink": "Delete my account",
     "fallbackTitle": "Profile",
     "error": "Could not load the profile.",
@@ -208,5 +244,31 @@
     "cta": "Delete account",
     "wrongPassword": "Wrong password.",
     "genericError": "Error deleting the account. Please try again."
+  },
+  "follow": {
+    "follow": "Follow",
+    "following": "Following",
+    "followers_one": "{{count}} follower",
+    "followers_other": "{{count}} followers",
+    "followingCount_one": "following {{count}}",
+    "followingCount_other": "following {{count}}",
+    "error": "Couldn't complete that. Try again.",
+    "followersTitle": "Followers",
+    "followingTitle": "Following",
+    "emptyFollowers": "No followers yet.",
+    "emptyFollowing": "Not following anyone yet."
+  },
+  "notifications": {
+    "title": "Notifications",
+    "empty": "Nothing here yet.",
+    "markAllRead": "Mark all as read",
+    "comment": "{{name}} commented on your review",
+    "follow": "{{name}} started following you"
+  },
+  "share": {
+    "image": "Share image",
+    "generating": "Generating image...",
+    "error": "Couldn't generate the image.",
+    "downloaded": "Image saved."
   }
 }

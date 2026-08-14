@@ -41,6 +41,41 @@ describe('SaveReviewUseCase', () => {
     expect(output.review).toEqual({ text: 'Muito bom', favoriteTrackId: 't1' });
   });
 
+  it('salva favorita e pior faixa em chamadas separadas sem uma apagar a outra', async () => {
+    const { useCase, rankingId } = await setup();
+
+    await useCase.execute({
+      rankingId,
+      requestingUserId: 'user-1',
+      favoriteTrackId: 't1',
+    });
+    const output = await useCase.execute({
+      rankingId,
+      requestingUserId: 'user-1',
+      text: 'ainda bom',
+    });
+
+    expect(output.review).toEqual({ text: 'ainda bom', favoriteTrackId: 't1' });
+  });
+
+  it('null limpa o campo explicitamente; undefined (ausente) não mexe', async () => {
+    const { useCase, rankingId } = await setup();
+
+    await useCase.execute({
+      rankingId,
+      requestingUserId: 'user-1',
+      text: 'Muito bom',
+      favoriteTrackId: 't1',
+    });
+    const output = await useCase.execute({
+      rankingId,
+      requestingUserId: 'user-1',
+      favoriteTrackId: null,
+    });
+
+    expect(output.review).toEqual({ text: 'Muito bom' });
+  });
+
   it('rejeita faixa favorita que não pertence ao álbum', async () => {
     const { useCase, rankingId } = await setup();
 

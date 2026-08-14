@@ -15,8 +15,11 @@ import {
   AlbumSummary,
   normalizeAlbumDetail,
   normalizeAlbumSummary,
+  RecentRelease,
   SpotifyAlbumDetailRaw,
+  SpotifyAlbumSummaryRaw,
   SpotifySearchResponseRaw,
+  SpotifySeveralArtistsResponseRaw,
 } from './spotify-normalizer';
 
 const TOKEN_URL = 'https://accounts.spotify.com/api/token';
@@ -26,6 +29,82 @@ const TOKEN_EXPIRY_SAFETY_MARGIN_MS = 60_000;
 /** Janela do lock de renovação: curta, só cobre o round-trip do `/api/token`. */
 const TOKEN_LOCK_TTL_SECONDS = 10;
 const TOKEN_LOCK_WAIT_MS = 120;
+/** Máximo aceito pelo `/search`. */
+const NEW_RELEASES_PAGE_SIZE = 50;
+/**
+ * `tag:new` pega só as ~2 semanas mais recentes e vem quase todo em single:
+ * 1000 itens viram ~150 álbuns por mercado. `year:` alcança o resto da janela
+ * e é o que enche os gêneros fora do mainstream — cortado depois por
+ * `NEW_RELEASES_WINDOW_DAYS`, senão traria o ano inteiro. Range de dois anos
+ * por causa de janeiro, quando a janela cruza o réveillon.
+ *
+ * O número de páginas é o botão de "tempo da primeira carga": cada página é
+ * uma busca no Spotify, e a conta toda tem que caber em poucos segundos. Subir
+ * isso aumenta o acervo por gênero e a espera na mesma proporção.
+ */
+const NEW_RELEASES_PAGES = 10;
+const NEW_RELEASES_YEAR_PAGES = 10;
+/**
+ * Seis meses, não duas semanas: a janela é de graça (mesmo número de buscas) e
+ * é o que dá rolagem nos gêneros fora do mainstream. A lista vem da mais
+ * recente pra mais antiga, então quem não rola continua vendo só o que acabou
+ * de sair.
+ */
+const NEW_RELEASES_WINDOW_DAYS = 180;
+/**
+ * Mercados diferentes devolvem listas bem diferentes (medido: BR e JP
+ * compartilham ~27% dos ids) — unir é o que dá volume. `BR` primeiro por ser o
+ * público do produto.
+ */
+const NEW_RELEASES_MARKETS = ['BR', 'US', 'GB'];
+/**
+ * 15 em paralelo passam num burst curto, mas aqui são dezenas de buscas
+ * seguidas: a cota estoura no meio e a espera do `Retry-After` dobrava o tempo
+ * total (17s contra ~8s). Menos paralelismo termina antes.
+ */
+const NEW_RELEASES_CONCURRENCY = 8;
+/** Máximo de ids aceito por chamada em `/artists`. */
+const ARTISTS_BATCH_SIZE = 50;
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+/**
+ * `release_date` do Spotify vem com precisão variável (`2026`, `2026-08`,
+ * `2026-08-14`) e a comparação é textual — sem completar, "2026" ficaria antes
+ * de qualquer corte do próprio ano e o álbum sumiria. Completa pro fim do
+ * período: data imprecisa entra na janela em vez de ser descartada em silêncio.
+ */
+function endOfPeriod(releaseDate: string | undefined): string {
+  if (!releaseDate) return '';
+  if (releaseDate.length === 4) return `${releaseDate}-12-31`;
+  if (releaseDate.length === 7) return `${releaseDate}-31`;
+  return releaseDate;
+}
+
+/**
+ * Três limpezas que a resposta crua não faz: single não é álbum rankeável, o
+ * mesmo lançamento reaparece com ids diferentes por mercado (era daí que vinha
+ * o card duplicado no grid), e `year:` traz o ano inteiro quando a aba só quer
+ * o que é recente. A ordenação é nossa porque a busca devolve por relevância,
+ * não por data.
+ */
+function dedupeReleases(
+  raw: SpotifyAlbumSummaryRaw[],
+  since: string,
+): SpotifyAlbumSummaryRaw[] {
+  const byRelease = new Map<string, SpotifyAlbumSummaryRaw>();
+
+  for (const item of raw) {
+    if (item.album_type === 'single') continue;
+    if (endOfPeriod(item.release_date) < since) continue;
+    const key =
+      `${item.name}|${item.artists.map((artist) => artist.name).join(',')}`.toLowerCase();
+    if (!byRelease.has(key)) byRelease.set(key, item);
+  }
+
+  return [...byRelease.values()].sort((a, b) =>
+    (b.release_date ?? '').localeCompare(a.release_date ?? ''),
+  );
+}
 
 export interface SpotifyCredentialsConfig {
   get(key: 'SPOTIFY_CLIENT_ID' | 'SPOTIFY_CLIENT_SECRET'): string;
@@ -65,10 +144,141 @@ export class SpotifyClientService {
         params: { q: query, type: 'album', limit, offset },
       },
     );
+    // Spotify's `type=album` search param é a categoria "álbuns", que inclui
+    // singles e compilações — não filtra por album_type. Descartamos singles aqui.
     return {
-      items: response.data.albums.items.map(normalizeAlbumSummary),
+      items: response.data.albums.items
+        .filter((item) => item.album_type !== 'single')
+        .map(normalizeAlbumSummary),
       total: response.data.albums.total,
     };
+  }
+
+  /**
+   * `/browse/new-releases` está morto na prática: devolve sempre os mesmos 100
+   * itens, a maioria de 2023/2024, e ignora `country` (confirmado contra a API
+   * real em ago/2026 — a aba "Novidades" abria com álbum de 2023). A Search API
+   * com `tag:new` é o que ainda reflete lançamento de verdade. O preço é que
+   * ~90% do retorno é single, então varremos várias páginas, em vários
+   * mercados e com duas consultas (ver constantes acima), e filtramos — pedir
+   * uma página só devolvia meia dúzia de álbuns por gênero.
+   */
+  async getRecentReleases(): Promise<RecentRelease[]> {
+    const token = await this.getAppAccessToken();
+    const now = new Date();
+    const since = new Date(now.getTime() - NEW_RELEASES_WINDOW_DAYS * DAY_MS)
+      .toISOString()
+      .slice(0, 10);
+    const yearQuery = `year:${now.getUTCFullYear() - 1}-${now.getUTCFullYear()}`;
+    const requests = NEW_RELEASES_MARKETS.flatMap((market) => [
+      ...Array.from({ length: NEW_RELEASES_PAGES }, (_, index) => ({
+        market,
+        query: 'tag:new',
+        offset: index * NEW_RELEASES_PAGE_SIZE,
+      })),
+      ...Array.from({ length: NEW_RELEASES_YEAR_PAGES }, (_, index) => ({
+        market,
+        query: yearQuery,
+        offset: index * NEW_RELEASES_PAGE_SIZE,
+      })),
+    ]);
+    const raw: SpotifyAlbumSummaryRaw[] = [];
+
+    for (let i = 0; i < requests.length; i += NEW_RELEASES_CONCURRENCY) {
+      const pages = await Promise.all(
+        requests
+          .slice(i, i + NEW_RELEASES_CONCURRENCY)
+          .map(({ market, query, offset }) =>
+            this.fetchRecentReleasePage(token, query, market, offset),
+          ),
+      );
+      raw.push(...pages.flat());
+    }
+
+    const releases = dedupeReleases(raw, since);
+    const genresByArtist = await this.getGenresByArtist(
+      [
+        ...new Set(
+          releases.flatMap((item) =>
+            item.artists
+              .map((artist) => artist.id)
+              .filter((id): id is string => Boolean(id)),
+          ),
+        ),
+      ],
+      token,
+    );
+
+    return releases.map((item) => ({
+      ...normalizeAlbumSummary(item),
+      genres: [
+        ...new Set(
+          item.artists.flatMap((artist) =>
+            artist.id ? (genresByArtist.get(artist.id) ?? []) : [],
+          ),
+        ),
+      ],
+    }));
+  }
+
+  private async fetchRecentReleasePage(
+    token: string,
+    query: string,
+    market: string,
+    offset: number,
+  ): Promise<SpotifyAlbumSummaryRaw[]> {
+    try {
+      const response = await this.http.get<SpotifySearchResponseRaw>(
+        `${API_BASE_URL}/search`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          params: {
+            q: query,
+            type: 'album',
+            limit: NEW_RELEASES_PAGE_SIZE,
+            offset,
+            market,
+          },
+        },
+      );
+      return response.data.albums.items;
+      // Página funda além do fim do índice, ou 429 isolado: perder uma página
+      // de 50 encurta a lista, derrubar a resolução inteira zera o Descobrir.
+    } catch {
+      return [];
+    }
+  }
+
+  /**
+   * Gênero mora no artista, não no álbum — para a lista de lançamentos são ~3
+   * chamadas em lote (50 ids cada) por resolução, não uma por álbum. Falha de
+   * lote devolve mapa parcial: sem gênero o álbum ainda aparece, só não entra
+   * em filtro nenhum.
+   */
+  private async getGenresByArtist(
+    artistIds: string[],
+    token: string,
+  ): Promise<Map<string, string[]>> {
+    const batches: string[][] = [];
+    for (let i = 0; i < artistIds.length; i += ARTISTS_BATCH_SIZE) {
+      batches.push(artistIds.slice(i, i + ARTISTS_BATCH_SIZE));
+    }
+
+    const responses = await Promise.all(
+      batches.map((ids) =>
+        this.http
+          .get<SpotifySeveralArtistsResponseRaw>(`${API_BASE_URL}/artists`, {
+            headers: { Authorization: `Bearer ${token}` },
+            params: { ids: ids.join(',') },
+          })
+          .then((response) => response.data.artists)
+          .catch(() => []),
+      ),
+    );
+
+    return new Map(
+      responses.flat().map((artist) => [artist.id, artist.genres]),
+    );
   }
 
   async getAlbumWithTracks(spotifyId: string): Promise<AlbumDetail | null> {
@@ -78,10 +288,42 @@ export class SpotifyClientService {
         `${API_BASE_URL}/albums/${spotifyId}`,
         { headers: { Authorization: `Bearer ${token}` } },
       );
-      return normalizeAlbumDetail(response.data);
+      const artistIds = [
+        ...new Set(
+          response.data.artists
+            .map((artist) => artist.id)
+            .filter((id): id is string => Boolean(id)),
+        ),
+      ];
+      const genres = await this.getArtistGenres(artistIds);
+      return normalizeAlbumDetail(response.data, genres);
     } catch (error) {
       if (error instanceof SpotifyNotFoundError) return null;
       throw error;
+    }
+  }
+
+  /**
+   * Gênero mora no artista, não no álbum — batch `/artists?ids=` custa uma
+   * chamada extra só no cache-miss de `getAlbumWithTracks` (7 dias de TTL),
+   * nunca em listagem.
+   */
+  private async getArtistGenres(artistIds: string[]): Promise<string[]> {
+    if (artistIds.length === 0) return [];
+    try {
+      const token = await this.getAppAccessToken();
+      const response = await this.http.get<SpotifySeveralArtistsResponseRaw>(
+        `${API_BASE_URL}/artists`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          params: { ids: artistIds.slice(0, 50).join(',') },
+        },
+      );
+      return [...new Set(response.data.artists.flatMap((a) => a.genres))];
+    } catch {
+      // gênero é enriquecimento, não crítico — falha aqui não pode derrubar
+      // o cache do álbum (nome/capa/faixas continuam valendo).
+      return [];
     }
   }
 

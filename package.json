@@ -1,5 +1,5 @@
 {
-  "name": "react-teste",
+  "name": "track-by-track",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -10,15 +10,20 @@
     "build": "tsc -b && vite build",
     "typecheck": "tsc -b --noEmit",
     "lint": "eslint .",
+    "test": "vitest run",
     "preview": "vite preview",
-    "dev:infra": "docker compose -f api/docker-compose.yml up -d",
-    "dev:infra:down": "docker compose -f api/docker-compose.yml down"
+    "dev:infra": "node scripts/dev-infra.mjs",
+    "dev:infra:down": "docker compose -f api/docker-compose.yml down",
+    "api:types": "openapi-typescript api/openapi.json -o src/shared/api/schema.d.ts",
+    "cap:sync": "npm run build && cap sync android",
+    "cap:open": "cap open android"
   },
   "dependencies": {
     "@capacitor/android": "^7.2.0",
     "@capacitor/app": "^7.0.1",
     "@capacitor/cli": "^7.2.0",
     "@capacitor/core": "^7.2.0",
+    "@capacitor/device": "^7.0.5",
     "@hookform/resolvers": "^5.7.1",
     "@radix-ui/react-dialog": "^1.1.23",
     "@radix-ui/react-dropdown-menu": "^2.1.24",
@@ -38,7 +43,6 @@
     "react-dom": "^19.0.0",
     "react-hook-form": "^7.85.0",
     "react-i18next": "^15.5.1",
-    "react-icons": "^5.7.0",
     "sonner": "^2.0.8",
     "tailwind-merge": "^3.6.0",
     "tailwindcss": "^4.1.4",
@@ -58,8 +62,11 @@
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.19",
     "globals": "^16.0.0",
+    "jsdom": "^30.0.1",
+    "openapi-typescript": "^7.13.0",
     "typescript": "~5.7.2",
     "typescript-eslint": "^8.26.1",
-    "vite": "^6.3.1"
+    "vite": "^6.3.1",
+    "vitest": "^4.1.10"
   }
 }

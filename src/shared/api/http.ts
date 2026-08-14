@@ -31,8 +31,8 @@ http.interceptors.request.use((config) => {
 let refreshPromise: Promise<string> | null = null;
 
 /**
- * Single-flight: chamado tanto pelo interceptor 401 quanto pelo bootstrap
- * (useAuthBootstrap). Se ambos disparassem POST /auth/refresh cru e
+ * Single-flight: chamado tanto pelo interceptor 401 quanto pela reidratação da
+ * sessão (queries/auth/useSessionQuery). Se ambos disparassem POST /auth/refresh cru e
  * concorrente, a rotação no servidor detecta reuso e revoga a família
  * inteira do refresh token — deslogando o usuário. Nunca chamar
  * rawHttp.post("/auth/refresh") fora daqui.

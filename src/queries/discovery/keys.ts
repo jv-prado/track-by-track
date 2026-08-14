@@ -3,21 +3,27 @@ export interface FeedFilters {
   perPage: number;
 }
 
+/** `following` só existe com sessão — ver useFeedInfiniteQuery. */
+export type FeedScope = "global" | "following";
+
 export type ProfileSort = "recent" | "score-desc" | "score-asc";
 
 export interface ProfileFilters extends FeedFilters {
   search?: string;
   sort?: ProfileSort;
+  genre?: string;
 }
 
-export type ProfileInfiniteFilters = Pick<ProfileFilters, "search" | "sort">;
+export type ProfileInfiniteFilters = Pick<ProfileFilters, "search" | "sort" | "genre">;
 
 export const discoveryKeys = {
   all: ["discovery"] as const,
   feed: (filters: FeedFilters) => [...discoveryKeys.all, "feed", filters] as const,
-  feedInfinite: () => [...discoveryKeys.all, "feed-infinite"] as const,
+  feedInfinite: (scope: FeedScope = "global", genre?: string) =>
+    [...discoveryKeys.all, "feed-infinite", scope, genre ?? "all"] as const,
   topAlbums: (filters: FeedFilters) => [...discoveryKeys.all, "top-albums", filters] as const,
-  topAlbumsInfinite: () => [...discoveryKeys.all, "top-albums-infinite"] as const,
+  topAlbumsInfinite: (genre?: string) =>
+    [...discoveryKeys.all, "top-albums-infinite", genre ?? "all"] as const,
   profile: (userId: string, filters: ProfileFilters) =>
     [...discoveryKeys.all, "profile", userId, filters] as const,
   profileInfinite: (userId: string, filters: ProfileInfiniteFilters) =>
@@ -28,4 +34,6 @@ export const discoveryKeys = {
   albumReviewsInfinite: (albumId: string) =>
     [...discoveryKeys.all, "album-reviews-infinite", albumId] as const,
   albumStats: (albumId: string) => [...discoveryKeys.all, "album-stats", albumId] as const,
+  lastEditedAlbum: (userId: string) =>
+    [...discoveryKeys.all, "last-edited-album", userId] as const,
 };

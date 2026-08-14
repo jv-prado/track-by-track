@@ -52,6 +52,24 @@ describe('CreateOrGetRankingUseCase', () => {
     expect(second.ranking.id).toBe(first.ranking.id);
   });
 
+  it('sob criação concorrente, devolve o mesmo ranking em vez de estourar conflito', async () => {
+    const { useCase, rankings } = setup();
+
+    // Duplo clique em "avaliar álbum" ou duas abas abertas: as duas passam pelo
+    // findByUserAndAlbum antes de qualquer save. Antes do fix, a segunda batia
+    // no índice único e virava 500 INTERNAL_ERROR.
+    const [first, second] = await Promise.all([
+      useCase.execute({ userId: 'user-1', albumId: 'album-1' }),
+      useCase.execute({ userId: 'user-1', albumId: 'album-1' }),
+    ]);
+
+    expect(first.ranking.id).toBe(second.ranking.id);
+    expect([first.created, second.created].filter(Boolean)).toHaveLength(1);
+    await expect(
+      rankings.findByUserAndAlbum('user-1', 'album-1'),
+    ).resolves.not.toBeNull();
+  });
+
   it('lança AlbumNotFoundError quando o álbum não existe no catálogo', async () => {
     const { useCase } = setup();
 

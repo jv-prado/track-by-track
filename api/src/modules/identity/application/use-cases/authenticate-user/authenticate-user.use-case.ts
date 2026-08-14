@@ -65,6 +65,7 @@ export class AuthenticateUserUseCase {
         id: user.id.toString(),
         email: user.email.value,
         displayName: user.displayName,
+        avatarUrl: user.avatarUrl,
       },
     };
   }

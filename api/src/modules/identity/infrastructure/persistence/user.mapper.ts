@@ -2,10 +2,10 @@ import { UniqueEntityId } from '../../../../shared/kernel/unique-entity-id';
 import { User } from '../../domain/entities/user.entity';
 import { Email } from '../../domain/value-objects/email.vo';
 import { PasswordHash } from '../../domain/value-objects/password-hash.vo';
-import { UserDocument } from './user.schema';
+import { UserLean } from './user.schema';
 
 export class UserMapper {
-  static toDomain(doc: UserDocument): User {
+  static toDomain(doc: UserLean): User {
     return User.reconstitute(
       {
         email: Email.create(doc.email),
@@ -29,6 +29,7 @@ export class UserMapper {
       email: user.email.value,
       passwordHash: user.passwordHash?.value ?? null,
       displayName: user.displayName,
+      displayNameLower: user.displayName.toLowerCase(),
       avatarUrl: user.avatarUrl,
       mustResetPassword: user.mustResetPassword,
       legacyFirebaseUid: user.legacyFirebaseUid,

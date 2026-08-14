@@ -4,6 +4,7 @@ import {
   type UserRepository,
 } from '../../../domain/repositories/user.repository';
 import { UserNotFoundError } from '../../../domain/errors/user-not-found.error';
+import { DisplayNameAlreadyTakenError } from '../../../domain/errors/display-name-already-taken.error';
 import {
   UpdateProfileInput,
   UpdateProfileOutput,
@@ -27,7 +28,15 @@ export class UpdateProfileUseCase {
       throw new UserNotFoundError();
     }
 
-    user.changeDisplayName(input.displayName.trim());
+    const displayName = input.displayName.trim();
+    // só bloqueia se o nome pertence a OUTRO usuário — permite salvar sem
+    // trocar nada (mesmo displayName do próprio usuário) sem falso 409.
+    const existing = await this.users.findByDisplayName(displayName);
+    if (existing && existing.id.toString() !== user.id.toString()) {
+      throw new DisplayNameAlreadyTakenError(displayName);
+    }
+
+    user.changeDisplayName(displayName);
     await this.users.save(user);
     // displayName vai embutido em cada item do feed e das reviews de álbum
     await this.cacheInvalidator.userProfileChanged(input.userId);

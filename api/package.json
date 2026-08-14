@@ -19,7 +19,8 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
-    "openapi:gen": "nest build && node dist/src/openapi.js"
+    "openapi:gen": "nest build && node dist/src/openapi.js",
+    "backfill:missing-albums": "tsx scripts/backfill-missing-albums.ts"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",

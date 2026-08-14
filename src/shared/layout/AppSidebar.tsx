@@ -1,35 +1,84 @@
+import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
-import { Home, Search, ListMusic, Trophy, LogOut, User as UserIcon } from "lucide-react";
+import {
+  Home,
+  Search,
+  Sparkles,
+  ListMusic,
+  Trophy,
+  LogOut,
+  Settings,
+  User as UserIcon,
+} from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useAuthStore } from "@/shared/auth/auth.store";
 import { useLogoutMutation } from "@/queries/auth";
+import { useLastEditedAlbumQuery } from "@/queries/discovery";
 import Logo from "@/componentes/sidebar/assets/Logo.svg";
 import LanguageSelector from "@/componentes/LanguageSelector";
 import { cn } from "@/shared/lib/cn";
+import { getScoreColorClasses } from "@/shared/lib/scoreColor";
+import { ProgressBar } from "@/shared/ui/ProgressBar";
 
 export function AppSidebar() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const user = useAuthStore((s) => s.user);
   const logoutMutation = useLogoutMutation();
+  const lastEditedAlbum = useLastEditedAlbumQuery(user?.id).data;
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  // ver a própria avaliação de um álbum (via /profile/$userId/album/$albumId) é
+  // conteúdo de "Minhas Avaliações", mesmo a URL sendo escopada por usuário.
+  const isOwnAlbumRoute = Boolean(user && pathname.startsWith(`/profile/${user.id}/album/`));
+  // álbum aberto a partir do Feed usa rota aninhada (/feed/$userId/album/$albumId)
+  // só pra manter "Feed" ativo aqui, seja o ranking próprio ou de outro usuário.
+  const isFeedAlbumRoute = pathname.startsWith("/feed/");
+  const activePath = isFeedAlbumRoute ? "/feed" : isOwnAlbumRoute ? "/my-rankings" : pathname;
+  // álbum aberto a partir de Pesquisar/Top Álbuns/Feed usa rota aninhada
+  // (/search/$albumId, /top-albums/$albumId, /feed/$userId/album/$albumId) só
+  // pra manter esse item ativo aqui.
+  const isNavActive = (to: string) => activePath === to || activePath.startsWith(`${to}/`);
 
   const NAV_ITEMS = [
-    { to: "/", label: t("nav.feed"), icon: Home },
-    { to: "/pesquisar", label: t("nav.search"), icon: Search },
-    { to: "/minhas-avaliacoes", label: t("nav.myRankings"), icon: ListMusic },
-    { to: "/top-albuns", label: t("nav.topAlbums"), icon: Trophy },
+    { to: "/feed", label: t("nav.feed"), icon: Home },
+    { to: "/search", label: t("nav.search"), icon: Search },
+    { to: "/discover", label: t("nav.discover"), icon: Sparkles },
+    { to: "/my-rankings", label: t("nav.myRankings"), icon: ListMusic },
+    { to: "/top-albums", label: t("nav.topAlbums"), icon: Trophy },
   ] as const;
 
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+  const profileMenuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (profileMenuRef.current && !profileMenuRef.current.contains(event.target as Node)) {
+        setProfileMenuOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   const handleLogout = async () => {
+    setProfileMenuOpen(false);
     await logoutMutation.mutateAsync();
     await navigate({ to: "/login" });
   };
 
+  const isProfileActive = isNavActive("/profile");
+  const mobileTabCount = NAV_ITEMS.length + 1;
+  const activeTabIndex = (() => {
+    const navIndex = NAV_ITEMS.findIndex(({ to }) => isNavActive(to));
+    if (navIndex !== -1) return navIndex;
+    if (isProfileActive) return NAV_ITEMS.length;
+    return -1;
+  })();
+
   return (
     <>
       {/* desktop: sidebar fixa lateral */}
-      <aside className="hidden md:flex w-64 shrink-0 bg-cinza-escuro flex-col h-screen sticky top-0 p-4">
+      <aside className="hidden md:flex w-72 shrink-0 bg-cinza-escuro flex-col h-screen sticky top-0 p-4">
         <img src={Logo} alt="Track by Track" className="w-28 mx-auto mb-8" />
 
         <nav className="flex-1 flex flex-col gap-1">
@@ -39,7 +88,7 @@ export function AppSidebar() {
               to={to}
               className={cn(
                 "flex items-center gap-3 rounded-lg px-3 py-2.5 transition",
-                pathname === to
+                isNavActive(to)
                   ? "bg-dourado/10 text-dourado hover:bg-dourado/15"
                   : "text-gray-300 hover:bg-white/5 hover:text-white",
               )}
@@ -50,23 +99,56 @@ export function AppSidebar() {
           ))}
         </nav>
 
-        <div className="border-t border-white/10 pt-4 mt-4">
-          {user && (
-            <Link
-              to="/perfil"
-              className="flex items-center gap-3 rounded-lg px-3 py-2 text-gray-300 hover:bg-white/5 hover:text-white transition mb-1"
-            >
-              {user.avatarUrl ? (
-                <img src={user.avatarUrl} alt="" className="w-6 h-6 rounded-full object-cover" />
+        {lastEditedAlbum && (
+          <Link
+            to="/album/$albumId"
+            params={{ albumId: lastEditedAlbum.albumId }}
+            className="flex flex-col gap-2 rounded-lg border border-white/10 p-2.5 text-gray-300 hover:bg-white/5 hover:text-white transition"
+          >
+            <div className="flex items-center gap-3">
+              {lastEditedAlbum.albumImageUrl ? (
+                <img
+                  src={lastEditedAlbum.albumImageUrl}
+                  alt=""
+                  className="h-10 w-10 shrink-0 rounded object-cover"
+                />
               ) : (
-                <UserIcon size={20} />
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded bg-white/10">
+                  <ListMusic size={18} />
+                </div>
               )}
-              <span className="text-sm truncate">{user.displayName}</span>
-            </Link>
-          )}
+              <div className="min-w-0 flex-1">
+                <p className="text-[10px] uppercase tracking-wide text-gray-500">
+                  {t("nav.continueEditing")}
+                </p>
+                <p className="truncate text-sm">{lastEditedAlbum.albumName}</p>
+                <p className="truncate text-xs text-gray-400">{lastEditedAlbum.albumArtist}</p>
+              </div>
+              <span
+                className={cn(
+                  "shrink-0 text-sm font-bold",
+                  getScoreColorClasses(
+                    lastEditedAlbum.averageScore,
+                    lastEditedAlbum.progress.rated === lastEditedAlbum.progress.total,
+                  ).text,
+                )}
+              >
+                {lastEditedAlbum.averageScore.toFixed(1)}
+              </span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <ProgressBar value={lastEditedAlbum.progress.percentage} className="h-1 flex-1" />
+              <span className="text-gray-500 text-[11px] shrink-0 tabular-nums">
+                {t("common.tracksProgress", {
+                  rated: lastEditedAlbum.progress.rated,
+                  total: lastEditedAlbum.progress.total,
+                })}
+              </span>
+            </div>
+          </Link>
+        )}
 
-          <LanguageSelector direction="up" className="mb-1" />
-
+        <div className="border-t border-white/10 pt-4 mt-4">
           <button
             onClick={handleLogout}
             className="w-full flex items-center gap-3 rounded-lg px-3 py-2.5 text-gray-400 hover:bg-white/5 hover:text-red-400 transition cursor-pointer"
@@ -77,41 +159,102 @@ export function AppSidebar() {
         </div>
       </aside>
 
-      {/* mobile: topbar (logo + idioma + logout) */}
-      <header className="md:hidden sticky top-0 z-40 flex items-center justify-between gap-2 bg-cinza-escuro px-4 h-14 border-b border-white/10">
-        <img src={Logo} alt="Track by Track" className="h-8" />
-        <div className="flex items-center gap-1">
-          <LanguageSelector direction="down" className="w-auto" />
-          <button
-            onClick={handleLogout}
-            aria-label={t("nav.logout")}
-            className="flex items-center justify-center rounded-lg p-2 text-gray-400 hover:bg-white/5 hover:text-red-400 transition cursor-pointer"
-          >
-            <LogOut size={20} />
-          </button>
-        </div>
-      </header>
-
       {/* mobile: bottom tab bar */}
       <nav
         className="md:hidden fixed bottom-0 inset-x-0 z-40 flex items-stretch bg-cinza-escuro border-t border-white/10 pb-[env(safe-area-inset-bottom)]"
       >
-        {[
-          ...NAV_ITEMS,
-          { to: "/perfil", label: t("nav.profile"), icon: UserIcon },
-        ].map(({ to, label, icon: Icon }) => (
+        {activeTabIndex !== -1 && (
+          <span
+            className="absolute bottom-[env(safe-area-inset-bottom)] left-0 h-0.5 rounded-full bg-dourado transition-transform duration-300 ease-out"
+            style={{
+              width: `${100 / mobileTabCount}%`,
+              transform: `translateX(${activeTabIndex * 100}%)`,
+            }}
+          />
+        )}
+
+        {NAV_ITEMS.map(({ to, label, icon: Icon }) => (
           <Link
             key={to}
             to={to}
             className={cn(
-              "flex flex-1 flex-col items-center justify-center gap-0.5 py-2 transition",
-              pathname === to ? "text-dourado" : "text-gray-400 hover:text-white",
+              "flex flex-1 flex-col items-center justify-center gap-0.5 py-2.5 transition-colors",
+              isNavActive(to) ? "text-dourado" : "text-gray-400 hover:text-white",
             )}
           >
-            <Icon size={20} />
-            <span className="text-[10px] leading-none truncate max-w-full px-1">{label}</span>
+            <Icon
+              size={22}
+              className={cn("transition-transform duration-200", isNavActive(to) && "scale-110")}
+            />
+            {isNavActive(to) && (
+              <span className="text-[10px] leading-none truncate max-w-full px-1 animate-[fadeIn_0.15s_ease-out]">
+                {label}
+              </span>
+            )}
           </Link>
         ))}
+
+        <div className="relative flex flex-1" ref={profileMenuRef}>
+          {profileMenuOpen && (
+            <div
+              role="menu"
+              className="absolute bottom-full right-0 mb-1 min-w-48 rounded-lg border border-white/10 bg-cinza-escuro shadow-lg shadow-black/40 overflow-hidden z-50"
+            >
+              <Link
+                to="/profile/$userId"
+                params={{ userId: user?.id ?? "" }}
+                role="menuitem"
+                onClick={() => setProfileMenuOpen(false)}
+                className="flex items-center gap-2 w-full px-3 py-2.5 text-base text-left text-gray-200 hover:bg-white/5 transition"
+              >
+                <UserIcon size={18} />
+                <span className="flex-1 truncate">{t("nav.profile")}</span>
+              </Link>
+              <Link
+                to="/profile"
+                role="menuitem"
+                onClick={() => setProfileMenuOpen(false)}
+                className="flex items-center gap-2 w-full px-3 py-2.5 text-base text-left text-gray-200 hover:bg-white/5 transition"
+              >
+                <Settings size={18} />
+                <span className="flex-1 truncate">{t("nav.settings")}</span>
+              </Link>
+              <div className="border-t border-white/10">
+                <LanguageSelector direction="up" className="w-full" />
+              </div>
+              <button
+                type="button"
+                role="menuitem"
+                onClick={handleLogout}
+                className="flex items-center gap-2 w-full px-3 py-2.5 text-base text-left text-gray-400 hover:bg-white/5 hover:text-red-400 transition cursor-pointer"
+              >
+                <LogOut size={18} />
+                <span className="flex-1 truncate">{t("nav.logout")}</span>
+              </button>
+            </div>
+          )}
+
+          <button
+            type="button"
+            onClick={() => setProfileMenuOpen((v) => !v)}
+            aria-haspopup="menu"
+            aria-expanded={profileMenuOpen}
+            className={cn(
+              "flex flex-1 flex-col items-center justify-center gap-0.5 py-2.5 transition-colors cursor-pointer",
+              isProfileActive ? "text-dourado" : "text-gray-400 hover:text-white",
+            )}
+          >
+            <UserIcon
+              size={22}
+              className={cn("transition-transform duration-200", isProfileActive && "scale-110")}
+            />
+            {isProfileActive && (
+              <span className="text-[10px] leading-none truncate max-w-full px-1 animate-[fadeIn_0.15s_ease-out]">
+                {t("nav.profile")}
+              </span>
+            )}
+          </button>
+        </div>
       </nav>
     </>
   );

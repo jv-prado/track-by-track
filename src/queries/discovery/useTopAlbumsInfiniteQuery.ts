@@ -5,12 +5,12 @@ import { discoveryKeys } from "./keys";
 
 const PER_PAGE = 20;
 
-export function useTopAlbumsInfiniteQuery() {
+export function useTopAlbumsInfiniteQuery(genre?: string) {
   return useInfiniteQuery({
-    queryKey: discoveryKeys.topAlbumsInfinite(),
+    queryKey: discoveryKeys.topAlbumsInfinite(genre),
     queryFn: async ({ pageParam }) => {
       const { data } = await http.get<Paginated<TopAlbumItem>>("/discovery/top-albums", {
-        params: { page: pageParam, perPage: PER_PAGE },
+        params: { genre, page: pageParam, perPage: PER_PAGE },
       });
       return data;
     },

@@ -11,20 +11,26 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as AuthRouteImport } from './routes/_auth'
-import { Route as PoliticaDePrivacidadeRouteImport } from './routes/politica-de-privacidade'
-import { Route as SobreRouteImport } from './routes/sobre'
-import { Route as TermosDeUsoRouteImport } from './routes/termos-de-uso'
+import { Route as AboutRouteImport } from './routes/about'
+import { Route as PrivacyPolicyRouteImport } from './routes/privacy-policy'
+import { Route as TermsOfUseRouteImport } from './routes/terms-of-use'
 import { Route as AppIndexRouteImport } from './routes/_app.index'
-import { Route as AppExclusaoDeContaRouteImport } from './routes/_app.exclusao-de-conta'
-import { Route as AppMinhasAvaliacoesRouteImport } from './routes/_app.minhas-avaliacoes'
-import { Route as AppPesquisarRouteImport } from './routes/_app.pesquisar'
-import { Route as AppTopAlbunsRouteImport } from './routes/_app.top-albuns'
+import { Route as AppDeleteAccountRouteImport } from './routes/_app.delete-account'
+import { Route as AppDiscoverRouteImport } from './routes/_app.discover'
+import { Route as AppFeedRouteImport } from './routes/_app.feed'
+import { Route as AppMyRankingsRouteImport } from './routes/_app.my-rankings'
+import { Route as AppSearchRouteImport } from './routes/_app.search'
+import { Route as AppTopAlbumsRouteImport } from './routes/_app.top-albums'
 import { Route as AuthLoginRouteImport } from './routes/_auth.login'
-import { Route as AuthRegistroRouteImport } from './routes/_auth.registro'
+import { Route as AuthRegisterRouteImport } from './routes/_auth.register'
 import { Route as AppAlbumAlbumIdRouteImport } from './routes/_app.album.$albumId'
-import { Route as AppPerfilIndexRouteImport } from './routes/_app.perfil.index'
-import { Route as AppPerfilUsuarioIdRouteImport } from './routes/_app.perfil.$usuarioId'
-import { Route as AppPerfilUsuarioIdAlbumAlbumIdRouteImport } from './routes/_app.perfil.$usuarioId_.album.$albumId'
+import { Route as AppDiscoverAlbumIdRouteImport } from './routes/_app.discover_.$albumId'
+import { Route as AppProfileIndexRouteImport } from './routes/_app.profile.index'
+import { Route as AppProfileUserIdRouteImport } from './routes/_app.profile.$userId'
+import { Route as AppSearchAlbumIdRouteImport } from './routes/_app.search_.$albumId'
+import { Route as AppTopAlbumsAlbumIdRouteImport } from './routes/_app.top-albums_.$albumId'
+import { Route as AppFeedUserIdAlbumAlbumIdRouteImport } from './routes/_app.feed_.$userId.album.$albumId'
+import { Route as AppProfileUserIdAlbumAlbumIdRouteImport } from './routes/_app.profile.$userId_.album.$albumId'
 
 const AppRoute = AppRouteImport.update({
   id: '/_app',
@@ -34,19 +40,19 @@ const AuthRoute = AuthRouteImport.update({
   id: '/_auth',
   getParentRoute: () => rootRouteImport,
 } as any)
-const PoliticaDePrivacidadeRoute = PoliticaDePrivacidadeRouteImport.update({
-  id: '/politica-de-privacidade',
-  path: '/politica-de-privacidade',
+const AboutRoute = AboutRouteImport.update({
+  id: '/about',
+  path: '/about',
   getParentRoute: () => rootRouteImport,
 } as any)
-const SobreRoute = SobreRouteImport.update({
-  id: '/sobre',
-  path: '/sobre',
+const PrivacyPolicyRoute = PrivacyPolicyRouteImport.update({
+  id: '/privacy-policy',
+  path: '/privacy-policy',
   getParentRoute: () => rootRouteImport,
 } as any)
-const TermosDeUsoRoute = TermosDeUsoRouteImport.update({
-  id: '/termos-de-uso',
-  path: '/termos-de-uso',
+const TermsOfUseRoute = TermsOfUseRouteImport.update({
+  id: '/terms-of-use',
+  path: '/terms-of-use',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AppIndexRoute = AppIndexRouteImport.update({
@@ -54,24 +60,34 @@ const AppIndexRoute = AppIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AppRoute,
 } as any)
-const AppExclusaoDeContaRoute = AppExclusaoDeContaRouteImport.update({
-  id: '/exclusao-de-conta',
-  path: '/exclusao-de-conta',
+const AppDeleteAccountRoute = AppDeleteAccountRouteImport.update({
+  id: '/delete-account',
+  path: '/delete-account',
   getParentRoute: () => AppRoute,
 } as any)
-const AppMinhasAvaliacoesRoute = AppMinhasAvaliacoesRouteImport.update({
-  id: '/minhas-avaliacoes',
-  path: '/minhas-avaliacoes',
+const AppDiscoverRoute = AppDiscoverRouteImport.update({
+  id: '/discover',
+  path: '/discover',
   getParentRoute: () => AppRoute,
 } as any)
-const AppPesquisarRoute = AppPesquisarRouteImport.update({
-  id: '/pesquisar',
-  path: '/pesquisar',
+const AppFeedRoute = AppFeedRouteImport.update({
+  id: '/feed',
+  path: '/feed',
   getParentRoute: () => AppRoute,
 } as any)
-const AppTopAlbunsRoute = AppTopAlbunsRouteImport.update({
-  id: '/top-albuns',
-  path: '/top-albuns',
+const AppMyRankingsRoute = AppMyRankingsRouteImport.update({
+  id: '/my-rankings',
+  path: '/my-rankings',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppSearchRoute = AppSearchRouteImport.update({
+  id: '/search',
+  path: '/search',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppTopAlbumsRoute = AppTopAlbumsRouteImport.update({
+  id: '/top-albums',
+  path: '/top-albums',
   getParentRoute: () => AppRoute,
 } as any)
 const AuthLoginRoute = AuthLoginRouteImport.update({
@@ -79,9 +95,9 @@ const AuthLoginRoute = AuthLoginRouteImport.update({
   path: '/login',
   getParentRoute: () => AuthRoute,
 } as any)
-const AuthRegistroRoute = AuthRegistroRouteImport.update({
-  id: '/registro',
-  path: '/registro',
+const AuthRegisterRoute = AuthRegisterRouteImport.update({
+  id: '/register',
+  path: '/register',
   getParentRoute: () => AuthRoute,
 } as any)
 const AppAlbumAlbumIdRoute = AppAlbumAlbumIdRouteImport.update({
@@ -89,133 +105,190 @@ const AppAlbumAlbumIdRoute = AppAlbumAlbumIdRouteImport.update({
   path: '/album/$albumId',
   getParentRoute: () => AppRoute,
 } as any)
-const AppPerfilIndexRoute = AppPerfilIndexRouteImport.update({
-  id: '/perfil/',
-  path: '/perfil/',
+const AppDiscoverAlbumIdRoute = AppDiscoverAlbumIdRouteImport.update({
+  id: '/discover_/$albumId',
+  path: '/discover/$albumId',
   getParentRoute: () => AppRoute,
 } as any)
-const AppPerfilUsuarioIdRoute = AppPerfilUsuarioIdRouteImport.update({
-  id: '/perfil/$usuarioId',
-  path: '/perfil/$usuarioId',
+const AppProfileIndexRoute = AppProfileIndexRouteImport.update({
+  id: '/profile/',
+  path: '/profile/',
   getParentRoute: () => AppRoute,
 } as any)
-const AppPerfilUsuarioIdAlbumAlbumIdRoute =
-  AppPerfilUsuarioIdAlbumAlbumIdRouteImport.update({
-    id: '/perfil/$usuarioId_/album/$albumId',
-    path: '/perfil/$usuarioId/album/$albumId',
+const AppProfileUserIdRoute = AppProfileUserIdRouteImport.update({
+  id: '/profile/$userId',
+  path: '/profile/$userId',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppSearchAlbumIdRoute = AppSearchAlbumIdRouteImport.update({
+  id: '/search_/$albumId',
+  path: '/search/$albumId',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppTopAlbumsAlbumIdRoute = AppTopAlbumsAlbumIdRouteImport.update({
+  id: '/top-albums_/$albumId',
+  path: '/top-albums/$albumId',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppFeedUserIdAlbumAlbumIdRoute =
+  AppFeedUserIdAlbumAlbumIdRouteImport.update({
+    id: '/feed_/$userId/album/$albumId',
+    path: '/feed/$userId/album/$albumId',
+    getParentRoute: () => AppRoute,
+  } as any)
+const AppProfileUserIdAlbumAlbumIdRoute =
+  AppProfileUserIdAlbumAlbumIdRouteImport.update({
+    id: '/profile/$userId_/album/$albumId',
+    path: '/profile/$userId/album/$albumId',
     getParentRoute: () => AppRoute,
   } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AppIndexRoute
-  '/politica-de-privacidade': typeof PoliticaDePrivacidadeRoute
-  '/sobre': typeof SobreRoute
-  '/termos-de-uso': typeof TermosDeUsoRoute
-  '/exclusao-de-conta': typeof AppExclusaoDeContaRoute
-  '/minhas-avaliacoes': typeof AppMinhasAvaliacoesRoute
-  '/pesquisar': typeof AppPesquisarRoute
-  '/top-albuns': typeof AppTopAlbunsRoute
+  '/about': typeof AboutRoute
+  '/privacy-policy': typeof PrivacyPolicyRoute
+  '/terms-of-use': typeof TermsOfUseRoute
+  '/delete-account': typeof AppDeleteAccountRoute
+  '/discover': typeof AppDiscoverRoute
+  '/feed': typeof AppFeedRoute
+  '/my-rankings': typeof AppMyRankingsRoute
+  '/search': typeof AppSearchRoute
+  '/top-albums': typeof AppTopAlbumsRoute
   '/login': typeof AuthLoginRoute
-  '/registro': typeof AuthRegistroRoute
+  '/register': typeof AuthRegisterRoute
   '/album/$albumId': typeof AppAlbumAlbumIdRoute
-  '/perfil/$usuarioId': typeof AppPerfilUsuarioIdRoute
-  '/perfil/': typeof AppPerfilIndexRoute
-  '/perfil/$usuarioId/album/$albumId': typeof AppPerfilUsuarioIdAlbumAlbumIdRoute
+  '/discover/$albumId': typeof AppDiscoverAlbumIdRoute
+  '/profile/$userId': typeof AppProfileUserIdRoute
+  '/search/$albumId': typeof AppSearchAlbumIdRoute
+  '/top-albums/$albumId': typeof AppTopAlbumsAlbumIdRoute
+  '/profile/': typeof AppProfileIndexRoute
+  '/feed/$userId/album/$albumId': typeof AppFeedUserIdAlbumAlbumIdRoute
+  '/profile/$userId/album/$albumId': typeof AppProfileUserIdAlbumAlbumIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof AppIndexRoute
-  '/politica-de-privacidade': typeof PoliticaDePrivacidadeRoute
-  '/sobre': typeof SobreRoute
-  '/termos-de-uso': typeof TermosDeUsoRoute
-  '/exclusao-de-conta': typeof AppExclusaoDeContaRoute
-  '/minhas-avaliacoes': typeof AppMinhasAvaliacoesRoute
-  '/pesquisar': typeof AppPesquisarRoute
-  '/top-albuns': typeof AppTopAlbunsRoute
+  '/about': typeof AboutRoute
+  '/privacy-policy': typeof PrivacyPolicyRoute
+  '/terms-of-use': typeof TermsOfUseRoute
+  '/delete-account': typeof AppDeleteAccountRoute
+  '/discover': typeof AppDiscoverRoute
+  '/feed': typeof AppFeedRoute
+  '/my-rankings': typeof AppMyRankingsRoute
+  '/search': typeof AppSearchRoute
+  '/top-albums': typeof AppTopAlbumsRoute
   '/login': typeof AuthLoginRoute
-  '/registro': typeof AuthRegistroRoute
+  '/register': typeof AuthRegisterRoute
   '/album/$albumId': typeof AppAlbumAlbumIdRoute
-  '/perfil/$usuarioId': typeof AppPerfilUsuarioIdRoute
-  '/perfil': typeof AppPerfilIndexRoute
-  '/perfil/$usuarioId/album/$albumId': typeof AppPerfilUsuarioIdAlbumAlbumIdRoute
+  '/discover/$albumId': typeof AppDiscoverAlbumIdRoute
+  '/profile/$userId': typeof AppProfileUserIdRoute
+  '/search/$albumId': typeof AppSearchAlbumIdRoute
+  '/top-albums/$albumId': typeof AppTopAlbumsAlbumIdRoute
+  '/profile': typeof AppProfileIndexRoute
+  '/feed/$userId/album/$albumId': typeof AppFeedUserIdAlbumAlbumIdRoute
+  '/profile/$userId/album/$albumId': typeof AppProfileUserIdAlbumAlbumIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_app': typeof AppRouteWithChildren
   '/_auth': typeof AuthRouteWithChildren
-  '/politica-de-privacidade': typeof PoliticaDePrivacidadeRoute
-  '/sobre': typeof SobreRoute
-  '/termos-de-uso': typeof TermosDeUsoRoute
-  '/_app/exclusao-de-conta': typeof AppExclusaoDeContaRoute
-  '/_app/minhas-avaliacoes': typeof AppMinhasAvaliacoesRoute
-  '/_app/pesquisar': typeof AppPesquisarRoute
-  '/_app/top-albuns': typeof AppTopAlbunsRoute
+  '/about': typeof AboutRoute
+  '/privacy-policy': typeof PrivacyPolicyRoute
+  '/terms-of-use': typeof TermsOfUseRoute
+  '/_app/delete-account': typeof AppDeleteAccountRoute
+  '/_app/discover': typeof AppDiscoverRoute
+  '/_app/feed': typeof AppFeedRoute
+  '/_app/my-rankings': typeof AppMyRankingsRoute
+  '/_app/search': typeof AppSearchRoute
+  '/_app/top-albums': typeof AppTopAlbumsRoute
   '/_auth/login': typeof AuthLoginRoute
-  '/_auth/registro': typeof AuthRegistroRoute
+  '/_auth/register': typeof AuthRegisterRoute
   '/_app/': typeof AppIndexRoute
   '/_app/album/$albumId': typeof AppAlbumAlbumIdRoute
-  '/_app/perfil/$usuarioId': typeof AppPerfilUsuarioIdRoute
-  '/_app/perfil/': typeof AppPerfilIndexRoute
-  '/_app/perfil/$usuarioId_/album/$albumId': typeof AppPerfilUsuarioIdAlbumAlbumIdRoute
+  '/_app/discover_/$albumId': typeof AppDiscoverAlbumIdRoute
+  '/_app/profile/$userId': typeof AppProfileUserIdRoute
+  '/_app/search_/$albumId': typeof AppSearchAlbumIdRoute
+  '/_app/top-albums_/$albumId': typeof AppTopAlbumsAlbumIdRoute
+  '/_app/profile/': typeof AppProfileIndexRoute
+  '/_app/feed_/$userId/album/$albumId': typeof AppFeedUserIdAlbumAlbumIdRoute
+  '/_app/profile/$userId_/album/$albumId': typeof AppProfileUserIdAlbumAlbumIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/politica-de-privacidade'
-    | '/sobre'
-    | '/termos-de-uso'
-    | '/exclusao-de-conta'
-    | '/minhas-avaliacoes'
-    | '/pesquisar'
-    | '/top-albuns'
+    | '/about'
+    | '/privacy-policy'
+    | '/terms-of-use'
+    | '/delete-account'
+    | '/discover'
+    | '/feed'
+    | '/my-rankings'
+    | '/search'
+    | '/top-albums'
     | '/login'
-    | '/registro'
+    | '/register'
     | '/album/$albumId'
-    | '/perfil/$usuarioId'
-    | '/perfil/'
-    | '/perfil/$usuarioId/album/$albumId'
+    | '/discover/$albumId'
+    | '/profile/$userId'
+    | '/search/$albumId'
+    | '/top-albums/$albumId'
+    | '/profile/'
+    | '/feed/$userId/album/$albumId'
+    | '/profile/$userId/album/$albumId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/politica-de-privacidade'
-    | '/sobre'
-    | '/termos-de-uso'
-    | '/exclusao-de-conta'
-    | '/minhas-avaliacoes'
-    | '/pesquisar'
-    | '/top-albuns'
+    | '/about'
+    | '/privacy-policy'
+    | '/terms-of-use'
+    | '/delete-account'
+    | '/discover'
+    | '/feed'
+    | '/my-rankings'
+    | '/search'
+    | '/top-albums'
     | '/login'
-    | '/registro'
+    | '/register'
     | '/album/$albumId'
-    | '/perfil/$usuarioId'
-    | '/perfil'
-    | '/perfil/$usuarioId/album/$albumId'
+    | '/discover/$albumId'
+    | '/profile/$userId'
+    | '/search/$albumId'
+    | '/top-albums/$albumId'
+    | '/profile'
+    | '/feed/$userId/album/$albumId'
+    | '/profile/$userId/album/$albumId'
   id:
     | '__root__'
     | '/_app'
     | '/_auth'
-    | '/politica-de-privacidade'
-    | '/sobre'
-    | '/termos-de-uso'
-    | '/_app/exclusao-de-conta'
-    | '/_app/minhas-avaliacoes'
-    | '/_app/pesquisar'
-    | '/_app/top-albuns'
+    | '/about'
+    | '/privacy-policy'
+    | '/terms-of-use'
+    | '/_app/delete-account'
+    | '/_app/discover'
+    | '/_app/feed'
+    | '/_app/my-rankings'
+    | '/_app/search'
+    | '/_app/top-albums'
     | '/_auth/login'
-    | '/_auth/registro'
+    | '/_auth/register'
     | '/_app/'
     | '/_app/album/$albumId'
-    | '/_app/perfil/$usuarioId'
-    | '/_app/perfil/'
-    | '/_app/perfil/$usuarioId_/album/$albumId'
+    | '/_app/discover_/$albumId'
+    | '/_app/profile/$userId'
+    | '/_app/search_/$albumId'
+    | '/_app/top-albums_/$albumId'
+    | '/_app/profile/'
+    | '/_app/feed_/$userId/album/$albumId'
+    | '/_app/profile/$userId_/album/$albumId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   AppRoute: typeof AppRouteWithChildren
   AuthRoute: typeof AuthRouteWithChildren
-  PoliticaDePrivacidadeRoute: typeof PoliticaDePrivacidadeRoute
-  SobreRoute: typeof SobreRoute
-  TermosDeUsoRoute: typeof TermosDeUsoRoute
+  AboutRoute: typeof AboutRoute
+  PrivacyPolicyRoute: typeof PrivacyPolicyRoute
+  TermsOfUseRoute: typeof TermsOfUseRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -234,25 +307,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/politica-de-privacidade': {
-      id: '/politica-de-privacidade'
-      path: '/politica-de-privacidade'
-      fullPath: '/politica-de-privacidade'
-      preLoaderRoute: typeof PoliticaDePrivacidadeRouteImport
+    '/about': {
+      id: '/about'
+      path: '/about'
+      fullPath: '/about'
+      preLoaderRoute: typeof AboutRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/sobre': {
-      id: '/sobre'
-      path: '/sobre'
-      fullPath: '/sobre'
-      preLoaderRoute: typeof SobreRouteImport
+    '/privacy-policy': {
+      id: '/privacy-policy'
+      path: '/privacy-policy'
+      fullPath: '/privacy-policy'
+      preLoaderRoute: typeof PrivacyPolicyRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/termos-de-uso': {
-      id: '/termos-de-uso'
-      path: '/termos-de-uso'
-      fullPath: '/termos-de-uso'
-      preLoaderRoute: typeof TermosDeUsoRouteImport
+    '/terms-of-use': {
+      id: '/terms-of-use'
+      path: '/terms-of-use'
+      fullPath: '/terms-of-use'
+      preLoaderRoute: typeof TermsOfUseRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_app/': {
@@ -262,32 +335,46 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppIndexRouteImport
       parentRoute: typeof AppRoute
     }
-    '/_app/exclusao-de-conta': {
-      id: '/_app/exclusao-de-conta'
-      path: '/exclusao-de-conta'
-      fullPath: '/exclusao-de-conta'
-      preLoaderRoute: typeof AppExclusaoDeContaRouteImport
+    '/_app/delete-account': {
+      id: '/_app/delete-account'
+      path: '/delete-account'
+      fullPath: '/delete-account'
+      preLoaderRoute: typeof AppDeleteAccountRouteImport
       parentRoute: typeof AppRoute
     }
-    '/_app/minhas-avaliacoes': {
-      id: '/_app/minhas-avaliacoes'
-      path: '/minhas-avaliacoes'
-      fullPath: '/minhas-avaliacoes'
-      preLoaderRoute: typeof AppMinhasAvaliacoesRouteImport
+    '/_app/discover': {
+      id: '/_app/discover'
+      path: '/discover'
+      fullPath: '/discover'
+      preLoaderRoute: typeof AppDiscoverRouteImport
       parentRoute: typeof AppRoute
     }
-    '/_app/pesquisar': {
-      id: '/_app/pesquisar'
-      path: '/pesquisar'
-      fullPath: '/pesquisar'
-      preLoaderRoute: typeof AppPesquisarRouteImport
+    '/_app/feed': {
+      id: '/_app/feed'
+      path: '/feed'
+      fullPath: '/feed'
+      preLoaderRoute: typeof AppFeedRouteImport
       parentRoute: typeof AppRoute
     }
-    '/_app/top-albuns': {
-      id: '/_app/top-albuns'
-      path: '/top-albuns'
-      fullPath: '/top-albuns'
-      preLoaderRoute: typeof AppTopAlbunsRouteImport
+    '/_app/my-rankings': {
+      id: '/_app/my-rankings'
+      path: '/my-rankings'
+      fullPath: '/my-rankings'
+      preLoaderRoute: typeof AppMyRankingsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/search': {
+      id: '/_app/search'
+      path: '/search'
+      fullPath: '/search'
+      preLoaderRoute: typeof AppSearchRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/top-albums': {
+      id: '/_app/top-albums'
+      path: '/top-albums'
+      fullPath: '/top-albums'
+      preLoaderRoute: typeof AppTopAlbumsRouteImport
       parentRoute: typeof AppRoute
     }
     '/_auth/login': {
@@ -297,11 +384,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthLoginRouteImport
       parentRoute: typeof AuthRoute
     }
-    '/_auth/registro': {
-      id: '/_auth/registro'
-      path: '/registro'
-      fullPath: '/registro'
-      preLoaderRoute: typeof AuthRegistroRouteImport
+    '/_auth/register': {
+      id: '/_auth/register'
+      path: '/register'
+      fullPath: '/register'
+      preLoaderRoute: typeof AuthRegisterRouteImport
       parentRoute: typeof AuthRoute
     }
     '/_app/album/$albumId': {
@@ -311,64 +398,104 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppAlbumAlbumIdRouteImport
       parentRoute: typeof AppRoute
     }
-    '/_app/perfil/': {
-      id: '/_app/perfil/'
-      path: '/perfil'
-      fullPath: '/perfil/'
-      preLoaderRoute: typeof AppPerfilIndexRouteImport
+    '/_app/discover_/$albumId': {
+      id: '/_app/discover_/$albumId'
+      path: '/discover/$albumId'
+      fullPath: '/discover/$albumId'
+      preLoaderRoute: typeof AppDiscoverAlbumIdRouteImport
       parentRoute: typeof AppRoute
     }
-    '/_app/perfil/$usuarioId': {
-      id: '/_app/perfil/$usuarioId'
-      path: '/perfil/$usuarioId'
-      fullPath: '/perfil/$usuarioId'
-      preLoaderRoute: typeof AppPerfilUsuarioIdRouteImport
+    '/_app/profile/': {
+      id: '/_app/profile/'
+      path: '/profile'
+      fullPath: '/profile/'
+      preLoaderRoute: typeof AppProfileIndexRouteImport
       parentRoute: typeof AppRoute
     }
-    '/_app/perfil/$usuarioId_/album/$albumId': {
-      id: '/_app/perfil/$usuarioId_/album/$albumId'
-      path: '/perfil/$usuarioId/album/$albumId'
-      fullPath: '/perfil/$usuarioId/album/$albumId'
-      preLoaderRoute: typeof AppPerfilUsuarioIdAlbumAlbumIdRouteImport
+    '/_app/profile/$userId': {
+      id: '/_app/profile/$userId'
+      path: '/profile/$userId'
+      fullPath: '/profile/$userId'
+      preLoaderRoute: typeof AppProfileUserIdRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/search_/$albumId': {
+      id: '/_app/search_/$albumId'
+      path: '/search/$albumId'
+      fullPath: '/search/$albumId'
+      preLoaderRoute: typeof AppSearchAlbumIdRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/top-albums_/$albumId': {
+      id: '/_app/top-albums_/$albumId'
+      path: '/top-albums/$albumId'
+      fullPath: '/top-albums/$albumId'
+      preLoaderRoute: typeof AppTopAlbumsAlbumIdRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/feed_/$userId/album/$albumId': {
+      id: '/_app/feed_/$userId/album/$albumId'
+      path: '/feed/$userId/album/$albumId'
+      fullPath: '/feed/$userId/album/$albumId'
+      preLoaderRoute: typeof AppFeedUserIdAlbumAlbumIdRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/profile/$userId_/album/$albumId': {
+      id: '/_app/profile/$userId_/album/$albumId'
+      path: '/profile/$userId/album/$albumId'
+      fullPath: '/profile/$userId/album/$albumId'
+      preLoaderRoute: typeof AppProfileUserIdAlbumAlbumIdRouteImport
       parentRoute: typeof AppRoute
     }
   }
 }
 
 interface AppRouteChildren {
-  AppExclusaoDeContaRoute: typeof AppExclusaoDeContaRoute
-  AppMinhasAvaliacoesRoute: typeof AppMinhasAvaliacoesRoute
-  AppPesquisarRoute: typeof AppPesquisarRoute
-  AppTopAlbunsRoute: typeof AppTopAlbunsRoute
+  AppDeleteAccountRoute: typeof AppDeleteAccountRoute
+  AppDiscoverRoute: typeof AppDiscoverRoute
+  AppFeedRoute: typeof AppFeedRoute
+  AppMyRankingsRoute: typeof AppMyRankingsRoute
+  AppSearchRoute: typeof AppSearchRoute
+  AppTopAlbumsRoute: typeof AppTopAlbumsRoute
   AppIndexRoute: typeof AppIndexRoute
   AppAlbumAlbumIdRoute: typeof AppAlbumAlbumIdRoute
-  AppPerfilUsuarioIdRoute: typeof AppPerfilUsuarioIdRoute
-  AppPerfilIndexRoute: typeof AppPerfilIndexRoute
-  AppPerfilUsuarioIdAlbumAlbumIdRoute: typeof AppPerfilUsuarioIdAlbumAlbumIdRoute
+  AppDiscoverAlbumIdRoute: typeof AppDiscoverAlbumIdRoute
+  AppProfileUserIdRoute: typeof AppProfileUserIdRoute
+  AppSearchAlbumIdRoute: typeof AppSearchAlbumIdRoute
+  AppTopAlbumsAlbumIdRoute: typeof AppTopAlbumsAlbumIdRoute
+  AppProfileIndexRoute: typeof AppProfileIndexRoute
+  AppFeedUserIdAlbumAlbumIdRoute: typeof AppFeedUserIdAlbumAlbumIdRoute
+  AppProfileUserIdAlbumAlbumIdRoute: typeof AppProfileUserIdAlbumAlbumIdRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
-  AppExclusaoDeContaRoute: AppExclusaoDeContaRoute,
-  AppMinhasAvaliacoesRoute: AppMinhasAvaliacoesRoute,
-  AppPesquisarRoute: AppPesquisarRoute,
-  AppTopAlbunsRoute: AppTopAlbunsRoute,
+  AppDeleteAccountRoute: AppDeleteAccountRoute,
+  AppDiscoverRoute: AppDiscoverRoute,
+  AppFeedRoute: AppFeedRoute,
+  AppMyRankingsRoute: AppMyRankingsRoute,
+  AppSearchRoute: AppSearchRoute,
+  AppTopAlbumsRoute: AppTopAlbumsRoute,
   AppIndexRoute: AppIndexRoute,
   AppAlbumAlbumIdRoute: AppAlbumAlbumIdRoute,
-  AppPerfilUsuarioIdRoute: AppPerfilUsuarioIdRoute,
-  AppPerfilIndexRoute: AppPerfilIndexRoute,
-  AppPerfilUsuarioIdAlbumAlbumIdRoute: AppPerfilUsuarioIdAlbumAlbumIdRoute,
+  AppDiscoverAlbumIdRoute: AppDiscoverAlbumIdRoute,
+  AppProfileUserIdRoute: AppProfileUserIdRoute,
+  AppSearchAlbumIdRoute: AppSearchAlbumIdRoute,
+  AppTopAlbumsAlbumIdRoute: AppTopAlbumsAlbumIdRoute,
+  AppProfileIndexRoute: AppProfileIndexRoute,
+  AppFeedUserIdAlbumAlbumIdRoute: AppFeedUserIdAlbumAlbumIdRoute,
+  AppProfileUserIdAlbumAlbumIdRoute: AppProfileUserIdAlbumAlbumIdRoute,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
 
 interface AuthRouteChildren {
   AuthLoginRoute: typeof AuthLoginRoute
-  AuthRegistroRoute: typeof AuthRegistroRoute
+  AuthRegisterRoute: typeof AuthRegisterRoute
 }
 
 const AuthRouteChildren: AuthRouteChildren = {
   AuthLoginRoute: AuthLoginRoute,
-  AuthRegistroRoute: AuthRegistroRoute,
+  AuthRegisterRoute: AuthRegisterRoute,
 }
 
 const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
@@ -376,9 +503,9 @@ const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
 const rootRouteChildren: RootRouteChildren = {
   AppRoute: AppRouteWithChildren,
   AuthRoute: AuthRouteWithChildren,
-  PoliticaDePrivacidadeRoute: PoliticaDePrivacidadeRoute,
-  SobreRoute: SobreRoute,
-  TermosDeUsoRoute: TermosDeUsoRoute,
+  AboutRoute: AboutRoute,
+  PrivacyPolicyRoute: PrivacyPolicyRoute,
+  TermsOfUseRoute: TermsOfUseRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

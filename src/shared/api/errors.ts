@@ -56,3 +56,11 @@ export function isApiError(error: unknown): error is ApiError {
 export function getApiErrorCode(error: unknown): string | undefined {
   return isApiError(error) ? error.code : undefined;
 }
+
+/**
+ * Mensagem pronta para toast: a API já manda `message` em pt-BR (seção 3 do
+ * CLAUDE.md). O fallback cobre erro que não veio da API (rede, bug no cliente).
+ */
+export function getApiErrorMessage(error: unknown, fallback: string): string {
+  return isApiError(error) ? error.message : fallback;
+}

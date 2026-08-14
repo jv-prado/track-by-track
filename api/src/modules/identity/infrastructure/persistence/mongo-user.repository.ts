@@ -22,13 +22,27 @@ export class MongoUserRepository implements UserRepository {
     );
   }
 
+  // `lean()` em toda leitura: a escrita sempre vai por `updateOne`/upsert com o
+  // que o mapper serializa, então o documento hidratado nunca volta pro banco —
+  // hidratar aqui é custo puro nos caminhos mais quentes (login, /me).
   async findById(id: string): Promise<User | null> {
-    const doc = await this.model.findById(id).exec();
+    const doc = await this.model.findById(id).lean().exec();
     return doc ? UserMapper.toDomain(doc) : null;
   }
 
   async findByEmail(email: string): Promise<User | null> {
-    const doc = await this.model.findOne({ email: email.toLowerCase() }).exec();
+    const doc = await this.model
+      .findOne({ email: email.toLowerCase() })
+      .lean()
+      .exec();
+    return doc ? UserMapper.toDomain(doc) : null;
+  }
+
+  async findByDisplayName(displayName: string): Promise<User | null> {
+    const doc = await this.model
+      .findOne({ displayNameLower: displayName.toLowerCase() })
+      .lean()
+      .exec();
     return doc ? UserMapper.toDomain(doc) : null;
   }
 

@@ -1,5 +1,6 @@
 export { authKeys } from "./keys";
 export { useCurrentUserQuery } from "./useCurrentUserQuery";
+export { useSessionQuery, sessionQueryOptions } from "./useSessionQuery";
 export { useRegisterMutation, type RegisterInput } from "./useRegisterMutation";
 export { useLoginMutation, type LoginInput } from "./useLoginMutation";
 export { useLogoutMutation } from "./useLogoutMutation";

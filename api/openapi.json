@@ -31,7 +31,14 @@
         },
         "responses": {
           "201": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RegisterResponseDto"
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -55,7 +62,14 @@
         },
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LoginResponseDto"
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -69,7 +83,14 @@
         "parameters": [],
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RefreshResponseDto"
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -83,7 +104,14 @@
         "parameters": [],
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MessageResponseDto"
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -97,7 +125,14 @@
         "parameters": [],
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CurrentUserResponseDto"
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -119,7 +154,14 @@
         },
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProfileResponseDto"
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -171,7 +213,14 @@
         },
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProfileResponseDto"
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -195,7 +244,14 @@
         },
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MessageResponseDto"
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -219,7 +275,14 @@
         },
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MessageResponseDto"
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -265,7 +328,214 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AlbumSearchPageDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "albums"
+        ]
+      }
+    },
+    "/v1/albums/genres": {
+      "get": {
+        "operationId": "AlbumCatalogController_getGenres",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "albums"
+        ]
+      }
+    },
+    "/v1/albums/new-releases": {
+      "get": {
+        "operationId": "AlbumCatalogController_newReleases",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 9007199254740991,
+              "default": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "name": "perPage",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20,
+              "type": "integer"
+            }
+          },
+          {
+            "name": "genre",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "rock",
+                "pop",
+                "hip-hop",
+                "r-b",
+                "jazz",
+                "electronic",
+                "metal",
+                "indie",
+                "classical",
+                "country",
+                "reggae",
+                "funk",
+                "soul",
+                "punk",
+                "blues",
+                "folk",
+                "k-pop",
+                "mpb",
+                "samba",
+                "sertanejo",
+                "pagode"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NewReleasesPageDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "albums"
+        ]
+      }
+    },
+    "/v1/albums/new-releases/genres": {
+      "get": {
+        "operationId": "AlbumCatalogController_newReleasesGenres",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "albums"
+        ]
+      }
+    },
+    "/v1/albums/top-chart": {
+      "get": {
+        "operationId": "AlbumCatalogController_topChart",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 9007199254740991,
+              "default": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "name": "perPage",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20,
+              "type": "integer"
+            }
+          },
+          {
+            "name": "genre",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minLength": 1,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TopChartPageDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "albums"
+        ]
+      }
+    },
+    "/v1/albums/top-chart/genres": {
+      "get": {
+        "operationId": "AlbumCatalogController_topChartGenres",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -288,7 +558,75 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AlbumDetailDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "albums"
+        ]
+      }
+    },
+    "/v1/albums/{spotifyId}/cover": {
+      "get": {
+        "operationId": "AlbumCatalogController_getCover",
+        "parameters": [
+          {
+            "name": "spotifyId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Bytes da capa (image/jpeg)."
+          }
+        },
+        "tags": [
+          "albums"
+        ]
+      }
+    },
+    "/v1/albums/{spotifyId}/tracks/{trackId}/preview": {
+      "get": {
+        "operationId": "AlbumCatalogController_getTrackPreview",
+        "parameters": [
+          {
+            "name": "spotifyId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "trackId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrackPreviewDto"
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -311,8 +649,25 @@
           }
         },
         "responses": {
+          "200": {
+            "description": "Ranking já existia — devolvido sem criar outro.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RankingViewDto"
+                }
+              }
+            }
+          },
           "201": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RankingViewDto"
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -335,7 +690,14 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RankingViewDto"
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -366,7 +728,14 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RankingViewDto"
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -389,7 +758,14 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RankingViewDto"
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -451,7 +827,14 @@
         },
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RankingViewDto"
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -492,7 +875,14 @@
         },
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RankingViewDto"
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -525,7 +915,14 @@
         },
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RankingViewDto"
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -548,7 +945,14 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RankingViewDto"
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -590,11 +994,40 @@
               "minLength": 1,
               "type": "string"
             }
+          },
+          {
+            "name": "scope",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": "global",
+              "type": "string",
+              "enum": [
+                "global",
+                "following"
+              ]
+            }
+          },
+          {
+            "name": "genre",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minLength": 1,
+              "type": "string"
+            }
           }
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FeedPageDto"
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -657,11 +1090,49 @@
                 "score-asc"
               ]
             }
+          },
+          {
+            "name": "genre",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "rock",
+                "pop",
+                "hip-hop",
+                "r-b",
+                "jazz",
+                "electronic",
+                "metal",
+                "indie",
+                "classical",
+                "country",
+                "reggae",
+                "funk",
+                "soul",
+                "punk",
+                "blues",
+                "folk",
+                "k-pop",
+                "mpb",
+                "samba",
+                "sertanejo",
+                "pagode"
+              ]
+            }
           }
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FeedPageDto"
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -684,7 +1155,14 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserStatsDto"
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -717,11 +1195,49 @@
               "default": 20,
               "type": "integer"
             }
+          },
+          {
+            "name": "genre",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "rock",
+                "pop",
+                "hip-hop",
+                "r-b",
+                "jazz",
+                "electronic",
+                "metal",
+                "indie",
+                "classical",
+                "country",
+                "reggae",
+                "funk",
+                "soul",
+                "punk",
+                "blues",
+                "folk",
+                "k-pop",
+                "mpb",
+                "samba",
+                "sertanejo",
+                "pagode"
+              ]
+            }
           }
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TopAlbumsPageDto"
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -766,7 +1282,14 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AlbumReviewsPageDto"
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -789,11 +1312,333 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AlbumStatsDto"
+                }
+              }
+            }
           }
         },
         "tags": [
           "discovery"
+        ]
+      }
+    },
+    "/v1/discovery/me/last-edited-album": {
+      "get": {
+        "operationId": "DiscoveryController_lastEditedAlbum",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "null quando o usuário ainda não editou nenhum álbum.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LastEditedAlbumDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "discovery"
+        ]
+      }
+    },
+    "/v1/users/{userId}/follow": {
+      "post": {
+        "operationId": "FollowsController_follow",
+        "parameters": [
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FollowStatsDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "follows"
+        ]
+      },
+      "delete": {
+        "operationId": "FollowsController_unfollow",
+        "parameters": [
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FollowStatsDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "follows"
+        ]
+      }
+    },
+    "/v1/users/{userId}/follow-stats": {
+      "get": {
+        "operationId": "FollowsController_stats",
+        "parameters": [
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FollowStatsDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "follows"
+        ]
+      }
+    },
+    "/v1/users/{userId}/followers": {
+      "get": {
+        "operationId": "FollowsController_followers",
+        "parameters": [
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 9007199254740991,
+              "default": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "name": "perPage",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FollowUsersPageDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "follows"
+        ]
+      }
+    },
+    "/v1/users/{userId}/following": {
+      "get": {
+        "operationId": "FollowsController_following",
+        "parameters": [
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 9007199254740991,
+              "default": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "name": "perPage",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FollowUsersPageDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "follows"
+        ]
+      }
+    },
+    "/v1/notifications": {
+      "get": {
+        "operationId": "NotificationsController_list",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 9007199254740991,
+              "default": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "name": "perPage",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotificationsPageDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "notifications"
+        ]
+      }
+    },
+    "/v1/notifications/unread-count": {
+      "get": {
+        "operationId": "NotificationsController_unreadCount",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnreadCountDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "notifications"
+        ]
+      }
+    },
+    "/v1/notifications/{notificationId}/read": {
+      "patch": {
+        "operationId": "NotificationsController_markRead",
+        "parameters": [
+          {
+            "name": "notificationId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "notifications"
+        ]
+      }
+    },
+    "/v1/notifications/read-all": {
+      "post": {
+        "operationId": "NotificationsController_markAllRead",
+        "parameters": [],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "notifications"
         ]
       }
     },
@@ -822,7 +1667,14 @@
         },
         "responses": {
           "201": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommentViewDto"
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -865,7 +1717,14 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommentsPageDto"
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -898,7 +1757,14 @@
         },
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommentViewDto"
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -969,6 +1835,29 @@
           "displayName"
         ]
       },
+      "RegisterResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "email",
+          "displayName",
+          "createdAt"
+        ]
+      },
       "LoginDto": {
         "type": "object",
         "properties": {
@@ -987,6 +1876,92 @@
           "password"
         ]
       },
+      "LoginResponseDto": {
+        "type": "object",
+        "properties": {
+          "accessToken": {
+            "type": "string"
+          },
+          "user": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "email": {
+                "type": "string"
+              },
+              "displayName": {
+                "type": "string"
+              },
+              "avatarUrl": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "email",
+              "displayName"
+            ]
+          }
+        },
+        "required": [
+          "accessToken",
+          "user"
+        ]
+      },
+      "RefreshResponseDto": {
+        "type": "object",
+        "properties": {
+          "accessToken": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "accessToken"
+        ]
+      },
+      "MessageResponseDto": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "message"
+        ]
+      },
+      "CurrentUserResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "avatarUrl": {
+            "type": "string"
+          },
+          "mustResetPassword": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "email",
+          "displayName",
+          "mustResetPassword",
+          "createdAt"
+        ]
+      },
       "UpdateProfileDto": {
         "type": "object",
         "properties": {
@@ -997,6 +1972,28 @@
           }
         },
         "required": [
+          "displayName"
+        ]
+      },
+      "ProfileResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "avatarUrl": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "email",
           "displayName"
         ]
       },
@@ -1042,6 +2039,317 @@
           "newPassword"
         ]
       },
+      "AlbumSearchPageDto": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "spotifyId": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "artist": {
+                  "type": "string"
+                },
+                "imageUrl": {
+                  "type": "string"
+                },
+                "imageUrlSmall": {
+                  "type": "string"
+                },
+                "releaseDate": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "spotifyId",
+                "name",
+                "artist"
+              ]
+            }
+          },
+          "meta": {
+            "type": "object",
+            "properties": {
+              "page": {
+                "type": "number"
+              },
+              "perPage": {
+                "type": "number"
+              },
+              "total": {
+                "type": "number"
+              },
+              "totalPages": {
+                "type": "number"
+              },
+              "nextCursor": {
+                "type": "string",
+                "nullable": true
+              }
+            },
+            "required": [
+              "page",
+              "perPage",
+              "total",
+              "totalPages"
+            ]
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ]
+      },
+      "NewReleasesPageDto": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "spotifyId": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "artist": {
+                  "type": "string"
+                },
+                "imageUrl": {
+                  "type": "string"
+                },
+                "imageUrlSmall": {
+                  "type": "string"
+                },
+                "releaseDate": {
+                  "type": "string"
+                },
+                "genres": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "enum": [
+                      "rock",
+                      "pop",
+                      "hip-hop",
+                      "r-b",
+                      "jazz",
+                      "electronic",
+                      "metal",
+                      "indie",
+                      "classical",
+                      "country",
+                      "reggae",
+                      "funk",
+                      "soul",
+                      "punk",
+                      "blues",
+                      "folk",
+                      "k-pop",
+                      "mpb",
+                      "samba",
+                      "sertanejo",
+                      "pagode"
+                    ]
+                  }
+                }
+              },
+              "required": [
+                "spotifyId",
+                "name",
+                "artist",
+                "genres"
+              ]
+            }
+          },
+          "meta": {
+            "type": "object",
+            "properties": {
+              "page": {
+                "type": "number"
+              },
+              "perPage": {
+                "type": "number"
+              },
+              "total": {
+                "type": "number"
+              },
+              "totalPages": {
+                "type": "number"
+              },
+              "nextCursor": {
+                "type": "string",
+                "nullable": true
+              }
+            },
+            "required": [
+              "page",
+              "perPage",
+              "total",
+              "totalPages"
+            ]
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ]
+      },
+      "TopChartPageDto": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "spotifyId": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "artist": {
+                  "type": "string"
+                },
+                "imageUrl": {
+                  "type": "string"
+                },
+                "releaseDate": {
+                  "type": "string"
+                },
+                "genres": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              },
+              "required": [
+                "spotifyId",
+                "name",
+                "artist",
+                "genres"
+              ]
+            }
+          },
+          "meta": {
+            "type": "object",
+            "properties": {
+              "page": {
+                "type": "number"
+              },
+              "perPage": {
+                "type": "number"
+              },
+              "total": {
+                "type": "number"
+              },
+              "totalPages": {
+                "type": "number"
+              },
+              "nextCursor": {
+                "type": "string",
+                "nullable": true
+              }
+            },
+            "required": [
+              "page",
+              "perPage",
+              "total",
+              "totalPages"
+            ]
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ]
+      },
+      "AlbumDetailDto": {
+        "type": "object",
+        "properties": {
+          "spotifyId": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "artist": {
+            "type": "string"
+          },
+          "imageUrl": {
+            "type": "string"
+          },
+          "imageUrlSmall": {
+            "type": "string"
+          },
+          "releaseDate": {
+            "type": "string"
+          },
+          "tracks": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "spotifyId": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "durationMs": {
+                  "type": "number"
+                },
+                "trackNumber": {
+                  "type": "number"
+                },
+                "previewUrl": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "spotifyId",
+                "name",
+                "durationMs",
+                "trackNumber"
+              ]
+            }
+          },
+          "genres": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "spotifyId",
+          "name",
+          "artist",
+          "tracks"
+        ]
+      },
+      "TrackPreviewDto": {
+        "type": "object",
+        "properties": {
+          "previewUrl": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "previewUrl"
+        ]
+      },
       "CreateRankingDto": {
         "type": "object",
         "properties": {
@@ -1052,6 +2360,107 @@
         },
         "required": [
           "albumId"
+        ]
+      },
+      "RankingViewDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "userId": {
+            "type": "string"
+          },
+          "albumId": {
+            "type": "string"
+          },
+          "entries": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "trackId": {
+                  "type": "string"
+                },
+                "score": {
+                  "type": "number"
+                },
+                "position": {
+                  "type": "number"
+                },
+                "ignored": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "trackId",
+                "score",
+                "position",
+                "ignored"
+              ]
+            }
+          },
+          "averageScore": {
+            "type": "number"
+          },
+          "progress": {
+            "type": "object",
+            "properties": {
+              "rated": {
+                "type": "number"
+              },
+              "total": {
+                "type": "number"
+              },
+              "ignored": {
+                "type": "number"
+              },
+              "percentage": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "rated",
+              "total",
+              "ignored",
+              "percentage"
+            ]
+          },
+          "review": {
+            "type": "object",
+            "properties": {
+              "text": {
+                "type": "string"
+              },
+              "favoriteTrackId": {
+                "type": "string"
+              },
+              "worstTrackId": {
+                "type": "string"
+              }
+            }
+          },
+          "isFirstCompletionBadgeActive": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "updatedAt": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "userId",
+          "albumId",
+          "entries",
+          "averageScore",
+          "progress",
+          "review",
+          "isFirstCompletionBadgeActive",
+          "createdAt",
+          "updatedAt"
         ]
       },
       "RateTrackDto": {
@@ -1084,15 +2493,575 @@
         "properties": {
           "text": {
             "type": "string",
-            "maxLength": 2000
+            "maxLength": 2000,
+            "nullable": true
           },
           "favoriteTrackId": {
-            "type": "string"
+            "type": "string",
+            "nullable": true
           },
           "worstTrackId": {
-            "type": "string"
+            "type": "string",
+            "nullable": true
           }
         }
+      },
+      "FeedPageDto": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "userId": {
+                  "type": "string"
+                },
+                "userDisplayName": {
+                  "type": "string"
+                },
+                "userAvatarUrl": {
+                  "type": "string"
+                },
+                "albumId": {
+                  "type": "string"
+                },
+                "albumName": {
+                  "type": "string"
+                },
+                "albumArtist": {
+                  "type": "string"
+                },
+                "albumImageUrl": {
+                  "type": "string"
+                },
+                "averageScore": {
+                  "type": "number"
+                },
+                "ratedTracks": {
+                  "type": "number"
+                },
+                "totalTracks": {
+                  "type": "number"
+                },
+                "createdAt": {
+                  "type": "string"
+                },
+                "updatedAt": {
+                  "type": "string"
+                },
+                "badge": {
+                  "type": "string",
+                  "enum": [
+                    "new",
+                    "updated",
+                    null
+                  ],
+                  "nullable": true
+                }
+              },
+              "required": [
+                "id",
+                "userId",
+                "userDisplayName",
+                "albumId",
+                "albumName",
+                "albumArtist",
+                "averageScore",
+                "ratedTracks",
+                "totalTracks",
+                "createdAt",
+                "updatedAt",
+                "badge"
+              ]
+            }
+          },
+          "meta": {
+            "type": "object",
+            "properties": {
+              "page": {
+                "type": "number"
+              },
+              "perPage": {
+                "type": "number"
+              },
+              "total": {
+                "type": "number"
+              },
+              "totalPages": {
+                "type": "number"
+              },
+              "nextCursor": {
+                "type": "string",
+                "nullable": true
+              }
+            },
+            "required": [
+              "page",
+              "perPage",
+              "total",
+              "totalPages"
+            ]
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ]
+      },
+      "UserStatsDto": {
+        "type": "object",
+        "properties": {
+          "total": {
+            "type": "number"
+          },
+          "averageScore": {
+            "type": "number"
+          },
+          "tracksRated": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "total",
+          "averageScore",
+          "tracksRated"
+        ]
+      },
+      "TopAlbumsPageDto": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "albumId": {
+                  "type": "string"
+                },
+                "albumName": {
+                  "type": "string"
+                },
+                "albumArtist": {
+                  "type": "string"
+                },
+                "albumImageUrl": {
+                  "type": "string"
+                },
+                "averageScore": {
+                  "type": "number"
+                },
+                "ratingsCount": {
+                  "type": "number"
+                }
+              },
+              "required": [
+                "albumId",
+                "albumName",
+                "albumArtist",
+                "averageScore",
+                "ratingsCount"
+              ]
+            }
+          },
+          "meta": {
+            "type": "object",
+            "properties": {
+              "page": {
+                "type": "number"
+              },
+              "perPage": {
+                "type": "number"
+              },
+              "total": {
+                "type": "number"
+              },
+              "totalPages": {
+                "type": "number"
+              },
+              "nextCursor": {
+                "type": "string",
+                "nullable": true
+              }
+            },
+            "required": [
+              "page",
+              "perPage",
+              "total",
+              "totalPages"
+            ]
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ]
+      },
+      "AlbumReviewsPageDto": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "rankingId": {
+                  "type": "string"
+                },
+                "userId": {
+                  "type": "string"
+                },
+                "userDisplayName": {
+                  "type": "string"
+                },
+                "userAvatarUrl": {
+                  "type": "string"
+                },
+                "reviewText": {
+                  "type": "string",
+                  "nullable": true
+                },
+                "averageScore": {
+                  "type": "number"
+                },
+                "createdAt": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "rankingId",
+                "userId",
+                "userDisplayName",
+                "reviewText",
+                "averageScore",
+                "createdAt"
+              ]
+            }
+          },
+          "meta": {
+            "type": "object",
+            "properties": {
+              "page": {
+                "type": "number"
+              },
+              "perPage": {
+                "type": "number"
+              },
+              "total": {
+                "type": "number"
+              },
+              "totalPages": {
+                "type": "number"
+              },
+              "nextCursor": {
+                "type": "string",
+                "nullable": true
+              }
+            },
+            "required": [
+              "page",
+              "perPage",
+              "total",
+              "totalPages"
+            ]
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ]
+      },
+      "AlbumStatsDto": {
+        "type": "object",
+        "properties": {
+          "albumId": {
+            "type": "string"
+          },
+          "averageScore": {
+            "type": "number"
+          },
+          "ratingsCount": {
+            "type": "number"
+          },
+          "topFavoriteTracks": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "trackId": {
+                  "type": "string"
+                },
+                "trackName": {
+                  "type": "string"
+                },
+                "percentage": {
+                  "type": "number"
+                }
+              },
+              "required": [
+                "trackId",
+                "trackName",
+                "percentage"
+              ]
+            }
+          },
+          "topWorstTracks": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "trackId": {
+                  "type": "string"
+                },
+                "trackName": {
+                  "type": "string"
+                },
+                "percentage": {
+                  "type": "number"
+                }
+              },
+              "required": [
+                "trackId",
+                "trackName",
+                "percentage"
+              ]
+            }
+          }
+        },
+        "required": [
+          "albumId",
+          "averageScore",
+          "ratingsCount",
+          "topFavoriteTracks",
+          "topWorstTracks"
+        ]
+      },
+      "LastEditedAlbumDto": {
+        "type": "object",
+        "properties": {
+          "albumId": {
+            "type": "string"
+          },
+          "albumName": {
+            "type": "string"
+          },
+          "albumArtist": {
+            "type": "string"
+          },
+          "albumImageUrl": {
+            "type": "string"
+          },
+          "averageScore": {
+            "type": "number"
+          },
+          "progress": {
+            "type": "object",
+            "properties": {
+              "rated": {
+                "type": "number"
+              },
+              "total": {
+                "type": "number"
+              },
+              "percentage": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "rated",
+              "total",
+              "percentage"
+            ]
+          },
+          "updatedAt": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "albumId",
+          "albumName",
+          "albumArtist",
+          "averageScore",
+          "progress",
+          "updatedAt"
+        ]
+      },
+      "FollowStatsDto": {
+        "type": "object",
+        "properties": {
+          "followers": {
+            "type": "number"
+          },
+          "following": {
+            "type": "number"
+          },
+          "isFollowing": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "followers",
+          "following",
+          "isFollowing"
+        ]
+      },
+      "FollowUsersPageDto": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "userId": {
+                  "type": "string"
+                },
+                "displayName": {
+                  "type": "string"
+                },
+                "avatarUrl": {
+                  "type": "string"
+                },
+                "followedAt": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "userId",
+                "displayName",
+                "followedAt"
+              ]
+            }
+          },
+          "meta": {
+            "type": "object",
+            "properties": {
+              "page": {
+                "type": "number"
+              },
+              "perPage": {
+                "type": "number"
+              },
+              "total": {
+                "type": "number"
+              },
+              "totalPages": {
+                "type": "number"
+              },
+              "nextCursor": {
+                "type": "string",
+                "nullable": true
+              }
+            },
+            "required": [
+              "page",
+              "perPage",
+              "total",
+              "totalPages"
+            ]
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ]
+      },
+      "NotificationsPageDto": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "comment",
+                    "follow"
+                  ]
+                },
+                "actorId": {
+                  "type": "string"
+                },
+                "actorDisplayName": {
+                  "type": "string"
+                },
+                "actorAvatarUrl": {
+                  "type": "string"
+                },
+                "rankingId": {
+                  "type": "string"
+                },
+                "albumId": {
+                  "type": "string"
+                },
+                "read": {
+                  "type": "boolean"
+                },
+                "createdAt": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "id",
+                "type",
+                "actorId",
+                "actorDisplayName",
+                "read",
+                "createdAt"
+              ]
+            }
+          },
+          "meta": {
+            "type": "object",
+            "properties": {
+              "page": {
+                "type": "number"
+              },
+              "perPage": {
+                "type": "number"
+              },
+              "total": {
+                "type": "number"
+              },
+              "totalPages": {
+                "type": "number"
+              },
+              "nextCursor": {
+                "type": "string",
+                "nullable": true
+              }
+            },
+            "required": [
+              "page",
+              "perPage",
+              "total",
+              "totalPages"
+            ]
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ]
+      },
+      "UnreadCountDto": {
+        "type": "object",
+        "properties": {
+          "count": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "count"
+        ]
       },
       "CreateCommentDto": {
         "type": "object",
@@ -1105,6 +3074,123 @@
         },
         "required": [
           "text"
+        ]
+      },
+      "CommentViewDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "rankingId": {
+            "type": "string"
+          },
+          "authorId": {
+            "type": "string"
+          },
+          "authorDisplayName": {
+            "type": "string"
+          },
+          "authorAvatarUrl": {
+            "type": "string"
+          },
+          "text": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "editedAt": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "id",
+          "rankingId",
+          "authorId",
+          "authorDisplayName",
+          "text",
+          "createdAt",
+          "editedAt"
+        ]
+      },
+      "CommentsPageDto": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "rankingId": {
+                  "type": "string"
+                },
+                "authorId": {
+                  "type": "string"
+                },
+                "authorDisplayName": {
+                  "type": "string"
+                },
+                "authorAvatarUrl": {
+                  "type": "string"
+                },
+                "text": {
+                  "type": "string"
+                },
+                "createdAt": {
+                  "type": "string"
+                },
+                "editedAt": {
+                  "type": "string",
+                  "nullable": true
+                }
+              },
+              "required": [
+                "id",
+                "rankingId",
+                "authorId",
+                "authorDisplayName",
+                "text",
+                "createdAt",
+                "editedAt"
+              ]
+            }
+          },
+          "meta": {
+            "type": "object",
+            "properties": {
+              "page": {
+                "type": "number"
+              },
+              "perPage": {
+                "type": "number"
+              },
+              "total": {
+                "type": "number"
+              },
+              "totalPages": {
+                "type": "number"
+              },
+              "nextCursor": {
+                "type": "string",
+                "nullable": true
+              }
+            },
+            "required": [
+              "page",
+              "perPage",
+              "total",
+              "totalPages"
+            ]
+          }
+        },
+        "required": [
+          "data",
+          "meta"
         ]
       },
       "UpdateCommentDto": {

@@ -10,7 +10,7 @@ export default function PoliticaDePrivacidade() {
     // se a página foi aberta direto (link compartilhado, nova aba), não há pra onde
     // voltar dentro do app — history.back() vira no-op silencioso nesse caso.
     if (window.history.length > 1) window.history.back();
-    else router.navigate({ to: "/" });
+    else router.navigate({ to: "/feed" });
   };
 
   return (
@@ -27,7 +27,7 @@ export default function PoliticaDePrivacidade() {
       </div>
 
       <div className="bg-cinza-escuro p-6 rounded-xl w-full max-w-2xl mx-auto">
-        <h1 className="text-2xl text-white font-bold mb-4 text-center">
+        <h1 className="text-xl sm:text-2xl text-white font-bold mb-4 text-center">
           {t("privacyPolicy.title")}
         </h1>
         <p className="text-gray-200 mb-2">{t("privacyPolicy.intro")}</p>

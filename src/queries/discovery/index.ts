@@ -6,3 +6,4 @@ export { useProfileInfiniteQuery } from "./useProfileInfiniteQuery";
 export { useUserStatsQuery, type UserStats } from "./useUserStatsQuery";
 export { useAlbumReviewsInfiniteQuery } from "./useAlbumReviewsInfiniteQuery";
 export { useAlbumStatsQuery } from "./useAlbumStatsQuery";
+export { useLastEditedAlbumQuery } from "./useLastEditedAlbumQuery";

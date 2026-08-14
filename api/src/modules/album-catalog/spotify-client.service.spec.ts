@@ -131,4 +131,53 @@ describe('SpotifyClientService', () => {
       'falha de rede',
     );
   });
+
+  it('enriquece o álbum com os gêneros do artista (batch /artists)', async () => {
+    const { http, service } = setup();
+    const albumDetail = {
+      id: 'abc123',
+      name: 'The Suffering',
+      artists: [{ id: 'artist-1', name: 'Artist A' }],
+      images: [],
+      tracks: { items: [] },
+    };
+    const artistsResponse = {
+      artists: [{ id: 'artist-1', genres: ['rock', 'metal'] }],
+    };
+    let call = 0;
+    http.get = <T>(url: string): Promise<SpotifyHttpResponse<T>> => {
+      call += 1;
+      http.getCalls.push({ url, config: undefined });
+      const data = (call === 1 ? albumDetail : artistsResponse) as T;
+      return Promise.resolve({ data });
+    };
+
+    const album = await service.getAlbumWithTracks('abc123');
+
+    expect(album?.genres).toEqual(['rock', 'metal']);
+    expect(http.getCalls[1]?.url).toContain('/artists');
+  });
+
+  it('falha ao buscar gênero não derruba o álbum — genres vira []', async () => {
+    const { http, service } = setup();
+    let call = 0;
+    http.get = <T>(): Promise<SpotifyHttpResponse<T>> => {
+      call += 1;
+      if (call === 1) {
+        const data = {
+          id: 'abc123',
+          name: 'The Suffering',
+          artists: [{ id: 'artist-1', name: 'Artist A' }],
+          images: [],
+          tracks: { items: [] },
+        } as T;
+        return Promise.resolve({ data });
+      }
+      return Promise.reject(new Error('spotify fora do ar'));
+    };
+
+    const album = await service.getAlbumWithTracks('abc123');
+
+    expect(album?.genres).toEqual([]);
+  });
 });

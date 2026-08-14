@@ -3,7 +3,18 @@ export interface SpotifyImage {
 }
 
 export interface SpotifyArtist {
+  /** Ausente em fixtures antigas de teste — gênero só é buscado quando presente. */
+  id?: string;
   name: string;
+}
+
+export interface SpotifyArtistGenresRaw {
+  id: string;
+  genres: string[];
+}
+
+export interface SpotifySeveralArtistsResponseRaw {
+  artists: SpotifyArtistGenresRaw[];
 }
 
 export interface SpotifyAlbumSummaryRaw {
@@ -12,6 +23,8 @@ export interface SpotifyAlbumSummaryRaw {
   artists: SpotifyArtist[];
   images: SpotifyImage[];
   release_date?: string;
+  /** 'album' | 'single' | 'compilation' — usado só pra filtrar singles da busca. */
+  album_type?: string;
 }
 
 export interface SpotifySearchResponseRaw {
@@ -23,6 +36,7 @@ export interface SpotifyTrackRaw {
   name: string;
   duration_ms: number;
   track_number: number;
+  preview_url?: string | null;
 }
 
 export interface SpotifyAlbumDetailRaw extends SpotifyAlbumSummaryRaw {
@@ -40,15 +54,32 @@ export interface AlbumSummary {
   releaseDate?: string;
 }
 
+export interface RecentRelease extends AlbumSummary {
+  /**
+   * Tags cruas de artista do Spotify ("brazilian hip hop", "sertanejo
+   * universitário"...). Quem consome mapeia pras categorias curadas — ver
+   * `mapToCuratedGenres`.
+   */
+  genres: string[];
+}
+
 export interface AlbumTrackSummary {
   spotifyId: string;
   name: string;
   durationMs: number;
   trackNumber: number;
+  /** 30s de prévia da Spotify — nem toda faixa tem. */
+  previewUrl?: string;
 }
 
 export interface AlbumDetail extends AlbumSummary {
   tracks: AlbumTrackSummary[];
+  /**
+   * Gêneros dos artistas do álbum — Spotify não expõe gênero no próprio álbum,
+   * só no artista. Opcional: só existe quando quem chamou `normalizeAlbumDetail`
+   * já resolveu os artistas (ver `SpotifyClientService.getAlbumWithTracks`).
+   */
+  genres?: string[];
 }
 
 export function normalizeAlbumSummary(
@@ -65,14 +96,19 @@ export function normalizeAlbumSummary(
   };
 }
 
-export function normalizeAlbumDetail(raw: SpotifyAlbumDetailRaw): AlbumDetail {
+export function normalizeAlbumDetail(
+  raw: SpotifyAlbumDetailRaw,
+  genres?: string[],
+): AlbumDetail {
   return {
     ...normalizeAlbumSummary(raw),
+    ...(genres ? { genres } : {}),
     tracks: raw.tracks.items.map((track) => ({
       spotifyId: track.id,
       name: track.name,
       durationMs: track.duration_ms,
       trackNumber: track.track_number,
+      previewUrl: track.preview_url ?? undefined,
     })),
   };
 }

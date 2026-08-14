@@ -15,6 +15,7 @@ import { GetRankingUseCase } from './application/use-cases/get-ranking/get-ranki
 import { ResetRankingUseCase } from './application/use-cases/reset-ranking/reset-ranking.use-case';
 import { DeleteRankingUseCase } from './application/use-cases/delete-ranking/delete-ranking.use-case';
 import { RankingsController } from './presentation/rankings.controller';
+import { RankingDirectoryService } from './application/services/ranking-directory.service';
 
 @Module({
   imports: [
@@ -33,6 +34,9 @@ import { RankingsController } from './presentation/rankings.controller';
     GetRankingUseCase,
     ResetRankingUseCase,
     DeleteRankingUseCase,
+    RankingDirectoryService,
   ],
+  // Comments consulta o dono do ranking pra saber a quem notificar.
+  exports: [RankingDirectoryService],
 })
 export class RankingModule {}

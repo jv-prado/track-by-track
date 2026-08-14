@@ -16,6 +16,8 @@ import { AlbumCatalogModule } from './modules/album-catalog/album-catalog.module
 import { RankingModule } from './modules/ranking/ranking.module';
 import { DiscoveryModule } from './modules/discovery/discovery.module';
 import { CommentsModule } from './modules/comments/comments.module';
+import { FollowsModule } from './modules/follows/follows.module';
+import { NotificationsModule } from './modules/notifications/notifications.module';
 
 @Module({
   imports: [
@@ -51,6 +53,8 @@ import { CommentsModule } from './modules/comments/comments.module';
     RankingModule,
     DiscoveryModule,
     CommentsModule,
+    FollowsModule,
+    NotificationsModule,
   ],
   providers: [
     { provide: APP_FILTER, useClass: DomainExceptionFilter },

@@ -31,6 +31,12 @@ export class ReviewSchemaClass {
 
 export type RankingDocument = HydratedDocument<RankingSchemaClass>;
 
+/**
+ * Resultado de leitura com `lean()` — objeto puro, sem os métodos do Document.
+ * É o que o mapper consome: aceita tanto o lean quanto o hidratado.
+ */
+export type RankingLean = RankingSchemaClass & { _id: string };
+
 @Schema({ collection: 'rankings', timestamps: false, versionKey: false })
 export class RankingSchemaClass {
   @Prop({ type: String })
@@ -72,5 +78,6 @@ RankingSchema.index({ userId: 1, albumId: 1 }, { unique: true });
 RankingSchema.index({ userId: 1, createdAt: -1 });
 // `albumReviews`: filtra albumId (+ review.text existir), ordena por updatedAt desc.
 RankingSchema.index({ albumId: 1, updatedAt: -1 });
-// feed público: filtra completedAt != null, ordena por createdAt desc.
-RankingSchema.index({ completedAt: 1, createdAt: -1 });
+// feed público: filtra completedAt != null, ordena por updatedAt desc (edição
+// recente bumpa de volta pro topo do feed — ver FEED_SORT em discovery.service.ts).
+RankingSchema.index({ completedAt: 1, updatedAt: -1 });

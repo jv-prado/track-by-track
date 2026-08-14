@@ -6,6 +6,7 @@ import {
 import { AlbumRanking } from '../../../domain/entities/album-ranking.aggregate';
 import { AlbumCatalogService } from '../../../../album-catalog/album-catalog.service';
 import { AlbumNotFoundError } from '../../../../album-catalog/errors/album-not-found.error';
+import { RankingAlreadyExistsError } from '../../../domain/errors/ranking-already-exists.error';
 import { type AlbumCatalogPort } from '../../ports/album-catalog.port';
 import { RankingView, toRankingView } from '../../ranking-view';
 import {
@@ -58,7 +59,20 @@ export class CreateOrGetRankingUseCase {
       })),
     });
 
-    await this.rankings.save(ranking);
+    try {
+      await this.rankings.save(ranking);
+    } catch (error) {
+      if (!(error instanceof RankingAlreadyExistsError)) throw error;
+      // Outra requisição criou o ranking entre o findByUserAndAlbum acima e o
+      // save (duplo clique, duas abas). O contrato de "create or get" já cobre
+      // este caso: devolve o que existe em vez de estourar conflito.
+      const concurrent = await this.rankings.findByUserAndAlbum(
+        input.userId,
+        input.albumId,
+      );
+      if (!concurrent) throw error;
+      return { ranking: toRankingView(concurrent), created: false };
+    }
     // Ranking nasce incompleto: não entra no feed, só na lista do próprio usuário.
     await this.cacheInvalidator.rankingChanged(input.albumId, input.userId);
     return { ranking: toRankingView(ranking), created: true };

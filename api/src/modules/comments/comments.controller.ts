@@ -11,13 +11,14 @@ import {
   Post,
   Query,
 } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiCreatedResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { Public } from '../../shared/infrastructure/decorators/public.decorator';
 import { CurrentUser } from '../../shared/infrastructure/decorators/current-user.decorator';
 import { CommentsService } from './comments.service';
 import { CreateCommentDto } from './dtos/create-comment.dto';
 import { UpdateCommentDto } from './dtos/update-comment.dto';
 import { ListCommentsQueryDto } from './dtos/list-comments-query.dto';
+import { CommentViewDto, CommentsPageDto } from './dtos/comment.responses';
 
 @ApiTags('comments')
 @Controller()
@@ -26,6 +27,7 @@ export class CommentsController {
     @Inject(CommentsService) private readonly comments: CommentsService,
   ) {}
 
+  @ApiCreatedResponse({ type: CommentViewDto })
   @Post('rankings/:rankingId/comments')
   async create(
     @Param('rankingId') rankingId: string,
@@ -36,6 +38,7 @@ export class CommentsController {
   }
 
   @Public()
+  @ApiOkResponse({ type: CommentsPageDto })
   @Get('rankings/:rankingId/comments')
   async list(
     @Param('rankingId') rankingId: string,
@@ -45,6 +48,7 @@ export class CommentsController {
   }
 
   @HttpCode(HttpStatus.OK)
+  @ApiOkResponse({ type: CommentViewDto })
   @Patch('comments/:commentId')
   async update(
     @Param('commentId') commentId: string,

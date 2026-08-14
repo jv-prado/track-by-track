@@ -1,3 +1,9 @@
 export { albumCatalogKeys } from "./keys";
-export { useSearchAlbumsQuery, type SearchAlbumsFilters } from "./useSearchAlbumsQuery";
+export { useSearchAlbumsInfiniteQuery } from "./useSearchAlbumsInfiniteQuery";
 export { useAlbumDetailQuery } from "./useAlbumDetailQuery";
+export { useTrackPreviewQuery } from "./useTrackPreviewQuery";
+export { useGenresQuery } from "./useGenresQuery";
+export { useNewReleasesInfiniteQuery } from "./useNewReleasesInfiniteQuery";
+export { useNewReleasesGenresQuery } from "./useNewReleasesGenresQuery";
+export { useTopChartInfiniteQuery } from "./useTopChartInfiniteQuery";
+export { useTopChartGenresQuery } from "./useTopChartGenresQuery";

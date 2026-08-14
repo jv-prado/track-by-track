@@ -116,6 +116,24 @@ body {
     padding-bottom: var(--safe-area-inset-bottom);
 }
 
+/* html sem bg própria = gutter branco atrás/ao lado da scrollbar nativa.
+   Mesma cor do outlet (bg-grafite) pra scrollbar nativa não destoar. */
+html {
+    background-color: var(--color-grafite);
+    scrollbar-color: var(--color-cinza) var(--color-grafite);
+}
+html::-webkit-scrollbar {
+    width: 10px;
+}
+html::-webkit-scrollbar-track {
+    background: var(--color-grafite);
+}
+html::-webkit-scrollbar-thumb {
+    background-color: var(--color-cinza);
+    border-radius: 8px;
+    border: 2px solid var(--color-grafite);
+}
+
 /* Aplicar altura dinâmica ao elemento raiz da aplicação */
 #root {
     min-height: var(--app-height);

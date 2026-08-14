@@ -25,7 +25,7 @@ export function Modal({ open, onOpenChange, title, description, children, footer
         />
         <Dialog.Content
           className={cn(
-            // mobile: bottom sheet (mesmo padrão do Sheet) — melhor que modal centralizado no toque
+            // mobile: bottom sheet (mesmo padrão do BottomSheet) — melhor que modal centralizado no toque
             "fixed inset-x-0 bottom-0 z-50 flex max-h-[85vh] w-full flex-col gap-4 rounded-t-2xl border-t border-white/10 bg-grafite p-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] shadow-2xl shadow-black/50",
             "data-[state=open]:animate-sheet-up-in data-[state=closed]:animate-sheet-up-out",
             // sm+: volta a ser o modal centralizado

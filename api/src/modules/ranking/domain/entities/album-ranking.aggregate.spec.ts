@@ -122,6 +122,18 @@ describe('AlbumRanking', () => {
     ).toThrow(TrackNotInAlbumError);
   });
 
+  it('saveReview mescla com a review existente — trocar a favorita não apaga a pior faixa', () => {
+    const ranking = createRanking();
+
+    ranking.saveReview({ favoriteTrackId: 't1', worstTrackId: 't2' });
+    ranking.saveReview({ favoriteTrackId: 't3' });
+
+    expect(ranking.review).toEqual({
+      favoriteTrackId: 't3',
+      worstTrackId: 't2',
+    });
+  });
+
   it('resetAllScores zera notas, desfaz ignores, recalcula posições e mantém a review', () => {
     const ranking = createRanking();
     ranking.rateTrack('t1', Score.create(5));

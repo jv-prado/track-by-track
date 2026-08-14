@@ -1,6 +1,8 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { FeedPage } from "@/features/discovery/components/FeedPage";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 
+// "/" só existe pra não quebrar link/bookmark antigo — o feed de verdade mora em /feed.
 export const Route = createFileRoute("/_app/")({
-  component: FeedPage,
+  beforeLoad: () => {
+    throw redirect({ to: "/feed" });
+  },
 });

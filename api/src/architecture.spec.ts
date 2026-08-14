@@ -43,15 +43,19 @@ function importsOf(file: string): string[] {
 
 describe('Arquitetura: domain não pode depender de infraestrutura', () => {
   const modulesRoot = join(__dirname, 'modules');
-  const domainDirs = findDomainDirs(modulesRoot);
+  // `shared/kernel` entra na varredura porque todo DomainError de módulo herda
+  // dele: sem isto o teste passava enquanto a classe-base importava @nestjs
+  // e arrastava Nest pro domínio inteiro por transitividade.
+  const kernelRoot = join(__dirname, 'shared', 'kernel');
+  const domainDirs = [...findDomainDirs(modulesRoot), kernelRoot];
 
   it('existe ao menos um contexto com domain/ para o teste ter sentido', () => {
-    expect(domainDirs.length).toBeGreaterThan(0);
+    expect(domainDirs.length).toBeGreaterThan(1);
   });
 
   for (const domainDir of domainDirs) {
     for (const file of findTsFiles(domainDir)) {
-      const relativePath = file.replace(modulesRoot, '');
+      const relativePath = file.replace(__dirname, '');
 
       it(`${relativePath} não importa @nestjs/*, mongoose, axios ou infrastructure/**`, () => {
         const violations = importsOf(file).filter(

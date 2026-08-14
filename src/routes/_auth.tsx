@@ -1,7 +1,12 @@
-import { createFileRoute, Outlet } from "@tanstack/react-router";
+import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 import LanguageSelector from "@/componentes/LanguageSelector";
 
 export const Route = createFileRoute("/_auth")({
+  beforeLoad: ({ context }) => {
+    if (context.auth.isAuthenticated) {
+      throw redirect({ to: "/feed" });
+    }
+  },
   component: AuthLayout,
 });
 

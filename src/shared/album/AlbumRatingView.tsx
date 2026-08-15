@@ -162,7 +162,7 @@ export function AlbumRatingView({ albumId }: { albumId: string }) {
         </div>
 
         <div className="pb-4 sm:pb-6 flex flex-col items-center text-center gap-4 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between sm:text-left sm:gap-6">
-          <div className="w-full flex flex-col items-center gap-4 sm:flex-row sm:items-start sm:gap-6 min-w-0">
+          <div className="w-full sm:w-auto sm:flex-1 flex flex-col items-center gap-4 sm:flex-row sm:items-start sm:gap-6 min-w-0">
               {album.imageUrl ? (
                 <img
                   src={album.imageUrl}

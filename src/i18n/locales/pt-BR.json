@@ -333,7 +333,6 @@
     "error": "Não foi possível gerar a imagem.",
     "incomplete": "Avalie todas as faixas do álbum antes de compartilhar.",
     "downloaded": "Imagem salva.",
-    "tracksRated": "{{rated}}/{{total}} músicas avaliadas",
     "options": {
       "title": "Compartilhar ranking",
       "description": "Escolha o que aparece na imagem.",

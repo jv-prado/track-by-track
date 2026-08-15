@@ -333,7 +333,6 @@
     "error": "Couldn't generate the image.",
     "incomplete": "Rate every track on the album before sharing.",
     "downloaded": "Image saved.",
-    "tracksRated": "{{rated}}/{{total}} tracks rated",
     "options": {
       "title": "Share ranking",
       "description": "Pick what shows up in the image.",

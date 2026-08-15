@@ -100,7 +100,6 @@ const baseData: ShareCardData = {
   isScoreComplete: true,
   userDisplayName: "ana",
   ratedAtLabel: "14 de ago. de 2026",
-  tracksRatedLabel: "14/14 músicas avaliadas",
   favoriteTrack: { label: "Faixa favorita", name: "Something in the Way" },
   worstTrack: { label: "Pior faixa", name: "Lithium" },
 };
@@ -123,7 +122,6 @@ describe("renderShareCard", () => {
     expect(calls.fillText).toContain("ana");
     expect(calls.fillText).toContain("14 de ago. de 2026");
     expect(calls.fillText).toContain("/10");
-    expect(calls.fillText).toContain("14/14 músicas avaliadas");
   });
 
   it("desenha o rodapé de marca (@trackbytrackapp / www.trackbytrack.app)", async () => {
@@ -146,15 +144,22 @@ describe("renderShareCard", () => {
     expect(calls.fillText).toContain("Lithium");
   });
 
-  it("com texto de review, desenha o card de citação e joga o progresso na linha do artista", async () => {
+  it("com texto de review, desenha o card de citação", async () => {
     const calls = stubCanvas();
 
     await renderShareCard({ ...baseData, reviewText: "Um álbum ousado, épico e consistente." });
 
     expect(calls.fillText).toContain("Um álbum ousado, épico e consistente.");
-    expect(calls.fillText).toContain("Nirvana · 14/14 músicas avaliadas");
-    // Sem card de review a pilha teria a pill de progresso solta; com ele, não.
-    expect(calls.fillText).not.toContain("14/14 músicas avaliadas");
+    expect(calls.fillText).toContain("Nirvana");
+  });
+
+  it("quebra nome de álbum longo em linhas em vez de cortar na primeira", async () => {
+    const calls = stubCanvas();
+
+    await renderShareCard({ ...baseData, albumName: "Sargento Pimenta ".repeat(8).trim() });
+
+    const nameLines = calls.fillText.filter((text) => text.startsWith("Sargento"));
+    expect(nameLines.length).toBeGreaterThan(1);
   });
 
   it("corta review longa em vez de empurrar o rodapé de marca pra fora do card", async () => {

@@ -206,10 +206,6 @@ export function AlbumRatingView({ albumId }: { albumId: string }) {
                     userDisplayName: currentUser.displayName,
                     userAvatarUrl: currentUser.avatarUrl,
                     ratedAtLabel: formatDate(ranking.updatedAt, i18n.language),
-                    tracksRatedLabel: t("share.tracksRated", {
-                      rated: ranking.progress.rated,
-                      total: ranking.progress.total,
-                    }),
                     favoriteTrack: favoriteTrackName
                       ? { label: t("review.favoriteTrack"), name: favoriteTrackName }
                       : undefined,

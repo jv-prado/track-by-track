@@ -8,6 +8,7 @@ export const currentUserSchema = z.object({
   avatarUrl: z.string().optional(),
   mustResetPassword: z.boolean(),
   createdAt: z.string(),
+  role: z.enum(['user', 'admin']),
 });
 
 export const authUserSummarySchema = z.object({
@@ -15,6 +16,7 @@ export const authUserSummarySchema = z.object({
   email: z.string(),
   displayName: z.string(),
   avatarUrl: z.string().optional(),
+  role: z.enum(['user', 'admin']),
 });
 
 /**

@@ -24,9 +24,10 @@ function SessionSplash() {
 function AppRouter() {
   useSessionQuery();
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const user = useAuthStore((s) => s.user);
 
   return (
-    <RouterProvider router={router} context={{ auth: { isAuthenticated }, queryClient }} />
+    <RouterProvider router={router} context={{ auth: { isAuthenticated, user }, queryClient }} />
   );
 }
 

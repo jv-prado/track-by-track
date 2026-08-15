@@ -28,6 +28,7 @@ export const sessionQueryOptions = queryOptions({
           email: data.email,
           displayName: data.displayName,
           avatarUrl: data.avatarUrl,
+          role: data.role,
         },
       });
       return data;

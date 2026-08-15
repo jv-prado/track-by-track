@@ -2107,12 +2107,20 @@
               },
               "avatarUrl": {
                 "type": "string"
+              },
+              "role": {
+                "type": "string",
+                "enum": [
+                  "user",
+                  "admin"
+                ]
               }
             },
             "required": [
               "id",
               "email",
-              "displayName"
+              "displayName",
+              "role"
             ]
           },
           "refreshToken": {
@@ -2178,6 +2186,13 @@
           },
           "createdAt": {
             "type": "string"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "user",
+              "admin"
+            ]
           }
         },
         "required": [
@@ -2185,7 +2200,8 @@
           "email",
           "displayName",
           "mustResetPassword",
-          "createdAt"
+          "createdAt",
+          "role"
         ]
       },
       "UpdateProfileDto": {
@@ -2215,12 +2231,20 @@
           },
           "avatarUrl": {
             "type": "string"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "user",
+              "admin"
+            ]
           }
         },
         "required": [
           "id",
           "email",
-          "displayName"
+          "displayName",
+          "role"
         ]
       },
       "DeleteAccountDto": {
@@ -2805,6 +2829,10 @@
                     null
                   ],
                   "nullable": true
+                },
+                "firstCompletedAt": {
+                  "type": "string",
+                  "nullable": true
                 }
               },
               "required": [
@@ -2819,7 +2847,8 @@
                 "totalTracks",
                 "createdAt",
                 "updatedAt",
-                "badge"
+                "badge",
+                "firstCompletedAt"
               ]
             }
           },
@@ -3283,7 +3312,8 @@
               "isFirstCompletionBadgeActive",
               "createdAt",
               "updatedAt"
-            ]
+            ],
+            "nullable": true
           }
         },
         "required": [

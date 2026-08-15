@@ -20,6 +20,8 @@ export const feedItemSchema = z.object({
   updatedAt: z.string(),
   /** `null` fora da janela de 24h (ver FEED_BADGE_WINDOW_MS em discovery.service.ts). */
   badge: z.enum(['new', 'updated']).nullable(),
+  /** `null` até o ranking completar 100% pela 1ª vez — depois disso é permanente (ver discovery.service.ts). */
+  firstCompletedAt: z.string().nullable(),
 });
 
 export const userStatsSchema = z.object({
@@ -90,7 +92,8 @@ export const albumStatsSchema = z.object({
  */
 export const albumPreviewSchema = z.object({
   album: albumDetailSchema,
-  ranking: rankingViewSchema,
+  /** `null` quando o usuário ainda não criou ranking pra este álbum. */
+  ranking: rankingViewSchema.nullable(),
 });
 
 export const feedPageSchema = paginatedSchema(feedItemSchema);

@@ -784,6 +784,8 @@ export interface components {
                 email: string;
                 displayName: string;
                 avatarUrl?: string;
+                /** @enum {string} */
+                role: "user" | "admin";
             };
             refreshToken?: string;
         };
@@ -805,6 +807,8 @@ export interface components {
             avatarUrl?: string;
             mustResetPassword: boolean;
             createdAt: string;
+            /** @enum {string} */
+            role: "user" | "admin";
         };
         UpdateProfileDto: {
             displayName: string;
@@ -814,6 +818,8 @@ export interface components {
             email: string;
             displayName: string;
             avatarUrl?: string;
+            /** @enum {string} */
+            role: "user" | "admin";
         };
         DeleteAccountDto: {
             password: string;
@@ -959,6 +965,7 @@ export interface components {
                 updatedAt: string;
                 /** @enum {string|null} */
                 badge: "new" | "updated" | null;
+                firstCompletedAt: string | null;
             }[];
             meta: {
                 page: number;
@@ -1073,7 +1080,7 @@ export interface components {
                 isFirstCompletionBadgeActive: boolean;
                 createdAt: string;
                 updatedAt: string;
-            };
+            } | null;
         };
         LastEditedAlbumDto: {
             albumId: string;

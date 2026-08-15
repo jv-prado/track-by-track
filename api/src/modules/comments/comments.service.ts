@@ -1,7 +1,6 @@
-import { randomUUID } from 'crypto';
 import { Inject, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { UserDirectoryService } from '../identity/application/services/user-directory.service';
 import { RankingDirectoryService } from '../ranking/application/services/ranking-directory.service';
 import {
@@ -16,6 +15,7 @@ import {
   buildPaginationMeta,
   paginationSkip,
 } from '../../shared/infrastructure/pagination';
+import { newObjectId } from '../../shared/kernel/object-id';
 
 export interface CommentView {
   id: string;
@@ -29,9 +29,9 @@ export interface CommentView {
 }
 
 function toView(doc: {
-  _id: string;
-  rankingId: string;
-  authorId: string;
+  _id: Types.ObjectId;
+  rankingId: Types.ObjectId;
+  authorId: Types.ObjectId;
   authorDisplayName: string;
   authorAvatarUrl?: string;
   text: string;
@@ -39,9 +39,9 @@ function toView(doc: {
   editedAt: Date | null;
 }): CommentView {
   return {
-    id: doc._id,
-    rankingId: doc.rankingId,
-    authorId: doc.authorId,
+    id: doc._id.toString(),
+    rankingId: doc.rankingId.toString(),
+    authorId: doc.authorId.toString(),
     authorDisplayName: doc.authorDisplayName,
     authorAvatarUrl: doc.authorAvatarUrl,
     text: doc.text,
@@ -70,7 +70,7 @@ export class CommentsService {
   ): Promise<CommentView> {
     const author = await this.userDirectory.getPublicProfile(authorId);
     const doc = await this.model.create({
-      _id: randomUUID(),
+      _id: newObjectId(),
       rankingId,
       authorId,
       authorDisplayName: author?.displayName ?? 'Usuário',
@@ -123,7 +123,8 @@ export class CommentsService {
   ): Promise<CommentView> {
     const doc = await this.model.findById(commentId).exec();
     if (!doc) throw new CommentNotFoundError();
-    if (doc.authorId !== requestingUserId) throw new CommentForbiddenError();
+    if (doc.authorId.toString() !== requestingUserId)
+      throw new CommentForbiddenError();
 
     doc.text = text;
     doc.editedAt = new Date();
@@ -134,7 +135,8 @@ export class CommentsService {
   async delete(commentId: string, requestingUserId: string): Promise<void> {
     const doc = await this.model.findById(commentId).exec();
     if (!doc) throw new CommentNotFoundError();
-    if (doc.authorId !== requestingUserId) throw new CommentForbiddenError();
+    if (doc.authorId.toString() !== requestingUserId)
+      throw new CommentForbiddenError();
 
     await this.model.deleteOne({ _id: commentId }).exec();
   }

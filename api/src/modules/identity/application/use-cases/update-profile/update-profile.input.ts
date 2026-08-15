@@ -8,4 +8,5 @@ export interface UpdateProfileOutput {
   email: string;
   displayName: string;
   avatarUrl?: string;
+  role: 'user' | 'admin';
 }

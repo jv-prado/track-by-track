@@ -10,6 +10,7 @@ import {
   Settings,
   User as UserIcon,
   X,
+  ImagePlus,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useAuthStore } from "@/shared/auth/auth.store";
@@ -27,6 +28,7 @@ export function AppSidebar() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const user = useAuthStore((s) => s.user);
+  const isAdmin = user?.role === "admin";
   const collapsed = useSidebarStore((s) => s.collapsed);
   const logoutMutation = useLogoutMutation();
   const lastEditedAlbum = useLastEditedAlbumQuery(user?.id).data;
@@ -134,6 +136,27 @@ export function AppSidebar() {
               {!collapsed && <span className="text-sm sm:text-base">{label}</span>}
             </Link>
           ))}
+
+          {/* admin-only: não entra em NAV_ITEMS de propósito — essa lista também dirige a
+              tab bar mobile (mobileTabCount, activeTabIndex), e este item é desktop-only. */}
+          {isAdmin && (
+            <Link
+              to="/admin/generate-posts"
+              title={collapsed ? t("nav.generatePosts") : undefined}
+              className={cn(
+                "flex items-center gap-3 rounded-lg px-3 py-2.5 transition",
+                collapsed && "justify-center px-0 py-3.5",
+                isNavActive("/admin/generate-posts")
+                  ? "bg-dourado/10 text-dourado hover:bg-dourado/15"
+                  : "text-gray-300 hover:bg-white/5 hover:text-white",
+              )}
+            >
+              <ImagePlus size={collapsed ? 22 : 20} className="shrink-0" />
+              {!collapsed && (
+                <span className="text-sm sm:text-base">{t("nav.generatePosts")}</span>
+              )}
+            </Link>
+          )}
         </nav>
 
         {lastEditedAlbum && !collapsed && (

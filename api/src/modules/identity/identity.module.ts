@@ -46,6 +46,7 @@ import { MongoUserRepository } from './infrastructure/persistence/mongo-user.rep
 import { MongoRefreshTokenRepository } from './infrastructure/persistence/mongo-refresh-token.repository';
 import { MongoPasswordResetTokenRepository } from './infrastructure/persistence/mongo-password-reset-token.repository';
 import { JwtAuthGuard } from './infrastructure/guards/jwt-auth.guard';
+import { AdminSeederService } from './infrastructure/seeders/admin-seeder.service';
 import { AuthController } from './presentation/auth.controller';
 
 @Module({
@@ -101,6 +102,7 @@ import { AuthController } from './presentation/auth.controller';
     UpdateProfileUseCase,
     UploadAvatarUseCase,
     DeleteAccountUseCase,
+    AdminSeederService,
     { provide: APP_GUARD, useClass: JwtAuthGuard },
   ],
   exports: [UserDirectoryService],

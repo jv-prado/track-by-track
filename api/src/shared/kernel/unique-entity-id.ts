@@ -1,10 +1,10 @@
-import { randomUUID } from 'crypto';
+import { newObjectId } from './object-id';
 
 export class UniqueEntityId {
   private readonly value: string;
 
   constructor(value?: string) {
-    this.value = value ?? randomUUID();
+    this.value = value ?? newObjectId();
   }
 
   toString(): string {

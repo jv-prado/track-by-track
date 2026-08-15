@@ -1,19 +1,24 @@
-import { randomUUID } from 'crypto';
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import {
   PasswordResetTokenRecord,
   PasswordResetTokenRepository,
 } from '../../domain/repositories/password-reset-token.repository';
 import { PasswordResetTokenSchemaClass } from './password-reset-token.schema';
+import { newObjectId } from '../../../../shared/kernel/object-id';
 
+// `.toObject()` (após `.create()`) tipa `_id` como `string` mesmo com schema
+// ObjectId — só `.lean()` reflete o tipo declarado. Aceita os dois formatos.
 function toRecord(
-  doc: PasswordResetTokenSchemaClass & { _id: string },
+  doc: Omit<PasswordResetTokenSchemaClass, '_id' | 'userId'> & {
+    _id: Types.ObjectId | string;
+    userId: Types.ObjectId | string;
+  },
 ): PasswordResetTokenRecord {
   return {
-    id: doc._id,
-    userId: doc.userId,
+    id: doc._id.toString(),
+    userId: doc.userId.toString(),
     tokenHash: doc.tokenHash,
     expiresAt: doc.expiresAt,
     usedAt: doc.usedAt,
@@ -34,7 +39,7 @@ export class MongoPasswordResetTokenRepository implements PasswordResetTokenRepo
     expiresAt: Date;
   }): Promise<PasswordResetTokenRecord> {
     const created = await this.model.create({
-      _id: randomUUID(),
+      _id: newObjectId(),
       ...record,
       usedAt: null,
     });

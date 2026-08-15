@@ -7,18 +7,37 @@ import type {
   UserDirectoryService,
 } from '../identity/application/services/user-directory.service';
 
+/**
+ * Dublê totalmente desacoplado do schema real (injetado via `as unknown as
+ * Model<NotificationSchemaClass>`) — mantém tudo em string porque é isso que
+ * `NotificationsService` de fato manipula; o schema real grava `ObjectId`
+ * nativo (ver seção 4.6 do CLAUDE.md), cast do driver Mongo irrelevante aqui.
+ */
+interface NotificationRecord {
+  _id: string;
+  userId: string;
+  type: string;
+  actorId: string;
+  actorDisplayName: string;
+  actorAvatarUrl?: string;
+  rankingId?: string;
+  albumId?: string;
+  readAt: Date | null;
+  createdAt: Date;
+}
+
 class InMemoryNotificationModel {
-  readonly docs: NotificationSchemaClass[] = [];
+  readonly docs: NotificationRecord[] = [];
   /** Liga a falha de escrita pra provar que notificar não derruba a ação. */
   failOnCreate = false;
 
-  create(doc: NotificationSchemaClass) {
+  create(doc: NotificationRecord) {
     if (this.failOnCreate) return Promise.reject(new Error('mongo caiu'));
     this.docs.push(doc);
     return Promise.resolve(doc);
   }
 
-  find(filter: Partial<NotificationSchemaClass>) {
+  find(filter: Partial<NotificationRecord>) {
     const results = this.match(filter);
     const chain = {
       sort: () => chain,
@@ -29,7 +48,7 @@ class InMemoryNotificationModel {
     return chain;
   }
 
-  countDocuments(filter: Partial<NotificationSchemaClass>) {
+  countDocuments(filter: Partial<NotificationRecord>) {
     return { exec: () => Promise.resolve(this.match(filter).length) };
   }
 
@@ -52,12 +71,10 @@ class InMemoryNotificationModel {
     return { exec: () => Promise.resolve({ matchedCount: 0 }) };
   }
 
-  private match(
-    filter: Partial<NotificationSchemaClass>,
-  ): NotificationSchemaClass[] {
+  private match(filter: Partial<NotificationRecord>): NotificationRecord[] {
     return this.docs.filter((doc) =>
       Object.entries(filter).every(
-        ([key, value]) => doc[key as keyof NotificationSchemaClass] === value,
+        ([key, value]) => doc[key as keyof NotificationRecord] === value,
       ),
     );
   }

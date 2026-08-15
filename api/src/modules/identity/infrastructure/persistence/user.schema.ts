@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { HydratedDocument } from 'mongoose';
+import { HydratedDocument, SchemaTypes, Types } from 'mongoose';
 
 export type UserDocument = HydratedDocument<UserSchemaClass>;
 
@@ -7,7 +7,7 @@ export type UserDocument = HydratedDocument<UserSchemaClass>;
  * Resultado de leitura com `lean()` — objeto puro, sem os métodos do Document.
  * É o que o mapper consome: aceita tanto o lean quanto o hidratado.
  */
-export type UserLean = UserSchemaClass & { _id: string };
+export type UserLean = UserSchemaClass;
 
 @Schema({
   collection: 'users',
@@ -15,9 +15,9 @@ export type UserLean = UserSchemaClass & { _id: string };
   versionKey: false,
 })
 export class UserSchemaClass {
-  /** Sobrescreve o ObjectId padrão — o domínio gera o próprio id (UniqueEntityId, UUID). */
-  @Prop({ type: String })
-  _id!: string;
+  /** Domínio gera o próprio id (UniqueEntityId, hex via kernel/object-id) — Mongo grava como ObjectId nativo. */
+  @Prop({ type: SchemaTypes.ObjectId })
+  _id!: Types.ObjectId;
 
   @Prop({
     type: String,
@@ -55,6 +55,15 @@ export class UserSchemaClass {
 
   @Prop({ type: String, index: true })
   legacySpotifyId?: string;
+
+  /** Único mecanismo de admin do produto — ver AdminSeederService (identity/infrastructure/seeders). */
+  @Prop({
+    type: String,
+    enum: ['user', 'admin'],
+    required: true,
+    default: 'user',
+  })
+  role!: 'user' | 'admin';
 
   createdAt!: Date;
 }

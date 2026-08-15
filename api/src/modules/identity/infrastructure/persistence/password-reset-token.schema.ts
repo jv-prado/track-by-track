@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { HydratedDocument } from 'mongoose';
+import { HydratedDocument, SchemaTypes, Types } from 'mongoose';
 
 export type PasswordResetTokenDocument =
   HydratedDocument<PasswordResetTokenSchemaClass>;
@@ -10,11 +10,11 @@ export type PasswordResetTokenDocument =
   versionKey: false,
 })
 export class PasswordResetTokenSchemaClass {
-  @Prop({ type: String })
-  _id!: string;
+  @Prop({ type: SchemaTypes.ObjectId })
+  _id!: Types.ObjectId;
 
-  @Prop({ type: String, required: true, index: true })
-  userId!: string;
+  @Prop({ type: SchemaTypes.ObjectId, required: true, index: true })
+  userId!: Types.ObjectId;
 
   @Prop({ type: String, required: true, unique: true, index: true })
   tokenHash!: string;

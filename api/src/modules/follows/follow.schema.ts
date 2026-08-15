@@ -1,18 +1,18 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { HydratedDocument } from 'mongoose';
+import { HydratedDocument, SchemaTypes, Types } from 'mongoose';
 
 export type FollowDocument = HydratedDocument<FollowSchemaClass>;
 
 @Schema({ collection: 'follows', timestamps: false, versionKey: false })
 export class FollowSchemaClass {
-  @Prop({ type: String })
-  _id!: string;
+  @Prop({ type: SchemaTypes.ObjectId })
+  _id!: Types.ObjectId;
 
-  @Prop({ type: String, required: true })
-  followerId!: string;
+  @Prop({ type: SchemaTypes.ObjectId, required: true })
+  followerId!: Types.ObjectId;
 
-  @Prop({ type: String, required: true })
-  followeeId!: string;
+  @Prop({ type: SchemaTypes.ObjectId, required: true })
+  followeeId!: Types.ObjectId;
 
   @Prop({ type: Date, required: true })
   createdAt!: Date;

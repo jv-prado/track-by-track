@@ -1,3 +1,4 @@
+import { Types } from 'mongoose';
 import {
   AlbumCatalogService,
   type AlbumCatalogAppleCharts,
@@ -98,7 +99,9 @@ class FakeAlbumStore implements AlbumStore {
     return {
       sort: () => ({
         limit: (limit: number) => ({
-          lean: () => ({ exec: () => Promise.resolve(results.slice(0, limit)) }),
+          lean: () => ({
+            exec: () => Promise.resolve(results.slice(0, limit)),
+          }),
         }),
       }),
     };
@@ -116,7 +119,7 @@ class FakeAlbumStore implements AlbumStore {
 
 function albumDoc(spotifyId: string): AlbumSchemaClass {
   return {
-    _id: spotifyId,
+    _id: new Types.ObjectId(),
     spotifyId,
     name: spotifyId,
     artist: 'Artist',
@@ -236,7 +239,7 @@ describe('AlbumCatalogService (cache)', () => {
   it('álbum fresco no catálogo não chama o Spotify', async () => {
     const { service, spotify, store } = setup();
     store.stored = {
-      _id: 'x',
+      _id: new Types.ObjectId(),
       spotifyId: 'abc',
       name: 'Pure Heroine',
       artist: 'Lorde',

@@ -9,4 +9,5 @@ export interface GetCurrentUserOutput {
   avatarUrl?: string;
   mustResetPassword: boolean;
   createdAt: string;
+  role: 'user' | 'admin';
 }

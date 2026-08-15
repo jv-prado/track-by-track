@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { HydratedDocument } from 'mongoose';
+import { HydratedDocument, SchemaTypes, Types } from 'mongoose';
 
 export class RankingEntrySchemaClass {
   @Prop({ type: String, required: true })
@@ -35,16 +35,17 @@ export type RankingDocument = HydratedDocument<RankingSchemaClass>;
  * Resultado de leitura com `lean()` — objeto puro, sem os métodos do Document.
  * É o que o mapper consome: aceita tanto o lean quanto o hidratado.
  */
-export type RankingLean = RankingSchemaClass & { _id: string };
+export type RankingLean = RankingSchemaClass;
 
 @Schema({ collection: 'rankings', timestamps: false, versionKey: false })
 export class RankingSchemaClass {
-  @Prop({ type: String })
-  _id!: string;
+  @Prop({ type: SchemaTypes.ObjectId })
+  _id!: Types.ObjectId;
 
-  @Prop({ type: String, required: true })
-  userId!: string;
+  @Prop({ type: SchemaTypes.ObjectId, required: true })
+  userId!: Types.ObjectId;
 
+  /** Referencia `albums.spotifyId` (catálogo Spotify), não um `_id` do Mongo — fica String. */
   @Prop({ type: String, required: true })
   albumId!: string;
 

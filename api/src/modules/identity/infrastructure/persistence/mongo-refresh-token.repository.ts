@@ -1,19 +1,24 @@
-import { randomUUID } from 'crypto';
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import {
   RefreshTokenRecord,
   RefreshTokenRepository,
 } from '../../domain/repositories/refresh-token.repository';
 import { RefreshTokenSchemaClass } from './refresh-token.schema';
+import { newObjectId } from '../../../../shared/kernel/object-id';
 
+// `.toObject()` (após `.create()`) tipa `_id` como `string` mesmo com schema
+// ObjectId — só `.lean()` reflete o tipo declarado. Aceita os dois formatos.
 function toRecord(
-  doc: RefreshTokenSchemaClass & { _id: string },
+  doc: Omit<RefreshTokenSchemaClass, '_id' | 'userId'> & {
+    _id: Types.ObjectId | string;
+    userId: Types.ObjectId | string;
+  },
 ): RefreshTokenRecord {
   return {
-    id: doc._id,
-    userId: doc.userId,
+    id: doc._id.toString(),
+    userId: doc.userId.toString(),
     tokenHash: doc.tokenHash,
     family: doc.family,
     expiresAt: doc.expiresAt,
@@ -37,7 +42,7 @@ export class MongoRefreshTokenRepository implements RefreshTokenRepository {
     expiresAt: Date;
   }): Promise<RefreshTokenRecord> {
     const created = await this.model.create({
-      _id: randomUUID(),
+      _id: newObjectId(),
       ...record,
       revokedAt: null,
       replacedByTokenHash: null,

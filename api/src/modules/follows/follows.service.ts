@@ -1,4 +1,3 @@
-import { randomUUID } from 'crypto';
 import { Inject, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
@@ -8,6 +7,7 @@ import {
   type NotificationSender,
 } from '../../shared/application/ports/notification-sender.port';
 import { FollowSchemaClass } from './follow.schema';
+import { newObjectId } from '../../shared/kernel/object-id';
 import { CannotFollowSelfError } from './errors/cannot-follow-self.error';
 import { UserToFollowNotFoundError } from './errors/user-to-follow-not-found.error';
 import {
@@ -60,7 +60,7 @@ export class FollowsService {
     const result = await this.model
       .updateOne(
         { followerId, followeeId },
-        { $setOnInsert: { _id: randomUUID(), createdAt: new Date() } },
+        { $setOnInsert: { _id: newObjectId(), createdAt: new Date() } },
         { upsert: true },
       )
       .exec();
@@ -98,7 +98,7 @@ export class FollowsService {
       .find({ followerId: userId }, { followeeId: 1 })
       .lean()
       .exec();
-    return docs.map((doc) => doc.followeeId);
+    return docs.map((doc) => doc.followeeId.toString());
   }
 
   listFollowers(
@@ -108,7 +108,7 @@ export class FollowsService {
   ): Promise<Paginated<FollowUserItem>> {
     return this.listSide(
       { followeeId: userId },
-      (doc) => doc.followerId,
+      (doc) => doc.followerId.toString(),
       page,
       perPage,
     );
@@ -121,7 +121,7 @@ export class FollowsService {
   ): Promise<Paginated<FollowUserItem>> {
     return this.listSide(
       { followerId: userId },
-      (doc) => doc.followeeId,
+      (doc) => doc.followeeId.toString(),
       page,
       perPage,
     );

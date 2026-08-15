@@ -23,6 +23,7 @@ describe('DirectPasswordResetUseCase', () => {
         mustResetPassword: true,
         legacyFirebaseUid: 'firebase-uid-123',
         createdAt: new Date(),
+        role: 'user',
       },
       new UniqueEntityId(),
     );

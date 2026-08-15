@@ -14,7 +14,8 @@
     "settings": "Settings",
     "continueEditing": "Continue editing",
     "collapseSidebar": "Collapse menu",
-    "expandSidebar": "Expand menu"
+    "expandSidebar": "Expand menu",
+    "generatePosts": "Generate Posts"
   },
   "common": {
     "retry": "Try again",
@@ -127,6 +128,8 @@
     "sortRecent": "Most recent",
     "sortScoreDesc": "Highest score",
     "sortScoreAsc": "Lowest score",
+    "viewGrid": "Grid",
+    "viewDiary": "Diary",
     "emptyTitle": "You haven't rated any albums yet",
     "emptyDescription": "Search for an album to get started.",
     "emptyAddCta": "Rate an album",
@@ -228,7 +231,13 @@
     "notChosen": "Not chosen yet",
     "noReviewYet": "This user hasn't written a review of this album yet.",
     "save": "Save review",
-    "saveSuccess": "Review saved successfully."
+    "saveSuccess": "Review saved successfully.",
+    "delete": "Delete review",
+    "deleteConfirm": "This deletes your review text for this album. This can't be undone.",
+    "deleteConfirmYes": "Yes, delete",
+    "deleting": "Deleting...",
+    "deleteSuccess": "Review deleted.",
+    "deleteError": "Couldn't delete the review."
   },
   "rankingActions": {
     "reset": "Reset ratings",
@@ -337,6 +346,29 @@
       "title": "Share ranking",
       "description": "Pick what shows up in the image.",
       "review": "Review text"
+    }
+  },
+  "admin": {
+    "generatePosts": {
+      "title": "Generate Posts",
+      "subtitle": "Create an Instagram-ready post announcing an album is now live for rating.",
+      "searchPlaceholder": "Search for an album...",
+      "searchEmptyTitle": "Find an album",
+      "searchEmptyDescription": "Search for an album to generate a post for it.",
+      "selectedLabel": "Selected album",
+      "changeAlbum": "Change album",
+      "templateLabel": "Template",
+      "templateAlbumAnnouncement": "Album announcement",
+      "moreTemplatesSoon": "More templates coming soon",
+      "copyLabel": "Caption",
+      "copyHint": "Shown on the image — edit it if you want different wording.",
+      "generate": "Generate post",
+      "generating": "Generating...",
+      "generateError": "Couldn't generate the image. Try again.",
+      "download": "Download image",
+      "previewTitle": "Preview",
+      "previewEmpty": "Generate a post to preview it here.",
+      "previewAlt": "Instagram post preview"
     }
   }
 }

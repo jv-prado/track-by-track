@@ -5,7 +5,7 @@ import { queryClient } from "@/app/query-client";
 export const router = createRouter({
   routeTree,
   context: {
-    auth: { isAuthenticated: false },
+    auth: { isAuthenticated: false, user: null },
     queryClient,
   },
   defaultPreload: "intent",

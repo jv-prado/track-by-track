@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Share2 } from "lucide-react";
 import { Button, type ButtonProps } from "@/shared/ui/Button";
 import { toast } from "@/shared/ui/toast-store";
+import { cn } from "@/shared/lib/cn";
 import { ShareCardOptionsSheet } from "./ShareCardOptionsSheet";
 import { type ShareCardData } from "./share-card";
 import { shareCardImage } from "./share-image";
@@ -53,7 +54,7 @@ export function ShareCardButton({ data, size = "md", className }: ShareCardButto
         type="button"
         variant="outline"
         size={size}
-        className={className}
+        className={cn("border-roxo-vivo/60 text-roxo-vivo hover:bg-roxo-vivo/10 hover:text-roxo-vivo", className)}
         onClick={handleClick}
         isLoading={isGenerating}
       >

@@ -21,7 +21,7 @@ export class RankingMapper {
     );
 
     const props: AlbumRankingProps = {
-      userId: doc.userId,
+      userId: doc.userId.toString(),
       albumId: doc.albumId,
       entries,
       review: {

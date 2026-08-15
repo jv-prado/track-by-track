@@ -1,11 +1,23 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { ArrowUpDown, Check, Filter, ListMusic, Music2, Search, SlidersHorizontal, X } from "lucide-react";
+import {
+  ArrowUpDown,
+  CalendarDays,
+  Check,
+  Filter,
+  LayoutGrid,
+  ListMusic,
+  Music2,
+  Search,
+  SlidersHorizontal,
+  X,
+} from "lucide-react";
 import { useProfileInfiniteQuery, useUserStatsQuery, type ProfileSort } from "@/queries/discovery";
 import { useGenresQuery } from "@/queries/album-catalog";
 import { useAuthStore } from "@/shared/auth/auth.store";
 import { useInfiniteScroll } from "@/shared/lib/use-infinite-scroll";
 import { FeedCard } from "./FeedCard";
+import { DiaryView } from "./DiaryView";
 import { FeedCardSkeleton } from "@/shared/ui/FeedCardSkeleton";
 import { GenreFilter } from "@/shared/ui/GenreFilter";
 import { genreLabel } from "@/shared/lib/genreLabel";
@@ -34,6 +46,8 @@ export function MyRankingsPage() {
   const [search, setSearch] = useState("");
   const [sortOrder, setSortOrder] = useState<ProfileSort>("recent");
   const [genre, setGenre] = useState<string | undefined>(undefined);
+  // diário é sempre cronológico — ordenação por nota não faz sentido agrupado por dia.
+  const [view, setView] = useState<"grid" | "diary">("grid");
   const [sortSheetOpen, setSortSheetOpen] = useState(false);
   const [genreSheetOpen, setGenreSheetOpen] = useState(false);
   const [previewItem, setPreviewItem] = useState<FeedItem | null>(null);
@@ -54,7 +68,11 @@ export function MyRankingsPage() {
   }, [searchInput]);
 
   const { data, isLoading, isError, refetch, fetchNextPage, hasNextPage, isFetchingNextPage } =
-    useProfileInfiniteQuery(userId, { search: search || undefined, sort: sortOrder, genre });
+    useProfileInfiniteQuery(userId, {
+      search: search || undefined,
+      sort: view === "diary" ? "recent" : sortOrder,
+      genre,
+    });
   const statsQuery = useUserStatsQuery(userId);
 
   // Backend já só retorna ranking com pelo menos 1 faixa avaliada (discovery.service.ts).
@@ -65,7 +83,8 @@ export function MyRankingsPage() {
     fetchNextPage,
   });
 
-  const hasActiveFilters = searchInput !== "" || sortOrder !== "recent" || genre !== undefined;
+  const hasActiveFilters =
+    searchInput !== "" || (view === "grid" && sortOrder !== "recent") || genre !== undefined;
 
   const clearFilters = () => {
     setSearchInput("");
@@ -99,6 +118,33 @@ export function MyRankingsPage() {
           </h1>
           <p className="text-gray-400 text-base mt-1">{t("myRankings.subtitle")}</p>
         </div>
+
+        <div className="flex shrink-0 items-center gap-0.5 rounded-lg bg-cinza-medio/40 border border-white/10 p-0.5">
+          <button
+            type="button"
+            onClick={() => setView("grid")}
+            aria-label={t("myRankings.viewGrid")}
+            aria-pressed={view === "grid"}
+            className={cn(
+              "flex h-8 w-8 items-center justify-center rounded-md transition cursor-pointer",
+              view === "grid" ? "bg-dourado text-grafite" : "text-gray-300 hover:text-dourado",
+            )}
+          >
+            <LayoutGrid size={15} />
+          </button>
+          <button
+            type="button"
+            onClick={() => setView("diary")}
+            aria-label={t("myRankings.viewDiary")}
+            aria-pressed={view === "diary"}
+            className={cn(
+              "flex h-8 w-8 items-center justify-center rounded-md transition cursor-pointer",
+              view === "diary" ? "bg-dourado text-grafite" : "text-gray-300 hover:text-dourado",
+            )}
+          >
+            <CalendarDays size={15} />
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-2 gap-3 mb-6">
@@ -128,14 +174,16 @@ export function MyRankingsPage() {
 
           <div className="flex shrink-0 items-center gap-2 sm:flex-wrap sm:gap-3">
             {/* mobile: ícone abre bottom sheet (mesmo componente do modal de confirmação) */}
-            <button
-              type="button"
-              onClick={() => setSortSheetOpen(true)}
-              aria-label={t("myRankings.sortLabel")}
-              className="sm:hidden flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-cinza-medio/40 border border-white/10 text-gray-300 hover:text-dourado transition cursor-pointer"
-            >
-              <SlidersHorizontal size={16} />
-            </button>
+            {view === "grid" && (
+              <button
+                type="button"
+                onClick={() => setSortSheetOpen(true)}
+                aria-label={t("myRankings.sortLabel")}
+                className="sm:hidden flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-cinza-medio/40 border border-white/10 text-gray-300 hover:text-dourado transition cursor-pointer"
+              >
+                <SlidersHorizontal size={16} />
+              </button>
+            )}
             <button
               type="button"
               onClick={() => setGenreSheetOpen(true)}
@@ -145,14 +193,16 @@ export function MyRankingsPage() {
               <Filter size={16} />
             </button>
 
-            {/* sm+: selects normais */}
-            <Select
-              value={sortOrder}
-              onChange={(v) => setSortOrder(v as ProfileSort)}
-              className="hidden sm:block sm:w-auto sm:min-w-40 sm:flex-none"
-              options={sortOptions}
-              icon={<ArrowUpDown size={14} />}
-            />
+            {/* sm+: selects normais — ordenação só existe na grade, diário é sempre cronológico */}
+            {view === "grid" && (
+              <Select
+                value={sortOrder}
+                onChange={(v) => setSortOrder(v as ProfileSort)}
+                className="hidden sm:block sm:w-auto sm:min-w-40 sm:flex-none"
+                options={sortOptions}
+                icon={<ArrowUpDown size={14} />}
+              />
+            )}
 
             <GenreFilter
               value={genre}
@@ -189,6 +239,16 @@ export function MyRankingsPage() {
             </Button>
           }
         />
+      ) : view === "diary" ? (
+        <>
+          <DiaryView items={items} onOpen={setPreviewItem} />
+
+          {hasNextPage && (
+            <div ref={sentinelRef} className="flex justify-center py-8">
+              {isFetchingNextPage && <Spinner className="h-6 w-6" />}
+            </div>
+          )}
+        </>
       ) : (
         <>
           <div className={GRID_CLASSES}>

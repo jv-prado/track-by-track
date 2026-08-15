@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model, type QueryFilter } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { RankingSchemaClass } from '../ranking/infrastructure/persistence/ranking.schema';
 import { GetRankingUseCase } from '../ranking/application/use-cases/get-ranking/get-ranking.use-case';
 import { RankingView } from '../ranking/application/ranking-view';
@@ -8,6 +8,7 @@ import { AlbumSchemaClass } from '../album-catalog/album.schema';
 import { AlbumCatalogService } from '../album-catalog/album-catalog.service';
 import { AlbumDetail } from '../album-catalog/spotify-normalizer';
 import { AlbumNotFoundError } from '../album-catalog/errors/album-not-found.error';
+import { RankingNotFoundError } from '../ranking/domain/errors/ranking-not-found.error';
 import {
   Paginated,
   buildPaginationMeta,
@@ -37,6 +38,13 @@ export interface FeedItem {
   createdAt: string;
   /** Critério de ordenação do feed (ver FEED_SORT) — bump em edição real, não em touch trivial. */
   updatedAt: string;
+  /**
+   * `null` até a 1ª vez que o ranking fica 100% avaliado — depois disso nunca muda,
+   * mesmo se o usuário reabrir e mexer de novo (mesma garantia de `AlbumRanking.firstCompletedAt`,
+   * seção 4.2 do CLAUDE.md). É a data de "log" do diário — dia em que a avaliação nasceu completa,
+   * não o dia em que foi editada por último.
+   */
+  firstCompletedAt: string | null;
   /** `null` fora da janela de 24h — sem isso todo item editado uma vez vira "Atualizado" pra sempre. */
   badge: 'new' | 'updated' | null;
 }
@@ -62,7 +70,7 @@ export interface TopAlbumItem {
 
 export interface AlbumPreview {
   album: AlbumDetail;
-  ranking: RankingView;
+  ranking: RankingView | null;
 }
 
 export interface LastEditedAlbum {
@@ -208,8 +216,8 @@ const BADGE_EXPR = {
 const FEED_PROJECT = {
   $project: {
     _id: 0,
-    id: '$_id',
-    userId: 1,
+    id: { $toString: '$_id' },
+    userId: { $toString: '$userId' },
     userDisplayName: '$user.displayName',
     userAvatarUrl: '$user.avatarUrl',
     albumId: 1,
@@ -224,6 +232,13 @@ const FEED_PROJECT = {
     badge: BADGE_EXPR,
     createdAt: { $dateToString: { date: '$createdAt' } },
     updatedAt: { $dateToString: { date: '$updatedAt' } },
+    firstCompletedAt: {
+      $cond: [
+        { $ne: ['$firstCompletedAt', null] },
+        { $dateToString: { date: '$firstCompletedAt' } },
+        null,
+      ],
+    },
   },
 };
 
@@ -242,6 +257,16 @@ function escapeRegex(value: string): string {
 }
 
 export type ByUserSort = 'recent' | 'score-desc' | 'score-asc';
+
+/**
+ * `$match` de pipeline cru — não passa pelo cast do Mongoose, então `userId`/`_id`
+ * já chegam como `Types.ObjectId` de verdade (ver `discovery.service.ts`). O
+ * tipo `QueryFilter<RankingSchemaClass>` do Mongoose representa esses campos
+ * como `string` (aceita hex pro cast automático de `find`/`countDocuments`),
+ * então não serve pra filtro que também alimenta `$match` — teria que aceitar
+ * `Types.ObjectId` de verdade.
+ */
+type RankingFilter = Record<string, unknown>;
 
 const TOP_TRACKS_LIMIT = 3;
 
@@ -359,7 +384,7 @@ export class DiscoveryService {
       page,
       perPage,
       cursor,
-      { userId: { $in: followeeIds } },
+      { userId: { $in: followeeIds.map((id) => new Types.ObjectId(id)) } },
       genre,
     );
   }
@@ -369,24 +394,27 @@ export class DiscoveryService {
     page: number,
     perPage: number,
     cursor?: string,
-    extraMatch?: QueryFilter<RankingSchemaClass>,
+    extraMatch?: RankingFilter,
     genre?: string,
   ): Promise<Paginated<FeedItem>> {
     // Feed público só mostra rankings completos — parcial ainda pode mudar muito
     // e polui a timeline de quem só quer ver avaliações "prontas".
-    const baseFilter: QueryFilter<RankingSchemaClass> = {
+    const baseFilter: RankingFilter = {
       completedAt: { $ne: null },
       ...extraMatch,
     };
 
     const decoded = cursor ? decodeFeedCursor(cursor) : null;
     // Keyset em vez de $skip: página 100 custa o mesmo que a página 1.
-    const filter: QueryFilter<RankingSchemaClass> = decoded
+    const filter: RankingFilter = decoded
       ? {
           ...baseFilter,
           $or: [
             { updatedAt: { $lt: decoded.sortAt } },
-            { updatedAt: decoded.sortAt, _id: { $lt: decoded.id } },
+            {
+              updatedAt: decoded.sortAt,
+              _id: { $lt: new Types.ObjectId(decoded.id) },
+            },
           ],
         }
       : baseFilter;
@@ -441,7 +469,7 @@ export class DiscoveryService {
   /** `total` é o único pedaço O(n) que sobrou do feed — por isso vive em cache. */
   private feedTotal(
     version: number,
-    filter: QueryFilter<RankingSchemaClass>,
+    filter: RankingFilter,
     genre?: string,
   ): Promise<number> {
     return this.cache.getOrSet(
@@ -453,7 +481,7 @@ export class DiscoveryService {
 
   /** Sem gênero, count direto usa o índice `(completedAt, updatedAt)`. Com gênero, precisa do `$lookup` do álbum primeiro. */
   private async countFeed(
-    filter: QueryFilter<RankingSchemaClass>,
+    filter: RankingFilter,
     genre?: string,
   ): Promise<number> {
     if (!genre) return this.rankingModel.countDocuments(filter).exec();
@@ -561,7 +589,7 @@ export class DiscoveryService {
     }>([
       {
         $match: {
-          userId,
+          userId: new Types.ObjectId(userId),
           ...HAS_RATED_TRACK_MATCH,
           // Perfil público (completedOnly) só mostra álbum 100% avaliado —
           // mesmo critério do feed global (completedAt em loadFeed).
@@ -630,7 +658,7 @@ export class DiscoveryService {
     }>([
       {
         $match: {
-          userId,
+          userId: new Types.ObjectId(userId),
           ...HAS_RATED_TRACK_MATCH,
           // Mesmo critério de completedOnly de loadByUser — stats do perfil
           // público não contam rascunho em progresso.
@@ -671,7 +699,12 @@ export class DiscoveryService {
     // apague esse caso do banco a cada mutação, dado migrado pode não ter passado
     // por lá ainda.
     const [row] = await this.rankingModel.aggregate<LastEditedAlbum>([
-      { $match: { userId, ...HAS_RATED_TRACK_MATCH } },
+      {
+        $match: {
+          userId: new Types.ObjectId(userId),
+          ...HAS_RATED_TRACK_MATCH,
+        },
+      },
       { $sort: { updatedAt: -1 } },
       { $limit: 1 },
       {
@@ -748,7 +781,10 @@ export class DiscoveryService {
   ): Promise<AlbumPreview> {
     const [album, ranking] = await Promise.all([
       this.albumCatalog.getAlbum(albumId),
-      this.getRanking.byUserAndAlbum(userId, albumId),
+      this.getRanking.byUserAndAlbum(userId, albumId).catch((err) => {
+        if (err instanceof RankingNotFoundError) return null;
+        throw err;
+      }),
     ]);
     if (!album) {
       throw new AlbumNotFoundError();
@@ -933,8 +969,8 @@ export class DiscoveryService {
         {
           $project: {
             _id: 0,
-            rankingId: '$_id',
-            userId: 1,
+            rankingId: { $toString: '$_id' },
+            userId: { $toString: '$userId' },
             userDisplayName: '$user.displayName',
             userAvatarUrl: '$user.avatarUrl',
             reviewText: '$review.text',

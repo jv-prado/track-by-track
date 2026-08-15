@@ -28,6 +28,7 @@ export class GetCurrentUserUseCase {
       avatarUrl: user.avatarUrl,
       mustResetPassword: user.mustResetPassword,
       createdAt: user.createdAt.toISOString(),
+      role: user.role,
     };
   }
 }

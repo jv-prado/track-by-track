@@ -71,6 +71,7 @@ export class AuthenticateUserUseCase {
         email: user.email.value,
         displayName: user.displayName,
         avatarUrl: user.avatarUrl,
+        role: user.role,
       },
     };
   }

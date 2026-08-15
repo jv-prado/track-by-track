@@ -1,4 +1,3 @@
-import { randomUUID } from 'crypto';
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
@@ -9,6 +8,7 @@ import {
   NotificationType,
 } from './notification.schema';
 import { NotificationNotFoundError } from './errors/notification-not-found.error';
+import { newObjectId } from '../../shared/kernel/object-id';
 import {
   Paginated,
   buildPaginationMeta,
@@ -29,12 +29,12 @@ export interface NotificationView {
 
 function toView(doc: NotificationSchemaClass): NotificationView {
   return {
-    id: doc._id,
+    id: doc._id.toString(),
     type: doc.type,
-    actorId: doc.actorId,
+    actorId: doc.actorId.toString(),
     actorDisplayName: doc.actorDisplayName,
     actorAvatarUrl: doc.actorAvatarUrl,
-    rankingId: doc.rankingId,
+    rankingId: doc.rankingId?.toString(),
     albumId: doc.albumId,
     read: doc.readAt !== null,
     createdAt: doc.createdAt.toISOString(),
@@ -146,7 +146,7 @@ export class NotificationsService implements NotificationSender {
     try {
       const actor = await this.userDirectory.getPublicProfile(input.actorId);
       await this.model.create({
-        _id: randomUUID(),
+        _id: newObjectId(),
         userId: input.userId,
         type: input.type,
         actorId: input.actorId,

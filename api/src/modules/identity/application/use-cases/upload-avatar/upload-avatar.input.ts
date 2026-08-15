@@ -8,4 +8,5 @@ export interface UploadAvatarOutput {
   email: string;
   displayName: string;
   avatarUrl?: string;
+  role: 'user' | 'admin';
 }

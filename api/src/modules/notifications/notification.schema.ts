@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { HydratedDocument } from 'mongoose';
+import { HydratedDocument, SchemaTypes, Types } from 'mongoose';
 
 export const NOTIFICATION_TYPES = ['comment', 'follow'] as const;
 export type NotificationType = (typeof NOTIFICATION_TYPES)[number];
@@ -8,18 +8,18 @@ export type NotificationDocument = HydratedDocument<NotificationSchemaClass>;
 
 @Schema({ collection: 'notifications', timestamps: false, versionKey: false })
 export class NotificationSchemaClass {
-  @Prop({ type: String })
-  _id!: string;
+  @Prop({ type: SchemaTypes.ObjectId })
+  _id!: Types.ObjectId;
 
   /** Destinatário. Toda leitura é escopada por ele — nunca vem do cliente. */
-  @Prop({ type: String, required: true })
-  userId!: string;
+  @Prop({ type: SchemaTypes.ObjectId, required: true })
+  userId!: Types.ObjectId;
 
   @Prop({ type: String, required: true, enum: NOTIFICATION_TYPES })
   type!: NotificationType;
 
-  @Prop({ type: String, required: true })
-  actorId!: string;
+  @Prop({ type: SchemaTypes.ObjectId, required: true })
+  actorId!: Types.ObjectId;
 
   // Nome e avatar do ator ficam denormalizados (como em `comments`): a listagem
   // é a leitura mais frequente e não pode depender de $lookup em `users`.
@@ -30,9 +30,10 @@ export class NotificationSchemaClass {
   actorAvatarUrl?: string;
 
   /** Só em `comment` — é pra onde o clique na notificação leva. */
-  @Prop({ type: String })
-  rankingId?: string;
+  @Prop({ type: SchemaTypes.ObjectId })
+  rankingId?: Types.ObjectId;
 
+  /** Referencia `albums.spotifyId` (catálogo Spotify), não um `_id` do Mongo — fica String. */
   @Prop({ type: String })
   albumId?: string;
 

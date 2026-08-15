@@ -36,6 +36,7 @@ describe('User', () => {
         displayName: 'Ana',
         mustResetPassword: true,
         createdAt: new Date(),
+        role: 'user',
       },
       new UniqueEntityId(),
     );

@@ -18,6 +18,9 @@ export class UserMapper {
         legacyFirebaseUid: doc.legacyFirebaseUid,
         legacySpotifyId: doc.legacySpotifyId,
         createdAt: doc.createdAt,
+        // fallback: documentos gravados antes do campo existir (ver AdminSeederService, que já
+        // faz o backfill no boot — isto é só defesa extra pra leitura nunca quebrar por ausência).
+        role: doc.role ?? 'user',
       },
       new UniqueEntityId(doc._id.toString()),
     );
@@ -35,6 +38,7 @@ export class UserMapper {
       legacyFirebaseUid: user.legacyFirebaseUid,
       legacySpotifyId: user.legacySpotifyId,
       createdAt: user.createdAt,
+      role: user.role,
     };
   }
 }

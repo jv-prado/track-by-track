@@ -1,6 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { randomUUID } from 'crypto';
 import { SpotifyClientService } from './spotify-client.service';
 import { ItunesPreviewService } from './itunes-preview.service';
 import {
@@ -9,6 +8,7 @@ import {
 } from './apple-top-albums.service';
 import { mapToCuratedGenres } from './curated-genre-mapper';
 import { AlbumSchemaClass } from './album.schema';
+import { newObjectId } from '../../shared/kernel/object-id';
 import { AlbumDetail, AlbumSummary, RecentRelease } from './spotify-normalizer';
 import type { CuratedGenre } from './genres.constant';
 import {
@@ -184,10 +184,7 @@ export class AlbumCatalogService {
     if (!trimmed) return [];
 
     const docs = await this.albumModel
-      .find(
-        { $text: { $search: trimmed } },
-        { score: { $meta: 'textScore' } },
-      )
+      .find({ $text: { $search: trimmed } }, { score: { $meta: 'textScore' } })
       .sort({ score: { $meta: 'textScore' } })
       .limit(limit)
       .lean()
@@ -227,7 +224,7 @@ export class AlbumCatalogService {
               releaseDate: item.releaseDate,
             },
             $setOnInsert: {
-              _id: randomUUID(),
+              _id: newObjectId(),
               spotifyId: item.spotifyId,
               tracks: [],
               genres: [],
@@ -277,7 +274,7 @@ export class AlbumCatalogService {
           curatedGenres: mapToCuratedGenres(album.genres ?? []),
           cachedAt: new Date(),
         },
-        $setOnInsert: { _id: randomUUID() },
+        $setOnInsert: { _id: newObjectId() },
       },
       { upsert: true },
     );

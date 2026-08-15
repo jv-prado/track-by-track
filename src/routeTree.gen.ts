@@ -26,6 +26,7 @@ import { Route as AuthEsqueciSenhaRouteImport } from './routes/_auth.esqueci-sen
 import { Route as AuthLoginRouteImport } from './routes/_auth.login'
 import { Route as AuthRedefinirSenhaRouteImport } from './routes/_auth.redefinir-senha'
 import { Route as AuthRegisterRouteImport } from './routes/_auth.register'
+import { Route as AppAdminGeneratePostsRouteImport } from './routes/_app.admin.generate-posts'
 import { Route as AppAlbumAlbumIdRouteImport } from './routes/_app.album.$albumId'
 import { Route as AppDiscoverAlbumIdRouteImport } from './routes/_app.discover_.$albumId'
 import { Route as AppProfileIndexRouteImport } from './routes/_app.profile.index'
@@ -118,6 +119,11 @@ const AuthRegisterRoute = AuthRegisterRouteImport.update({
   path: '/register',
   getParentRoute: () => AuthRoute,
 } as any)
+const AppAdminGeneratePostsRoute = AppAdminGeneratePostsRouteImport.update({
+  id: '/admin/generate-posts',
+  path: '/admin/generate-posts',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppAlbumAlbumIdRoute = AppAlbumAlbumIdRouteImport.update({
   id: '/album/$albumId',
   path: '/album/$albumId',
@@ -177,6 +183,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof AuthLoginRoute
   '/redefinir-senha': typeof AuthRedefinirSenhaRoute
   '/register': typeof AuthRegisterRoute
+  '/admin/generate-posts': typeof AppAdminGeneratePostsRoute
   '/album/$albumId': typeof AppAlbumAlbumIdRoute
   '/discover/$albumId': typeof AppDiscoverAlbumIdRoute
   '/profile/$userId': typeof AppProfileUserIdRoute
@@ -202,6 +209,7 @@ export interface FileRoutesByTo {
   '/login': typeof AuthLoginRoute
   '/redefinir-senha': typeof AuthRedefinirSenhaRoute
   '/register': typeof AuthRegisterRoute
+  '/admin/generate-posts': typeof AppAdminGeneratePostsRoute
   '/album/$albumId': typeof AppAlbumAlbumIdRoute
   '/discover/$albumId': typeof AppDiscoverAlbumIdRoute
   '/profile/$userId': typeof AppProfileUserIdRoute
@@ -230,6 +238,7 @@ export interface FileRoutesById {
   '/_auth/redefinir-senha': typeof AuthRedefinirSenhaRoute
   '/_auth/register': typeof AuthRegisterRoute
   '/_app/': typeof AppIndexRoute
+  '/_app/admin/generate-posts': typeof AppAdminGeneratePostsRoute
   '/_app/album/$albumId': typeof AppAlbumAlbumIdRoute
   '/_app/discover_/$albumId': typeof AppDiscoverAlbumIdRoute
   '/_app/profile/$userId': typeof AppProfileUserIdRoute
@@ -257,6 +266,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/redefinir-senha'
     | '/register'
+    | '/admin/generate-posts'
     | '/album/$albumId'
     | '/discover/$albumId'
     | '/profile/$userId'
@@ -282,6 +292,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/redefinir-senha'
     | '/register'
+    | '/admin/generate-posts'
     | '/album/$albumId'
     | '/discover/$albumId'
     | '/profile/$userId'
@@ -309,6 +320,7 @@ export interface FileRouteTypes {
     | '/_auth/redefinir-senha'
     | '/_auth/register'
     | '/_app/'
+    | '/_app/admin/generate-posts'
     | '/_app/album/$albumId'
     | '/_app/discover_/$albumId'
     | '/_app/profile/$userId'
@@ -448,6 +460,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthRegisterRouteImport
       parentRoute: typeof AuthRoute
     }
+    '/_app/admin/generate-posts': {
+      id: '/_app/admin/generate-posts'
+      path: '/admin/generate-posts'
+      fullPath: '/admin/generate-posts'
+      preLoaderRoute: typeof AppAdminGeneratePostsRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/album/$albumId': {
       id: '/_app/album/$albumId'
       path: '/album/$albumId'
@@ -515,6 +534,7 @@ interface AppRouteChildren {
   AppSearchRoute: typeof AppSearchRoute
   AppTopAlbumsRoute: typeof AppTopAlbumsRoute
   AppIndexRoute: typeof AppIndexRoute
+  AppAdminGeneratePostsRoute: typeof AppAdminGeneratePostsRoute
   AppAlbumAlbumIdRoute: typeof AppAlbumAlbumIdRoute
   AppDiscoverAlbumIdRoute: typeof AppDiscoverAlbumIdRoute
   AppProfileUserIdRoute: typeof AppProfileUserIdRoute
@@ -533,6 +553,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppSearchRoute: AppSearchRoute,
   AppTopAlbumsRoute: AppTopAlbumsRoute,
   AppIndexRoute: AppIndexRoute,
+  AppAdminGeneratePostsRoute: AppAdminGeneratePostsRoute,
   AppAlbumAlbumIdRoute: AppAlbumAlbumIdRoute,
   AppDiscoverAlbumIdRoute: AppDiscoverAlbumIdRoute,
   AppProfileUserIdRoute: AppProfileUserIdRoute,

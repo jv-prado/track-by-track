@@ -12,5 +12,6 @@ export interface AuthenticateUserOutput {
     email: string;
     displayName: string;
     avatarUrl?: string;
+    role: 'user' | 'admin';
   };
 }

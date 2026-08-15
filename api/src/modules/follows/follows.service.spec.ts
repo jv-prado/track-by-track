@@ -13,9 +13,22 @@ import { FakeNotificationSender } from '../../shared/application/ports/fake-noti
 /**
  * Reproduz o índice único `(followerId, followeeId)` do schema — sem isso o
  * teste de "seguir duas vezes" passaria aqui e criaria duplicata em produção.
+ *
+ * Dublê totalmente desacoplado do schema real (injetado via `as unknown as
+ * Model<FollowSchemaClass>`) — mantém tudo em string porque é isso que
+ * `FollowsService` de fato manipula; o schema real grava `ObjectId` nativo
+ * (ver seção 4.6 do CLAUDE.md), mas essa conversão é cast do driver Mongo,
+ * irrelevante pra este teste unitário.
  */
+interface FollowRecord {
+  _id: string;
+  followerId: string;
+  followeeId: string;
+  createdAt: Date;
+}
+
 class InMemoryFollowModel {
-  readonly docs: FollowSchemaClass[] = [];
+  readonly docs: FollowRecord[] = [];
 
   updateOne(
     filter: { followerId: string; followeeId: string },
@@ -48,16 +61,16 @@ class InMemoryFollowModel {
     return { exec: () => Promise.resolve() };
   }
 
-  countDocuments(filter: Partial<FollowSchemaClass>) {
+  countDocuments(filter: Partial<FollowRecord>) {
     return { exec: () => Promise.resolve(this.match(filter).length) };
   }
 
-  exists(filter: Partial<FollowSchemaClass>) {
+  exists(filter: Partial<FollowRecord>) {
     const found = this.match(filter)[0];
     return Promise.resolve(found ? { _id: found._id } : null);
   }
 
-  find(filter: Partial<FollowSchemaClass>) {
+  find(filter: Partial<FollowRecord>) {
     const results = this.match(filter);
     const chain = {
       sort: () => chain,
@@ -69,10 +82,10 @@ class InMemoryFollowModel {
     return chain;
   }
 
-  private match(filter: Partial<FollowSchemaClass>): FollowSchemaClass[] {
+  private match(filter: Partial<FollowRecord>): FollowRecord[] {
     return this.docs.filter((doc) =>
       Object.entries(filter).every(
-        ([key, value]) => doc[key as keyof FollowSchemaClass] === value,
+        ([key, value]) => doc[key as keyof FollowRecord] === value,
       ),
     );
   }

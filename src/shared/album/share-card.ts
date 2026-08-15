@@ -1,5 +1,25 @@
 import { env } from "@/app/env";
 import logoUrl from "@/assets/logo.webp";
+import {
+  BAN_GRAY,
+  HEART_RED,
+  INK,
+  MUTED,
+  PURPLE,
+  WHITE,
+  clearShadow,
+  drawBanGlyph,
+  drawBrandBackground,
+  drawBrandFooter,
+  drawBrandLogo,
+  drawGlassCard,
+  drawHeartGlyph,
+  font,
+  loadImage,
+  roundedRectPath,
+  truncate,
+  wrapLines,
+} from "./canvas-kit";
 
 export interface ShareCardTrackHighlight {
   label: string;
@@ -23,33 +43,19 @@ export interface ShareCardData {
   reviewText?: string;
 }
 
-// Formato de story (9:16). Fundo, logo e rodapé de marca são 100% desenhados
-// aqui — nada de asset raster: sem isso, qualquer ajuste de layout (ex: dado
-// opcional ausente) deixava um vão morto no meio do card em vez de recentralizar.
+// Formato de story (9:16). Fundo, logo e rodapé de marca vêm de canvas-kit —
+// só o layout do conteúdo do usuário (capa, review, destaques) é deste módulo.
 const WIDTH = 1080;
 const HEIGHT = 1920;
 const SIDE_PADDING = 84;
 const CONTENT_WIDTH = WIDTH - SIDE_PADDING * 2;
 const TEXT_MAX_WIDTH = CONTENT_WIDTH;
 
-// Paleta oficial da marca (track-by-track/src/index.css, bloco @theme).
-const PURPLE_DARK = "#341e49"; // roxo-escuro
-const PURPLE = "#5d1f89"; // roxo
-const GOLD = "#ffba08"; // dourado
-const WHITE = "#ffffff";
-const MUTED = "#bcbcbc"; // cinza-claro
-const INK = "#01080e"; // grafite
-const HEART_RED = "#f87171"; // red-400, mesma cor do coração de faixa favorita na tela
-const BAN_GRAY = "#9ca3af"; // gray-400, mesma cor do ícone de pior faixa na tela
-
-const FONT_STACK = '"SF Pro Display", Inter, system-ui, sans-serif';
-const font = (weight: number, size: number) => `${weight} ${size}px ${FONT_STACK}`;
-
 const COVER_RADIUS = 32;
 
 // Logo grande é a marca do story — abaixo do cabeçalho do Instagram
 // (avatar/nome/X ocupam o topo), acima do conteúdo do usuário.
-const LOGO_CY = 300;
+const LOGO_CY = 230;
 const LOGO_RADIUS = 130;
 
 // Rodapé acima da barra de resposta do Instagram, que come a base do story;
@@ -90,318 +96,6 @@ function getScoreColor(score: number, isComplete: boolean): string {
   if (score < 4) return "#f87171"; // red-400
   if (score < 7) return "#facc15"; // yellow-400
   return "#4ade80"; // green-400
-}
-
-/**
- * Capa do álbum e avatar são buscados pelo **nosso** domínio (proxy da API):
- * imagem de outra origem sem CORS contamina o canvas e `toBlob` passa a
- * estourar `SecurityError`. `crossOrigin` continua obrigatório mesmo com o
- * proxy — sem ele o browser não pede CORS e o canvas é contaminado do mesmo jeito.
- */
-function loadImage(src: string): Promise<HTMLImageElement | null> {
-  return new Promise((resolve) => {
-    const image = new Image();
-    image.crossOrigin = "anonymous";
-    image.onload = () => resolve(image);
-    image.onerror = () => resolve(null);
-    image.src = src;
-  });
-}
-
-function truncate(ctx: CanvasRenderingContext2D, text: string, maxWidth: number): string {
-  if (ctx.measureText(text).width <= maxWidth) return text;
-  let result = text;
-  while (result.length > 1 && ctx.measureText(`${result}…`).width > maxWidth) {
-    result = result.slice(0, -1);
-  }
-  return `${result}…`;
-}
-
-/**
- * Quebra texto em linhas. A última ganha reticências quando sobrou texto —
- * review longa não pode empurrar o rodapé de marca pra fora do card. O nome do
- * álbum usa o mesmo caminho, mas com folga de linhas suficiente pra nunca cortar.
- */
-function wrapLines(
-  ctx: CanvasRenderingContext2D,
-  text: string,
-  maxWidth: number,
-  maxLines: number,
-): string[] {
-  const words = text.split(/\s+/).filter(Boolean);
-  const lines: string[] = [];
-  let current = "";
-
-  for (const word of words) {
-    const candidate = current ? `${current} ${word}` : word;
-    if (ctx.measureText(candidate).width <= maxWidth || !current) {
-      current = candidate;
-      continue;
-    }
-    lines.push(current);
-    current = word;
-    if (lines.length === maxLines) break;
-  }
-
-  if (lines.length < maxLines && current) lines.push(current);
-
-  const consumed = lines.join(" ").split(/\s+/).filter(Boolean).length;
-  const lastIndex = lines.length - 1;
-  const lastLine = lines[lastIndex];
-  if (consumed < words.length && lastLine !== undefined) {
-    lines[lastIndex] = truncate(ctx, `${lastLine} …`, maxWidth);
-  }
-
-  return lines;
-}
-
-/**
- * Path de retângulo arredondado montado só com `arc` — `roundRect` ainda não
- * existe em Safari antigo, e o card precisa sair igual em qualquer browser.
- */
-function roundedRectPath(
-  ctx: CanvasRenderingContext2D,
-  x: number,
-  y: number,
-  width: number,
-  height: number,
-  radius: number,
-) {
-  const r = Math.min(radius, width / 2, height / 2);
-  ctx.beginPath();
-  ctx.moveTo(x + r, y);
-  ctx.lineTo(x + width - r, y);
-  ctx.arc(x + width - r, y + r, r, -Math.PI / 2, 0);
-  ctx.lineTo(x + width, y + height - r);
-  ctx.arc(x + width - r, y + height - r, r, 0, Math.PI / 2);
-  ctx.lineTo(x + r, y + height);
-  ctx.arc(x + r, y + height - r, r, Math.PI / 2, Math.PI);
-  ctx.lineTo(x, y + r);
-  ctx.arc(x + r, y + r, r, Math.PI, Math.PI * 1.5);
-  ctx.closePath();
-}
-
-/** Cartão de vidro: mesmo material do app (branco translúcido + borda 1px). */
-function drawGlassCard(
-  ctx: CanvasRenderingContext2D,
-  x: number,
-  y: number,
-  width: number,
-  height: number,
-  radius: number,
-) {
-  roundedRectPath(ctx, x, y, width, height, radius);
-  ctx.fillStyle = "rgba(255, 255, 255, 0.07)";
-  ctx.fill();
-  ctx.strokeStyle = "rgba(255, 255, 255, 0.12)";
-  ctx.lineWidth = 1.5;
-  ctx.stroke();
-}
-
-function clearShadow(ctx: CanvasRenderingContext2D) {
-  ctx.shadowColor = "transparent";
-  ctx.shadowBlur = 0;
-  ctx.shadowOffsetY = 0;
-}
-
-/**
- * A própria capa vira a atmosfera do story: desfocada e ampliada atrás do
- * conteúdo, cada card sai com a cor do álbum em vez de um fundo genérico.
- * `ctx.filter` não existe em Safari antigo — sem ele a capa entra só como
- * mancha de cor bem apagada, e os gradientes da marca seguram o resto.
- */
-function drawCoverAtmosphere(ctx: CanvasRenderingContext2D, cover: HTMLImageElement | null) {
-  if (!cover) return;
-
-  const supportsBlur = typeof ctx.filter === "string";
-  ctx.save();
-  if (supportsBlur) ctx.filter = "blur(90px)";
-  ctx.globalAlpha = supportsBlur ? 0.75 : 0.3;
-
-  const scale = Math.max(WIDTH / cover.width, HEIGHT / cover.height) * 1.25;
-  const width = cover.width * scale;
-  const height = cover.height * scale;
-  ctx.drawImage(cover, (WIDTH - width) / 2, (HEIGHT - height) / 2, width, height);
-
-  ctx.restore();
-  ctx.globalAlpha = 1;
-  if (supportsBlur) ctx.filter = "none";
-}
-
-/** Fundo roxo/dourado da marca: gradientes são sempre lisos, ao contrário do grão de um PNG. */
-function drawBrandBackground(ctx: CanvasRenderingContext2D, cover: HTMLImageElement | null) {
-  ctx.fillStyle = PURPLE_DARK;
-  ctx.fillRect(0, 0, WIDTH, HEIGHT);
-
-  drawCoverAtmosphere(ctx, cover);
-
-  // Véu roxo por cima da capa desfocada: sem ele, capa clara joga o contraste
-  // do texto branco pro chão e o card deixa de ser reconhecível como do app.
-  ctx.fillStyle = "rgba(52, 30, 73, 0.72)";
-  ctx.fillRect(0, 0, WIDTH, HEIGHT);
-
-  const depth = ctx.createLinearGradient(0, 0, 0, HEIGHT);
-  depth.addColorStop(0, "rgba(1, 8, 14, 0.72)");
-  depth.addColorStop(0.42, "rgba(1, 8, 14, 0.12)");
-  depth.addColorStop(1, "rgba(1, 8, 14, 0.86)");
-  ctx.fillStyle = depth;
-  ctx.fillRect(0, 0, WIDTH, HEIGHT);
-
-  // Brilho roxo atrás da capa — dá volume ao centro sem competir com a arte.
-  const center = ctx.createRadialGradient(WIDTH / 2, HEIGHT * 0.44, 0, WIDTH / 2, HEIGHT * 0.44, 700);
-  center.addColorStop(0, "rgba(93, 31, 137, 0.55)");
-  center.addColorStop(1, "rgba(93, 31, 137, 0)");
-  ctx.fillStyle = center;
-  ctx.fillRect(0, 0, WIDTH, HEIGHT);
-
-  for (const edgeX of [-140, WIDTH + 140]) {
-    const glow = ctx.createRadialGradient(edgeX, HEIGHT / 2, 0, edgeX, HEIGHT / 2, 820);
-    glow.addColorStop(0, "rgba(255, 186, 8, 0.26)");
-    glow.addColorStop(1, "rgba(255, 186, 8, 0)");
-    ctx.fillStyle = glow;
-    ctx.fillRect(0, 0, WIDTH, HEIGHT);
-  }
-}
-
-/**
- * Logo real do app (círculo com fundo branco recortado por um clip circular —
- * `logo.webp` é um quadrado com o selo inscrito tangente às bordas, então o
- * clip no mesmo diâmetro remove os cantos brancos sem sobrar borda).
- */
-function drawBrandLogo(ctx: CanvasRenderingContext2D, image: HTMLImageElement | null) {
-  const cx = WIDTH / 2;
-  const cy = LOGO_CY;
-
-  if (!image) {
-    ctx.fillStyle = WHITE;
-    ctx.textAlign = "center";
-    ctx.textBaseline = "alphabetic";
-    ctx.font = font(700, 34);
-    ctx.fillText("TRACK BY TRACK", cx, cy);
-    return;
-  }
-
-  ctx.save();
-  ctx.beginPath();
-  ctx.arc(cx, cy, LOGO_RADIUS, 0, Math.PI * 2);
-  ctx.closePath();
-  ctx.clip();
-  ctx.drawImage(image, cx - LOGO_RADIUS, cy - LOGO_RADIUS, LOGO_RADIUS * 2, LOGO_RADIUS * 2);
-  ctx.restore();
-}
-
-function drawInstagramGlyph(ctx: CanvasRenderingContext2D, x: number, y: number, size: number) {
-  ctx.strokeStyle = GOLD;
-  ctx.lineWidth = 2.5;
-  ctx.strokeRect(x, y, size, size);
-  ctx.beginPath();
-  ctx.arc(x + size / 2, y + size / 2, size * 0.28, 0, Math.PI * 2);
-  ctx.stroke();
-  ctx.fillStyle = GOLD;
-  ctx.beginPath();
-  ctx.arc(x + size * 0.78, y + size * 0.22, 2.2, 0, Math.PI * 2);
-  ctx.fill();
-}
-
-function drawGlobeGlyph(ctx: CanvasRenderingContext2D, x: number, y: number, size: number) {
-  const r = size / 2;
-  const cx = x + r;
-  const cy = y + r;
-  ctx.strokeStyle = GOLD;
-  ctx.lineWidth = 2.5;
-  ctx.beginPath();
-  ctx.arc(cx, cy, r, 0, Math.PI * 2);
-  ctx.stroke();
-  ctx.beginPath();
-  ctx.moveTo(x, cy);
-  ctx.lineTo(x + size, cy);
-  ctx.stroke();
-  ctx.beginPath();
-  ctx.ellipse(cx, cy, r * 0.45, r, 0, 0, Math.PI * 2);
-  ctx.stroke();
-}
-
-/** Coração de faixa favorita: mesmos dois lóbulos + ponta do ícone da tela. */
-function drawHeartGlyph(ctx: CanvasRenderingContext2D, cx: number, cy: number, size: number) {
-  const r = size / 4;
-  const top = cy - size / 4;
-  ctx.fillStyle = HEART_RED;
-  ctx.beginPath();
-  ctx.arc(cx - r, top, r, Math.PI, 0);
-  ctx.arc(cx + r, top, r, Math.PI, 0);
-  ctx.lineTo(cx + r * 2, top + r * 0.4);
-  ctx.lineTo(cx, cy + size / 2);
-  ctx.lineTo(cx - r * 2, top + r * 0.4);
-  ctx.closePath();
-  ctx.fill();
-}
-
-/** Ícone de pior faixa: o mesmo "proibido" (Ban) usado no seletor da tela. */
-function drawBanGlyph(ctx: CanvasRenderingContext2D, cx: number, cy: number, size: number) {
-  const r = size / 2;
-  ctx.strokeStyle = BAN_GRAY;
-  ctx.lineWidth = 4;
-  ctx.beginPath();
-  ctx.arc(cx, cy, r, 0, Math.PI * 2);
-  ctx.stroke();
-  const offset = r * Math.SQRT1_2;
-  ctx.beginPath();
-  ctx.moveTo(cx - offset, cy - offset);
-  ctx.lineTo(cx + offset, cy + offset);
-  ctx.stroke();
-}
-
-/** "@trackbytrackapp" / "www.trackbytrack.app": é a divulgação do app dentro do story. */
-function drawBrandFooter(ctx: CanvasRenderingContext2D) {
-  const cx = WIDTH / 2;
-
-  // Linha única que some nas pontas — traço reto cortado a seco deixava duas
-  // bordas duras no meio do card.
-  const dividerWidth = 620;
-  const divider = ctx.createLinearGradient(cx - dividerWidth / 2, 0, cx + dividerWidth / 2, 0);
-  divider.addColorStop(0, "rgba(255, 186, 8, 0)");
-  divider.addColorStop(0.5, "rgba(255, 186, 8, 0.55)");
-  divider.addColorStop(1, "rgba(255, 186, 8, 0)");
-  ctx.fillStyle = divider;
-  ctx.fillRect(cx - dividerWidth / 2, FOOTER_DIVIDER_Y, dividerWidth, 2);
-
-  ctx.textBaseline = "alphabetic";
-
-  // Handle e site na mesma linha, medidos e centralizados como um grupo: com
-  // offset fixo, texto de outro tamanho (outro handle, outro domínio) sai torto.
-  const glyphSize = 27;
-  const glyphGap = 14;
-  const itemGap = 40;
-  const handle = "@trackbytrackapp";
-  const site = "www.trackbytrack.app";
-  const footerFont = font(500, 29);
-
-  ctx.font = footerFont;
-  const handleWidth = ctx.measureText(handle).width;
-  const siteWidth = ctx.measureText(site).width;
-  const totalWidth =
-    glyphSize + glyphGap + handleWidth + itemGap + glyphSize + glyphGap + siteWidth;
-
-  let x = cx - totalWidth / 2;
-  ctx.textAlign = "left";
-
-  drawInstagramGlyph(ctx, x, FOOTER_LINE_Y - 22, glyphSize);
-  x += glyphSize + glyphGap;
-  ctx.fillStyle = WHITE;
-  ctx.font = footerFont;
-  ctx.fillText(handle, x, FOOTER_LINE_Y);
-  x += handleWidth + itemGap / 2;
-
-  ctx.fillStyle = "rgba(255, 186, 8, 0.7)";
-  ctx.textAlign = "center";
-  ctx.fillText("·", x, FOOTER_LINE_Y);
-  x += itemGap / 2;
-
-  ctx.textAlign = "left";
-  drawGlobeGlyph(ctx, x, FOOTER_LINE_Y - 22, glyphSize);
-  x += glyphSize + glyphGap;
-  ctx.fillStyle = WHITE;
-  ctx.fillText(site, x, FOOTER_LINE_Y);
 }
 
 interface ContentLayout {
@@ -540,7 +234,10 @@ function layoutContent(ctx: CanvasRenderingContext2D, data: ShareCardData): Cont
     }
   }
 
-  const offset = CONTENT_TOP + Math.max(0, (AVAILABLE_HEIGHT - chosen.height) / 2);
+  // Bias pra baixo em vez de centro puro: sobra fica mais no topo (perto da
+  // logo) que no rodapé (perto do bloco do usuário) — pedido explícito de
+  // "descer a parte do usuário" em vez de deixar vão morto embaixo.
+  const offset = CONTENT_TOP + Math.max(0, (AVAILABLE_HEIGHT - chosen.height) * 0.62);
 
   return {
     ...chosen,
@@ -822,9 +519,9 @@ export async function renderShareCard(data: ShareCardData): Promise<Blob> {
     data.userAvatarUrl ? loadImage(data.userAvatarUrl) : Promise.resolve(null),
   ]);
 
-  drawBrandBackground(ctx, cover);
-  drawBrandLogo(ctx, logo);
-  drawBrandFooter(ctx);
+  drawBrandBackground(ctx, cover, WIDTH, HEIGHT);
+  drawBrandLogo(ctx, logo, WIDTH / 2, LOGO_CY, LOGO_RADIUS);
+  drawBrandFooter(ctx, WIDTH / 2, FOOTER_DIVIDER_Y, FOOTER_LINE_Y);
 
   const layout = layoutContent(ctx, data);
 

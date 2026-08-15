@@ -21,6 +21,7 @@ export function useUploadAvatarMutation() {
             email: data.email,
             displayName: data.displayName,
             avatarUrl: data.avatarUrl,
+            role: data.role,
           },
         });
       }

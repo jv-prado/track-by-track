@@ -439,7 +439,7 @@ export function AlbumRatingView({ albumId }: { albumId: string }) {
                 type="button"
                 onClick={handleShare}
                 title={t("albumDetail.share")}
-                className="rounded-lg p-1.5 text-gray-400 hover:bg-white/10 hover:text-white transition cursor-pointer"
+                className="rounded-lg p-1.5 text-roxo-vivo hover:bg-roxo-vivo/15 hover:text-roxo-vivo transition cursor-pointer"
               >
                 <Share2 size={16} />
               </button>

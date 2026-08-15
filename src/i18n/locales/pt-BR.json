@@ -14,7 +14,8 @@
     "settings": "Configurações",
     "continueEditing": "Continuar editando",
     "collapseSidebar": "Recolher menu",
-    "expandSidebar": "Expandir menu"
+    "expandSidebar": "Expandir menu",
+    "generatePosts": "Gerar posts"
   },
   "common": {
     "retry": "Tentar novamente",
@@ -127,6 +128,8 @@
     "sortRecent": "Mais recentes",
     "sortScoreDesc": "Maior nota",
     "sortScoreAsc": "Menor nota",
+    "viewGrid": "Grade",
+    "viewDiary": "Diário",
     "emptyTitle": "Você ainda não avaliou nenhum álbum",
     "emptyDescription": "Busque um álbum pra começar.",
     "emptyAddCta": "Avaliar um álbum",
@@ -228,7 +231,13 @@
     "notChosen": "Ainda não escolhida",
     "noReviewYet": "Este usuário ainda não escreveu uma review deste álbum.",
     "save": "Salvar review",
-    "saveSuccess": "Review salva com sucesso."
+    "saveSuccess": "Review salva com sucesso.",
+    "delete": "Excluir review",
+    "deleteConfirm": "Isso apaga o texto da sua review deste álbum. Não pode ser desfeito.",
+    "deleteConfirmYes": "Sim, excluir",
+    "deleting": "Excluindo...",
+    "deleteSuccess": "Review excluída.",
+    "deleteError": "Não foi possível excluir a review."
   },
   "rankingActions": {
     "reset": "Resetar avaliações",
@@ -337,6 +346,29 @@
       "title": "Compartilhar ranking",
       "description": "Escolha o que aparece na imagem.",
       "review": "Texto da review"
+    }
+  },
+  "admin": {
+    "generatePosts": {
+      "title": "Gerar posts",
+      "subtitle": "Crie um post pronto pra Instagram anunciando que um álbum já está disponível pra avaliação.",
+      "searchPlaceholder": "Buscar um álbum...",
+      "searchEmptyTitle": "Encontre um álbum",
+      "searchEmptyDescription": "Busque um álbum para gerar um post pra ele.",
+      "selectedLabel": "Álbum selecionado",
+      "changeAlbum": "Trocar álbum",
+      "templateLabel": "Modelo",
+      "templateAlbumAnnouncement": "Anúncio de álbum",
+      "moreTemplatesSoon": "Mais modelos em breve",
+      "copyLabel": "Legenda",
+      "copyHint": "Aparece na imagem — edite se quiser outro texto.",
+      "generate": "Gerar post",
+      "generating": "Gerando...",
+      "generateError": "Não foi possível gerar a imagem. Tente novamente.",
+      "download": "Baixar imagem",
+      "previewTitle": "Prévia",
+      "previewEmpty": "Gere um post para ver a prévia aqui.",
+      "previewAlt": "Prévia do post do Instagram"
     }
   }
 }

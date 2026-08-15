@@ -4,6 +4,8 @@ import { Email } from '../value-objects/email.vo';
 import { PasswordHash } from '../value-objects/password-hash.vo';
 import { UserRegisteredEvent } from '../events/user-registered.event';
 
+export type UserRole = 'user' | 'admin';
+
 export interface UserProps {
   email: Email;
   /** null só para contas migradas do Firestore que nunca tiveram senha real (ver Fase 7). */
@@ -14,6 +16,7 @@ export interface UserProps {
   legacyFirebaseUid?: string;
   legacySpotifyId?: string;
   createdAt: Date;
+  role: UserRole;
 }
 
 export interface CreateUserProps {
@@ -32,6 +35,7 @@ export class User extends AggregateRoot<UserProps> {
       ...props,
       mustResetPassword: false,
       createdAt: new Date(),
+      role: 'user',
     });
     user.addDomainEvent(
       new UserRegisteredEvent(user.id.toString(), user.email.value),
@@ -73,6 +77,10 @@ export class User extends AggregateRoot<UserProps> {
 
   get createdAt(): Date {
     return this.props.createdAt;
+  }
+
+  get role(): UserRole {
+    return this.props.role;
   }
 
   changePassword(newPasswordHash: PasswordHash): void {

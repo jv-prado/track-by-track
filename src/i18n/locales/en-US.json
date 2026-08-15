@@ -328,9 +328,16 @@
     "follow": "{{name}} started following you"
   },
   "share": {
-    "image": "Share image",
+    "image": "Share",
     "generating": "Generating image...",
     "error": "Couldn't generate the image.",
-    "downloaded": "Image saved."
+    "incomplete": "Rate every track on the album before sharing.",
+    "downloaded": "Image saved.",
+    "tracksRated": "{{rated}}/{{total}} tracks rated",
+    "options": {
+      "title": "Share ranking",
+      "description": "Pick what shows up in the image.",
+      "review": "Review text"
+    }
   }
 }

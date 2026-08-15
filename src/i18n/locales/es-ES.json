@@ -328,9 +328,16 @@
     "follow": "{{name}} empezó a seguirte"
   },
   "share": {
-    "image": "Compartir imagen",
+    "image": "Compartir",
     "generating": "Generando imagen...",
     "error": "No se pudo generar la imagen.",
-    "downloaded": "Imagen guardada."
+    "incomplete": "Valora todas las canciones del álbum antes de compartir.",
+    "downloaded": "Imagen guardada.",
+    "tracksRated": "{{rated}}/{{total}} canciones valoradas",
+    "options": {
+      "title": "Compartir ranking",
+      "description": "Elige qué aparece en la imagen.",
+      "review": "Texto de la reseña"
+    }
   }
 }

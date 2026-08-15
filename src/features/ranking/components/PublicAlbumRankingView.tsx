@@ -209,7 +209,7 @@ export function PublicAlbumRankingView({ userId, albumId }: { userId: string; al
                 className="inline-flex items-center gap-1.5 rounded-lg bg-[#FF0000] p-2.5 text-sm font-bold text-white hover:brightness-95 transition sm:px-3 sm:py-1.5"
               >
                 <span className="hidden sm:inline">{t("albumDetail.listenYoutube")}</span>
-                <img src="/images/logos/youtube.png" alt="" className="h-4 w-auto object-contain sm:h-3.5" />
+                <img src="/images/logos/youtube.png" alt="" className="h-4 w-4 object-contain sm:h-3.5 sm:w-3.5" />
               </a>
               <a
                 href={buildAppleMusicSearchUrl(album.artist, album.name)}

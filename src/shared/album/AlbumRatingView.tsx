@@ -14,6 +14,7 @@ import { StarRating } from "@/shared/album/StarRating";
 import { ReviewForm } from "@/shared/album/ReviewForm";
 import { FavoriteWorstPicker } from "@/shared/album/FavoriteWorstPicker";
 import { RankingActions } from "@/shared/album/RankingActions";
+import { ShareCardButton } from "@/shared/album/ShareCardButton";
 import { AlbumStatsSection } from "@/shared/album/AlbumStatsSection";
 import { AlbumReviewsList } from "@/shared/album/AlbumReviewsList";
 import { AlbumHeaderSkeleton, TrackRowSkeleton, TRACK_SKELETON_COUNT } from "@/shared/album/AlbumHeaderSkeleton";
@@ -134,6 +135,14 @@ export function AlbumRatingView({ albumId }: { albumId: string }) {
   const isComplete = ranking?.progress.percentage === 100;
   const scoreColor = getScoreColorClasses(ranking?.averageScore ?? 0, isComplete);
 
+  const trackNameById = new Map(album.tracks.map((track) => [track.spotifyId, track.name]));
+  const favoriteTrackName = ranking?.review.favoriteTrackId
+    ? trackNameById.get(ranking.review.favoriteTrackId)
+    : undefined;
+  const worstTrackName = ranking?.review.worstTrackId
+    ? trackNameById.get(ranking.review.worstTrackId)
+    : undefined;
+
   return (
     <div className="w-full">
       <div className="flex w-full items-center justify-between gap-2 mb-4">
@@ -171,7 +180,11 @@ export function AlbumRatingView({ albumId }: { albumId: string }) {
                 <p className="text-gray-400 sm:text-lg">{album.artist}</p>
               </div>
 
-              <div className="flex flex-wrap items-center justify-center gap-2 sm:justify-start">
+              {/* Ações do ranking e links de streaming são dois grupos: no mobile
+                  os links caem numa linha própria abaixo, em vez de embolar com
+                  os botões de review/compartilhar. */}
+              <div className="flex w-full flex-col items-center gap-2 sm:w-auto sm:flex-row sm:flex-wrap sm:justify-start">
+              <div className="flex flex-wrap items-center justify-center gap-2">
               {ranking && (
                 <Button
                   size="sm"
@@ -181,6 +194,35 @@ export function AlbumRatingView({ albumId }: { albumId: string }) {
                   <Pencil size={14} /> {t("albumDetail.yourReview")}
                 </Button>
               )}
+              {ranking && currentUser && (
+                <ShareCardButton
+                  size="sm"
+                  data={{
+                    albumId,
+                    albumName: album.name,
+                    artist: album.artist,
+                    averageScore: ranking.averageScore,
+                    isScoreComplete: isComplete,
+                    userDisplayName: currentUser.displayName,
+                    userAvatarUrl: currentUser.avatarUrl,
+                    ratedAtLabel: formatDate(ranking.updatedAt, i18n.language),
+                    tracksRatedLabel: t("share.tracksRated", {
+                      rated: ranking.progress.rated,
+                      total: ranking.progress.total,
+                    }),
+                    favoriteTrack: favoriteTrackName
+                      ? { label: t("review.favoriteTrack"), name: favoriteTrackName }
+                      : undefined,
+                    worstTrack: worstTrackName
+                      ? { label: t("review.worstTrack"), name: worstTrackName }
+                      : undefined,
+                    reviewText: ranking.review.text ?? undefined,
+                  }}
+                />
+              )}
+              </div>
+
+              <div className="flex items-center justify-center gap-2">
               <a
                 href={`https://open.spotify.com/album/${album.spotifyId}`}
                 target="_blank"
@@ -199,7 +241,7 @@ export function AlbumRatingView({ albumId }: { albumId: string }) {
                 className="inline-flex items-center gap-1.5 rounded-lg bg-[#FF0000] p-2.5 text-sm font-bold text-white hover:brightness-95 transition sm:px-3 sm:py-1.5"
               >
                 <span className="hidden sm:inline">{t("albumDetail.listenYoutube")}</span>
-                <img src="/images/logos/youtube.png" alt="" className="h-4 w-auto object-contain sm:h-3.5" />
+                <img src="/images/logos/youtube.png" alt="" className="h-4 w-4 object-contain sm:h-3.5 sm:w-3.5" />
               </a>
               <a
                 href={buildAppleMusicSearchUrl(album.artist, album.name)}
@@ -211,6 +253,7 @@ export function AlbumRatingView({ albumId }: { albumId: string }) {
                 <span className="hidden sm:inline">{t("albumDetail.listenAppleMusic")}</span>
                 <img src="/images/logos/apple.svg" alt="" className="h-4 w-auto object-contain sm:h-3.5" />
               </a>
+              </div>
               </div>
 
               {ranking && (

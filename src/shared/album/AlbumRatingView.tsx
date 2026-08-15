@@ -162,7 +162,7 @@ export function AlbumRatingView({ albumId }: { albumId: string }) {
         </div>
 
         <div className="pb-4 sm:pb-6 flex flex-col items-center text-center gap-4 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between sm:text-left sm:gap-6">
-          <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-start sm:gap-6 min-w-0">
+          <div className="w-full flex flex-col items-center gap-4 sm:flex-row sm:items-start sm:gap-6 min-w-0">
               {album.imageUrl ? (
                 <img
                   src={album.imageUrl}
@@ -174,9 +174,9 @@ export function AlbumRatingView({ albumId }: { albumId: string }) {
                   <Music size={36} className="text-gray-500" />
                 </div>
               )}
-              <div className="min-w-0 flex flex-col items-center text-center gap-3 sm:items-start sm:text-left">
-              <div>
-                <h1 className="text-white text-xl sm:text-3xl font-bold leading-tight">{album.name}</h1>
+              <div className="min-w-0 w-full flex flex-col items-center text-center gap-3 sm:items-start sm:text-left">
+              <div className="w-full">
+                <h1 className="text-white text-xl sm:text-3xl font-bold leading-tight break-words">{album.name}</h1>
                 <p className="text-gray-400 sm:text-lg">{album.artist}</p>
               </div>
 
@@ -296,9 +296,9 @@ export function AlbumRatingView({ albumId }: { albumId: string }) {
                     </div>
                   )}
 
-                  <div>
-                    <ProgressBar value={ranking.progress.percentage} className="h-3" />
-                    <div className="flex flex-wrap items-center justify-center gap-x-2 mt-1.5 sm:justify-between">
+                  <div className="w-full">
+                    <ProgressBar value={ranking.progress.percentage} className="h-3 ring-1 ring-white/10" />
+                    <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-0.5 mt-1.5 text-left">
                       <p className="text-gray-400 text-sm">{t("albumDetail.progress")}</p>
                       <p className="text-gray-400 text-sm">
                         {t("albumDetail.ratedOf", {

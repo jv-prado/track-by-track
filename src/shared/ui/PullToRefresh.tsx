@@ -53,7 +53,10 @@ export function PullToRefresh() {
         setRefreshing(true);
         setPull(THRESHOLD);
         try {
-          await queryClient.refetchQueries({ type: "active" });
+          // invalidateQueries (sem filtro) marca TODO cache como stale, não só o
+          // ativo — refetchQueries sozinho deixava query fora de tela (ex: outra
+          // aba/rota) com dado velho até o usuário voltar pra ela.
+          await queryClient.invalidateQueries();
         } finally {
           setRefreshing(false);
           setPull(0);

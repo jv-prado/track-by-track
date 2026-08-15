@@ -45,10 +45,12 @@ export function AppSidebar() {
   // pra manter esse item ativo aqui.
   const isNavActive = (to: string) => activePath === to || activePath.startsWith(`${to}/`);
 
-  // card "continuar avaliando" (mobile): só faz sentido em Feed/Search — nas
-  // outras telas (Minhas Avaliações, Top Álbuns, Descobrir, perfil...) ou é
-  // redundante ou compete com conteúdo próprio da tela.
-  const showContinueEditingCard = pathname === "/feed" || pathname === "/search";
+  // card "continuar avaliando" (mobile): aparece nas telas de navegação
+  // principal (Feed, Minhas Avaliações, Buscar, Descobrir, Top Álbuns) —
+  // fora delas (perfil, álbum aberto...) compete com conteúdo próprio da tela.
+  const showContinueEditingCard = ["/feed", "/my-rankings", "/search", "/discover", "/top-albums"].includes(
+    pathname,
+  );
   // dispensado fica escondido até o usuário editar OUTRO álbum — a chave
   // inclui o albumId de propósito, então editar um novo álbum "reseta" o card.
   const [dismissedAlbumId, setDismissedAlbumId] = useState<string | null>(

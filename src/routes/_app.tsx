@@ -1,6 +1,7 @@
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 import { AppSidebar } from "@/shared/layout/AppSidebar";
 import { AppHeader } from "@/shared/layout/AppHeader";
+import { PullToRefresh } from "@/shared/ui/PullToRefresh";
 
 export const Route = createFileRoute("/_app")({
   beforeLoad: ({ context, location }) => {
@@ -14,6 +15,7 @@ export const Route = createFileRoute("/_app")({
 function AppShell() {
   return (
     <div className="flex min-h-screen flex-col md:flex-row bg-grafite">
+      <PullToRefresh />
       <AppSidebar />
       {/* sem overflow-y-auto: scroller aninhado quebra o lazy nativo de <img> (só reavalia no scroll) */}
       {/* z-0 (não só relative) é o que importa aqui: sem z-index explícito `main` não forma

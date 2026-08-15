@@ -237,7 +237,7 @@ function layoutContent(ctx: CanvasRenderingContext2D, data: ShareCardData): Cont
   // Bias pra baixo em vez de centro puro: sobra fica mais no topo (perto da
   // logo) que no rodapé (perto do bloco do usuário) — pedido explícito de
   // "descer a parte do usuário" em vez de deixar vão morto embaixo.
-  const offset = CONTENT_TOP + Math.max(0, (AVAILABLE_HEIGHT - chosen.height) * 0.62);
+  const offset = CONTENT_TOP + Math.max(0, (AVAILABLE_HEIGHT - chosen.height) * 0.8);
 
   return {
     ...chosen,

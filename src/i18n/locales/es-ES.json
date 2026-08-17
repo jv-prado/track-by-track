@@ -150,14 +150,22 @@
     "title": "Descubrir",
     "subtitle": "Nuevos lanzamientos y los álbumes más escuchados ahora mismo.",
     "tabNewReleases": "Lanzamientos",
-    "tabTopChart": "Top charts",
+    "tabTopChart": "Top Charts (Apple)",
+    "tabBillboard200": "Billboard 200",
     "allGenres": "Todos los géneros",
     "emptyTitle": "No se encontraron álbumes",
     "emptyDescription": "Prueba otro filtro o vuelve más tarde.",
     "error": "No se pudieron cargar los álbumes.",
     "loading1": "Buscando lanzamientos nuevos...",
     "loading2": "Ordenando los álbumes más escuchados...",
-    "loading3": "Ya casi..."
+    "loading3": "Ya casi...",
+    "billboard": {
+      "new": "Nuevo",
+      "peak": "Máx. #{{rank}}",
+      "weeks_one": "{{count}} semana",
+      "weeks_other": "{{count}} semanas",
+      "unavailable": "No disponible"
+    }
   },
   "search": {
     "title": "Buscar",

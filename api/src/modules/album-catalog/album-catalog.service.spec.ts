@@ -348,6 +348,7 @@ describe('AlbumCatalogService (chart Top Albums da Apple)', () => {
     expect(result.items).toEqual([
       {
         spotifyId: 'spotify-a',
+        rank: 1,
         name: 'Album A',
         artist: 'Artist A',
         imageUrl: 'https://img/a.jpg',
@@ -379,6 +380,28 @@ describe('AlbumCatalogService (chart Top Albums da Apple)', () => {
     const result = await service.topAlbumsChart('Rock', 1, 20);
 
     expect(result.items.map((i) => i.spotifyId)).toEqual(['s1']);
+  });
+
+  it('rank reflete a posição no chart cheio, não a posição pós-filtro', async () => {
+    const { service, spotify, appleCharts } = setup();
+    appleCharts.chart = [
+      { artistName: 'A', name: 'Jazz Album', genres: ['Jazz'] }, // posição 1
+      { artistName: 'B', name: 'Rock Album', genres: ['Rock'] }, // posição 2
+      { artistName: 'C', name: 'Rock Album Two', genres: ['Rock'] }, // posição 3
+    ];
+    spotify.searchResultsByQuery['a jazz album'] = [summary('s1')];
+    spotify.searchResultsByQuery['b rock album'] = [summary('s2')];
+    spotify.searchResultsByQuery['c rock album two'] = [summary('s3')];
+
+    const result = await service.topAlbumsChart('Rock', 1, 20);
+
+    // filtrado pra 2 itens, mas mantêm o rank original (2 e 3), não renumera pra 1 e 2.
+    expect(
+      result.items.map((i) => ({ spotifyId: i.spotifyId, rank: i.rank })),
+    ).toEqual([
+      { spotifyId: 's2', rank: 2 },
+      { spotifyId: 's3', rank: 3 },
+    ]);
   });
 
   it('chart resolvido fica em cache — segunda chamada não bate na Apple nem refaz buscas', async () => {

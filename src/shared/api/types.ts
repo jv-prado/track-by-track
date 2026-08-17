@@ -40,6 +40,10 @@ export type AlbumDetail = Schemas["AlbumDetailDto"];
 export type AlbumTrack = Schemas["AlbumDetailDto"]["tracks"][number];
 export type TrackPreview = Schemas["TrackPreviewDto"];
 
+export type BillboardChartAlbum = Schemas["BillboardChartPageDto"]["data"][number];
+export type BillboardHistory = Schemas["BillboardHistoryDto"];
+export type BillboardHistoryEntry = Schemas["BillboardHistoryDto"]["history"][number];
+
 export type RankingView = Schemas["RankingViewDto"];
 export type RankingEntryView = Schemas["RankingViewDto"]["entries"][number];
 

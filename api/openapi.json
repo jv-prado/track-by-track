@@ -2003,6 +2003,80 @@
           "comments"
         ]
       }
+    },
+    "/v1/charts/billboard-200": {
+      "get": {
+        "operationId": "ChartsController_billboard200",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 9007199254740991,
+              "default": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "name": "perPage",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BillboardChartPageDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "charts"
+        ]
+      }
+    },
+    "/v1/charts/billboard-200/{albumId}": {
+      "get": {
+        "operationId": "ChartsController_billboardHistory",
+        "parameters": [
+          {
+            "name": "albumId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BillboardHistoryDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "charts"
+        ]
+      }
     }
   },
   "info": {
@@ -2482,6 +2556,9 @@
                 "spotifyId": {
                   "type": "string"
                 },
+                "rank": {
+                  "type": "number"
+                },
                 "name": {
                   "type": "string"
                 },
@@ -2503,6 +2580,7 @@
               },
               "required": [
                 "spotifyId",
+                "rank",
                 "name",
                 "artist",
                 "genres"
@@ -3749,6 +3827,153 @@
         },
         "required": [
           "text"
+        ]
+      },
+      "BillboardChartPageDto": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "albumId": {
+                  "type": "string",
+                  "nullable": true
+                },
+                "albumName": {
+                  "type": "string"
+                },
+                "albumArtist": {
+                  "type": "string"
+                },
+                "albumImageUrl": {
+                  "type": "string",
+                  "nullable": true
+                },
+                "rank": {
+                  "type": "number"
+                },
+                "lastWeekRank": {
+                  "type": "number"
+                },
+                "peakRank": {
+                  "type": "number"
+                },
+                "weeksOnChart": {
+                  "type": "number"
+                },
+                "chartDate": {
+                  "type": "string"
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "resolved",
+                    "unresolved"
+                  ]
+                },
+                "tbtScore": {
+                  "type": "number",
+                  "nullable": true
+                },
+                "ratingsCount": {
+                  "type": "number"
+                }
+              },
+              "required": [
+                "albumId",
+                "albumName",
+                "albumArtist",
+                "rank",
+                "chartDate",
+                "status",
+                "tbtScore",
+                "ratingsCount"
+              ]
+            }
+          },
+          "meta": {
+            "type": "object",
+            "properties": {
+              "page": {
+                "type": "number"
+              },
+              "perPage": {
+                "type": "number"
+              },
+              "total": {
+                "type": "number"
+              },
+              "totalPages": {
+                "type": "number"
+              },
+              "nextCursor": {
+                "type": "string",
+                "nullable": true
+              }
+            },
+            "required": [
+              "page",
+              "perPage",
+              "total",
+              "totalPages"
+            ]
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ]
+      },
+      "BillboardHistoryDto": {
+        "type": "object",
+        "properties": {
+          "albumId": {
+            "type": "string"
+          },
+          "currentRank": {
+            "type": "number",
+            "nullable": true
+          },
+          "lastWeekRank": {
+            "type": "number",
+            "nullable": true
+          },
+          "peakRank": {
+            "type": "number",
+            "nullable": true
+          },
+          "weeksOnChart": {
+            "type": "number",
+            "nullable": true
+          },
+          "history": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "chartDate": {
+                  "type": "string"
+                },
+                "rank": {
+                  "type": "number"
+                }
+              },
+              "required": [
+                "chartDate",
+                "rank"
+              ]
+            }
+          }
+        },
+        "required": [
+          "albumId",
+          "currentRank",
+          "lastWeekRank",
+          "peakRank",
+          "weeksOnChart",
+          "history"
         ]
       }
     }

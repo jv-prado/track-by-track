@@ -22,8 +22,10 @@ const chartUrl = (storefront: string) =>
 /**
  * O gênero por item é o único filtro possível (ver acima), então profundidade
  * por gênero só vem de unir lojas: 100 itens por loja e pouca sobreposição
- * entre elas. `br` primeiro porque é o público do produto; o resto cobre os
- * mercados que puxam gêneros diferentes (k-pop/j-pop, latino, europeu).
+ * entre elas. `br` cobre o público do produto; o resto cobre mercados que
+ * puxam gêneros diferentes (k-pop/j-pop, latino, europeu). A ordem aqui não
+ * decide rank nenhum — `mergeByRank` usa a posição real em cada loja, não a
+ * ordem deste array (ver comentário lá).
  */
 const STOREFRONTS = ['br', 'us', 'gb', 'mx', 'de', 'jp', 'fr', 'es'];
 
@@ -106,29 +108,59 @@ function primaryGenre(genres: AppleGenreRaw[]): string[] {
 }
 
 /**
- * Intercala as lojas por posição (1º de cada loja, depois 2º de cada...) em vez
- * de concatenar: concatenar jogaria o chart inteiro de `br` na frente e o topo
- * global só apareceria depois de 100 itens. Duplicata fica na melhor posição
- * que alcançou, com os gêneros de todas as lojas somados — a mesma obra vem
- * marcada como "Latin" numa loja e "Pop" noutra.
+ * Pior posição possível numa loja de 100 — usada como penalidade pra loja
+ * onde o álbum nem aparece. Sem isso, um álbum #1 numa loja só (ausente nas
+ * outras 7) empataria ou ganharia de um álbum #2 em todas as 8 — a penalidade
+ * é o que faz presença ampla pesar mais que um pico isolado.
  */
-function mergeByRank(charts: ChartAlbumRaw[][]): ChartAlbumRaw[] {
-  const merged = new Map<string, ChartAlbumRaw>();
-  const deepest = Math.max(0, ...charts.map((chart) => chart.length));
+const ABSENT_PENALTY_RANK = 101;
 
-  for (let rank = 0; rank < deepest; rank += 1) {
-    for (const chart of charts) {
-      const item = chart[rank];
-      if (!item) continue;
+interface MergeEntry {
+  item: ChartAlbumRaw;
+  rankSum: number;
+  appearances: number;
+}
+
+/**
+ * Rank médio do álbum através das 8 lojas (Borda count), não "quem entra
+ * primeiro no array de lojas vence": a implementação antiga intercalava
+ * posição por posição e o primeiro item inserido no Map ficava com o #1
+ * global pra sempre — na prática, o #1 da primeira loja do array (`br`)
+ * sempre vencia o #1 de qualquer outra loja, mesmo que a outra fosse mais
+ * disputada. Aqui cada loja em que o álbum NÃO aparece conta como
+ * `ABSENT_PENALTY_RANK` (pior que qualquer posição real) — a média final
+ * reflete desempenho pelas 8 lojas, não a ordem em que foram lidas. Gêneros
+ * de todas as lojas em que aparece são somados — a mesma obra vem marcada
+ * como "Latin" numa loja e "Pop" noutra.
+ */
+export function mergeByRank(charts: ChartAlbumRaw[][]): ChartAlbumRaw[] {
+  const merged = new Map<string, MergeEntry>();
+
+  for (const chart of charts) {
+    chart.forEach((item, index) => {
       const key = `${item.artistName}|${item.name}`.toLowerCase();
-      const seen = merged.get(key);
-      if (seen) {
-        seen.genres = [...new Set([...seen.genres, ...item.genres])];
-        continue;
+      const rank = index + 1;
+      const existing = merged.get(key);
+      if (existing) {
+        existing.rankSum += rank;
+        existing.appearances += 1;
+        existing.item.genres = [
+          ...new Set([...existing.item.genres, ...item.genres]),
+        ];
+        return;
       }
-      merged.set(key, { ...item });
-    }
+      merged.set(key, { item: { ...item }, rankSum: rank, appearances: 1 });
+    });
   }
 
-  return [...merged.values()];
+  const storeCount = charts.length;
+  return [...merged.values()]
+    .map((entry) => {
+      const missingStores = storeCount - entry.appearances;
+      const averageRank =
+        (entry.rankSum + missingStores * ABSENT_PENALTY_RANK) / storeCount;
+      return { item: entry.item, averageRank };
+    })
+    .sort((a, b) => a.averageRank - b.averageRank)
+    .map(({ item }) => item);
 }

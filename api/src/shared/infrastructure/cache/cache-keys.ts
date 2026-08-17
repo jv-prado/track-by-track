@@ -139,4 +139,15 @@ export class CacheKeys {
   albumPreview(version: number, userId: string, albumId: string): string {
     return `${this.root}:album-preview:v${version}:${userId}:${albumId}`;
   }
+
+  // --- Charts (Billboard) ---------------------------------------------------
+  // Sem versão: o chart só muda no sync semanal, não a cada mutação de
+  // ranking — o TTL sozinho já resolve a frescura (ver charts.service.ts).
+  billboardChart(page: number, perPage: number): string {
+    return `${this.root}:charts:billboard-200:p${page}:${perPage}`;
+  }
+
+  billboardHistory(albumId: string): string {
+    return `${this.root}:charts:billboard-200:history:${albumId}`;
+  }
 }

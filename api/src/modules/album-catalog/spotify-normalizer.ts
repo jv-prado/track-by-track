@@ -23,8 +23,15 @@ export interface SpotifyAlbumSummaryRaw {
   artists: SpotifyArtist[];
   images: SpotifyImage[];
   release_date?: string;
-  /** 'album' | 'single' | 'compilation' — usado só pra filtrar singles da busca. */
-  album_type?: string;
+  /**
+   * `total_tracks`, não `album_type`, é o que decide se algo é "single" pra
+   * filtrar: o Spotify não tem categoria própria pra EP — a maioria vem
+   * marcada `album_type: "single"` igual a uma faixa avulsa (confirmado
+   * contra a API real: "Maverick 'Almost Forever' EP" do Lil Uzi Vert, 8
+   * faixas, `album_type: "single"`). 1 faixa = single de verdade, descarta;
+   * mais que 1 = EP ou álbum, entra.
+   */
+  total_tracks?: number;
 }
 
 export interface SpotifySearchResponseRaw {

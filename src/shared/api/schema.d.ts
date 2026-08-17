@@ -756,6 +756,38 @@ export interface paths {
         patch: operations["CommentsController_update"];
         trace?: never;
     };
+    "/v1/charts/billboard-200": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ChartsController_billboard200"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/charts/billboard-200/{albumId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ChartsController_billboardHistory"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -875,6 +907,7 @@ export interface components {
         TopChartPageDto: {
             data: {
                 spotifyId: string;
+                rank: number;
                 name: string;
                 artist: string;
                 imageUrl?: string;
@@ -1189,6 +1222,41 @@ export interface components {
         };
         UpdateCommentDto: {
             text: string;
+        };
+        BillboardChartPageDto: {
+            data: {
+                albumId: string | null;
+                albumName: string;
+                albumArtist: string;
+                albumImageUrl?: string | null;
+                rank: number;
+                lastWeekRank?: number;
+                peakRank?: number;
+                weeksOnChart?: number;
+                chartDate: string;
+                /** @enum {string} */
+                status: "resolved" | "unresolved";
+                tbtScore: number | null;
+                ratingsCount: number;
+            }[];
+            meta: {
+                page: number;
+                perPage: number;
+                total: number;
+                totalPages: number;
+                nextCursor?: string | null;
+            };
+        };
+        BillboardHistoryDto: {
+            albumId: string;
+            currentRank: number | null;
+            lastWeekRank: number | null;
+            peakRank: number | null;
+            weeksOnChart: number | null;
+            history: {
+                chartDate: string;
+                rank: number;
+            }[];
         };
     };
     responses: never;
@@ -2376,6 +2444,49 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CommentViewDto"];
+                };
+            };
+        };
+    };
+    ChartsController_billboard200: {
+        parameters: {
+            query?: {
+                page?: number;
+                perPage?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BillboardChartPageDto"];
+                };
+            };
+        };
+    };
+    ChartsController_billboardHistory: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                albumId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BillboardHistoryDto"];
                 };
             };
         };

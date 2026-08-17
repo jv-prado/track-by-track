@@ -37,6 +37,8 @@ export const newReleaseAlbumSchema = albumSummarySchema.extend({
 /** Item do chart da Apple, já resolvido pro spotifyId equivalente. */
 export const chartAlbumSchema = z.object({
   spotifyId: z.string(),
+  /** Posição no chart cheio da Apple (união das lojas) — não muda com filtro de gênero. */
+  rank: z.number(),
   name: z.string(),
   artist: z.string(),
   imageUrl: z.string().optional(),

@@ -96,6 +96,8 @@ export interface AlbumCatalogAppleCharts {
 
 export interface ChartAlbum {
   spotifyId: string;
+  /** Posição no chart cheio da Apple (união das lojas), 1-indexado — não muda com filtro de gênero. */
+  rank: number;
   name: string;
   artist: string;
   imageUrl?: string;
@@ -163,8 +165,33 @@ export class AlbumCatalogService {
       }
     }
 
-    // O upsert vive dentro do factory: em cache hit não há resultado novo pra
-    // aprender, e reescrever os mesmos docs a cada busca repetida seria escrita à toa.
+    return this.searchSpotify(query, limit, offset);
+  }
+
+  /**
+   * Busca no Spotify sem o atalho de catálogo local do `search()`. O índice
+   * de texto do Mongo (`$text`) casa qualquer termo em comum — "Drake Take
+   * Care" bate em "Boy Harsher · Careful" só por "care" — bom o suficiente
+   * pra usuário digitando numa caixa de busca, ruim pra resolução de chart
+   * externo (Billboard etc), que precisa do candidato certo, não de "algo
+   * parecido" (confirmado na prática: 1ª leva do sync do Billboard rejeitou
+   * lixo do índice local achando que era "sem correspondência no Spotify").
+   * Usado por `ChartResolverService`.
+   */
+  searchSpotifyOnly(
+    query: string,
+    limit: number,
+  ): Promise<{ items: AlbumSummary[]; total: number }> {
+    return this.searchSpotify(query, limit, 0);
+  }
+
+  // O upsert vive dentro do factory: em cache hit não há resultado novo pra
+  // aprender, e reescrever os mesmos docs a cada busca repetida seria escrita à toa.
+  private searchSpotify(
+    query: string,
+    limit: number,
+    offset: number,
+  ): Promise<{ items: AlbumSummary[]; total: number }> {
     return this.cache.getOrSet(
       this.keys.spotifySearch(query, limit, offset),
       SEARCH_TTL_SECONDS,
@@ -349,9 +376,12 @@ export class AlbumCatalogService {
     perPage: number,
   ): Promise<{ items: ChartAlbum[]; total: number }> {
     const chart = await this.chart();
+    // rank é a posição no chart cheio, capturada antes do filtro de gênero —
+    // filtrar não pode renumerar (o #47 do chart geral continua #47 filtrado).
+    const ranked = chart.map((item, index) => ({ item, rank: index + 1 }));
     const filtered = genre
-      ? chart.filter((item) => item.genres.includes(genre))
-      : chart;
+      ? ranked.filter(({ item }) => item.genres.includes(genre))
+      : ranked;
     const start = (page - 1) * perPage;
 
     return {
@@ -373,14 +403,16 @@ export class AlbumCatalogService {
     );
   }
 
-  private async resolvePage(page: ChartAlbumRaw[]): Promise<ChartAlbum[]> {
+  private async resolvePage(
+    page: { item: ChartAlbumRaw; rank: number }[],
+  ): Promise<ChartAlbum[]> {
     const resolved: ChartAlbum[] = [];
 
     for (let i = 0; i < page.length; i += CHART_RESOLVE_BATCH_SIZE) {
       const results = await Promise.all(
         page
           .slice(i, i + CHART_RESOLVE_BATCH_SIZE)
-          .map((item) => this.resolveChartItem(item)),
+          .map(({ item, rank }) => this.resolveChartItem(item, rank)),
       );
       resolved.push(
         ...results.filter((item): item is ChartAlbum => item !== null),
@@ -392,6 +424,7 @@ export class AlbumCatalogService {
 
   private async resolveChartItem(
     item: ChartAlbumRaw,
+    rank: number,
   ): Promise<ChartAlbum | null> {
     const { items } = await this.search(
       `${item.artistName} ${item.name}`,
@@ -403,6 +436,7 @@ export class AlbumCatalogService {
 
     return {
       spotifyId: match.spotifyId,
+      rank,
       name: item.name,
       artist: item.artistName,
       imageUrl: item.imageUrl,

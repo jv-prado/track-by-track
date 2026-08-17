@@ -19,6 +19,10 @@ import type {
   albumDetailSchema,
   albumSummarySchema,
 } from './modules/album-catalog/dtos/album.responses';
+import type {
+  billboardChartAlbumSchema,
+  billboardHistorySchema,
+} from './modules/charts/dtos/charts.responses';
 import type { GetCurrentUserOutput } from './modules/identity/application/use-cases/get-current-user/get-current-user.input';
 import type { AuthenticateUserOutput } from './modules/identity/application/use-cases/authenticate-user/authenticate-user.input';
 import type { RegisterUserOutput } from './modules/identity/application/use-cases/register-user/register-user.input';
@@ -37,6 +41,10 @@ import type {
   AlbumDetail,
   AlbumSummary,
 } from './modules/album-catalog/spotify-normalizer';
+import type {
+  BillboardChartAlbum,
+  BillboardHistory,
+} from './modules/charts/charts.service';
 
 /**
  * Os schemas de resposta alimentam o OpenAPI, e o OpenAPI alimenta o
@@ -96,5 +104,12 @@ describe('Contratos de resposta batem com o que os serviços devolvem', () => {
   it('album-catalog', () => {
     assertEqual<z.infer<typeof albumSummarySchema>, AlbumSummary>(true);
     assertEqual<z.infer<typeof albumDetailSchema>, AlbumDetail>(true);
+  });
+
+  it('charts', () => {
+    assertEqual<z.infer<typeof billboardChartAlbumSchema>, BillboardChartAlbum>(
+      true,
+    );
+    assertEqual<z.infer<typeof billboardHistorySchema>, BillboardHistory>(true);
   });
 });

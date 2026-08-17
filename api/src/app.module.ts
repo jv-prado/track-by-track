@@ -3,6 +3,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { APP_FILTER, APP_GUARD } from '@nestjs/core';
 import { ThrottlerModule } from '@nestjs/throttler';
+import { ScheduleModule } from '@nestjs/schedule';
 import { AppThrottlerGuard } from './shared/infrastructure/guards/app-throttler.guard';
 import { LoggerModule } from 'nestjs-pino';
 import type { Env } from './config/env.schema';
@@ -18,6 +19,7 @@ import { DiscoveryModule } from './modules/discovery/discovery.module';
 import { CommentsModule } from './modules/comments/comments.module';
 import { FollowsModule } from './modules/follows/follows.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
+import { ChartsModule } from './modules/charts/charts.module';
 
 @Module({
   imports: [
@@ -45,6 +47,7 @@ import { NotificationsModule } from './modules/notifications/notifications.modul
       }),
     }),
     ThrottlerModule.forRoot([{ ttl: 60_000, limit: 60 }]),
+    ScheduleModule.forRoot(),
     AppMongooseModule,
     CacheModule,
     HealthModule,
@@ -55,6 +58,7 @@ import { NotificationsModule } from './modules/notifications/notifications.modul
     CommentsModule,
     FollowsModule,
     NotificationsModule,
+    ChartsModule,
   ],
   providers: [
     { provide: APP_FILTER, useClass: DomainExceptionFilter },

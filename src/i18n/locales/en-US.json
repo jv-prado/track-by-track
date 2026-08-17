@@ -150,14 +150,22 @@
     "title": "Discover",
     "subtitle": "New releases and the most-played albums right now.",
     "tabNewReleases": "New releases",
-    "tabTopChart": "Top charts",
+    "tabTopChart": "Top Charts (Apple)",
+    "tabBillboard200": "Billboard 200",
     "allGenres": "All genres",
     "emptyTitle": "No albums found",
     "emptyDescription": "Try another filter or check back later.",
     "error": "Could not load the albums.",
     "loading1": "Digging up new releases...",
     "loading2": "Sorting the most-played albums...",
-    "loading3": "Almost there..."
+    "loading3": "Almost there...",
+    "billboard": {
+      "new": "New",
+      "peak": "Peak #{{rank}}",
+      "weeks_one": "{{count}} week",
+      "weeks_other": "{{count}} weeks",
+      "unavailable": "Unavailable"
+    }
   },
   "search": {
     "title": "Search",

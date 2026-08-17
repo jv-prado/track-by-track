@@ -32,25 +32,27 @@ const TOKEN_LOCK_WAIT_MS = 120;
 /** Máximo aceito pelo `/search`. */
 const NEW_RELEASES_PAGE_SIZE = 50;
 /**
- * `tag:new` pega só as ~2 semanas mais recentes e vem quase todo em single:
- * 1000 itens viram ~150 álbuns por mercado. `year:` alcança o resto da janela
- * e é o que enche os gêneros fora do mainstream — cortado depois por
- * `NEW_RELEASES_WINDOW_DAYS`, senão traria o ano inteiro. Range de dois anos
- * por causa de janeiro, quando a janela cruza o réveillon.
+ * Só `tag:new` — é o sinal literal do próprio Spotify pra "isso é recente"
+ * (~últimas 2 semanas). Existia um fallback com `year:2025-2026` pra encher
+ * gênero fora do mainstream, mas `year:` não ordena por data, ordena por
+ * relevância dentro do ano — trazia álbum "relevante" que não é
+ * necessariamente recente, diluindo a lista. Removido: o produto quer
+ * lançamento de verdade, não profundidade de catálogo (decisão explícita,
+ * troca aceita: gênero de nicho pode ter menos opção no filtro).
  *
  * O número de páginas é o botão de "tempo da primeira carga": cada página é
  * uma busca no Spotify, e a conta toda tem que caber em poucos segundos. Subir
  * isso aumenta o acervo por gênero e a espera na mesma proporção.
  */
 const NEW_RELEASES_PAGES = 10;
-const NEW_RELEASES_YEAR_PAGES = 10;
 /**
- * Seis meses, não duas semanas: a janela é de graça (mesmo número de buscas) e
- * é o que dá rolagem nos gêneros fora do mainstream. A lista vem da mais
- * recente pra mais antiga, então quem não rola continua vendo só o que acabou
- * de sair.
+ * Duas semanas, não seis meses: `tag:new` só cobre isso mesmo (ver acima) —
+ * uma janela maior não traria mais itens, só deixaria `dedupeReleases`
+ * aceitando lixo antigo que sobrasse de uma resposta mal-rankeada. A lista
+ * vem da mais recente pra mais antiga, então quem não rola vê só o que
+ * acabou de sair.
  */
-const NEW_RELEASES_WINDOW_DAYS = 180;
+const NEW_RELEASES_WINDOW_DAYS = 14;
 /**
  * Mercados diferentes devolvem listas bem diferentes (medido: BR e JP
  * compartilham ~27% dos ids) — unir é o que dá volume. `BR` primeiro por ser o
@@ -81,6 +83,18 @@ function endOfPeriod(releaseDate: string | undefined): string {
 }
 
 /**
+ * `total_tracks`, não `album_type` — Spotify não distingue EP de single nesse
+ * campo (os dois vêm `album_type: "single"`; confirmado contra a API real:
+ * "Maverick 'Almost Forever' EP" do Lil Uzi Vert, 8 faixas, `album_type:
+ * "single"`). Só a contagem de faixas separa uma faixa avulsa de verdade
+ * (`total_tracks: 1`) de um EP rankeável. Ausente = não descarta (dado
+ * incerto não vira exclusão silenciosa).
+ */
+function isSingleTrackRelease(item: SpotifyAlbumSummaryRaw): boolean {
+  return item.total_tracks === 1;
+}
+
+/**
  * Três limpezas que a resposta crua não faz: single não é álbum rankeável, o
  * mesmo lançamento reaparece com ids diferentes por mercado (era daí que vinha
  * o card duplicado no grid), e `year:` traz o ano inteiro quando a aba só quer
@@ -94,7 +108,7 @@ function dedupeReleases(
   const byRelease = new Map<string, SpotifyAlbumSummaryRaw>();
 
   for (const item of raw) {
-    if (item.album_type === 'single') continue;
+    if (isSingleTrackRelease(item)) continue;
     if (endOfPeriod(item.release_date) < since) continue;
     const key =
       `${item.name}|${item.artists.map((artist) => artist.name).join(',')}`.toLowerCase();
@@ -145,10 +159,11 @@ export class SpotifyClientService {
       },
     );
     // Spotify's `type=album` search param é a categoria "álbuns", que inclui
-    // singles e compilações — não filtra por album_type. Descartamos singles aqui.
+    // singles e compilações — não filtra por album_type. Descartamos faixa
+    // avulsa aqui (ver `isSingleTrackRelease`), não EP.
     return {
       items: response.data.albums.items
-        .filter((item) => item.album_type !== 'single')
+        .filter((item) => !isSingleTrackRelease(item))
         .map(normalizeAlbumSummary),
       total: response.data.albums.total,
     };
@@ -169,19 +184,13 @@ export class SpotifyClientService {
     const since = new Date(now.getTime() - NEW_RELEASES_WINDOW_DAYS * DAY_MS)
       .toISOString()
       .slice(0, 10);
-    const yearQuery = `year:${now.getUTCFullYear() - 1}-${now.getUTCFullYear()}`;
-    const requests = NEW_RELEASES_MARKETS.flatMap((market) => [
-      ...Array.from({ length: NEW_RELEASES_PAGES }, (_, index) => ({
+    const requests = NEW_RELEASES_MARKETS.flatMap((market) =>
+      Array.from({ length: NEW_RELEASES_PAGES }, (_, index) => ({
         market,
         query: 'tag:new',
         offset: index * NEW_RELEASES_PAGE_SIZE,
       })),
-      ...Array.from({ length: NEW_RELEASES_YEAR_PAGES }, (_, index) => ({
-        market,
-        query: yearQuery,
-        offset: index * NEW_RELEASES_PAGE_SIZE,
-      })),
-    ]);
+    );
     const raw: SpotifyAlbumSummaryRaw[] = [];
 
     for (let i = 0; i < requests.length; i += NEW_RELEASES_CONCURRENCY) {

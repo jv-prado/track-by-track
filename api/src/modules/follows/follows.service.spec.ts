@@ -30,11 +30,7 @@ interface FollowRecord {
 class InMemoryFollowModel {
   readonly docs: FollowRecord[] = [];
 
-  updateOne(
-    filter: { followerId: string; followeeId: string },
-    _update: unknown,
-    _options: { upsert: boolean },
-  ) {
+  updateOne(filter: { followerId: string; followeeId: string }) {
     const exists = this.docs.some(
       (doc) =>
         doc.followerId === filter.followerId &&

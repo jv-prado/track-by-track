@@ -3,6 +3,7 @@ import {
   USER_REPOSITORY,
   type UserRepository,
 } from '../../domain/repositories/user.repository';
+import type { UserRole } from '../../domain/entities/user.entity';
 
 export interface PublicUserProfile {
   id: string;
@@ -12,7 +13,7 @@ export interface PublicUserProfile {
   createdAt: string;
 }
 
-/** Único ponto de acesso a dados públicos de usuário para outros módulos (Comments, Discovery). */
+/** Único ponto de acesso a dados de usuário para outros módulos (Comments, Discovery, Feedbacks). */
 @Injectable()
 export class UserDirectoryService {
   constructor(
@@ -28,6 +29,16 @@ export class UserDirectoryService {
       avatarUrl: user.avatarUrl,
       createdAt: user.createdAt.toISOString(),
     };
+  }
+
+  async getUserRole(userId: string): Promise<UserRole | null> {
+    const user = await this.users.findById(userId);
+    return user?.role ?? null;
+  }
+
+  async isUserAdmin(userId: string): Promise<boolean> {
+    const user = await this.users.findById(userId);
+    return user?.role === 'admin';
   }
 
   async searchPublicProfiles(

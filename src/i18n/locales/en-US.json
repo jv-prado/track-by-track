@@ -15,7 +15,8 @@
     "continueEditing": "Continue editing",
     "collapseSidebar": "Collapse menu",
     "expandSidebar": "Expand menu",
-    "generatePosts": "Generate Posts"
+    "generatePosts": "Generate Posts",
+    "feedbacks": "Feedbacks"
   },
   "common": {
     "retry": "Try again",
@@ -378,5 +379,49 @@
       "previewEmpty": "Generate a post to preview it here.",
       "previewAlt": "Instagram post preview"
     }
+  },
+  "feedbacks": {
+    "title": "Feedbacks",
+    "subtitle": "Send suggestions, questions, or report issues with the app.",
+    "adminSubtitle": "Manage and reply to user feedbacks and questions.",
+    "sendFeedback": "Send feedback",
+    "newFeedback": "New feedback",
+    "subject": "Subject",
+    "subjectPlaceholder": "E.g.: Issue with ranking, Feature suggestion...",
+    "message": "Message",
+    "messagePlaceholder": "Describe in detail your question, suggestion, or issue found...",
+    "replyPlaceholder": "Type your message...",
+    "status": {
+      "open": "Awaiting response",
+      "answered": "Answered",
+      "closed": "Closed"
+    },
+    "filters": {
+      "all": "All",
+      "open": "Awaiting response",
+      "answered": "Answered",
+      "closed": "Closed"
+    },
+    "emptyTitle": "No feedback sent yet.",
+    "emptyDescription": "You don't have any feedbacks yet. Create a new one to send questions or suggestions.",
+    "emptyAdminTitle": "No feedbacks found.",
+    "emptyAdminDescription": "No feedbacks found matching the selected filters.",
+    "createSuccess": "Feedback sent successfully!",
+    "createError": "Error sending feedback. Please try again.",
+    "replySuccess": "Message sent successfully!",
+    "replyError": "Error sending message. Please try again.",
+    "statusUpdateSuccess": "Status updated successfully!",
+    "statusUpdateError": "Error updating status. Please try again.",
+    "userLabel": "User",
+    "adminLabel": "Track by Track Team",
+    "changeStatus": "Change status",
+    "lastUpdate": "Last update",
+    "messagesCount_one": "{{count}} message",
+    "messagesCount_other": "{{count}} messages",
+    "backToList": "Back to list",
+    "conversation": "Conversation",
+    "unansweredBadge": "pending",
+    "send": "Send"
   }
 }
+

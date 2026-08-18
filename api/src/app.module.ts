@@ -20,6 +20,7 @@ import { CommentsModule } from './modules/comments/comments.module';
 import { FollowsModule } from './modules/follows/follows.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { ChartsModule } from './modules/charts/charts.module';
+import { FeedbacksModule } from './modules/feedbacks/feedbacks.module';
 
 @Module({
   imports: [
@@ -59,6 +60,7 @@ import { ChartsModule } from './modules/charts/charts.module';
     FollowsModule,
     NotificationsModule,
     ChartsModule,
+    FeedbacksModule,
   ],
   providers: [
     { provide: APP_FILTER, useClass: DomainExceptionFilter },

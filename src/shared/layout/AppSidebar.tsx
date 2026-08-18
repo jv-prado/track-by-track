@@ -11,11 +11,13 @@ import {
   User as UserIcon,
   X,
   ImagePlus,
+  MessageSquare,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useAuthStore } from "@/shared/auth/auth.store";
 import { useLogoutMutation } from "@/queries/auth";
 import { useLastEditedAlbumQuery } from "@/queries/discovery";
+import { useUnansweredFeedbacksCountQuery } from "@/queries/feedbacks";
 import LogoFull from "@/assets/logo-full.png";
 import LogoIcon from "@/assets/logo-icon.png";
 import LanguageSelector from "@/componentes/LanguageSelector";
@@ -33,6 +35,7 @@ export function AppSidebar() {
   const collapsed = useSidebarStore((s) => s.collapsed);
   const logoutMutation = useLogoutMutation();
   const lastEditedAlbum = useLastEditedAlbumQuery(user?.id).data;
+  const unansweredFeedbacksCount = useUnansweredFeedbacksCountQuery(isAdmin).data ?? 0;
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   // ver a própria avaliação de um álbum (via /profile/$userId/album/$albumId) é
   // conteúdo de "Minhas Avaliações", mesmo a URL sendo escopada por usuário.
@@ -113,11 +116,11 @@ export function AppSidebar() {
       >
         {/* -mx-4: logo sangra até a borda do aside, ignorando o padding que o
             resto do conteúdo (nav, cards, logout) mantém */}
-        <div className="-mx-4 mb-8">
+        <div className={cn("mb-8 flex items-center justify-center", !collapsed && "-mx-4")}>
           <img
             src={collapsed ? LogoIcon : LogoFull}
             alt="Track by Track"
-            className={cn("mx-auto transition-all", collapsed ? "w-20" : "w-40")}
+            className={cn("transition-all object-contain", collapsed ? "w-9 h-9" : "w-44")}
           />
         </div>
 
@@ -139,6 +142,37 @@ export function AppSidebar() {
               {!collapsed && <span className="text-sm sm:text-base">{label}</span>}
             </Link>
           ))}
+
+          <Link
+            to="/feedbacks"
+            title={collapsed ? t("nav.feedbacks") : undefined}
+            className={cn(
+              "relative flex items-center gap-3 rounded-lg px-3 py-2.5 transition",
+              collapsed && "justify-center px-0 py-3.5",
+              isNavActive("/feedbacks")
+                ? "bg-dourado/10 text-dourado hover:bg-dourado/15"
+                : "text-gray-300 hover:bg-white/5 hover:text-white",
+            )}
+          >
+            <div className="relative shrink-0 flex items-center justify-center">
+              <MessageSquare size={collapsed ? 22 : 20} />
+              {isAdmin && unansweredFeedbacksCount > 0 && collapsed && (
+                <span className="absolute -top-1.5 -right-1.5 min-w-4 h-4 px-1 rounded-full bg-dourado text-grafite text-[10px] font-bold flex items-center justify-center">
+                  {unansweredFeedbacksCount > 9 ? "9+" : unansweredFeedbacksCount}
+                </span>
+              )}
+            </div>
+            {!collapsed && (
+              <div className="flex flex-1 items-center justify-between min-w-0">
+                <span className="text-sm sm:text-base">{t("nav.feedbacks")}</span>
+                {isAdmin && unansweredFeedbacksCount > 0 && (
+                  <span className="min-w-5 h-5 px-1.5 rounded-full bg-dourado text-grafite text-xs font-bold flex items-center justify-center">
+                    {unansweredFeedbacksCount > 99 ? "99+" : unansweredFeedbacksCount}
+                  </span>
+                )}
+              </div>
+            )}
+          </Link>
 
           {/* admin-only: não entra em NAV_ITEMS de propósito — essa lista também dirige a
               tab bar mobile (mobileTabCount, activeTabIndex), e este item é desktop-only. */}
@@ -351,6 +385,20 @@ export function AppSidebar() {
               >
                 <Settings size={18} />
                 <span className="flex-1 truncate">{t("nav.settings")}</span>
+              </Link>
+              <Link
+                to="/feedbacks"
+                role="menuitem"
+                onClick={() => setProfileMenuOpen(false)}
+                className="flex items-center gap-2 w-full px-3 py-2.5 text-base text-left text-gray-200 hover:bg-white/5 transition"
+              >
+                <MessageSquare size={18} />
+                <span className="flex-1 truncate">{t("nav.feedbacks")}</span>
+                {isAdmin && unansweredFeedbacksCount > 0 && (
+                  <span className="min-w-4.5 h-4.5 px-1.5 rounded-full bg-dourado text-grafite text-xs font-bold flex items-center justify-center">
+                    {unansweredFeedbacksCount}
+                  </span>
+                )}
               </Link>
               <div className="border-t border-white/10">
                 <LanguageSelector direction="up" className="w-full" />

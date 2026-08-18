@@ -18,6 +18,7 @@ import { Route as AppIndexRouteImport } from './routes/_app.index'
 import { Route as AppDeleteAccountRouteImport } from './routes/_app.delete-account'
 import { Route as AppDiscoverRouteImport } from './routes/_app.discover'
 import { Route as AppFeedRouteImport } from './routes/_app.feed'
+import { Route as AppFeedbacksRouteImport } from './routes/_app.feedbacks'
 import { Route as AppMyRankingsRouteImport } from './routes/_app.my-rankings'
 import { Route as AppSearchRouteImport } from './routes/_app.search'
 import { Route as AppTopAlbumsRouteImport } from './routes/_app.top-albums'
@@ -77,6 +78,11 @@ const AppDiscoverRoute = AppDiscoverRouteImport.update({
 const AppFeedRoute = AppFeedRouteImport.update({
   id: '/feed',
   path: '/feed',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppFeedbacksRoute = AppFeedbacksRouteImport.update({
+  id: '/feedbacks',
+  path: '/feedbacks',
   getParentRoute: () => AppRoute,
 } as any)
 const AppMyRankingsRoute = AppMyRankingsRouteImport.update({
@@ -175,6 +181,7 @@ export interface FileRoutesByFullPath {
   '/delete-account': typeof AppDeleteAccountRoute
   '/discover': typeof AppDiscoverRoute
   '/feed': typeof AppFeedRoute
+  '/feedbacks': typeof AppFeedbacksRoute
   '/my-rankings': typeof AppMyRankingsRoute
   '/search': typeof AppSearchRoute
   '/top-albums': typeof AppTopAlbumsRoute
@@ -201,6 +208,7 @@ export interface FileRoutesByTo {
   '/delete-account': typeof AppDeleteAccountRoute
   '/discover': typeof AppDiscoverRoute
   '/feed': typeof AppFeedRoute
+  '/feedbacks': typeof AppFeedbacksRoute
   '/my-rankings': typeof AppMyRankingsRoute
   '/search': typeof AppSearchRoute
   '/top-albums': typeof AppTopAlbumsRoute
@@ -229,6 +237,7 @@ export interface FileRoutesById {
   '/_app/delete-account': typeof AppDeleteAccountRoute
   '/_app/discover': typeof AppDiscoverRoute
   '/_app/feed': typeof AppFeedRoute
+  '/_app/feedbacks': typeof AppFeedbacksRoute
   '/_app/my-rankings': typeof AppMyRankingsRoute
   '/_app/search': typeof AppSearchRoute
   '/_app/top-albums': typeof AppTopAlbumsRoute
@@ -258,6 +267,7 @@ export interface FileRouteTypes {
     | '/delete-account'
     | '/discover'
     | '/feed'
+    | '/feedbacks'
     | '/my-rankings'
     | '/search'
     | '/top-albums'
@@ -284,6 +294,7 @@ export interface FileRouteTypes {
     | '/delete-account'
     | '/discover'
     | '/feed'
+    | '/feedbacks'
     | '/my-rankings'
     | '/search'
     | '/top-albums'
@@ -311,6 +322,7 @@ export interface FileRouteTypes {
     | '/_app/delete-account'
     | '/_app/discover'
     | '/_app/feed'
+    | '/_app/feedbacks'
     | '/_app/my-rankings'
     | '/_app/search'
     | '/_app/top-albums'
@@ -402,6 +414,13 @@ declare module '@tanstack/react-router' {
       path: '/feed'
       fullPath: '/feed'
       preLoaderRoute: typeof AppFeedRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/feedbacks': {
+      id: '/_app/feedbacks'
+      path: '/feedbacks'
+      fullPath: '/feedbacks'
+      preLoaderRoute: typeof AppFeedbacksRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/my-rankings': {
@@ -530,6 +549,7 @@ interface AppRouteChildren {
   AppDeleteAccountRoute: typeof AppDeleteAccountRoute
   AppDiscoverRoute: typeof AppDiscoverRoute
   AppFeedRoute: typeof AppFeedRoute
+  AppFeedbacksRoute: typeof AppFeedbacksRoute
   AppMyRankingsRoute: typeof AppMyRankingsRoute
   AppSearchRoute: typeof AppSearchRoute
   AppTopAlbumsRoute: typeof AppTopAlbumsRoute
@@ -549,6 +569,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppDeleteAccountRoute: AppDeleteAccountRoute,
   AppDiscoverRoute: AppDiscoverRoute,
   AppFeedRoute: AppFeedRoute,
+  AppFeedbacksRoute: AppFeedbacksRoute,
   AppMyRankingsRoute: AppMyRankingsRoute,
   AppSearchRoute: AppSearchRoute,
   AppTopAlbumsRoute: AppTopAlbumsRoute,

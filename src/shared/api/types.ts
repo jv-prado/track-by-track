@@ -55,3 +55,10 @@ export type PublicUser = Schemas["UserSearchPageDto"]["data"][number];
 
 export type NotificationView = Schemas["NotificationsPageDto"]["data"][number];
 export type UnreadCount = Schemas["UnreadCountDto"];
+
+export type FeedbackSummary = Schemas["FeedbacksPageDto"]["data"][number];
+export type FeedbackDetail = Schemas["FeedbackDetailDto"];
+export type FeedbackMessage = Schemas["FeedbackDetailDto"]["messages"][number];
+export type FeedbackStatus = Schemas["FeedbackDetailDto"]["status"];
+export type UnansweredFeedbacksCount = Schemas["UnansweredFeedbacksCountDto"];
+

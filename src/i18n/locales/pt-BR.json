@@ -15,7 +15,8 @@
     "continueEditing": "Continuar editando",
     "collapseSidebar": "Recolher menu",
     "expandSidebar": "Expandir menu",
-    "generatePosts": "Gerar posts"
+    "generatePosts": "Gerar posts",
+    "feedbacks": "Feedbacks"
   },
   "common": {
     "retry": "Tentar novamente",
@@ -378,5 +379,49 @@
       "previewEmpty": "Gere um post para ver a prévia aqui.",
       "previewAlt": "Prévia do post do Instagram"
     }
+  },
+  "feedbacks": {
+    "title": "Feedbacks",
+    "subtitle": "Envie sugestões, dúvidas ou relate problemas com o aplicativo.",
+    "adminSubtitle": "Gerencie e responda aos feedbacks e dúvidas dos usuários.",
+    "sendFeedback": "Enviar feedback",
+    "newFeedback": "Novo feedback",
+    "subject": "Assunto",
+    "subjectPlaceholder": "Ex: Problema no ranking, Sugestão de melhoria...",
+    "message": "Mensagem",
+    "messagePlaceholder": "Descreva em detalhes sua dúvida, sugestão ou problema encontrado...",
+    "replyPlaceholder": "Digite sua mensagem...",
+    "status": {
+      "open": "Aguardando resposta",
+      "answered": "Respondido",
+      "closed": "Encerrado"
+    },
+    "filters": {
+      "all": "Todos",
+      "open": "Aguardando resposta",
+      "answered": "Respondidos",
+      "closed": "Encerrados"
+    },
+    "emptyTitle": "Nenhum feedback enviado ainda.",
+    "emptyDescription": "Você ainda não possui feedbacks. Crie um novo para enviar dúvidas ou sugestões.",
+    "emptyAdminTitle": "Nenhum feedback encontrado.",
+    "emptyAdminDescription": "Não há feedbacks cadastrados com os filtros selecionados.",
+    "createSuccess": "Feedback enviado com sucesso!",
+    "createError": "Erro ao enviar feedback. Tente novamente.",
+    "replySuccess": "Mensagem enviada com sucesso!",
+    "replyError": "Erro ao enviar mensagem. Tente novamente.",
+    "statusUpdateSuccess": "Status atualizado com sucesso!",
+    "statusUpdateError": "Erro ao atualizar status. Tente novamente.",
+    "userLabel": "Usuário",
+    "adminLabel": "Equipe Track by Track",
+    "changeStatus": "Alterar status",
+    "lastUpdate": "Última atualização",
+    "messagesCount_one": "{{count}} mensagem",
+    "messagesCount_other": "{{count}} mensagens",
+    "backToList": "Voltar para lista",
+    "conversation": "Conversa",
+    "unansweredBadge": "pendente(s)",
+    "send": "Enviar"
   }
 }
+

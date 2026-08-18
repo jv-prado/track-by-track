@@ -23,6 +23,12 @@ import type {
   billboardChartAlbumSchema,
   billboardHistorySchema,
 } from './modules/charts/dtos/charts.responses';
+import type {
+  feedbackSummarySchema,
+  feedbackDetailSchema,
+  feedbackMessageViewSchema,
+  unansweredFeedbacksCountSchema,
+} from './modules/feedbacks/presentation/dtos/feedback.responses';
 import type { GetCurrentUserOutput } from './modules/identity/application/use-cases/get-current-user/get-current-user.input';
 import type { AuthenticateUserOutput } from './modules/identity/application/use-cases/authenticate-user/authenticate-user.input';
 import type { RegisterUserOutput } from './modules/identity/application/use-cases/register-user/register-user.input';
@@ -45,6 +51,12 @@ import type {
   BillboardChartAlbum,
   BillboardHistory,
 } from './modules/charts/charts.service';
+import type {
+  FeedbackSummaryView,
+  FeedbackDetailView,
+  FeedbackMessageView,
+  UnansweredFeedbacksCountView,
+} from './modules/feedbacks/application/feedbacks.service';
 
 /**
  * Os schemas de resposta alimentam o OpenAPI, e o OpenAPI alimenta o
@@ -111,5 +123,19 @@ describe('Contratos de resposta batem com o que os serviços devolvem', () => {
       true,
     );
     assertEqual<z.infer<typeof billboardHistorySchema>, BillboardHistory>(true);
+  });
+
+  it('feedbacks', () => {
+    assertEqual<z.infer<typeof feedbackMessageViewSchema>, FeedbackMessageView>(
+      true,
+    );
+    assertEqual<z.infer<typeof feedbackSummarySchema>, FeedbackSummaryView>(
+      true,
+    );
+    assertEqual<z.infer<typeof feedbackDetailSchema>, FeedbackDetailView>(true);
+    assertEqual<
+      z.infer<typeof unansweredFeedbacksCountSchema>,
+      UnansweredFeedbacksCountView
+    >(true);
   });
 });

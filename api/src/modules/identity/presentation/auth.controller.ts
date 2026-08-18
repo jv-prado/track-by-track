@@ -140,8 +140,7 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
   ) {
     const token =
-      (req.cookies?.[REFRESH_COOKIE] as string | undefined) ??
-      dto.refreshToken;
+      (req.cookies?.[REFRESH_COOKIE] as string | undefined) ?? dto.refreshToken;
     if (!token) {
       throw new InvalidRefreshTokenError();
     }
@@ -169,8 +168,7 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
   ) {
     const token =
-      (req.cookies?.[REFRESH_COOKIE] as string | undefined) ??
-      dto.refreshToken;
+      (req.cookies?.[REFRESH_COOKIE] as string | undefined) ?? dto.refreshToken;
     if (token) {
       await this.logout.execute({ refreshToken: token });
     }

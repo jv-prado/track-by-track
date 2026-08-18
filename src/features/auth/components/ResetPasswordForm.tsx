@@ -64,7 +64,7 @@ export function ResetPasswordForm() {
   return (
     <>
       <div className="mb-4 sm:mb-6">
-        <img src={Logo} alt="Logo" className="w-32 sm:w-40 mx-auto" />
+        <img src={Logo} alt="Logo" className="w-48 sm:w-56 mx-auto" />
       </div>
 
       <div className="bg-cinza-escuro p-5 sm:p-6 rounded-xl w-full max-w-md">

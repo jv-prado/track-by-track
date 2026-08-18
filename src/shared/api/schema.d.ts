@@ -788,6 +788,86 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/feedbacks": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["FeedbacksController_list"];
+        put?: never;
+        post: operations["FeedbacksController_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/feedbacks/unanswered-count": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["FeedbacksController_getUnansweredCount"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/feedbacks/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["FeedbacksController_getById"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/feedbacks/{id}/messages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["FeedbacksController_addMessage"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/feedbacks/{id}/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["FeedbacksController_updateStatus"];
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1257,6 +1337,64 @@ export interface components {
                 chartDate: string;
                 rank: number;
             }[];
+        };
+        CreateFeedbackDto: {
+            subject: string;
+            message: string;
+        };
+        FeedbackDetailDto: {
+            id: string;
+            userId: string;
+            userDisplayName: string;
+            userAvatarUrl?: string;
+            subject?: string;
+            /** @enum {string} */
+            status: "open" | "answered" | "closed";
+            messages: {
+                id: string;
+                userId?: string;
+                adminId?: string;
+                authorDisplayName: string;
+                authorAvatarUrl?: string;
+                isAdmin: boolean;
+                message: string;
+                createdAt: string;
+            }[];
+            createdAt: string;
+            updatedAt: string;
+        };
+        FeedbacksPageDto: {
+            data: {
+                id: string;
+                userId: string;
+                userDisplayName: string;
+                userAvatarUrl?: string;
+                subject?: string;
+                /** @enum {string} */
+                status: "open" | "answered" | "closed";
+                messageCount: number;
+                lastMessage: string;
+                lastMessageCreatedAt: string;
+                createdAt: string;
+                updatedAt: string;
+            }[];
+            meta: {
+                page: number;
+                perPage: number;
+                total: number;
+                totalPages: number;
+                nextCursor?: string | null;
+            };
+        };
+        UnansweredFeedbacksCountDto: {
+            count: number;
+        };
+        AddFeedbackMessageDto: {
+            message: string;
+        };
+        UpdateFeedbackStatusDto: {
+            /** @enum {string} */
+            status: "open" | "answered" | "closed";
         };
     };
     responses: never;
@@ -2487,6 +2625,142 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["BillboardHistoryDto"];
+                };
+            };
+        };
+    };
+    FeedbacksController_list: {
+        parameters: {
+            query?: {
+                page?: number;
+                perPage?: number;
+                status?: "open" | "answered" | "closed";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FeedbacksPageDto"];
+                };
+            };
+        };
+    };
+    FeedbacksController_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateFeedbackDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FeedbackDetailDto"];
+                };
+            };
+        };
+    };
+    FeedbacksController_getUnansweredCount: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UnansweredFeedbacksCountDto"];
+                };
+            };
+        };
+    };
+    FeedbacksController_getById: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FeedbackDetailDto"];
+                };
+            };
+        };
+    };
+    FeedbacksController_addMessage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AddFeedbackMessageDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FeedbackDetailDto"];
+                };
+            };
+        };
+    };
+    FeedbacksController_updateStatus: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateFeedbackStatusDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FeedbackDetailDto"];
                 };
             };
         };

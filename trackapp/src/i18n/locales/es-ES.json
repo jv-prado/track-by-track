@@ -210,9 +210,9 @@
   "review": {
     "placeholder": "¿Qué te pareció este álbum?",
     "favoriteTrack": "Canción favorita",
-    "worstTrack": "Peor canción",
+    "worstTrack": "Canción menos favorita",
     "favoriteTrackSaved": "Canción favorita guardada",
-    "worstTrackSaved": "Peor canción guardada",
+    "worstTrackSaved": "Canción menos favorita guardada",
     "saveError": "No se pudo guardar la reseña.",
     "notChosen": "Aún no elegida",
     "noReviewYet": "Este usuario todavía no ha escrito una reseña de este álbum.",
@@ -221,7 +221,7 @@
   },
   "rankingActions": {
     "reset": "Restablecer valoraciones",
-    "resetConfirm": "Esto borra todas las notas, tu reseña y la pista favorita/peor de este álbum. No se puede deshacer.",
+    "resetConfirm": "Esto borra todas las notas, tu reseña y la pista favorita/menos favorita de este álbum. No se puede deshacer.",
     "resetConfirmYes": "Sí, restablecer",
     "resetting": "Restableciendo...",
     "resetSuccess": "Ranking restablecido.",
@@ -255,7 +255,7 @@
     "ratingsAndAverage": "{{count}} valoraciones · promedio {{average}}",
     "ratingsCount": "{{count}} valoraciones",
     "favoriteTracks": "Canciones favoritas",
-    "worstTracks": "Peores canciones"
+    "worstTracks": "Canciones menos favoritas"
   },
   "communityReviews": {
     "title": "Reseñas de otros usuarios",

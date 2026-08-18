@@ -101,7 +101,7 @@ const baseData: ShareCardData = {
   userDisplayName: "ana",
   ratedAtLabel: "14 de ago. de 2026",
   favoriteTrack: { label: "Faixa favorita", name: "Something in the Way" },
-  worstTrack: { label: "Pior faixa", name: "Lithium" },
+  worstTrack: { label: "Faixa menos favorita", name: "Lithium" },
 };
 
 describe("renderShareCard", () => {
@@ -116,11 +116,11 @@ describe("renderShareCard", () => {
     const blob = await renderShareCard(baseData);
 
     expect(blob.type).toBe("image/png");
-    expect(calls.fillText).toContain("Nevermind");
-    expect(calls.fillText).toContain("Nirvana");
+    expect(calls.fillText).toContain("NEVERMIND");
+    expect(calls.fillText).toContain("NIRVANA");
     expect(calls.fillText).toContain("8.4");
-    expect(calls.fillText).toContain("ana");
-    expect(calls.fillText).toContain("14 de ago. de 2026");
+    expect(calls.fillText).toContain("ANA");
+    expect(calls.fillText).toContain("14 DE AGO. DE 2026");
     expect(calls.fillText).toContain("/10");
   });
 
@@ -133,14 +133,14 @@ describe("renderShareCard", () => {
     expect(calls.fillText).toContain("www.trackbytrack.app");
   });
 
-  it("desenha faixa favorita e pior faixa quando presentes", async () => {
+  it("desenha faixa favorita e faixa menos favorita quando presentes", async () => {
     const calls = stubCanvas();
 
     await renderShareCard(baseData);
 
-    expect(calls.fillText).toContain("Faixa favorita");
+    expect(calls.fillText).toContain("FAIXA FAVORITA");
     expect(calls.fillText).toContain("Something in the Way");
-    expect(calls.fillText).toContain("Pior faixa");
+    expect(calls.fillText).toContain("FAIXA MENOS FAVORITA");
     expect(calls.fillText).toContain("Lithium");
   });
 
@@ -150,7 +150,7 @@ describe("renderShareCard", () => {
     await renderShareCard({ ...baseData, reviewText: "Um álbum ousado, épico e consistente." });
 
     expect(calls.fillText).toContain("Um álbum ousado, épico e consistente.");
-    expect(calls.fillText).toContain("Nirvana");
+    expect(calls.fillText).toContain("NIRVANA");
   });
 
   it("quebra nome de álbum longo em linhas em vez de cortar na primeira", async () => {
@@ -158,7 +158,7 @@ describe("renderShareCard", () => {
 
     await renderShareCard({ ...baseData, albumName: "Sargento Pimenta ".repeat(8).trim() });
 
-    const nameLines = calls.fillText.filter((text) => text.startsWith("Sargento"));
+    const nameLines = calls.fillText.filter((text) => text.startsWith("SARGENTO"));
     expect(nameLines.length).toBeGreaterThan(1);
   });
 
@@ -205,5 +205,24 @@ describe("renderShareCard", () => {
     await renderShareCard({ ...baseData, albumName: "N".repeat(300) });
 
     expect(calls.fillText.some((text) => text.endsWith("…"))).toBe(true);
+  });
+
+  it("desenha a imagem de fundo quando carregada com sucesso", async () => {
+    vi.stubGlobal(
+      "Image",
+      class {
+        crossOrigin = "";
+        onload: (() => void) | null = null;
+        onerror: (() => void) | null = null;
+        set src(_value: string) {
+          setTimeout(() => this.onload?.(), 0);
+        }
+      },
+    );
+    const calls = stubCanvas();
+
+    await renderShareCard(baseData);
+
+    expect(calls.drawImage).toBeGreaterThanOrEqual(1);
   });
 });

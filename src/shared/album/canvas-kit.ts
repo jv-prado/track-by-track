@@ -28,13 +28,66 @@ export const BRAND_SITE = "www.trackbytrack.app";
  * estourar `SecurityError`. `crossOrigin` continua obrigatório mesmo com o
  * proxy — sem ele o browser não pede CORS e o canvas é contaminado do mesmo jeito.
  */
+const IMAGE_LOAD_TIMEOUT_MS = 10_000;
+
 export function loadImage(src: string): Promise<HTMLImageElement | null> {
   return new Promise((resolve) => {
     const image = new Image();
+    let settled = false;
+
+    const finish = (result: HTMLImageElement | null) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      image.onload = null;
+      image.onerror = null;
+      resolve(result);
+    };
+
+    // Teto de tempo: um request que fica pendurado (proxy sem resposta, aba em
+    // background, service worker travado) nunca dispara load nem error, e sem
+    // isso o `Promise.all` do gerador fica pendente pra sempre — botão de
+    // compartilhar em loading eterno, sem imagem e sem erro.
+    const timer = setTimeout(() => finish(null), IMAGE_LOAD_TIMEOUT_MS);
+
     image.crossOrigin = "anonymous";
-    image.onload = () => resolve(image);
-    image.onerror = () => resolve(null);
+    image.onload = () => finish(image);
+    image.onerror = () => finish(null);
     image.src = src;
+  });
+}
+
+/**
+ * `document.fonts.ready` pode não resolver enquanto o documento ainda dispara
+ * carregamentos de fonte. Esperar é só pra medir texto com a fonte certa —
+ * nunca deve impedir a imagem de sair.
+ */
+export function fontsReady(timeoutMs = 3_000): Promise<unknown> {
+  const ready = document.fonts?.ready;
+  if (!ready) return Promise.resolve();
+  return Promise.race([ready, new Promise((resolve) => setTimeout(resolve, timeoutMs))]);
+}
+
+/**
+ * PNG do canvas com teto de tempo: `toBlob` é assíncrono e, se o callback não
+ * vier, o gerador fica pendente para sempre em vez de falhar.
+ */
+export function toPngBlob(canvas: HTMLCanvasElement, timeoutMs = 15_000): Promise<Blob> {
+  return new Promise<Blob>((resolve, reject) => {
+    let settled = false;
+    const timer = setTimeout(() => {
+      if (settled) return;
+      settled = true;
+      reject(new Error("Tempo esgotado ao converter o canvas em PNG."));
+    }, timeoutMs);
+
+    canvas.toBlob((blob) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      if (blob) resolve(blob);
+      else reject(new Error("Não foi possível gerar a imagem."));
+    }, "image/png");
   });
 }
 
@@ -162,6 +215,26 @@ export function drawCoverAtmosphere(
   if (supportsBlur) ctx.filter = "none";
 }
 
+/**
+ * Desenha imagem recortada estilo `object-fit: cover` — preenche todo o
+ * retângulo sem distorcer, cortando o excedente centralizado. Sem isso,
+ * capa com aspect ratio diferente de 1:1 esticava e deformava dentro do
+ * quadrado.
+ */
+export function drawImageCover(
+  ctx: CanvasRenderingContext2D,
+  image: HTMLImageElement,
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+) {
+  const scale = Math.max(width / image.width, height / image.height);
+  const drawWidth = image.width * scale;
+  const drawHeight = image.height * scale;
+  ctx.drawImage(image, x + (width - drawWidth) / 2, y + (height - drawHeight) / 2, drawWidth, drawHeight);
+}
+
 /** Fundo roxo/dourado da marca: gradientes são sempre lisos, ao contrário do grão de um PNG. */
 export function drawBrandBackground(
   ctx: CanvasRenderingContext2D,
@@ -210,9 +283,9 @@ export function drawBrandBackground(
 }
 
 /**
- * Logo real do app (círculo com fundo branco recortado por um clip circular —
- * `logo.webp` é um quadrado com o selo inscrito tangente às bordas, então o
- * clip no mesmo diâmetro remove os cantos brancos sem sobrar borda).
+ * Logo oficial do app. Contain-fit em vez de forçar quadrado: o lockup atual
+ * (ícone + wordmark) é bem mais largo que alto, e esticar num quadrado
+ * deformava o desenho.
  */
 export function drawBrandLogo(
   ctx: CanvasRenderingContext2D,
@@ -224,19 +297,17 @@ export function drawBrandLogo(
   if (!image) {
     ctx.fillStyle = WHITE;
     ctx.textAlign = "center";
-    ctx.textBaseline = "alphabetic";
+    ctx.textBaseline = "middle";
     ctx.font = font(700, Math.round(radius * 0.26));
     ctx.fillText("TRACK BY TRACK", cx, cy);
     return;
   }
 
-  ctx.save();
-  ctx.beginPath();
-  ctx.arc(cx, cy, radius, 0, Math.PI * 2);
-  ctx.closePath();
-  ctx.clip();
-  ctx.drawImage(image, cx - radius, cy - radius, radius * 2, radius * 2);
-  ctx.restore();
+  const box = radius * 2;
+  const scale = Math.min(box / image.width, box / image.height);
+  const width = image.width * scale;
+  const height = image.height * scale;
+  ctx.drawImage(image, cx - width / 2, cy - height / 2, width, height);
 }
 
 export function drawInstagramGlyph(
@@ -245,37 +316,94 @@ export function drawInstagramGlyph(
   y: number,
   size: number,
 ) {
+  ctx.save();
   ctx.strokeStyle = GOLD;
-  ctx.lineWidth = 2.5;
-  ctx.strokeRect(x, y, size, size);
-  ctx.beginPath();
-  ctx.arc(x + size / 2, y + size / 2, size * 0.28, 0, Math.PI * 2);
+  ctx.lineWidth = 2.2;
+  const r = 6;
+  roundedRectPath(ctx, x, y, size, size, r);
   ctx.stroke();
+
+  ctx.beginPath();
+  ctx.arc(x + size / 2, y + size / 2, size * 0.26, 0, Math.PI * 2);
+  ctx.stroke();
+
   ctx.fillStyle = GOLD;
   ctx.beginPath();
-  ctx.arc(x + size * 0.78, y + size * 0.22, 2.2, 0, Math.PI * 2);
+  ctx.arc(x + size * 0.76, y + size * 0.24, 2, 0, Math.PI * 2);
   ctx.fill();
+  ctx.restore();
 }
 
 export function drawGlobeGlyph(ctx: CanvasRenderingContext2D, x: number, y: number, size: number) {
+  ctx.save();
   const r = size / 2;
   const cx = x + r;
   const cy = y + r;
+  ctx.strokeStyle = GOLD;
+  ctx.lineWidth = 2.2;
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, 0, Math.PI * 2);
+  ctx.stroke();
+
+  ctx.beginPath();
+  ctx.moveTo(x, cy);
+  ctx.lineTo(x + size, cy);
+  ctx.stroke();
+
+  ctx.beginPath();
+  ctx.ellipse(cx, cy, r * 0.45, r, 0, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.restore();
+}
+
+/** Coração de faixa favorita: contorno fino em dourado. */
+export function drawOutlineHeartGlyph(
+  ctx: CanvasRenderingContext2D,
+  cx: number,
+  cy: number,
+  size: number,
+) {
+  const r = size / 4;
+  const top = cy - size / 4;
+  ctx.save();
+  ctx.strokeStyle = GOLD;
+  ctx.lineWidth = 2.5;
+  ctx.lineJoin = "round";
+  ctx.lineCap = "round";
+  ctx.beginPath();
+  ctx.arc(cx - r, top, r, Math.PI, 0);
+  ctx.arc(cx + r, top, r, Math.PI, 0);
+  ctx.lineTo(cx + r * 2, top + r * 0.5);
+  ctx.lineTo(cx, cy + size * 0.46);
+  ctx.lineTo(cx - r * 2, top + r * 0.5);
+  ctx.closePath();
+  ctx.stroke();
+  ctx.restore();
+}
+
+/** Ícone de pior faixa: círculo com barra diagonal em contorno dourado. */
+export function drawOutlineBanGlyph(
+  ctx: CanvasRenderingContext2D,
+  cx: number,
+  cy: number,
+  size: number,
+) {
+  const r = size / 2;
+  ctx.save();
   ctx.strokeStyle = GOLD;
   ctx.lineWidth = 2.5;
   ctx.beginPath();
   ctx.arc(cx, cy, r, 0, Math.PI * 2);
   ctx.stroke();
+  const offset = r * Math.SQRT1_2;
   ctx.beginPath();
-  ctx.moveTo(x, cy);
-  ctx.lineTo(x + size, cy);
+  ctx.moveTo(cx - offset, cy - offset);
+  ctx.lineTo(cx + offset, cy + offset);
   ctx.stroke();
-  ctx.beginPath();
-  ctx.ellipse(cx, cy, r * 0.45, r, 0, 0, Math.PI * 2);
-  ctx.stroke();
+  ctx.restore();
 }
 
-/** Coração de faixa favorita: mesmos dois lóbulos + ponta do ícone da tela. */
+/** Coração de faixa favorita preenchido. */
 export function drawHeartGlyph(ctx: CanvasRenderingContext2D, cx: number, cy: number, size: number) {
   const r = size / 4;
   const top = cy - size / 4;
@@ -290,7 +418,7 @@ export function drawHeartGlyph(ctx: CanvasRenderingContext2D, cx: number, cy: nu
   ctx.fill();
 }
 
-/** Ícone de pior faixa: o mesmo "proibido" (Ban) usado no seletor da tela. */
+/** Ícone de pior faixa preenchido. */
 export function drawBanGlyph(ctx: CanvasRenderingContext2D, cx: number, cy: number, size: number) {
   const r = size / 2;
   ctx.strokeStyle = BAN_GRAY;
@@ -306,64 +434,56 @@ export function drawBanGlyph(ctx: CanvasRenderingContext2D, cx: number, cy: numb
 }
 
 /**
- * "@trackbytrackapp" / "www.trackbytrack.app": divulgação do app dentro da
- * imagem. `centerX`/`dividerY`/`lineY` são do chamador — cada gerador tem seu
- * próprio canvas e sua própria margem de segurança na base.
+ * Rodapé elegante com logo do Instagram, handle, divisor vertical e site oficial.
  */
 export function drawBrandFooter(
   ctx: CanvasRenderingContext2D,
   centerX: number,
-  dividerY: number,
+  _dividerY: number,
   lineY: number,
 ) {
-  // Linha única que some nas pontas — traço reto cortado a seco deixava duas
-  // bordas duras no meio da imagem.
-  const dividerWidth = 620;
-  const divider = ctx.createLinearGradient(
-    centerX - dividerWidth / 2,
-    0,
-    centerX + dividerWidth / 2,
-    0,
-  );
-  divider.addColorStop(0, "rgba(255, 186, 8, 0)");
-  divider.addColorStop(0.5, "rgba(255, 186, 8, 0.55)");
-  divider.addColorStop(1, "rgba(255, 186, 8, 0)");
-  ctx.fillStyle = divider;
-  ctx.fillRect(centerX - dividerWidth / 2, dividerY, dividerWidth, 2);
+  ctx.save();
+  ctx.textBaseline = "middle";
 
-  ctx.textBaseline = "alphabetic";
-
-  // Handle e site na mesma linha, medidos e centralizados como um grupo: com
-  // offset fixo, texto de outro tamanho sai torto.
-  const glyphSize = 27;
-  const glyphGap = 14;
-  const itemGap = 40;
-  const footerFont = font(500, 29);
+  const glyphSize = 26;
+  const glyphGap = 12;
+  const itemGap = 32;
+  const footerFont = font(500, 24);
 
   ctx.font = footerFont;
   const handleWidth = ctx.measureText(BRAND_HANDLE).width;
   const siteWidth = ctx.measureText(BRAND_SITE).width;
+  const pipeWidth = ctx.measureText("|").width;
   const totalWidth =
-    glyphSize + glyphGap + handleWidth + itemGap + glyphSize + glyphGap + siteWidth;
+    glyphSize + glyphGap + handleWidth + itemGap + pipeWidth + itemGap + glyphSize + glyphGap + siteWidth;
 
   let x = centerX - totalWidth / 2;
-  ctx.textAlign = "left";
 
-  drawInstagramGlyph(ctx, x, lineY - 22, glyphSize);
+  // Instagram glyph
+  ctx.textAlign = "left";
+  drawInstagramGlyph(ctx, x, lineY - glyphSize / 2, glyphSize);
   x += glyphSize + glyphGap;
+
+  // Handle
   ctx.fillStyle = WHITE;
   ctx.font = footerFont;
   ctx.fillText(BRAND_HANDLE, x, lineY);
-  x += handleWidth + itemGap / 2;
+  x += handleWidth + itemGap;
 
-  ctx.fillStyle = "rgba(255, 186, 8, 0.7)";
-  ctx.textAlign = "center";
-  ctx.fillText("·", x, lineY);
-  x += itemGap / 2;
+  // Vertical Divider
+  ctx.fillStyle = "rgba(255, 186, 8, 0.55)";
+  ctx.font = font(300, 24);
+  ctx.fillText("|", x, lineY - 1);
+  x += pipeWidth + itemGap;
 
-  ctx.textAlign = "left";
-  drawGlobeGlyph(ctx, x, lineY - 22, glyphSize);
+  // Globe glyph
+  drawGlobeGlyph(ctx, x, lineY - glyphSize / 2, glyphSize);
   x += glyphSize + glyphGap;
+
+  // Site
   ctx.fillStyle = WHITE;
+  ctx.font = footerFont;
   ctx.fillText(BRAND_SITE, x, lineY);
+
+  ctx.restore();
 }

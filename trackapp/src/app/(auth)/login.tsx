@@ -14,7 +14,7 @@ import { PasswordInput } from "@/components/ui/PasswordInput";
 import { FormField } from "@/components/ui/FormField";
 import { toast } from "@/components/ui/toast-store";
 import { colors } from "@/lib/colors";
-import Logo from "@/assets/images/logo.webp";
+import Logo from "@/assets/images/logo.png";
 
 // Porta 1:1 de src/features/auth/components/LoginForm.tsx (web). Mensagens
 // de validação/erro do web são literais (não passam por `t()` lá também) —

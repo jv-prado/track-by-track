@@ -16,7 +16,12 @@ async function bootstrap() {
   app.useLogger(logger);
 
   app.setGlobalPrefix('v1');
-  app.use(helmet());
+  // CORP padrão do helmet é `same-origin`, o que faz o browser BLOQUEAR a capa
+  // servida por /albums/:id/cover quando a web está em outra origem (dev:
+  // 5173 → 3333; prod: domínio da web → host da API). Sem isso o proxy de capa
+  // — que existe justamente pra desenhar no canvas sem contaminá-lo — nunca
+  // carrega. CORS continua restrito a WEB_ORIGIN logo abaixo.
+  app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
   app.use(cookieParser());
   app.enableCors({ origin: env.WEB_ORIGIN, credentials: true });
   app.useGlobalPipes(new ZodValidationPipe());

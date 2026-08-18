@@ -1,22 +1,25 @@
 import { env } from "@/app/env";
-import logoUrl from "@/assets/logo.webp";
+import logoUrl from "@/assets/logo-full.png";
+import bgStoryUrl from "@/assets/teste.png";
 import {
-  BAN_GRAY,
-  HEART_RED,
+  GOLD,
   INK,
   MUTED,
   PURPLE,
   WHITE,
   clearShadow,
-  drawBanGlyph,
   drawBrandBackground,
   drawBrandFooter,
   drawBrandLogo,
   drawGlassCard,
-  drawHeartGlyph,
+  drawImageCover,
+  drawOutlineBanGlyph,
+  drawOutlineHeartGlyph,
   font,
+  fontsReady,
   loadImage,
   roundedRectPath,
+  toPngBlob,
   truncate,
   wrapLines,
 } from "./canvas-kit";
@@ -43,54 +46,47 @@ export interface ShareCardData {
   reviewText?: string;
 }
 
-// Formato de story (9:16). Fundo, logo e rodapé de marca vêm de canvas-kit —
-// só o layout do conteúdo do usuário (capa, review, destaques) é deste módulo.
+// Formato de story (9:16)
 const WIDTH = 1080;
 const HEIGHT = 1920;
 const SIDE_PADDING = 84;
 const CONTENT_WIDTH = WIDTH - SIDE_PADDING * 2;
-const TEXT_MAX_WIDTH = CONTENT_WIDTH;
+const TEXT_MAX_WIDTH = CONTENT_WIDTH - 40;
 
 const COVER_RADIUS = 32;
 
-// Logo grande é a marca do story — abaixo do cabeçalho do Instagram
-// (avatar/nome/X ocupam o topo), acima do conteúdo do usuário.
-const LOGO_CY = 230;
-const LOGO_RADIUS = 130;
+// Logo de marca no topo
+const LOGO_CY = 195;
+const LOGO_RADIUS = 210;
 
-// Rodapé acima da barra de resposta do Instagram, que come a base do story;
-// abaixo de ~230px nada é confiável de ler.
-const FOOTER_DIVIDER_Y = HEIGHT - 306;
-const FOOTER_LINE_Y = HEIGHT - 230;
+// Rodapé na base
+const FOOTER_LINE_Y = 1810;
 
-// Faixa vertical onde o conteúdo do usuário (capa → review/identidade) pode
-// ficar sem invadir o logo (topo) nem o rodapé de marca (base) — é dentro
-// dela que o bloco é centralizado, ver `layoutContent`.
-const CONTENT_TOP = LOGO_CY + LOGO_RADIUS + 44;
-const CONTENT_BOTTOM = FOOTER_DIVIDER_Y - 36;
+// Faixa vertical disponível para o conteúdo
+const CONTENT_TOP = 330;
+const CONTENT_BOTTOM = 1750;
 const AVAILABLE_HEIGHT = CONTENT_BOTTOM - CONTENT_TOP;
 
-// Capa é o que cede espaço quando o card ganha blocos: o layout tenta o maior
-// tamanho desta lista que ainda deixa tudo caber (ver `layoutContent`).
-const COVER_SIZES = [560, 520, 480, 440, 400, 360, 320, 280];
+const COVER_SIZES = [520, 480, 440, 400, 360, 320, 280];
 
-const ALBUM_NAME_SIZE = 60;
-const ALBUM_NAME_LINE_HEIGHT = 68;
+const ALBUM_NAME_SIZE = 52;
+const ALBUM_NAME_LINE_HEIGHT = 60;
 const ALBUM_NAME_MAX_LINES = 3;
 
-const AVATAR_RADIUS = 54;
-const HIGHLIGHT_CARD_HEIGHT = 104;
+const AVATAR_RADIUS = 46;
+const HIGHLIGHT_WIDTH = 780;
+const HIGHLIGHT_ROW_HEIGHT = 88;
 
-// Card de review: avatar + nome + data no topo, texto abaixo.
-const REVIEW_PADDING = 34;
-const REVIEW_HEADER_HEIGHT = 96;
-const REVIEW_HEADER_TO_TEXT = 32;
-const REVIEW_LINE_HEIGHT = 42;
-const REVIEW_TEXT_SIZE = 30;
-const REVIEW_CHROME = REVIEW_PADDING * 2 + REVIEW_HEADER_HEIGHT + REVIEW_HEADER_TO_TEXT + 28;
+// Card de review
+const REVIEW_PADDING = 32;
+const REVIEW_HEADER_HEIGHT = 88;
+const REVIEW_HEADER_TO_TEXT = 28;
+const REVIEW_LINE_HEIGHT = 38;
+const REVIEW_TEXT_SIZE = 28;
+const REVIEW_CHROME = REVIEW_PADDING * 2 + REVIEW_HEADER_HEIGHT + REVIEW_HEADER_TO_TEXT + 24;
 const REVIEW_MAX_LINES = 6;
 
-/** Mesma faixa de cor do badge de nota na tela (`getScoreColorClasses`), em hex — canvas não lê classe Tailwind. */
+/** Cores oficiais da nota: verde (>= 7), amarelo (4-6.9), vermelho (< 4). */
 function getScoreColor(score: number, isComplete: boolean): string {
   if (!isComplete) return MUTED;
   if (score < 4) return "#f87171"; // red-400
@@ -111,18 +107,12 @@ interface ContentLayout {
   reviewCardTop: number;
   reviewLines: string[];
   reviewCardHeight: number;
-  /** Só no modo sem review — com review, avatar/nome/data ficam dentro do card. */
   identityCy: number;
   height: number;
 }
 
 /**
- * Empilha capa → nome → artista → destaques → review/identidade a partir de um
- * cursor e centraliza o bloco na faixa livre entre logo e rodapé de marca.
- * Sem isso, card sem faixa favorita/pior sobrava um vão morto no meio.
- *
- * Precisa do contexto porque nome do álbum e review quebram em N linhas, e a
- * altura de tudo depende disso.
+ * Medição e empilhamento dos elementos garantindo folga entre a nota e o título do álbum.
  */
 function measureLayout(
   ctx: CanvasRenderingContext2D,
@@ -131,29 +121,32 @@ function measureLayout(
   albumNameLines: string[],
   neededReviewLines: number,
 ): ContentLayout {
-  const badgeRadius = Math.round(coverSize * 0.17);
+  const badgeRadius = Math.round(coverSize * 0.155);
 
   let cursor = 0;
   const coverY = cursor;
-  // Selo de nota passa da base da capa: a folga garante que o nome nunca
-  // encoste nele, independente do tamanho escolhido pra capa.
-  cursor += coverSize + (badgeRadius - 16) + 46;
+
+  // O selo da nota se estende abaixo da base da capa (cy + badgeRadius).
+  // Folga garantida de 56px abaixo do selo da nota antes de iniciar o título do álbum:
+  const badgeBottom = coverSize - badgeRadius * 0.2 + badgeRadius;
+  cursor = Math.max(coverSize + 60, badgeBottom + 56);
+
   const albumNameY = cursor;
-  cursor += (albumNameLines.length - 1) * ALBUM_NAME_LINE_HEIGHT + 58;
+  cursor += (albumNameLines.length - 1) * ALBUM_NAME_LINE_HEIGHT + 54;
   const artistY = cursor;
 
   let favoriteCardTop = 0;
   if (data.favoriteTrack) {
     cursor += 48;
     favoriteCardTop = cursor;
-    cursor += HIGHLIGHT_CARD_HEIGHT;
+    cursor += HIGHLIGHT_ROW_HEIGHT;
   }
 
   let worstCardTop = 0;
   if (data.worstTrack) {
     cursor += data.favoriteTrack ? 16 : 48;
     worstCardTop = cursor;
-    cursor += HIGHLIGHT_CARD_HEIGHT;
+    cursor += HIGHLIGHT_ROW_HEIGHT;
   }
 
   let reviewCardTop = 0;
@@ -172,7 +165,7 @@ function measureLayout(
     reviewCardHeight = REVIEW_CHROME + reviewLines.length * REVIEW_LINE_HEIGHT;
     cursor = reviewCardTop + reviewCardHeight;
   } else {
-    cursor += 74 + AVATAR_RADIUS;
+    cursor += 60 + AVATAR_RADIUS;
     identityCy = cursor;
     cursor += AVATAR_RADIUS;
   }
@@ -196,13 +189,10 @@ function measureLayout(
 }
 
 /**
- * Escolhe a MAIOR capa que ainda deixa o bloco inteiro caber, e só então
- * centraliza. Tamanho fixo obrigava a encolher tudo pelo pior caso (nome em 3
- * linhas + review longa + dois destaques), deixando o card pequeno à toa
- * quando o ranking tinha pouca coisa.
+ * Escolhe o tamanho ideal da capa e centraliza o bloco verticalmente de forma harmoniosa.
  */
 function layoutContent(ctx: CanvasRenderingContext2D, data: ShareCardData): ContentLayout {
-  ctx.font = font(700, ALBUM_NAME_SIZE);
+  ctx.font = font(800, ALBUM_NAME_SIZE);
   const albumNameLines = wrapLines(ctx, data.albumName, TEXT_MAX_WIDTH, ALBUM_NAME_MAX_LINES);
 
   let neededReviewLines = 0;
@@ -234,10 +224,7 @@ function layoutContent(ctx: CanvasRenderingContext2D, data: ShareCardData): Cont
     }
   }
 
-  // Bias pra baixo em vez de centro puro: sobra fica mais no topo (perto da
-  // logo) que no rodapé (perto do bloco do usuário) — pedido explícito de
-  // "descer a parte do usuário" em vez de deixar vão morto embaixo.
-  const offset = CONTENT_TOP + Math.max(0, (AVAILABLE_HEIGHT - chosen.height) * 0.8);
+  const offset = CONTENT_TOP + Math.max(0, (AVAILABLE_HEIGHT - chosen.height) / 2);
 
   return {
     ...chosen,
@@ -251,7 +238,7 @@ function layoutContent(ctx: CanvasRenderingContext2D, data: ShareCardData): Cont
   };
 }
 
-/** Capa com cantos arredondados + sombra: é o que separa a arte do fundo desfocado dela mesma. */
+/** Capa do álbum com glow radial dourado/roxo, sombra escura e borda fina. */
 function drawCover(
   ctx: CanvasRenderingContext2D,
   cover: HTMLImageElement | null,
@@ -259,47 +246,95 @@ function drawCover(
 ) {
   const { coverX, coverY, coverSize } = layout;
 
+  // 1. Glow atmosférico radial dourado/roxo atrás da capa
+  const glowRadius = coverSize * 0.75;
+  const glowCx = coverX + coverSize / 2;
+  const glowCy = coverY + coverSize / 2;
+  const glow = ctx.createRadialGradient(
+    glowCx,
+    glowCy,
+    coverSize * 0.2,
+    glowCx,
+    glowCy,
+    glowRadius,
+  );
+  glow.addColorStop(0, "rgba(255, 186, 8, 0.45)");
+  glow.addColorStop(0.5, "rgba(93, 31, 137, 0.3)");
+  glow.addColorStop(1, "rgba(0, 0, 0, 0)");
+  ctx.fillStyle = glow;
+  ctx.fillRect(
+    glowCx - glowRadius,
+    glowCy - glowRadius,
+    glowRadius * 2,
+    glowRadius * 2,
+  );
+
+  // 2. Halo sutil na borda — camadas por TRÁS da capa, do maior/mais fraco pro
+  // menor/mais forte. `shadowBlur` numa borda desenhada por CIMA da imagem
+  // borra pra dentro também (mancha esbranquiçada sobre a foto); desenhando
+  // aqui, a capa opaca cobre a parte interna de cada camada e só sobra o
+  // anel que vaza pro fundo escuro — halo visível, sem manchar a arte.
+  for (const { pad, alpha } of [
+    { pad: 14, alpha: 0.06 },
+    { pad: 9, alpha: 0.09 },
+    { pad: 4, alpha: 0.14 },
+  ]) {
+    roundedRectPath(
+      ctx,
+      coverX - pad,
+      coverY - pad,
+      coverSize + pad * 2,
+      coverSize + pad * 2,
+      COVER_RADIUS + pad,
+    );
+    ctx.fillStyle = `rgba(186, 130, 224, ${alpha})`;
+    ctx.fill();
+  }
+
+  // 3. Sombra escura profunda sob a capa
   ctx.save();
-  ctx.shadowColor = "rgba(1, 8, 14, 0.65)";
-  ctx.shadowBlur = 60;
-  ctx.shadowOffsetY = 24;
+  ctx.shadowColor = "rgba(0, 0, 0, 0.85)";
+  ctx.shadowBlur = 50;
+  ctx.shadowOffsetY = 20;
   roundedRectPath(ctx, coverX, coverY, coverSize, coverSize, COVER_RADIUS);
   ctx.fillStyle = INK;
   ctx.fill();
   ctx.restore();
   clearShadow(ctx);
 
+  // 4. Imagem da capa — cover-fit, preenche o quadrado inteiro sem distorcer
   if (cover) {
     ctx.save();
     roundedRectPath(ctx, coverX, coverY, coverSize, coverSize, COVER_RADIUS);
     ctx.clip();
-    ctx.drawImage(cover, coverX, coverY, coverSize, coverSize);
+    drawImageCover(ctx, cover, coverX, coverY, coverSize, coverSize);
     ctx.restore();
   } else {
-    // Fallback: sem capa o card continua legível, só perde a arte.
     roundedRectPath(ctx, coverX, coverY, coverSize, coverSize, COVER_RADIUS);
     ctx.fillStyle = "rgba(255, 255, 255, 0.08)";
     ctx.fill();
   }
 
+  // 5. Aro fino por cima, sem blur — contorno nítido, o halo já foi resolvido acima
   roundedRectPath(ctx, coverX, coverY, coverSize, coverSize, COVER_RADIUS);
-  ctx.strokeStyle = "rgba(255, 255, 255, 0.16)";
+  ctx.strokeStyle = "rgba(216, 180, 235, 0.35)";
   ctx.lineWidth = 2;
   ctx.stroke();
 }
 
-/** Selo da nota encostado no canto da capa — é o dado que o story existe pra mostrar. */
+/** Selo da nota com fundo escuro, aro na cor da nota (verde/amarelo/vermelho) e número correspondente. */
 function drawScoreBadge(ctx: CanvasRenderingContext2D, data: ShareCardData, layout: ContentLayout) {
   const radius = layout.badgeRadius;
-  const cx = layout.coverX + layout.coverSize - radius * 0.65;
-  const cy = layout.coverY + layout.coverSize - 16;
+  const cx = layout.coverX + layout.coverSize - radius * 0.4;
+  const cy = layout.coverY + layout.coverSize - radius * 0.2;
   const color = getScoreColor(data.averageScore, data.isScoreComplete);
 
+  // Sombra escura do selo
   ctx.save();
-  ctx.shadowColor = "rgba(1, 8, 14, 0.7)";
-  ctx.shadowBlur = 40;
+  ctx.shadowColor = "rgba(0, 0, 0, 0.9)";
+  ctx.shadowBlur = 35;
   ctx.shadowOffsetY = 12;
-  ctx.fillStyle = "rgba(6, 4, 12, 0.92)";
+  ctx.fillStyle = "#090511";
   ctx.beginPath();
   ctx.arc(cx, cy, radius, 0, Math.PI * 2);
   ctx.closePath();
@@ -307,58 +342,108 @@ function drawScoreBadge(ctx: CanvasRenderingContext2D, data: ShareCardData, layo
   ctx.restore();
   clearShadow(ctx);
 
+  // Aro na cor da nota
+  ctx.save();
   ctx.strokeStyle = color;
-  ctx.lineWidth = 6;
+  ctx.lineWidth = 2.5;
   ctx.beginPath();
-  ctx.arc(cx, cy, radius - 4, 0, Math.PI * 2);
+  ctx.arc(cx, cy, radius - 1, 0, Math.PI * 2);
   ctx.stroke();
+  ctx.restore();
 
   ctx.textAlign = "center";
-  ctx.textBaseline = "alphabetic";
-  ctx.fillStyle = color;
-  ctx.font = font(700, Math.round(radius * 0.8));
-  ctx.fillText(data.averageScore.toFixed(1), cx, cy + radius * 0.08);
+  ctx.textBaseline = "middle";
 
-  ctx.fillStyle = MUTED;
-  ctx.font = font(600, Math.round(radius * 0.28));
-  ctx.fillText("/10", cx, cy + radius * 0.56);
+  // Nota principal (verde/amarelo/vermelho)
+  ctx.fillStyle = color;
+  ctx.font = font(800, Math.round(radius * 0.7));
+  ctx.fillText(data.averageScore.toFixed(1), cx, cy - radius * 0.14);
+
+  // /10 em cinza
+  ctx.fillStyle = "#9ca3af";
+  ctx.font = font(600, Math.round(radius * 0.26));
+  ctx.fillText("/10", cx, cy + radius * 0.42);
 }
 
-/** Destaque (faixa favorita / pior faixa) em cartão de vidro com o ícone da tela. */
-function drawHighlightCard(
+/** Linha do artista com divisores horizontais dourados nas laterais. */
+function drawArtistRow(
+  ctx: CanvasRenderingContext2D,
+  artist: string,
+  y: number,
+  maxWidth: number,
+) {
+  ctx.save();
+  ctx.font = font(600, 26);
+  const upperArtist = artist.toUpperCase();
+  const text = truncate(ctx, upperArtist, maxWidth - 260);
+  const textWidth = ctx.measureText(text).width;
+  const gap = 28;
+  const lineWidth = 100;
+
+  // Linha esquerda com degradê
+  const leftX = WIDTH / 2 - textWidth / 2 - gap - lineWidth;
+  const leftGrad = ctx.createLinearGradient(leftX, 0, leftX + lineWidth, 0);
+  leftGrad.addColorStop(0, "rgba(255, 186, 8, 0)");
+  leftGrad.addColorStop(1, "rgba(255, 186, 8, 0.7)");
+  ctx.fillStyle = leftGrad;
+  ctx.fillRect(leftX, y - 8, lineWidth, 1.5);
+
+  // Nome do artista
+  ctx.textAlign = "center";
+  ctx.textBaseline = "alphabetic";
+  ctx.fillStyle = "#d1d5db";
+  ctx.fillText(text, WIDTH / 2, y);
+
+  // Linha direita com degradê
+  const rightX = WIDTH / 2 + textWidth / 2 + gap;
+  const rightGrad = ctx.createLinearGradient(rightX, 0, rightX + lineWidth, 0);
+  rightGrad.addColorStop(0, "rgba(255, 186, 8, 0.7)");
+  rightGrad.addColorStop(1, "rgba(255, 186, 8, 0)");
+  ctx.fillStyle = rightGrad;
+  ctx.fillRect(rightX, y - 8, lineWidth, 1.5);
+
+  ctx.restore();
+}
+
+/** Destaques (faixa favorita / pior faixa) com ícones vazados em dourado e divisores finos. */
+function drawHighlightRow(
   ctx: CanvasRenderingContext2D,
   highlight: ShareCardTrackHighlight,
   top: number,
   variant: "favorite" | "worst",
 ) {
-  const cy = top + HIGHLIGHT_CARD_HEIGHT / 2;
-  drawGlassCard(ctx, SIDE_PADDING, top, CONTENT_WIDTH, HIGHLIGHT_CARD_HEIGHT, 26);
+  const startX = (WIDTH - HIGHLIGHT_WIDTH) / 2;
+  const iconCx = startX + 32;
+  const iconCy = top + 34;
 
-  const glyphCx = SIDE_PADDING + 64;
-  ctx.fillStyle = variant === "favorite" ? "rgba(248, 113, 113, 0.14)" : "rgba(255, 255, 255, 0.08)";
-  ctx.beginPath();
-  ctx.arc(glyphCx, cy, 33, 0, Math.PI * 2);
-  ctx.closePath();
-  ctx.fill();
+  if (variant === "favorite") {
+    drawOutlineHeartGlyph(ctx, iconCx, iconCy, 44);
+  } else {
+    drawOutlineBanGlyph(ctx, iconCx, iconCy, 40);
+  }
 
-  if (variant === "favorite") drawHeartGlyph(ctx, glyphCx, cy, 36);
-  else drawBanGlyph(ctx, glyphCx, cy, 34);
-
-  const textX = SIDE_PADDING + 118;
-  const textMaxWidth = CONTENT_WIDTH - 118 - 36;
+  const textX = startX + 80;
+  const textMaxWidth = HIGHLIGHT_WIDTH - 90;
 
   ctx.textAlign = "left";
   ctx.textBaseline = "alphabetic";
-  ctx.fillStyle = variant === "favorite" ? HEART_RED : BAN_GRAY;
-  ctx.font = font(600, 26);
-  ctx.fillText(truncate(ctx, highlight.label, textMaxWidth), textX, cy - 14);
 
+  // Label em dourado caixa alta
+  ctx.fillStyle = GOLD;
+  ctx.font = font(700, 20);
+  ctx.fillText(truncate(ctx, highlight.label.toUpperCase(), textMaxWidth), textX, top + 22);
+
+  // Nome da faixa em branco
   ctx.fillStyle = WHITE;
-  ctx.font = font(700, 38);
-  ctx.fillText(truncate(ctx, highlight.name, textMaxWidth), textX, cy + 30);
+  ctx.font = font(600, 32);
+  ctx.fillText(truncate(ctx, highlight.name, textMaxWidth), textX, top + 58);
+
+  // Linha divisória sutil
+  ctx.fillStyle = "rgba(255, 255, 255, 0.1)";
+  ctx.fillRect(startX, top + HIGHLIGHT_ROW_HEIGHT - 6, HIGHLIGHT_WIDTH, 1);
 }
 
-/** Avatar circular (usado solto no rodapé de identidade e dentro do card de review). */
+/** Avatar circular com aro dourado. */
 function drawAvatar(
   ctx: CanvasRenderingContext2D,
   image: HTMLImageElement | null,
@@ -384,23 +469,22 @@ function drawAvatar(
   if (!image) {
     ctx.fillStyle = WHITE;
     ctx.textAlign = "center";
-    ctx.textBaseline = "alphabetic";
+    ctx.textBaseline = "middle";
     ctx.font = font(700, Math.round(radius * 0.74));
-    ctx.fillText(initial, cx, cy + radius * 0.26);
+    ctx.fillText(initial, cx, cy);
   }
 
-  ctx.strokeStyle = "rgba(255, 186, 8, 0.55)";
-  ctx.lineWidth = 3.5;
+  // Aro dourado fino
+  ctx.save();
+  ctx.strokeStyle = GOLD;
+  ctx.lineWidth = 2.5;
   ctx.beginPath();
-  ctx.arc(cx, cy, radius + 5, 0, Math.PI * 2);
+  ctx.arc(cx, cy, radius, 0, Math.PI * 2);
   ctx.stroke();
+  ctx.restore();
 }
 
-/**
- * Card da review: avatar + nome + data no topo, texto abaixo. Só existe quando
- * há texto — sem review o rodapé continua sendo a linha de identidade solta,
- * que ocupa bem menos altura.
- */
+/** Card de review com citação estilizada. */
 function drawReviewCard(
   ctx: CanvasRenderingContext2D,
   data: ShareCardData,
@@ -408,16 +492,24 @@ function drawReviewCard(
   avatar: HTMLImageElement | null,
 ) {
   const top = layout.reviewCardTop;
-  drawGlassCard(ctx, SIDE_PADDING, top, CONTENT_WIDTH, layout.reviewCardHeight, 30);
+  drawGlassCard(ctx, SIDE_PADDING, top, CONTENT_WIDTH, layout.reviewCardHeight, 28);
 
-  // Aspas decorativas no canto: marcam o bloco como citação sem gastar linha.
+  // Borda dourada sutil no card
+  ctx.save();
+  roundedRectPath(ctx, SIDE_PADDING, top, CONTENT_WIDTH, layout.reviewCardHeight, 28);
+  ctx.strokeStyle = "rgba(255, 186, 8, 0.25)";
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+  ctx.restore();
+
+  // Aspas decorativas
   ctx.textAlign = "right";
   ctx.textBaseline = "alphabetic";
-  ctx.fillStyle = "rgba(255, 255, 255, 0.12)";
-  ctx.font = font(700, 140);
-  ctx.fillText("”", SIDE_PADDING + CONTENT_WIDTH - 32, top + 126);
+  ctx.fillStyle = "rgba(255, 186, 8, 0.2)";
+  ctx.font = font(700, 130);
+  ctx.fillText("”", SIDE_PADDING + CONTENT_WIDTH - 28, top + 116);
 
-  const avatarRadius = REVIEW_HEADER_HEIGHT / 2;
+  const avatarRadius = REVIEW_HEADER_HEIGHT / 2 - 4;
   const avatarCx = SIDE_PADDING + REVIEW_PADDING + avatarRadius;
   const avatarCy = top + REVIEW_PADDING + avatarRadius;
   drawAvatar(
@@ -429,21 +521,21 @@ function drawReviewCard(
     avatarRadius,
   );
 
-  const textX = avatarCx + avatarRadius + 28;
-  const nameMaxWidth = CONTENT_WIDTH - (textX - SIDE_PADDING) - REVIEW_PADDING - 60;
+  const textX = avatarCx + avatarRadius + 24;
+  const nameMaxWidth = CONTENT_WIDTH - (textX - SIDE_PADDING) - REVIEW_PADDING - 50;
 
   ctx.textAlign = "left";
   ctx.fillStyle = WHITE;
-  ctx.font = font(700, 38);
-  ctx.fillText(truncate(ctx, data.userDisplayName, nameMaxWidth), textX, avatarCy - 4);
+  ctx.font = font(700, 32);
+  ctx.fillText(truncate(ctx, data.userDisplayName.toUpperCase(), nameMaxWidth), textX, avatarCy - 4);
 
   ctx.fillStyle = MUTED;
-  ctx.font = font(400, 27);
-  ctx.fillText(data.ratedAtLabel, textX, avatarCy + 34);
+  ctx.font = font(500, 22);
+  ctx.fillText(data.ratedAtLabel.toUpperCase(), textX, avatarCy + 26);
 
-  ctx.fillStyle = "#dcdcdc";
+  ctx.fillStyle = "#e2e8f0";
   ctx.font = font(400, REVIEW_TEXT_SIZE);
-  const firstBaseline = top + REVIEW_PADDING + REVIEW_HEADER_HEIGHT + REVIEW_HEADER_TO_TEXT + 28;
+  const firstBaseline = top + REVIEW_PADDING + REVIEW_HEADER_HEIGHT + REVIEW_HEADER_TO_TEXT + 24;
   layout.reviewLines.forEach((line, index) => {
     ctx.fillText(line, SIDE_PADDING + REVIEW_PADDING, firstBaseline + index * REVIEW_LINE_HEIGHT);
   });
@@ -456,20 +548,20 @@ function drawIdentityRow(
   layout: ContentLayout,
   avatar: HTMLImageElement | null,
 ) {
-  const usernameFont = font(700, 38);
-  const dateFont = font(400, 28);
-  const identityMaxWidth = TEXT_MAX_WIDTH - AVATAR_RADIUS * 2 - 26 - 120;
+  const usernameFont = font(700, 30);
+  const dateFont = font(500, 22);
+  const identityMaxWidth = TEXT_MAX_WIDTH - AVATAR_RADIUS * 2 - 24 - 80;
 
   ctx.font = usernameFont;
-  const username = truncate(ctx, data.userDisplayName, identityMaxWidth);
+  const username = truncate(ctx, data.userDisplayName.toUpperCase(), identityMaxWidth);
   const usernameWidth = ctx.measureText(username).width;
 
   ctx.font = dateFont;
-  const dateLabel = truncate(ctx, data.ratedAtLabel, identityMaxWidth);
+  const dateLabel = truncate(ctx, data.ratedAtLabel.toUpperCase(), identityMaxWidth);
   const dateWidth = ctx.measureText(dateLabel).width;
 
   const textBlockWidth = Math.max(usernameWidth, dateWidth);
-  const gap = 26;
+  const gap = 24;
   const groupWidth = AVATAR_RADIUS * 2 + gap + textBlockWidth;
   const groupStartX = WIDTH / 2 - groupWidth / 2;
   const avatarCx = groupStartX + AVATAR_RADIUS;
@@ -489,17 +581,13 @@ function drawIdentityRow(
   ctx.font = usernameFont;
   ctx.fillText(username, textX, layout.identityCy - 6);
 
-  ctx.fillStyle = MUTED;
+  ctx.fillStyle = "#9ca3af";
   ctx.font = dateFont;
-  ctx.fillText(dateLabel, textX, layout.identityCy + 34);
+  ctx.fillText(dateLabel, textX, layout.identityCy + 24);
 }
 
 /**
- * Desenha o card compartilhável e devolve o PNG. Função pura de desenho — sem
- * React e sem hook, então dá pra testar passando um canvas mock.
- *
- * Nada aqui pode estourar por falta de dado: álbum sem capa, usuário sem foto
- * e ranking sem review/faixa favorita/pior são casos normais, não erro.
+ * Desenha o card compartilhável e devolve o PNG.
  */
 export async function renderShareCard(data: ShareCardData): Promise<Blob> {
   const canvas = document.createElement("canvas");
@@ -509,59 +597,58 @@ export async function renderShareCard(data: ShareCardData): Promise<Blob> {
   const ctx = canvas.getContext("2d");
   if (!ctx) throw new Error("Canvas 2D indisponível neste navegador.");
 
-  // Fonte do app só está garantida depois disto — sem esperar, quem abre a
-  // página com cache frio gera o card com a fonte de fallback.
-  await document.fonts?.ready;
+  await fontsReady();
 
-  const [logo, cover, avatar] = await Promise.all([
+  const [bgImage, logo, cover, avatar] = await Promise.all([
+    loadImage(bgStoryUrl),
     loadImage(logoUrl),
     loadImage(`${env.VITE_API_URL}/albums/${data.albumId}/cover`),
     data.userAvatarUrl ? loadImage(data.userAvatarUrl) : Promise.resolve(null),
   ]);
 
-  drawBrandBackground(ctx, cover, WIDTH, HEIGHT);
+  if (bgImage) {
+    ctx.drawImage(bgImage, 0, 0, WIDTH, HEIGHT);
+  } else {
+    drawBrandBackground(ctx, cover, WIDTH, HEIGHT);
+  }
+
   drawBrandLogo(ctx, logo, WIDTH / 2, LOGO_CY, LOGO_RADIUS);
-  drawBrandFooter(ctx, WIDTH / 2, FOOTER_DIVIDER_Y, FOOTER_LINE_Y);
+  drawBrandFooter(ctx, WIDTH / 2, 0, FOOTER_LINE_Y);
 
   const layout = layoutContent(ctx, data);
 
   drawCover(ctx, cover, layout);
   drawScoreBadge(ctx, data, layout);
 
+  // Nome do álbum em maiúsculas, negrito e destacado
   ctx.textAlign = "center";
   ctx.textBaseline = "alphabetic";
-
-  // Nome do álbum quebra linha em vez de truncar: cortar o nome do álbum é
-  // justamente o dado que o story existe pra mostrar.
   ctx.fillStyle = WHITE;
-  ctx.font = font(700, ALBUM_NAME_SIZE);
+  ctx.font = font(800, ALBUM_NAME_SIZE);
   layout.albumNameLines.forEach((line, index) => {
     ctx.fillText(
-      truncate(ctx, line, TEXT_MAX_WIDTH),
+      truncate(ctx, line.toUpperCase(), TEXT_MAX_WIDTH),
       WIDTH / 2,
       layout.albumNameY + index * ALBUM_NAME_LINE_HEIGHT,
     );
   });
 
-  ctx.fillStyle = MUTED;
-  ctx.font = font(400, 38);
-  ctx.fillText(truncate(ctx, data.artist, TEXT_MAX_WIDTH), WIDTH / 2, layout.artistY);
+  // Linha do artista com divisores decorativos
+  drawArtistRow(ctx, data.artist, layout.artistY, TEXT_MAX_WIDTH);
 
+  // Destaques de faixa
   if (data.favoriteTrack) {
-    drawHighlightCard(ctx, data.favoriteTrack, layout.favoriteCardTop, "favorite");
+    drawHighlightRow(ctx, data.favoriteTrack, layout.favoriteCardTop, "favorite");
   }
 
   if (data.worstTrack) {
-    drawHighlightCard(ctx, data.worstTrack, layout.worstCardTop, "worst");
+    drawHighlightRow(ctx, data.worstTrack, layout.worstCardTop, "worst");
   }
 
   if (data.reviewText) drawReviewCard(ctx, data, layout, avatar);
   else drawIdentityRow(ctx, data, layout, avatar);
 
-  return new Promise<Blob>((resolve, reject) => {
-    canvas.toBlob((blob) => {
-      if (blob) resolve(blob);
-      else reject(new Error("Não foi possível gerar a imagem."));
-    }, "image/png");
-  });
+  return toPngBlob(canvas);
 }
+
+

@@ -210,9 +210,9 @@
   "review": {
     "placeholder": "What did you think of this album?",
     "favoriteTrack": "Favorite track",
-    "worstTrack": "Worst track",
+    "worstTrack": "Least favorite track",
     "favoriteTrackSaved": "Favorite track saved",
-    "worstTrackSaved": "Worst track saved",
+    "worstTrackSaved": "Least favorite track saved",
     "saveError": "Could not save the review.",
     "notChosen": "Not chosen yet",
     "noReviewYet": "This user hasn't written a review of this album yet.",
@@ -221,7 +221,7 @@
   },
   "rankingActions": {
     "reset": "Reset ratings",
-    "resetConfirm": "This clears every rating, your review, and favorite/worst track for this album. Can't be undone.",
+    "resetConfirm": "This clears every rating, your review, and favorite/least favorite track for this album. Can't be undone.",
     "resetConfirmYes": "Yes, reset",
     "resetting": "Resetting...",
     "resetSuccess": "Ranking reset.",
@@ -255,7 +255,7 @@
     "ratingsAndAverage": "{{count}} ratings · average {{average}}",
     "ratingsCount": "{{count}} ratings",
     "favoriteTracks": "Favorite tracks",
-    "worstTracks": "Worst tracks"
+    "worstTracks": "Least favorite tracks"
   },
   "communityReviews": {
     "title": "Reviews from other users",

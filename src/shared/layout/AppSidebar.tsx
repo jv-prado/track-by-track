@@ -16,7 +16,8 @@ import { useTranslation } from "react-i18next";
 import { useAuthStore } from "@/shared/auth/auth.store";
 import { useLogoutMutation } from "@/queries/auth";
 import { useLastEditedAlbumQuery } from "@/queries/discovery";
-import Logo from "@/assets/logo.webp";
+import LogoFull from "@/assets/logo-full.png";
+import LogoIcon from "@/assets/logo-icon.png";
 import LanguageSelector from "@/componentes/LanguageSelector";
 import { cn } from "@/shared/lib/cn";
 import { getScoreColorClasses } from "@/shared/lib/scoreColor";
@@ -114,9 +115,9 @@ export function AppSidebar() {
             resto do conteúdo (nav, cards, logout) mantém */}
         <div className="-mx-4 mb-8">
           <img
-            src={Logo}
+            src={collapsed ? LogoIcon : LogoFull}
             alt="Track by Track"
-            className={cn("mx-auto transition-all", collapsed ? "w-20" : "w-28")}
+            className={cn("mx-auto transition-all", collapsed ? "w-20" : "w-40")}
           />
         </div>
 

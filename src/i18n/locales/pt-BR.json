@@ -232,9 +232,9 @@
   "review": {
     "placeholder": "O que você achou desse álbum?",
     "favoriteTrack": "Faixa favorita",
-    "worstTrack": "Pior faixa",
+    "worstTrack": "Faixa menos favorita",
     "favoriteTrackSaved": "Faixa favorita salva",
-    "worstTrackSaved": "Pior faixa salva",
+    "worstTrackSaved": "Faixa menos favorita salva",
     "saveError": "Não foi possível salvar a review.",
     "notChosen": "Ainda não escolhida",
     "noReviewYet": "Este usuário ainda não escreveu uma review deste álbum.",
@@ -249,7 +249,7 @@
   },
   "rankingActions": {
     "reset": "Resetar avaliações",
-    "resetConfirm": "Isso apaga todas as notas, review e faixa favorita/pior deste álbum. Não pode ser desfeito.",
+    "resetConfirm": "Isso apaga todas as notas, review e faixa favorita/menos favorita deste álbum. Não pode ser desfeito.",
     "resetConfirmYes": "Sim, resetar",
     "resetting": "Resetando...",
     "resetSuccess": "Ranking resetado.",
@@ -283,7 +283,7 @@
     "ratingsAndAverage": "{{count}} avaliações · média {{average}}",
     "ratingsCount": "{{count}} avaliações",
     "favoriteTracks": "Faixas favoritas",
-    "worstTracks": "Piores faixas"
+    "worstTracks": "Faixas menos favoritas"
   },
   "communityReviews": {
     "title": "Reviews de outros usuários",

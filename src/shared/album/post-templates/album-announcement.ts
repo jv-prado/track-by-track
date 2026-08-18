@@ -1,5 +1,5 @@
 import { env } from "@/app/env";
-import logoUrl from "@/assets/logo.webp";
+import logoUrl from "@/assets/logo-icon.png";
 import {
   GOLD,
   INK,
@@ -11,8 +11,10 @@ import {
   drawBrandLogo,
   drawGlassCard,
   font,
+  fontsReady,
   loadImage,
   roundedRectPath,
+  toPngBlob,
   truncate,
   wrapLines,
 } from "../canvas-kit";
@@ -222,7 +224,7 @@ export async function renderAlbumAnnouncementPost(data: AlbumAnnouncementPostDat
   const ctx = canvas.getContext("2d");
   if (!ctx) throw new Error("Canvas 2D indisponível neste navegador.");
 
-  await document.fonts?.ready;
+  await fontsReady();
 
   const [logo, cover] = await Promise.all([
     loadImage(logoUrl),
@@ -258,10 +260,5 @@ export async function renderAlbumAnnouncementPost(data: AlbumAnnouncementPostDat
 
   drawAnnouncementBadge(ctx, layout);
 
-  return new Promise<Blob>((resolve, reject) => {
-    canvas.toBlob((blob) => {
-      if (blob) resolve(blob);
-      else reject(new Error("Não foi possível gerar a imagem."));
-    }, "image/png");
-  });
+  return toPngBlob(canvas);
 }

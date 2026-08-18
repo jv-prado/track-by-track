@@ -6,11 +6,12 @@ import { router } from "@/router";
 import { useAuthStore } from "@/shared/auth/auth.store";
 import { useSessionQuery } from "@/queries/auth";
 import { Toaster } from "@/shared/ui/Toast";
+import Logo from "@/assets/logo-icon.png";
 
 function SessionSplash() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-grafite">
-      <img src="/src/assets/logo.webp" alt="" className="w-16 animate-float" />
+      <img src={Logo} alt="" className="w-16 animate-float" />
     </div>
   );
 }

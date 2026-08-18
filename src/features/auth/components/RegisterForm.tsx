@@ -10,7 +10,7 @@ import { Input } from "@/shared/ui/Input";
 import { PasswordInput } from "@/shared/ui/PasswordInput";
 import { FormField } from "@/shared/ui/FormField";
 import { toast } from "@/shared/ui/toast-store";
-import Logo from "@/assets/logo.webp";
+import Logo from "@/assets/logo-full.png";
 
 const registerSchema = z
   .object({

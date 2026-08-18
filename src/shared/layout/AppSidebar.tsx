@@ -156,17 +156,26 @@ export function AppSidebar() {
           >
             <div className="relative shrink-0 flex items-center justify-center">
               <MessageSquare size={collapsed ? 22 : 20} />
-              {isAdmin && unansweredFeedbacksCount > 0 && collapsed && (
-                <span className="absolute -top-1.5 -right-1.5 min-w-4 h-4 px-1 rounded-full bg-dourado text-grafite text-[10px] font-bold flex items-center justify-center">
-                  {unansweredFeedbacksCount > 9 ? "9+" : unansweredFeedbacksCount}
-                </span>
+              {collapsed && (
+                isAdmin && unansweredFeedbacksCount > 0 ? (
+                  <span className="absolute -top-1.5 -right-1.5 min-w-4 h-4 px-1 rounded-full bg-dourado text-grafite text-[10px] font-bold flex items-center justify-center">
+                    {unansweredFeedbacksCount > 9 ? "9+" : unansweredFeedbacksCount}
+                  </span>
+                ) : (
+                  <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-dourado shadow-xs shadow-dourado animate-pulse" />
+                )
               )}
             </div>
             {!collapsed && (
               <div className="flex flex-1 items-center justify-between min-w-0">
-                <span className="text-sm sm:text-base">{t("nav.feedbacks")}</span>
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="text-sm sm:text-base truncate">{t("nav.feedbacks")}</span>
+                  <span className="px-1.5 py-0.5 rounded text-[10px] font-bold tracking-wider uppercase bg-dourado/20 text-dourado border border-dourado/40 shrink-0">
+                    New
+                  </span>
+                </div>
                 {isAdmin && unansweredFeedbacksCount > 0 && (
-                  <span className="min-w-5 h-5 px-1.5 rounded-full bg-dourado text-grafite text-xs font-bold flex items-center justify-center">
+                  <span className="min-w-5 h-5 px-1.5 rounded-full bg-dourado text-grafite text-xs font-bold flex items-center justify-center ml-2">
                     {unansweredFeedbacksCount > 99 ? "99+" : unansweredFeedbacksCount}
                   </span>
                 )}
@@ -393,9 +402,12 @@ export function AppSidebar() {
                 className="flex items-center gap-2 w-full px-3 py-2.5 text-base text-left text-gray-200 hover:bg-white/5 transition"
               >
                 <MessageSquare size={18} />
-                <span className="flex-1 truncate">{t("nav.feedbacks")}</span>
+                <span className="truncate">{t("nav.feedbacks")}</span>
+                <span className="px-1.5 py-0.5 rounded text-[10px] font-bold tracking-wider uppercase bg-dourado/20 text-dourado border border-dourado/40">
+                  New
+                </span>
                 {isAdmin && unansweredFeedbacksCount > 0 && (
-                  <span className="min-w-4.5 h-4.5 px-1.5 rounded-full bg-dourado text-grafite text-xs font-bold flex items-center justify-center">
+                  <span className="ml-auto min-w-4.5 h-4.5 px-1.5 rounded-full bg-dourado text-grafite text-xs font-bold flex items-center justify-center">
                     {unansweredFeedbacksCount}
                   </span>
                 )}

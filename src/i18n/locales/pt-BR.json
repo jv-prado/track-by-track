@@ -170,17 +170,21 @@
   },
   "search": {
     "title": "Buscar",
-    "subtitle": "Encontre álbuns pra rankear ou usuários pra seguir.",
+    "subtitle": "Encontre álbuns pra rankear, artistas pra explorar ou usuários pra seguir.",
     "tabAlbums": "Álbuns",
+    "tabArtists": "Artistas",
     "tabUsers": "Usuários",
-    "placeholder": "Nome do álbum ou artista...",
+    "placeholder": "Nome do álbum...",
+    "artistsPlaceholder": "Nome do artista ou banda...",
     "usersPlaceholder": "Nome de usuário...",
     "clearAria": "Limpar busca",
     "startTitle": "Comece digitando",
-    "startDescription": "Busque pelo nome de um álbum ou artista pra ver os resultados aqui.",
+    "startDescription": "Busque pelo nome de um álbum pra ver os resultados aqui.",
+    "artistsStartDescription": "Busque pelo nome de um artista ou banda pra ver os resultados aqui.",
     "usersStartDescription": "Busque pelo nome de um usuário pra ver os resultados aqui.",
     "emptyTitle": "Nenhum álbum encontrado",
     "emptyDescription": "Tente outro termo de busca.",
+    "artistsEmptyTitle": "Nenhum artista encontrado",
     "usersEmptyTitle": "Nenhum usuário encontrado",
     "error": "Não foi possível buscar. Tente de novo."
   },
@@ -424,4 +428,3 @@
     "send": "Enviar"
   }
 }
-

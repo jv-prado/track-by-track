@@ -9,7 +9,12 @@ import {
 import { mapToCuratedGenres } from './curated-genre-mapper';
 import { AlbumSchemaClass } from './album.schema';
 import { newObjectId } from '../../shared/kernel/object-id';
-import { AlbumDetail, AlbumSummary, RecentRelease } from './spotify-normalizer';
+import {
+  AlbumDetail,
+  AlbumSummary,
+  ArtistSummary,
+  RecentRelease,
+} from './spotify-normalizer';
 import type { CuratedGenre } from './genres.constant';
 import {
   CACHE,
@@ -52,6 +57,11 @@ export interface AlbumCatalogSpotify {
   ): Promise<{ items: AlbumSummary[]; total: number }>;
   getAlbumWithTracks(spotifyId: string): Promise<AlbumDetail | null>;
   getRecentReleases(): Promise<RecentRelease[]>;
+  searchArtists(
+    query: string,
+    limit: number,
+    offset: number,
+  ): Promise<{ items: ArtistSummary[]; total: number }>;
 }
 
 /** Lançamento com gênero já reduzido às categorias curadas — o que o filtro usa. */
@@ -200,6 +210,23 @@ export class AlbumCatalogService {
         await this.rememberSearchResults(result.items);
         return result;
       },
+    );
+  }
+
+  /**
+   * Sem atalho de catálogo local (ver `search()`): artista não tem coleção
+   * própria no Mongo, só o cache de resposta — volume de busca por artista é
+   * baixo o bastante pra não justificar mais uma coleção pra manter em dia.
+   */
+  searchArtists(
+    query: string,
+    limit: number,
+    offset: number,
+  ): Promise<{ items: ArtistSummary[]; total: number }> {
+    return this.cache.getOrSet(
+      this.keys.spotifyArtistSearch(query, limit, offset),
+      SEARCH_TTL_SECONDS,
+      () => this.spotify.searchArtists(query, limit, offset),
     );
   }
 

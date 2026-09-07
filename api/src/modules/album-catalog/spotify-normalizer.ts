@@ -38,6 +38,17 @@ export interface SpotifySearchResponseRaw {
   albums: { items: SpotifyAlbumSummaryRaw[]; total: number };
 }
 
+export interface SpotifyArtistSummaryRaw {
+  id: string;
+  name: string;
+  images: SpotifyImage[];
+  genres: string[];
+}
+
+export interface SpotifySearchArtistsResponseRaw {
+  artists: { items: SpotifyArtistSummaryRaw[]; total: number };
+}
+
 export interface SpotifyTrackRaw {
   id: string;
   name: string;
@@ -87,6 +98,28 @@ export interface AlbumDetail extends AlbumSummary {
    * já resolveu os artistas (ver `SpotifyClientService.getAlbumWithTracks`).
    */
   genres?: string[];
+}
+
+export interface ArtistSummary {
+  spotifyId: string;
+  name: string;
+  /** 640px — mesma lógica de tamanho do `AlbumSummary`. */
+  imageUrl?: string;
+  /** 300px — o que os grids/listas devem consumir. */
+  imageUrlSmall?: string;
+  genres: string[];
+}
+
+export function normalizeArtistSummary(
+  raw: SpotifyArtistSummaryRaw,
+): ArtistSummary {
+  return {
+    spotifyId: raw.id,
+    name: raw.name,
+    imageUrl: raw.images[0]?.url,
+    imageUrlSmall: raw.images[1]?.url ?? raw.images[0]?.url,
+    genres: raw.genres,
+  };
 }
 
 export function normalizeAlbumSummary(

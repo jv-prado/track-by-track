@@ -13,6 +13,7 @@ import type { AlbumSchemaClass } from './album.schema';
 import type {
   AlbumDetail,
   AlbumSummary,
+  ArtistSummary,
   RecentRelease,
 } from './spotify-normalizer';
 
@@ -26,12 +27,14 @@ class FakeSpotify implements AlbumCatalogSpotify {
   searchCalls = 0;
   albumCalls = 0;
   newReleasesCalls = 0;
+  searchArtistsCalls = 0;
   nextAlbum: AlbumDetail | null = null;
   /** Álbum devolvido por id específico — usado nos testes de filtro de gênero. */
   albumsById: Record<string, AlbumDetail> = {};
   /** Resultado de busca por query (minúsculo) — usado na resolução do chart da Apple. */
   searchResultsByQuery: Record<string, AlbumSummary[]> = {};
   recentReleases: RecentRelease[] = [];
+  artistSearchResults: ArtistSummary[] = [];
 
   searchAlbums(
     query: string,
@@ -49,6 +52,14 @@ class FakeSpotify implements AlbumCatalogSpotify {
   getRecentReleases(): Promise<RecentRelease[]> {
     this.newReleasesCalls += 1;
     return Promise.resolve(this.recentReleases);
+  }
+
+  searchArtists(): Promise<{ items: ArtistSummary[]; total: number }> {
+    this.searchArtistsCalls += 1;
+    return Promise.resolve({
+      items: this.artistSearchResults,
+      total: this.artistSearchResults.length,
+    });
   }
 }
 
@@ -156,6 +167,19 @@ describe('AlbumCatalogService (cache)', () => {
     await service.search('lorde', 10, 20); // offset diferente = chave diferente
 
     expect(spotify.searchCalls).toBe(2);
+  });
+
+  it('busca de artista idêntica só bate no Spotify uma vez', async () => {
+    const { service, spotify } = setup();
+    spotify.artistSearchResults = [
+      { spotifyId: 'a1', name: 'Boy Harsher', genres: [] },
+    ];
+
+    const first = await service.searchArtists('boy harsher', 10, 0);
+    const second = await service.searchArtists('Boy Harsher ', 10, 0);
+
+    expect(spotify.searchArtistsCalls).toBe(1);
+    expect(second.items).toEqual(first.items);
   });
 
   it('catálogo local com resultado suficiente evita o Spotify', async () => {

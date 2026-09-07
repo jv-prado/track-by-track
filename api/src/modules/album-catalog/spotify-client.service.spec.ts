@@ -114,6 +114,44 @@ describe('SpotifyClientService', () => {
     });
   });
 
+  it('normaliza resultado de busca de artista', async () => {
+    const { http, service } = setup();
+    http.nextGetResponse = {
+      artists: {
+        items: [
+          {
+            id: 'artist1',
+            name: 'Boy Harsher',
+            images: [
+              { url: 'https://img/large.jpg' },
+              { url: 'https://img/medium.jpg' },
+            ],
+            genres: ['darkwave'],
+          },
+        ],
+        total: 1,
+      },
+    };
+
+    const results = await service.searchArtists('boy harsher', 10, 0);
+
+    expect(results).toEqual({
+      items: [
+        {
+          spotifyId: 'artist1',
+          name: 'Boy Harsher',
+          imageUrl: 'https://img/large.jpg',
+          imageUrlSmall: 'https://img/medium.jpg',
+          genres: ['darkwave'],
+        },
+      ],
+      total: 1,
+    });
+    expect(http.getCalls[0]?.config?.params).toMatchObject({
+      type: 'artist',
+    });
+  });
+
   it('retorna null quando o álbum não existe no Spotify (404)', async () => {
     const { http, service } = setup();
     http.shouldFailNextGetWithNotFound = true;

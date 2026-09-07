@@ -47,6 +47,10 @@ export class CacheKeys {
     return `${this.root}:spotify:search:${hash(query)}:${limit}:${offset}`;
   }
 
+  spotifyArtistSearch(query: string, limit: number, offset: number): string {
+    return `${this.root}:spotify:artist-search:${hash(query)}:${limit}:${offset}`;
+  }
+
   spotifyAlbumMissing(spotifyId: string): string {
     return `${this.root}:spotify:album-missing:${spotifyId}`;
   }

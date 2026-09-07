@@ -14,6 +14,17 @@ export const albumSummarySchema = z.object({
   releaseDate: z.string().optional(),
 });
 
+export const artistSummarySchema = z.object({
+  spotifyId: z.string(),
+  name: z.string(),
+  /** 640px — só onde a foto aparece grande. */
+  imageUrl: z.string().optional(),
+  /** 300px — o que grids/listas devem consumir. */
+  imageUrlSmall: z.string().optional(),
+  /** Vocabulário cru do Spotify — mesmo formato de `RecentRelease.genres`. */
+  genres: z.array(z.string()),
+});
+
 export const albumTrackSchema = z.object({
   spotifyId: z.string(),
   name: z.string(),
@@ -52,11 +63,13 @@ export const trackPreviewSchema = z.object({
 });
 
 export const albumSearchPageSchema = paginatedSchema(albumSummarySchema);
+export const artistSearchPageSchema = paginatedSchema(artistSummarySchema);
 export const newReleasesPageSchema = paginatedSchema(newReleaseAlbumSchema);
 export const topChartPageSchema = paginatedSchema(chartAlbumSchema);
 export const genreListSchema = z.array(z.string());
 
 export class AlbumSearchPageDto extends createZodDto(albumSearchPageSchema) {}
+export class ArtistSearchPageDto extends createZodDto(artistSearchPageSchema) {}
 export class AlbumDetailDto extends createZodDto(albumDetailSchema) {}
 export class NewReleasesPageDto extends createZodDto(newReleasesPageSchema) {}
 export class TopChartPageDto extends createZodDto(topChartPageSchema) {}

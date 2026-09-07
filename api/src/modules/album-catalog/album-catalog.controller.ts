@@ -12,6 +12,7 @@ import { CURATED_GENRES } from './genres.constant';
 import {
   AlbumDetailDto,
   AlbumSearchPageDto,
+  ArtistSearchPageDto,
   NewReleasesPageDto,
   TopChartPageDto,
   TrackPreviewDto,
@@ -33,6 +34,27 @@ export class AlbumCatalogController {
   async search(@Query() query: SearchAlbumsQueryDto) {
     const offset = (query.page - 1) * query.perPage;
     const { items, total } = await this.albumCatalog.search(
+      query.q,
+      query.perPage,
+      offset,
+    );
+    return {
+      data: items,
+      meta: {
+        page: query.page,
+        perPage: query.perPage,
+        total,
+        totalPages: Math.max(1, Math.ceil(total / query.perPage)),
+      },
+    };
+  }
+
+  @Public()
+  @ApiOkResponse({ type: ArtistSearchPageDto })
+  @Get('search/artists')
+  async searchArtists(@Query() query: SearchAlbumsQueryDto) {
+    const offset = (query.page - 1) * query.perPage;
+    const { items, total } = await this.albumCatalog.searchArtists(
       query.q,
       query.perPage,
       offset,

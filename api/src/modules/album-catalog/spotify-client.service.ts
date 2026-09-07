@@ -13,11 +13,14 @@ import {
 import {
   AlbumDetail,
   AlbumSummary,
+  ArtistSummary,
   normalizeAlbumDetail,
   normalizeAlbumSummary,
+  normalizeArtistSummary,
   RecentRelease,
   SpotifyAlbumDetailRaw,
   SpotifyAlbumSummaryRaw,
+  SpotifySearchArtistsResponseRaw,
   SpotifySearchResponseRaw,
   SpotifySeveralArtistsResponseRaw,
 } from './spotify-normalizer';
@@ -166,6 +169,25 @@ export class SpotifyClientService {
         .filter((item) => !isSingleTrackRelease(item))
         .map(normalizeAlbumSummary),
       total: response.data.albums.total,
+    };
+  }
+
+  async searchArtists(
+    query: string,
+    limit: number,
+    offset: number,
+  ): Promise<{ items: ArtistSummary[]; total: number }> {
+    const token = await this.getAppAccessToken();
+    const response = await this.http.get<SpotifySearchArtistsResponseRaw>(
+      `${API_BASE_URL}/search`,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+        params: { q: query, type: 'artist', limit, offset },
+      },
+    );
+    return {
+      items: response.data.artists.items.map(normalizeArtistSummary),
+      total: response.data.artists.total,
     };
   }
 

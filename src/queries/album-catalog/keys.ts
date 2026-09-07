@@ -1,6 +1,8 @@
 export const albumCatalogKeys = {
   all: ["album-catalog"] as const,
   searchInfinite: (query: string) => [...albumCatalogKeys.all, "search", query] as const,
+  searchArtistsInfinite: (query: string) =>
+    [...albumCatalogKeys.all, "search-artists", query] as const,
   detail: (albumId: string) => [...albumCatalogKeys.all, "detail", albumId] as const,
   trackPreview: (albumId: string, trackId: string) =>
     [...albumCatalogKeys.all, "track-preview", albumId, trackId] as const,

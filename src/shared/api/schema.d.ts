@@ -180,6 +180,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/albums/search/artists": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AlbumCatalogController_searchArtists"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/albums/genres": {
         parameters: {
             query?: never;
@@ -966,6 +982,22 @@ export interface components {
                 nextCursor?: string | null;
             };
         };
+        ArtistSearchPageDto: {
+            data: {
+                spotifyId: string;
+                name: string;
+                imageUrl?: string;
+                imageUrlSmall?: string;
+                genres: string[];
+            }[];
+            meta: {
+                page: number;
+                perPage: number;
+                total: number;
+                totalPages: number;
+                nextCursor?: string | null;
+            };
+        };
         NewReleasesPageDto: {
             data: {
                 spotifyId: string;
@@ -1691,6 +1723,29 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AlbumSearchPageDto"];
+                };
+            };
+        };
+    };
+    AlbumCatalogController_searchArtists: {
+        parameters: {
+            query: {
+                q: string;
+                page?: number;
+                perPage?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ArtistSearchPageDto"];
                 };
             };
         };

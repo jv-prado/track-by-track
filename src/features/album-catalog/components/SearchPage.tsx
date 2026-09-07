@@ -1,7 +1,10 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Search, X } from "lucide-react";
-import { useSearchAlbumsInfiniteQuery } from "@/queries/album-catalog";
+import {
+  useSearchAlbumsInfiniteQuery,
+  useSearchArtistsInfiniteQuery,
+} from "@/queries/album-catalog";
 import { useSearchUsersInfiniteQuery } from "@/queries/follows";
 import { useUsersStatsQuery } from "@/queries/discovery";
 import { UserCard } from "@/shared/social/UserCard";
@@ -13,6 +16,7 @@ import { Skeleton } from "@/shared/ui/Skeleton";
 import { useInfiniteScroll } from "@/shared/lib/use-infinite-scroll";
 import { cn } from "@/shared/lib/cn";
 import { AlbumCard } from "./AlbumCard";
+import { ArtistCard } from "./ArtistCard";
 import { FeedCardSkeleton } from "@/shared/ui/FeedCardSkeleton";
 
 // mesma grade do Discover/Feed (ver DiscoverPage.tsx) — cartão idêntico merece mesmo tamanho.
@@ -20,7 +24,34 @@ const GRID_CLASSES =
   "grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] gap-3 sm:grid-cols-[repeat(auto-fill,minmax(200px,1fr))] sm:gap-5";
 const SKELETON_COUNT = 10;
 
-type SearchTab = "albums" | "users";
+type SearchTab = "albums" | "artists" | "users";
+
+// aba → chaves de i18n (placeholder, empty title, start description) e se o
+// resultado é lista (avatar + linha) ou grade (capa de álbum). Uma linha por
+// aba nova em vez de espalhar `tab === 'x'` pelo componente inteiro.
+const TAB_COPY: Record<
+  SearchTab,
+  { placeholder: string; startDescription: string; emptyTitle: string; layout: "list" | "grid" }
+> = {
+  albums: {
+    placeholder: "search.placeholder",
+    startDescription: "search.startDescription",
+    emptyTitle: "search.emptyTitle",
+    layout: "grid",
+  },
+  artists: {
+    placeholder: "search.artistsPlaceholder",
+    startDescription: "search.artistsStartDescription",
+    emptyTitle: "search.artistsEmptyTitle",
+    layout: "list",
+  },
+  users: {
+    placeholder: "search.usersPlaceholder",
+    startDescription: "search.usersStartDescription",
+    emptyTitle: "search.usersEmptyTitle",
+    layout: "list",
+  },
+};
 
 export function SearchPage() {
   const { t } = useTranslation();
@@ -34,20 +65,14 @@ export function SearchPage() {
     return () => clearTimeout(timeout);
   }, [queryInput]);
 
-  const isUsers = tab === "users";
   // cada hook só habilita a própria query quando a aba correspondente está
-  // ativa — trocar de aba não deixa as duas requisições em voo ao mesmo tempo.
-  const albums = useSearchAlbumsInfiniteQuery(isUsers ? "" : query);
-  const users = useSearchUsersInfiniteQuery(isUsers ? query : "");
-  const {
-    data,
-    isLoading,
-    isError,
-    refetch,
-    fetchNextPage,
-    hasNextPage,
-    isFetchingNextPage,
-  } = isUsers ? users : albums;
+  // ativa — trocar de aba não deixa as três requisições em voo ao mesmo tempo.
+  const albums = useSearchAlbumsInfiniteQuery(tab === "albums" ? query : "");
+  const artists = useSearchArtistsInfiniteQuery(tab === "artists" ? query : "");
+  const users = useSearchUsersInfiniteQuery(tab === "users" ? query : "");
+  const active = tab === "artists" ? artists : tab === "users" ? users : albums;
+  const { data, isLoading, isError, refetch, fetchNextPage, hasNextPage, isFetchingNextPage } =
+    active;
   const sentinelRef = useInfiniteScroll({
     hasNextPage: Boolean(hasNextPage),
     isFetchingNextPage,
@@ -55,9 +80,24 @@ export function SearchPage() {
   });
 
   const albumItems = albums.data?.pages.flatMap((page) => page.data) ?? [];
+  const artistItems = artists.data?.pages.flatMap((page) => page.data) ?? [];
   const userItems = users.data?.pages.flatMap((page) => page.data) ?? [];
   const userStats = useUsersStatsQuery(userItems.map((user) => user.id));
-  const hasResults = isUsers ? userItems.length > 0 : albumItems.length > 0;
+  const hasResults =
+    tab === "artists"
+      ? artistItems.length > 0
+      : tab === "users"
+        ? userItems.length > 0
+        : albumItems.length > 0;
+
+  const copy = TAB_COPY[tab];
+
+  // artista não tem página própria — clicar joga o nome pra busca de álbuns,
+  // aba que de fato leva a algo rankeável.
+  function handleArtistSelect(artistName: string) {
+    setTab("albums");
+    setQueryInput(artistName);
+  }
 
   return (
     <div className="w-full">
@@ -76,6 +116,7 @@ export function SearchPage() {
         {(
           [
             ["albums", "search.tabAlbums"],
+            ["artists", "search.tabArtists"],
             ["users", "search.tabUsers"],
           ] as const
         ).map(([value, labelKey]) => (
@@ -101,7 +142,7 @@ export function SearchPage() {
           icon={<Search size={16} />}
           value={queryInput}
           onChange={(e) => setQueryInput(e.target.value)}
-          placeholder={t(isUsers ? "search.usersPlaceholder" : "search.placeholder")}
+          placeholder={t(copy.placeholder)}
           autoFocus
         />
         {queryInput && (
@@ -116,13 +157,10 @@ export function SearchPage() {
       </div>
 
       {!query.trim() && (
-        <EmptyState
-          title={t("search.startTitle")}
-          description={t(isUsers ? "search.usersStartDescription" : "search.startDescription")}
-        />
+        <EmptyState title={t("search.startTitle")} description={t(copy.startDescription)} />
       )}
 
-      {query.trim() && isLoading && !data && isUsers && (
+      {query.trim() && isLoading && !data && copy.layout === "list" && (
         <div className="flex flex-col gap-1">
           {Array.from({ length: SKELETON_COUNT }).map((_, i) => (
             <div key={i} className="flex items-center gap-3 px-2 py-2">
@@ -133,7 +171,7 @@ export function SearchPage() {
         </div>
       )}
 
-      {query.trim() && isLoading && !data && !isUsers && (
+      {query.trim() && isLoading && !data && copy.layout === "grid" && (
         <div className={GRID_CLASSES}>
           {Array.from({ length: SKELETON_COUNT }).map((_, i) => (
             <FeedCardSkeleton key={i} />
@@ -146,13 +184,26 @@ export function SearchPage() {
       )}
 
       {query.trim() && data && !hasResults && (
-        <EmptyState
-          title={t(isUsers ? "search.usersEmptyTitle" : "search.emptyTitle")}
-          description={t("search.emptyDescription")}
-        />
+        <EmptyState title={t(copy.emptyTitle)} description={t("search.emptyDescription")} />
       )}
 
-      {query.trim() && data && hasResults && isUsers && (
+      {query.trim() && data && hasResults && tab === "artists" && (
+        <>
+          <div className="flex flex-col gap-1">
+            {artistItems.map((artist) => (
+              <ArtistCard key={artist.spotifyId} artist={artist} onSelect={handleArtistSelect} />
+            ))}
+          </div>
+
+          {hasNextPage && (
+            <div ref={sentinelRef} className="flex justify-center py-8">
+              {isFetchingNextPage && <Spinner className="h-6 w-6" />}
+            </div>
+          )}
+        </>
+      )}
+
+      {query.trim() && data && hasResults && tab === "users" && (
         <>
           <div className="flex flex-col gap-1">
             {userItems.map((user) => (
@@ -176,7 +227,7 @@ export function SearchPage() {
         </>
       )}
 
-      {query.trim() && data && hasResults && !isUsers && (
+      {query.trim() && data && hasResults && tab === "albums" && (
         <>
           <div className={GRID_CLASSES}>
             {albumItems.map((album) => (

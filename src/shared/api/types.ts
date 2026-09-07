@@ -34,6 +34,7 @@ export type AlbumStats = Schemas["AlbumStatsDto"];
 export type TrackTally = Schemas["AlbumStatsDto"]["topFavoriteTracks"][number];
 
 export type AlbumSummary = Schemas["AlbumSearchPageDto"]["data"][number];
+export type ArtistSummary = Schemas["ArtistSearchPageDto"]["data"][number];
 export type NewReleaseAlbum = Schemas["NewReleasesPageDto"]["data"][number];
 export type TopChartAlbum = Schemas["TopChartPageDto"]["data"][number];
 export type AlbumDetail = Schemas["AlbumDetailDto"];

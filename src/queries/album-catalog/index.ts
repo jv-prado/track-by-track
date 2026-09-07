@@ -1,5 +1,6 @@
 export { albumCatalogKeys } from "./keys";
 export { useSearchAlbumsInfiniteQuery } from "./useSearchAlbumsInfiniteQuery";
+export { useSearchArtistsInfiniteQuery } from "./useSearchArtistsInfiniteQuery";
 export { useAlbumDetailQuery } from "./useAlbumDetailQuery";
 export { useTrackPreviewQuery } from "./useTrackPreviewQuery";
 export { useGenresQuery } from "./useGenresQuery";
